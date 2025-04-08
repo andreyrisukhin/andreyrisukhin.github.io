@@ -182,7 +182,6 @@ exclude:
   - _pages/profiles.md
   - _pages/projects.md
   - _pages/repositories.md
-  - _pages/teaching.md
   - _posts/
   - _projects/?_project.md
   - bin/
