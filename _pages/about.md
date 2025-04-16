@@ -31,7 +31,7 @@ I am a Ph.D. Student at the [Department of Computer Science of the University of
 
 I recieved my combined B.S. and M.S. from the [University of Washington](https://www.washington.edu/). I spent time at Contextual AI as an intern.
 
-My research broadly spans **natural language processing** and **machine learning**, merged with **human-computer interaction**. My current interests primarily include:
+My research broadly spans **natural language processing** and **machine learning**, motivated by **human-computer interaction**. My current interests primarily include:
 * Implicit goal inference from behavior cues
 * User adaptation of text interfaces
 * Collecting high quality data with implicit annotation
