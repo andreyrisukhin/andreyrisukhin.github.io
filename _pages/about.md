@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: Ph.D. Student #<a href='#'>Affiliations</a>. Address. Contacts. Motto. Etc.
+subtitle: Ph.D. Student at <a href='https://illinois.edu/'>UIUC</a> #<a href='#'>Affiliations</a>. Address. Contacts. Motto. Etc. at [Urbana-Champaign (UIUC)](https://illinois.edu/)
 
 profile:
   align: right
@@ -27,12 +27,13 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-<!-- I am a Ph.D. Student at the [Department of Computer Science of the University of Illinois](https://siebelschool.illinois.edu/) at [Urbana-Champaign (UIUC)](https://illinois.edu/). -->
+I am a Ph.D. Student at the [Department of Computer Science of the University of Illinois](https://siebelschool.illinois.edu/), advised by [Tal August](https://talaugust.github.io/), whose HCI + NLP work reflects my research interests.
 
 I recieved my combined B.S. and M.S. from the [University of Washington](https://www.washington.edu/). I spent time at Contextual AI as an intern.
 
-My research broadly spans **natural language processing** and **machine learning**. My current interests primarily include:
+My research broadly spans **natural language processing** and **machine learning**, merged with **human-computer interaction**. My current interests primarily include:
 * Implicit goal inference from behavior cues
 * User adaptation of text interfaces
+* Collecting high quality data with implicit annotation
 
 <!-- Put your address / P.O. box / other info right below your picture. You can also disable any of these elements by editing `profile` property of the YAML header of your `_pages/about.md`. Edit `_bibliography/papers.bib` and Jekyll will render your [publications page](/al-folio/publications/) automatically. -->
