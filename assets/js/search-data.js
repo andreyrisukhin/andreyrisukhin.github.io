@@ -53,12 +53,29 @@ ninja.data = [{
             },},{id: "news-new-website-porting-over-information-throughout-the-next-few-weeks",
           title: 'New website! Porting over information throughout the next few weeks 🚧',
           description: "",
+          section: "News",},{id: "news-i-m-eager-to-join-uiuc-in-the-fall-looking-for-spring-summer-work-aligned-with-my-research-interests",
+          title: 'I’m eager to join UIUC in the fall! Looking for spring/summer work aligned...',
+          description: "",
           section: "News",},{
         id: 'social-email',
         title: 'email',
         section: 'Socials',
         handler: () => {
           window.open("mailto:%72%69%73%75%6B%61@%63%73.%77%61%73%68%69%6E%67%74%6F%6E.%65%64%75", "_blank");
+        },
+      },{
+        id: 'social-github',
+        title: 'GitHub',
+        section: 'Socials',
+        handler: () => {
+          window.open("https://github.com/andreyrisukhin", "_blank");
+        },
+      },{
+        id: 'social-linkedin',
+        title: 'LinkedIn',
+        section: 'Socials',
+        handler: () => {
+          window.open("https://www.linkedin.com/in/andreyrisukhin", "_blank");
         },
       },{
         id: 'social-scholar',
