@@ -28,11 +28,13 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-I am a Ph.D. Student at the [Department of Computer Science of the University of Illinois](https://siebelschool.illinois.edu/), advised by [Tal August](https://talaugust.github.io/), whose HCI + NLP work reflects my research interests.
+I am a Ph.D. Student at the [Department of Computer Science of the University of Illinois](https://siebelschool.illinois.edu/).
+<!-- , advised by [Tal August](https://talaugust.github.io/), whose HCI + NLP work reflects my research interests. -->
 
 I recieved my combined B.S. and M.S. from the [University of Washington](https://www.washington.edu/). I spent time at Contextual AI as an intern.
 
-My research broadly spans **natural language processing** and **machine learning**, motivated by **human-computer interaction**. My current interests primarily include:
+<!-- My research broadly spans **natural language processing** and **machine learning**, motivated by **human-computer interaction**. My current interests primarily include: -->
+My research broadly spans user-adaptive systems (**natural language processing** intersecting **human-computer interaction**) accomplished through **reinforcement learning**. My current interests primarily include:
 * Implicit goal inference from behavior cues
 * User adaptation of text interfaces
 * Collecting high quality data with implicit annotation
