@@ -56,8 +56,8 @@ ninja.data = [{
           section: "News",},{id: "news-i-m-eager-to-join-uiuc-in-the-fall-looking-for-spring-summer-work-aligned-with-my-research-interests",
           title: 'I’m eager to join UIUC in the fall! Looking for spring/summer work aligned...',
           description: "",
-          section: "News",},{id: "news-i-am-at-perceptron-ai-this-spring-summer-the-team-is-great-and-the-problems-are-hard-aligned-with-my-research-interests",
-          title: 'I am at Perceptron AI this spring/summer! The team is great and the...',
+          section: "News",},{id: "news-i-get-to-spend-spring-summer-in-wa-working-on-data-at-perceptron-ai-the-team-is-great-and-the-problems-are-hard-aligned-with-my-research-interests",
+          title: 'I get to spend spring/summer in WA working on data at Perceptron AI!...',
           description: "",
           section: "News",},{
         id: 'social-email',
