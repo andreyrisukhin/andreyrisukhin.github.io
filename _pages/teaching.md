@@ -8,13 +8,14 @@ nav_order: 6
 ---
 
 ### courses
-* [CSE 589](https://courses.cs.washington.edu/courses/cse589/25wi/) Wi25, Venture-Scale Entrepreneurship
-* [CSE 311](https://courses.cs.washington.edu/courses/cse311/24au/staff/) Au24, Foundations of Computing I
-* [CSE 311](https://courses.cs.washington.edu/courses/cse311/24sp/) Sp24, Foundations of Computing I
-* [CSE 589](https://courses.cs.washington.edu/courses/cse589/24wi/) Wi24, Venture-Scale Entrepreneurship
-* [CSE 589](https://courses.cs.washington.edu/courses/cse599a1/23wi/) Wi23, Venture-Scale Entrepreneurship
-* [CSE 311](https://courses.cs.washington.edu/courses/cse311/21au/) Au21, Foundations of Computing I
-* [CSE 416](https://courses.cs.washington.edu/courses/cse416/21sp/staff/) Sp21, Introduction to Machine Learning
+
+- [CSE 589](https://courses.cs.washington.edu/courses/cse589/25wi/) Wi25, Venture-Scale Entrepreneurship
+- [CSE 311](https://courses.cs.washington.edu/courses/cse311/24au/staff/) Au24, Foundations of Computing I
+- [CSE 311](https://courses.cs.washington.edu/courses/cse311/24sp/) Sp24, Foundations of Computing I
+- [CSE 589](https://courses.cs.washington.edu/courses/cse589/24wi/) Wi24, Venture-Scale Entrepreneurship
+- [CSE 589](https://courses.cs.washington.edu/courses/cse599a1/23wi/) Wi23, Venture-Scale Entrepreneurship
+- [CSE 311](https://courses.cs.washington.edu/courses/cse311/21au/) Au21, Foundations of Computing I
+- [CSE 416](https://courses.cs.washington.edu/courses/cse416/21sp/staff/) Sp21, Introduction to Machine Learning
 
 ### feedback
 
