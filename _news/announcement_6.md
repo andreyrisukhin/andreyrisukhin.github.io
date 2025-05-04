@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-I get to spend spring/summer in WA working on data at [Perceptron AI](https://perceptron.inc/)! The team is great and the problems are hard, aligned with my research interests.
+I am at [Perceptron AI](https://perceptron.inc/) this spring/summer! The team is great and the problems are hard, aligned with my research interests.
