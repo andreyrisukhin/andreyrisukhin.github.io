@@ -59,6 +59,9 @@ ninja.data = [{
           section: "News",},{id: "news-i-get-to-spend-spring-summer-in-wa-working-on-data-at-perceptron-ai-the-team-is-great-and-the-problems-are-hard-aligned-with-my-research-interests",
           title: 'I get to spend spring/summer in WA working on data at Perceptron AI!...',
           description: "",
+          section: "News",},{id: "news-joined-perceptron-ai-full-time-deferred-phd-program-to-2026",
+          title: 'Joined Perceptron AI full time! Deferred PhD program to 2026.',
+          description: "",
           section: "News",},{
         id: 'social-email',
         title: 'email',
