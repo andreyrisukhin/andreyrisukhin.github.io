@@ -209,75 +209,9 @@ A complete list of intervals from 0–12 semitones, with formal names, common na
 | **12**    | Perfect Octave (P8)       | Octave, 8ve               | C → C            |
 
 
----
-
-## Table auto gen
+## Stadella Chord Recipes in C
 {% include stradella_table.html data=site.data.music.stradella_c_construction %}
 
-
-
-
-## Stadella Chord Recipes in C
-
-### Basic Triads
-
-| Chord       | Intervals | Semitone jumps | Recipe (LH) |
-|-------------|-----------|----------------|-------------|
-| **C Major** | 1–3–5     | 0–4–3          | **C / C**   |
-| **C Minor** | 1–♭3–5    | 0–3–4          | **Cm / C**  |
-
-### Major Family
-
-| Chord     | Intervals        | Semitone jumps | Recipe (LH)       | Explanation |
-|-----------|------------------|----------------|-------------------|-------------|
-| **Cmaj7** | 1–3–5–7          | 0–4–3–4        | **Em / C**        | Em = 3–5–7 of C |
-| **Cmaj9** | 1–3–5–7–9        | 0–4–3–4–3      | **C + G / C**     | C gives 1–3–5; G gives 5–7–9 |
-| **Cmaj6** | 1–3–5–6          | 0–4–3–2        | **Am / C**        | Am = 6–1–3 over C |
-| **Cadd9** | 1–3–5–9          | 0–4–3–7        | **C / C** + *D (RH)* | Exact C–E–G–D, no 7th |
-
-### Minor Family
-
-| Chord   | Intervals          | Semitone jumps | Recipe (LH)     | Explanation |
-|---------|--------------------|----------------|------------------|-------------|
-| **Cm7** | 1–♭3–5–♭7         | 0–3–4–3        | **E♭ / C**       | E♭ major = ♭3–5–♭7 of C |
-| **Cm9** | 1–♭3–5–♭7–9       | 0–3–4–3–4      | **E♭ + G / C**   | E♭ gives ♭3–5–♭7; G adds 9 |
-| **Cm6** | 1–♭3–5–6          | 0–3–4–2        | **Am / C**       | Shared voicing with Cmaj6 |
-
-### Dominant Family
-
-| Chord | Intervals                | Semitone jumps | Recipe (LH)        | Explanation |
-|------|---------------------------|----------------|--------------------|-------------|
-| **C7** | 1–3–5–♭7               | 0–4–3–3        | **Gm / C**         | Gm = 5–♭7–9 over C |
-| **C9** | 1–3–5–♭7–9             | 0–4–3–3–4      | **G + C7 / C**     | G gives 5–7–9; C7 gives ♭7 |
-| **C11** | 1–3–5–♭7–9–11        | 0–4–3–3–4–3    | **G + Dm + C7 / C** | Dm adds 11 |
-| **C13** | 1–3–5–♭7–9–11–13     | 0–4–3–3–4–3–4  | **G + Dm + Em + C7 / C** | Full set; RH recommended |
-
-### Diminished Family
-
-| Chord            | Intervals          | Semitone jumps | Recipe (LH)      | Explanation |
-|------------------|--------------------|----------------|------------------|-------------|
-| **Cø7 (Cm7♭5)**  | 1–♭3–♭5–♭7        | 0–3–3–4        | **E♭m / C**      | E♭m = ♭3–♭5–♭7 |
-| **C°7**          | 1–♭3–♭5–𝄫7        | 0–3–3–3        | **E♭m / C**      | Same shape; diminished 7 = major 6 |
-| **Cdim (triad)** | 1–♭3–♭5           | 0–3–3          | **E♭m(no7) / C** | Without the 7th |
-
-### Augmented Family
-
-| Chord        | Intervals        | Semitone jumps | Recipe (LH) | Explanation |
-|--------------|------------------|----------------|-------------|-------------|
-| **C+ (aug)** | 1–3–♯5           | 0–4–4          | **E / C**   | E major gives 3–♯5–7 |
-| **C+7**      | 1–3–♯5–♭7        | 0–4–4–2        | **E7 / C**  | E7 = 3–♯5–♭7 |
-| **Cmaj7♯5**  | 1–3–♯5–7         | 0–4–4–3        | **E + Em / C** | E gives ♯5; Em gives alternate voicing |
-
-### Altered Dominants
-
-| Chord     | Intervals               | Semitone jumps | Recipe (LH) | Explanation |
-|-----------|--------------------------|----------------|-------------|-------------|
-| **C7♭9**  | 1–3–5–♭7–♭9             | 0–4–3–3–3      | **D♭ / C**  | ♭2 major = ♭9 |
-| **C7♯9**  | 1–3–5–♭7–♯9             | 0–4–3–3–5      | **D♯ / C**  | #2 major = ♯9 |
-| **C7♯11** | 1–3–5–♭7–♯11            | 0–4–3–3–6      | **Gm + D / C** | D gives ♯11 |
-| **C7♭13** | 1–3–5–♭7–♭13            | 0–4–3–3–5      | **A♭ / C**  | ♭6 major = ♭13 |
-
----
 
 # Notes
 - Some multi-triad stacks (11, 13, altered) are **theoretical full sets**, not ergonomic LH voicings.  
