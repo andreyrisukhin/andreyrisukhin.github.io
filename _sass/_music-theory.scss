@@ -1,0 +1,72 @@
+/* ===== Music Theory: Stradella table readability ===== */
+
+table.mt-stradella {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+/* header readability */
+table.mt-stradella thead th {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* cell spacing */
+table.mt-stradella td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+}
+
+/* ---- FAMILY "BOXES" ---- */
+/* left/right edges for each row in a family */
+table.mt-stradella tr.grp-row td {
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* top edge of family box */
+table.mt-stradella tr.grp-first td {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* bottom edge of family box */
+table.mt-stradella tr.grp-last td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* rounded corners for the box */
+table.mt-stradella tr.grp-first td:first-child { border-top-left-radius: 10px; }
+table.mt-stradella tr.grp-first td:last-child  { border-top-right-radius: 10px; }
+table.mt-stradella tr.grp-last  td:first-child { border-bottom-left-radius: 10px; }
+table.mt-stradella tr.grp-last  td:last-child  { border-bottom-right-radius: 10px; }
+
+/* style the rowspan "Family" label cell */
+table.mt-stradella td.family {
+  font-weight: 700;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* optional gap row between families */
+table.mt-stradella tr.grp-gap td {
+  border: none !important;
+  background: transparent !important;
+  height: 0.6rem;
+  padding: 0;
+}
+
+/* keep some columns from wrapping too aggressively */
+table.mt-stradella td:nth-child(2), /* chord */
+table.mt-stradella td:nth-child(5)  /* recipe */
+{
+  white-space: nowrap;
+}
+
+/* notes column: readable width */
+table.mt-stradella td:nth-child(6) {
+  max-width: 44ch;
+}

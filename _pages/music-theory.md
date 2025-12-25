@@ -211,6 +211,12 @@ A complete list of intervals from 0–12 semitones, with formal names, common na
 
 ---
 
+## Table auto gen
+{% include stradella_table.html data=site.data.music.stradella_c_construction %}
+
+
+
+
 ## Stadella Chord Recipes in C
 
 ### Basic Triads

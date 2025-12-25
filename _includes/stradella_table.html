@@ -1,0 +1,39 @@
+{% assign spec = include.data %}
+
+<table class="mt-table mt-stradella">
+  <thead>
+    <tr>
+      <th>Family</th>
+      <th>Chord</th>
+      <th>Intervals</th>
+      <th>Semitone jumps</th>
+      <th>LH Recipe</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for g in spec.groups %}
+      {% assign rs = g.rows | size %}
+
+      {% for r in g.rows %}
+        {% assign row_class = "grp-row" %}
+        {% if forloop.first %}{% assign row_class = row_class | append: " grp-first" %}{% endif %}
+        {% if forloop.last %}{% assign row_class = row_class | append: " grp-last" %}{% endif %}
+
+        <tr class="{{ row_class }}">
+          {% if forloop.first %}
+            <td rowspan="{{ rs }}" class="family"><b>{{ g.family }}</b></td>
+          {% endif %}
+          <td><b>{{ r.chord }}</b></td>
+          <td>{{ r.intervals }}</td>
+          <td>{{ r.semitone }}</td>
+          <td><b>{{ r.recipe | markdownify }}</b></td>
+          <td>{{ r.notes | markdownify }}</td>
+        </tr>
+      {% endfor %}
+
+      <!-- optional spacing between families -->
+      <tr class="grp-gap"><td colspan="6"></td></tr>
+    {% endfor %}
+  </tbody>
+</table>
