@@ -184,6 +184,8 @@ A triad (A C# E) fits this?
 
 But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-bass-accordion-chart/)
 * Another resource for [chord combos](https://georgewhitfield.co.uk/chord-combinations-on-stradella-basses/)
+* Jazz Accordion Solos [youtube](https://www.youtube.com/channel/UCbTwGWrQQJ20odJ7Rpeljrg) [blog](https://accordionchords.com/tutorials/jazz-accordion-solos/)
+* Book I wish I had when starting out [blog to pdf](https://accordionchords.com/tutorials/stradella-xtensions-harmonic-technique-for-the-accordion/), [Stradella Xtensions](https://sites.google.com/view/download-book/home) by Evan Perry-Giblin, former owner of Brooklyn Bellows
 
 # Interval Reference Sheet (By Semitones)
 

@@ -166,10 +166,15 @@ groups:
         recipe: "x"
         notes: "G tritone = G7 + D♭M / G"
       - chord: "C9sus4"
-        intervals: "x"
+        intervals: "1–4–5–♭7–9"
         semitone: "0–5–5–4"
         recipe: "B♭M / C"
         notes: "Dom 9th sus4"
+      - chord: "C9(11)"
+        intervals: "1–3–5–♭7–9–11"
+        semitone: "x"
+        recipe: "B♭M + CM / C"
+        notes: "can omit 5, maybe 3"
 
 
 # add sus chords
