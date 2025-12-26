@@ -27,8 +27,8 @@
           <td><b>{{ r.chord }}</b></td>
           <td>{{ r.intervals }}</td>
           <td>{{ r.semitone }}</td>
-          <td><b>{{ r.recipe | markdownify }}</b></td>
-          <td>{{ r.notes | markdownify }}</td>
+          <td><b>{{ r.recipe | markdownify | remove: "<p>" | remove: "</p>" }}</b></td>
+          <td>{{ r.notes | markdownify | remove: "<p>" | remove: "</p>" }}</td>
         </tr>
       {% endfor %}
 

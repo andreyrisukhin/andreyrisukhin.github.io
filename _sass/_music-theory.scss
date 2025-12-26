@@ -70,3 +70,13 @@ table.mt-stradella td:nth-child(5)  /* recipe */
 table.mt-stradella td:nth-child(6) {
   max-width: 44ch;
 }
+
+/* Ask questions about highlighted sections at a lesson */
+/* Inline “ask my instructor about this” highlight */
+table.mt-stradella .ask {
+  background: rgba(255, 215, 0, 0.35);
+  padding: 0 0.2em;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
