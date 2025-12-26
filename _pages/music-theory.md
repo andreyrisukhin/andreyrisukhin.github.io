@@ -183,6 +183,7 @@ A triad (A C# E) fits this?
 * Implies dim7 can be made ... hmm. Ddim7: D,F,Ab,B   G7: G,B,_,F + 
 
 But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-bass-accordion-chart/)
+* Another resource for [chord combos](https://georgewhitfield.co.uk/chord-combinations-on-stradella-basses/)
 
 # Interval Reference Sheet (By Semitones)
 
