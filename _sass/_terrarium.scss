@@ -1,0 +1,63 @@
+/* assets/css/terrarium.scss */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#terrarium-root {
+  position: fixed;
+  inset: 0;
+  background: #0f0f12;
+  overflow: hidden;
+}
+
+#terrarium-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#terrarium-ui {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(20, 20, 25, 0.65);
+  backdrop-filter: blur(8px);
+  color: #ddd;
+  font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+#terrarium-ui button {
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+#terrarium-ui button:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+#terrarium-alert {
+  color: #ffb86b;
+}
+
+.terrarium-scenes {
+  display: inline-flex;
+  gap: 6px;
+  padding-left: 4px;
+  border-left: 1px solid rgba(255,255,255,0.12);
+}
+
+.terrarium-scenes button.is-active {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.3);
+}
