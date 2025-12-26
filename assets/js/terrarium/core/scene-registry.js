@@ -1,0 +1,1 @@
+const scenes=new Map;export function registerScenes(e){for(const n of e){if(!n?.id)throw new Error("Scene must have an id.");scenes.set(n.id,n)}}export function getScene(e){return e&&scenes.get(e)||null}
