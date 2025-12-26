@@ -22,10 +22,65 @@ title: Terrarium
         <div class="terrarium-scenes" role="group" aria-label="Scenes">
           <button data-scene="particles" class="is-active">Particles</button>
           <button data-scene="creatures">Creatures</button>
+          <button data-scene="herbavores">Herbavores</button>
         </div>
         <span id="terrarium-alert" role="status" aria-live="polite"></span>
         <span id="fps"></span>
       </div>
+
+      <div id="terrarium-panel" aria-label="Herbavores Controls">
+        <div class="panel-title">
+          Herbavores
+          <button id="herb-toggle-panel" type="button" aria-expanded="true">Hide</button>
+        </div>
+        <div class="panel-controls">
+        <label>
+          Hunger rate
+          <input id="herb-hunger-rate" type="range" min="0.01" max="0.12" step="0.005">
+          <span class="panel-value" id="herb-hunger-rate-value"></span>
+        </label>
+        <label>
+          Vision
+          <input id="herb-vision" type="range" min="120" max="360" step="5">
+          <span class="panel-value" id="herb-vision-value"></span>
+        </label>
+        <label>
+          Max speed
+          <input id="herb-max-speed" type="range" min="60" max="200" step="5">
+          <span class="panel-value" id="herb-max-speed-value"></span>
+        </label>
+        <label>
+          Sim speed
+          <input id="herb-sim-speed" type="range" min="0" max="7" step="1">
+          <span class="panel-value" id="herb-sim-speed-value"></span>
+        </label>
+        <label>
+          Food spawn
+          <input id="herb-food-rate" type="range" min="0.01" max="0.2" step="0.005">
+          <span class="panel-value" id="herb-food-rate-value"></span>
+        </label>
+        <label>
+          Repro cooldown
+          <input id="herb-repro-cd" type="range" min="6" max="40" step="1">
+          <span class="panel-value" id="herb-repro-cd-value"></span>
+        </label>
+        <label>
+          Lifespan
+          <input id="herb-lifespan" type="range" min="40" max="220" step="5">
+          <span class="panel-value" id="herb-lifespan-value"></span>
+        </label>
+        <label>
+          Sim duration
+          <input id="herb-sim-duration" type="range" min="60" max="900" step="30">
+          <span class="panel-value" id="herb-sim-duration-value"></span>
+        </label>
+        <div class="panel-row">
+          <button id="herb-simulate" type="button">Simulate</button>
+          <span class="panel-note">seconds</span>
+        </div>
+        <canvas id="herb-plot" width="220" height="80" aria-label="Population plot"></canvas>
+      </div>
+    </div>
     </div>
 
     <script type="module" src="{{ '/assets/js/terrarium/main.js' | relative_url }}"></script>

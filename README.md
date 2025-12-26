@@ -22,6 +22,13 @@
 
 </div>
 
+## Terrarium TODOs (parallel grid search)
+
+- TODO: Add a CLI runner that parallelizes `/_scripts/terrarium-grid-search.js` using Node worker threads.
+- TODO: Add a seed option for deterministic runs across workers (shared RNG + per-worker offsets).
+- TODO: Add a JSON/CSV output mode to aggregate results from parallel workers.
+- TODO: Add a preset import/export format to reuse top results in the browser sim.
+
 ## User community
 
 The vibrant community of **al-folio** users is growing!

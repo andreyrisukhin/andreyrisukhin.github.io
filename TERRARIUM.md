@@ -57,6 +57,30 @@ You can link directly to a scene:
 /terrarium/?scene=my-scene
 ```
 
+## Parameter grid search (terminal)
+
+Run grid search from the terminal using the Node script:
+
+```bash
+node _scripts/terrarium-grid-search.js
+```
+
+Optional flags:
+
+```bash
+node _scripts/terrarium-grid-search.js \
+  --hungerRate=0.03,0.04,0.05 \
+  --vision=200,240,280 \
+  --foodSpawnChance=0.06,0.08,0.1 \
+  --reproCooldown=16,20,24 \
+  --lifespan=120,160,200 \
+  --maxSpeed=100,120,140 \
+  --steps=12000 \
+  --sampleEvery=60 \
+  --minPopulation=1 \
+  --top=10
+```
+
 ## Contributing guidelines
 
 - Keep scenes self-contained and stateless outside their module.

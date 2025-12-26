@@ -6,6 +6,7 @@ export function createEngine(canvas, { onFps } = {}) {
   const state = {
     paused: false,
     scene: null,
+    speed: 1,
     fixedDt: 1 / 120,
     accumulator: 0,
     lastT: performance.now(),
@@ -58,7 +59,8 @@ export function createEngine(canvas, { onFps } = {}) {
     state.lastT = t;
 
     if (!state.paused && state.scene) {
-      state.accumulator += frameDt;
+      const simDt = frameDt * state.speed;
+      state.accumulator += simDt;
       while (state.accumulator >= state.fixedDt) {
         state.scene.update(state.fixedDt, { w, h });
         state.accumulator -= state.fixedDt;
@@ -97,5 +99,11 @@ export function createEngine(canvas, { onFps } = {}) {
     setScene,
     resetScene,
     togglePause,
+    setSpeed(value) {
+      state.speed = Math.max(0, value || 0);
+    },
+    getSpeed() {
+      return state.speed;
+    },
   };
 }
