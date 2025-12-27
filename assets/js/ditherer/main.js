@@ -7,6 +7,8 @@ const colorPicker = document.getElementById("ditherer-color-picker");
 const kInput = document.getElementById("ditherer-k");
 const pixelInput = document.getElementById("ditherer-pixel");
 const pixelValue = document.getElementById("ditherer-pixel-value");
+const blurInput = document.getElementById("ditherer-blur");
+const blurValue = document.getElementById("ditherer-blur-value");
 const methodSelect = document.getElementById("ditherer-method");
 const stochasticToggle = document.getElementById("ditherer-stochastic");
 const stochasticRow = document.getElementById("ditherer-stochastic-row");
@@ -286,6 +288,25 @@ function applyDither() {
   outCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
   outCtx.drawImage(smallCanvas, 0, 0, outputCanvas.width, outputCanvas.height);
 
+  const maxBlur = Math.max(0, Math.round(Math.min(outputCanvas.width, outputCanvas.height) * 0.03));
+  if (blurInput) {
+    blurInput.max = String(maxBlur);
+    const blurPx = clamp(parseInt(blurInput.value, 10) || 0, 0, maxBlur);
+    blurInput.value = String(blurPx);
+    blurValue.textContent = String(blurPx);
+    if (blurPx > 0) {
+      const blurCanvas = document.createElement("canvas");
+      blurCanvas.width = outputCanvas.width;
+      blurCanvas.height = outputCanvas.height;
+      const blurCtx = blurCanvas.getContext("2d");
+      blurCtx.drawImage(outputCanvas, 0, 0);
+      outCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+      outCtx.filter = `blur(${blurPx}px)`;
+      outCtx.drawImage(blurCanvas, 0, 0);
+      outCtx.filter = "none";
+    }
+  }
+
   downloadButton.disabled = false;
   setStatus(`Output: ${smallWidth} x ${smallHeight} pixels, ${k} colors.`);
 }
@@ -338,6 +359,13 @@ function resetControls() {
   methodSelect.value = "bands";
   stochasticToggle.checked = false;
   pixelValue.textContent = "6";
+  if (blurInput) {
+    blurInput.value = "0";
+    blurInput.max = "0";
+  }
+  if (blurValue) {
+    blurValue.textContent = "0";
+  }
   renderPaletteEditor();
   updateOptionVisibility();
   if (sourceImage) {
@@ -382,7 +410,10 @@ paletteInput.addEventListener("input", () => {
   scheduleRender();
 });
 
-[kInput, pixelInput, methodSelect, stochasticToggle].forEach((input) => {
+[kInput, pixelInput, methodSelect, stochasticToggle, blurInput].forEach((input) => {
+  if (!input) {
+    return;
+  }
   input.addEventListener("input", () => {
     updateOptionVisibility();
     scheduleRender();

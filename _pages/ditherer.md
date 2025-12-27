@@ -69,6 +69,12 @@ description: "Image ditherer with interleaved gradient noise."
     </div>
 
     <div class="ditherer-field">
+      <label for="ditherer-blur">Blur (px)</label>
+      <input id="ditherer-blur" type="range" min="0" max="0" step="1" value="0">
+      <span id="ditherer-blur-value">0</span>
+    </div>
+
+    <div class="ditherer-field">
       <label for="ditherer-method">Mapping</label>
       <select id="ditherer-method">
         <option value="bands" selected>Luminance bands</option>
