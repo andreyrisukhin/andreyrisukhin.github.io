@@ -115,4 +115,4 @@ description: "Image ditherer with interleaved gradient noise."
   </div>
 </div>
 
-<script type="module" src="{{ '/assets/js/ditherer/main.js' | relative_url }}"></script>
+<script type="module" src="{{ '/assets/js/ditherer/main.js' | relative_url | bust_file_cache }}"></script>
