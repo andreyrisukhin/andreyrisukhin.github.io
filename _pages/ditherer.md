@@ -83,14 +83,20 @@ Upload an image, pick a palette, set pixel size, and preview interleaved gradien
     <p class="ditherer-status" id="ditherer-status">Load an image to start.</p>
   </div>
 
-  <div class="ditherer-output">
-    <div>
-      <strong>Source preview</strong>
-      <canvas class="ditherer-canvas" id="ditherer-source"></canvas>
-    </div>
-    <div>
-      <strong>Dithered output</strong>
-      <canvas class="ditherer-canvas" id="ditherer-output"></canvas>
+  <div class="ditherer-workspace">
+    <div class="ditherer-previews" data-layout="vertical">
+      <div class="ditherer-preview">
+        <div class="ditherer-preview-title">Source</div>
+        <div class="ditherer-viewport">
+          <canvas class="ditherer-canvas" id="ditherer-source"></canvas>
+        </div>
+      </div>
+      <div class="ditherer-preview">
+        <div class="ditherer-preview-title">Dithered</div>
+        <div class="ditherer-viewport">
+          <canvas class="ditherer-canvas" id="ditherer-output"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 </div>

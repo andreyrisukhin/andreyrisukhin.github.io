@@ -11,6 +11,10 @@
   border-radius: 12px;
   padding: 1rem;
   background: rgba(255, 255, 255, 0.03);
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
 }
 
 .ditherer-panel h2 {
@@ -106,21 +110,67 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.ditherer-output {
-  display: grid;
-  gap: 1rem;
+.ditherer-workspace {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.ditherer-canvas {
-  width: 100%;
-  height: auto;
+.ditherer-previews {
+  display: grid;
+  gap: 1rem;
+  height: 100%;
+}
+
+.ditherer-previews[data-layout="vertical"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ditherer-previews[data-layout="horizontal"] {
+  grid-template-columns: 1fr;
+}
+
+.ditherer-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ditherer-preview-title {
+  font-weight: 600;
+}
+
+.ditherer-viewport {
+  position: relative;
+  overflow: hidden;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(0, 0, 0, 0.2);
 }
 
+.ditherer-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  image-rendering: pixelated;
+}
+
 @media (max-width: 900px) {
   .ditherer {
+    grid-template-columns: 1fr;
+  }
+
+  .ditherer-panel {
+    position: static;
+    max-height: none;
+  }
+
+  .ditherer-workspace {
+    height: auto;
+  }
+
+  .ditherer-previews {
     grid-template-columns: 1fr;
   }
 }

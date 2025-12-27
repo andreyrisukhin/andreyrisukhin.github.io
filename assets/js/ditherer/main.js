@@ -7,6 +7,7 @@ const pixelValue = document.getElementById("ditherer-pixel-value");
 const methodSelect = document.getElementById("ditherer-method");
 const stochasticToggle = document.getElementById("ditherer-stochastic");
 const stochasticRow = document.getElementById("ditherer-stochastic-row");
+const previewsEl = document.querySelector(".ditherer-previews");
 const resetButton = document.getElementById("ditherer-reset");
 const downloadButton = document.getElementById("ditherer-download");
 const statusEl = document.getElementById("ditherer-status");
@@ -260,8 +261,9 @@ function scheduleRender() {
   }
   renderQueued = true;
   requestAnimationFrame(() => {
-    drawSourcePreview();
     applyDither();
+    drawSourcePreview();
+    updateLayoutDirection();
   });
 }
 
@@ -314,6 +316,13 @@ function updateOptionVisibility() {
   const showStochastic = methodSelect.value === "closest";
   stochasticRow.style.display = showStochastic ? "grid" : "none";
 }
+function updateLayoutDirection() {
+  if (!previewsEl || !sourceImage) {
+    return;
+  }
+  const isPortrait = sourceImage.height >= sourceImage.width;
+  previewsEl.dataset.layout = isPortrait ? "vertical" : "horizontal";
+}
 
 fileInput.addEventListener("change", (event) => {
   const file = event.target.files[0];
@@ -354,6 +363,7 @@ downloadButton.addEventListener("click", () => {
 
 renderSwatches(parsePalette(paletteInput.value));
 updateOptionVisibility();
+updateLayoutDirection();
 
 const sampleConfigs = {
   llamamerc: {
@@ -401,3 +411,4 @@ sampleButtons.forEach((button) => {
     loadImageFromUrl(url);
   });
 });
+window.addEventListener("resize", () => updateLayoutDirection());
