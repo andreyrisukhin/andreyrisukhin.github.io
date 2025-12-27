@@ -5,9 +5,9 @@ permalink: /ditherer/
 description: "Image ditherer with interleaved gradient noise."
 ---
 
-<p class="ditherer-lead">Upload an image, choose a palette, and preview interleaved gradient noise dithering.</p>
-<p>Why make this? I needed a custom four-wool sweater design to look good.</p>
-<p>Why interleaved gradient noise? It is <a href="https://youtu.be/au9pce-xg5s?si=yZml3XrG--6LF-a-&t=1177">the best</a>.</p>
+Upload an image, choose a palette, and preview interleaved gradient noise dithering.
+- Why make this? I needed a custom four-wool sweater design to look good.
+- Why interleaved gradient noise? It is <a href="https://youtu.be/au9pce-xg5s?si=yZml3XrG--6LF-a-&t=1177">the best</a>.
 
 <div class="ditherer">
   <div class="ditherer-panel">
