@@ -103,17 +103,61 @@
   opacity: 0.75;
 }
 
-.ditherer-swatches {
+.ditherer-palette-row {
   display: flex;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ditherer-palette-editor {
+  display: flex;
   flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ditherer-swatch-item {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
 }
 
 .ditherer-swatch {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--swatch-color);
+  cursor: pointer;
+}
+
+.ditherer-swatch-remove,
+.ditherer-palette-add {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.ditherer-advanced {
+  margin-top: 0.5rem;
+}
+
+.ditherer-advanced summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.ditherer-color-picker {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
 }
 
 .ditherer-workspace {

@@ -1,6 +1,9 @@
 const fileInput = document.getElementById("ditherer-file");
 const presetSelect = document.getElementById("ditherer-preset");
 const paletteInput = document.getElementById("ditherer-palette");
+const paletteEditor = document.getElementById("ditherer-palette-editor");
+const paletteAddButton = document.getElementById("ditherer-palette-add");
+const colorPicker = document.getElementById("ditherer-color-picker");
 const kInput = document.getElementById("ditherer-k");
 const pixelInput = document.getElementById("ditherer-pixel");
 const pixelValue = document.getElementById("ditherer-pixel-value");
@@ -11,7 +14,6 @@ const previewsEl = document.querySelector(".ditherer-previews");
 const resetButton = document.getElementById("ditherer-reset");
 const downloadButton = document.getElementById("ditherer-download");
 const statusEl = document.getElementById("ditherer-status");
-const swatchesEl = document.getElementById("ditherer-swatches");
 const sourceCanvas = document.getElementById("ditherer-source");
 const outputCanvas = document.getElementById("ditherer-output");
 const sampleButtons = Array.from(document.querySelectorAll("[data-sample]"));
@@ -32,6 +34,7 @@ const presets = {
 
 let sourceImage = null;
 let renderQueued = false;
+let paletteHex = [];
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -79,13 +82,46 @@ function parsePalette(value) {
   return colors;
 }
 
-function renderSwatches(colors) {
-  swatchesEl.innerHTML = "";
-  colors.forEach((color) => {
-    const swatch = document.createElement("span");
+function syncPaletteInput() {
+  paletteInput.value = paletteHex.join(", ");
+}
+
+function renderPaletteEditor() {
+  paletteEditor.innerHTML = "";
+  paletteHex.forEach((hex, index) => {
+    const item = document.createElement("div");
+    item.className = "ditherer-swatch-item";
+
+    const swatch = document.createElement("button");
+    swatch.type = "button";
     swatch.className = "ditherer-swatch";
-    swatch.style.background = color.hex;
-    swatchesEl.appendChild(swatch);
+    swatch.style.setProperty("--swatch-color", hex);
+    swatch.setAttribute("aria-label", `Edit color ${index + 1}`);
+    swatch.addEventListener("click", () => {
+      colorPicker.value = hex;
+      colorPicker.dataset.index = String(index);
+      colorPicker.click();
+    });
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "ditherer-swatch-remove";
+    remove.textContent = "x";
+    remove.setAttribute("aria-label", `Remove color ${index + 1}`);
+    remove.disabled = paletteHex.length <= 1;
+    remove.addEventListener("click", () => {
+      if (paletteHex.length <= 1) {
+        return;
+      }
+      paletteHex.splice(index, 1);
+      syncPaletteInput();
+      renderPaletteEditor();
+      scheduleRender();
+    });
+
+    item.appendChild(swatch);
+    item.appendChild(remove);
+    paletteEditor.appendChild(item);
   });
 }
 
@@ -168,7 +204,6 @@ function applyDither() {
   }
 
   const palette = parsePalette(paletteInput.value);
-  renderSwatches(palette);
   if (palette.length === 0) {
     setStatus("Palette is empty or invalid.");
     downloadButton.disabled = true;
@@ -297,12 +332,13 @@ function loadImageFromUrl(url) {
 function resetControls() {
   presetSelect.value = "custom";
   paletteInput.value = "#000000, #ffffff";
+  paletteHex = ["#000000", "#ffffff"];
   kInput.value = "0";
   pixelInput.value = "6";
   methodSelect.value = "bands";
   stochasticToggle.checked = false;
   pixelValue.textContent = "6";
-  renderSwatches(parsePalette(paletteInput.value));
+  renderPaletteEditor();
   updateOptionVisibility();
   if (sourceImage) {
     scheduleRender();
@@ -333,13 +369,16 @@ fileInput.addEventListener("change", (event) => {
 presetSelect.addEventListener("change", () => {
   if (presetSelect.value !== "custom") {
     paletteInput.value = presets[presetSelect.value] || paletteInput.value;
+    paletteHex = parsePalette(paletteInput.value).map((color) => color.hex);
+    renderPaletteEditor();
   }
   scheduleRender();
 });
 
 paletteInput.addEventListener("input", () => {
   presetSelect.value = "custom";
-  renderSwatches(parsePalette(paletteInput.value));
+  paletteHex = parsePalette(paletteInput.value).map((color) => color.hex);
+  renderPaletteEditor();
   scheduleRender();
 });
 
@@ -362,7 +401,8 @@ downloadButton.addEventListener("click", () => {
   link.click();
 });
 
-renderSwatches(parsePalette(paletteInput.value));
+paletteHex = parsePalette(paletteInput.value).map((color) => color.hex);
+renderPaletteEditor();
 updateOptionVisibility();
 updateLayoutDirection();
 
@@ -402,15 +442,35 @@ sampleButtons.forEach((button) => {
     }
     presetSelect.value = "custom";
     paletteInput.value = config.palette;
+    paletteHex = parsePalette(paletteInput.value).map((color) => color.hex);
     kInput.value = String(config.k);
     pixelInput.value = String(config.pixel);
     methodSelect.value = config.method;
     stochasticToggle.checked = config.stochastic;
     pixelValue.textContent = String(config.pixel);
-    renderSwatches(parsePalette(paletteInput.value));
+    renderPaletteEditor();
     updateOptionVisibility();
     fileInput.value = "";
     downloadButton.disabled = true;
     loadImageFromUrl(url);
   });
+});
+
+paletteAddButton.addEventListener("click", () => {
+  const fallback = paletteHex[paletteHex.length - 1] || "#ffffff";
+  paletteHex.push(fallback);
+  syncPaletteInput();
+  renderPaletteEditor();
+  scheduleRender();
+});
+
+colorPicker.addEventListener("input", (event) => {
+  const index = parseInt(event.target.dataset.index, 10);
+  if (Number.isNaN(index) || !paletteHex[index]) {
+    return;
+  }
+  paletteHex[index] = event.target.value;
+  syncPaletteInput();
+  renderPaletteEditor();
+  scheduleRender();
 });

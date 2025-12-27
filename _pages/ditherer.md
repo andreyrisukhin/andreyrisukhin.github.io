@@ -45,9 +45,16 @@ description: "Image ditherer with interleaved gradient noise."
     </div>
 
     <div class="ditherer-field">
-      <label for="ditherer-palette">Palette colors (comma-separated)</label>
-      <input id="ditherer-palette" type="text" value="#000000, #ffffff">
-      <div class="ditherer-swatches" id="ditherer-swatches" aria-hidden="true"></div>
+      <label>Palette</label>
+      <div class="ditherer-palette-row">
+        <div class="ditherer-palette-editor" id="ditherer-palette-editor" aria-label="Palette editor"></div>
+        <button class="ditherer-palette-add" id="ditherer-palette-add" type="button" aria-label="Add color">+</button>
+      </div>
+      <details class="ditherer-advanced">
+        <summary>Edit as text</summary>
+        <input id="ditherer-palette" type="text" value="#000000, #ffffff">
+      </details>
+      <input id="ditherer-color-picker" class="ditherer-color-picker" type="color">
     </div>
 
     <div class="ditherer-field">
