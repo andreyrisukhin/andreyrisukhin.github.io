@@ -89,9 +89,12 @@ function luminance(r, g, b) {
   return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 }
 
-function ign(x, y) {
-  const value = 0.06711056 * x + 0.00583715 * y;
+function fract(value) {
   return value - Math.floor(value);
+}
+
+function ign(x, y) {
+  return fract(52.9829189 * fract(0.06711056 * x + 0.00583715 * y));
 }
 
 function nearestColor(colors, r, g, b) {
