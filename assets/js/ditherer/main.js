@@ -316,6 +316,7 @@ function updateOptionVisibility() {
   const showStochastic = methodSelect.value === "closest";
   stochasticRow.style.display = showStochastic ? "grid" : "none";
 }
+
 function updateLayoutDirection() {
   if (!previewsEl || !sourceImage) {
     return;
@@ -365,6 +366,8 @@ renderSwatches(parsePalette(paletteInput.value));
 updateOptionVisibility();
 updateLayoutDirection();
 
+window.addEventListener("resize", () => updateLayoutDirection());
+
 const sampleConfigs = {
   llamamerc: {
     palette: "#0f380f, #306230, #8bac0f, #9bbc0f",
@@ -411,4 +414,3 @@ sampleButtons.forEach((button) => {
     loadImageFromUrl(url);
   });
 });
-window.addEventListener("resize", () => updateLayoutDirection());

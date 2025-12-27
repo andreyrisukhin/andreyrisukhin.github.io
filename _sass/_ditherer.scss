@@ -17,6 +17,12 @@
   overflow: auto;
 }
 
+.ditherer-lead {
+  margin: 0 0 1.5rem;
+  font-size: 1.05rem;
+  opacity: 0.8;
+}
+
 .ditherer-panel h2 {
   margin-top: 0;
   font-size: 1.1rem;
@@ -120,7 +126,6 @@
 .ditherer-previews {
   display: grid;
   gap: 1rem;
-  height: 100%;
 }
 
 .ditherer-previews[data-layout="vertical"] {
@@ -164,10 +169,6 @@
   .ditherer-panel {
     position: static;
     max-height: none;
-  }
-
-  .ditherer-workspace {
-    height: auto;
   }
 
   .ditherer-previews {
