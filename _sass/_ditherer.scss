@@ -1,0 +1,101 @@
+/* ===== Ditherer page ===== */
+.ditherer {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.ditherer-panel {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ditherer-panel h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.ditherer-field {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.ditherer-field label {
+  font-weight: 600;
+}
+
+.ditherer-field input[type="text"],
+.ditherer-field input[type="number"],
+.ditherer-field select {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.18);
+  color: inherit;
+}
+
+.ditherer-field input[type="range"] {
+  width: 100%;
+}
+
+.ditherer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ditherer-actions button {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.45rem 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: pointer;
+}
+
+.ditherer-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ditherer-status {
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.ditherer-swatches {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.ditherer-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ditherer-output {
+  display: grid;
+  gap: 1rem;
+}
+
+.ditherer-canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 900px) {
+  .ditherer {
+    grid-template-columns: 1fr;
+  }
+}

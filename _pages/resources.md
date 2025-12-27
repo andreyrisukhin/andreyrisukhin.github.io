@@ -7,4 +7,6 @@ dropdown: true
 children:
   - title: music theory
     permalink: /music-theory/
+  - title: ditherer
+    permalink: /ditherer/
 ---
