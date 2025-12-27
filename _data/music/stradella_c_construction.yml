@@ -99,13 +99,13 @@ groups:
       - chord: "C°7"
         intervals: "1–♭3–♭5–𝄫7"
         semitone: "0–3–3–3"
-        recipe: "E♭m / C"
-        notes: "Same shape; diminished 7 = major 6"
+        recipe: "x"
+        notes: "<span class='ask'>Ebm close but final is half too low</span>"
       - chord: "Cdim (triad)"
         intervals: "1–♭3–♭5"
         semitone: "0–3–3"
-        recipe: "E♭m(no7) / C"
-        notes: "Without the 7th"
+        recipe: "E♭m / C"
+        notes: "<span class='ask'>Hope the 7th not noticeable</span>"
 
   - family: "Augmented Family"
     rows:
