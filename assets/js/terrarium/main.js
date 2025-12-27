@@ -152,7 +152,6 @@ function bindHerbControls(scene) {
     const duration = Number(herbControls.simDuration?.value || 300);
     runPopulationSimulation(scene, scene.params, duration);
   });
-
 }
 
 function runPopulationSimulation(scene, params, durationSec = 300) {
@@ -177,10 +176,14 @@ function runPopulationSimulation(scene, params, durationSec = 300) {
   }
 
   const maxValue = Math.max(1, ...herbSamples, ...foodSamples);
-  drawPopulationPlot(herbControls.plot, {
-    herb: herbSamples,
-    food: foodSamples,
-  }, { maxY: maxValue });
+  drawPopulationPlot(
+    herbControls.plot,
+    {
+      herb: herbSamples,
+      food: foodSamples,
+    },
+    { maxY: maxValue }
+  );
 }
 
 function drawPopulationPlot(canvas, series, { maxY }) {

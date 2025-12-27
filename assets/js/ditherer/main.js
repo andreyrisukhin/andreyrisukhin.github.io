@@ -250,12 +250,7 @@ function applyDither() {
       let color;
       if (method === "closest") {
         if (stochasticToggle.checked && paletteSubset.length > 1) {
-          const { first, second, firstDist, secondDist } = nearestTwoColors(
-            paletteSubset,
-            r,
-            g,
-            b
-          );
+          const { first, second, firstDist, secondDist } = nearestTwoColors(paletteSubset, r, g, b);
           const denom = firstDist + secondDist;
           const threshold = denom === 0 ? 0 : firstDist / denom;
           color = noise01 < threshold ? second : first;

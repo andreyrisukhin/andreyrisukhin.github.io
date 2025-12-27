@@ -96,6 +96,7 @@ description: "Image ditherer with interleaved gradient noise."
     </div>
 
     <p class="ditherer-status" id="ditherer-status">Load an image to start.</p>
+
   </div>
 
   <div class="ditherer-workspace">

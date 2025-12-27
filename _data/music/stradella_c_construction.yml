@@ -23,10 +23,10 @@ groups:
         recipe: "Em / C"
         notes: "Em = 3–5–7 of C"
       - chord: "Cmaj7"
-        intervals: "\""
-        semitone: "\""
+        intervals: '"'
+        semitone: '"'
         recipe: "CM / B"
-        notes: "3rd Inversion, B C E G vs C,E,G,B" 
+        notes: "3rd Inversion, B C E G vs C,E,G,B"
       - chord: "Cmaj9"
         intervals: "1–3–5–7–9"
         semitone: "0–4–3–4–3"
@@ -175,6 +175,4 @@ groups:
         semitone: "x"
         recipe: "B♭M + CM / C"
         notes: "can omit 5, maybe 3"
-
-
 # add sus chords

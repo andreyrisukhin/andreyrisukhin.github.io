@@ -2,13 +2,13 @@
 layout: page
 # title: "Music Theory"
 permalink: /music-theory/
-
 # description: "Notes, cheat sheets, and references on music theory."
 ---
 
 # Diatonic Chord Quality Order by Scale Type and Chord Structure
 
 Notes:
+
 - **Scale type** = diatonic collection (mode or scalar system)
 - **Chord structure** = tertian stack (triads, seventh chords)
 - Columns I–VII correspond to scale degrees
@@ -147,6 +147,7 @@ Notes:
 ---
 
 Abbreviations:
+
 - M = major triad
 - m = minor triad
 - dim = diminished triad
@@ -158,8 +159,8 @@ Abbreviations:
 - °7 = fully diminished seventh
 - +maj7 = augmented major seventh
 
+# Stradella Chord Recipes — All in C
 
-# Stradella Chord Recipes — All in C  
 How to create chords out of root and major, minor, 7th triads.
 Format: **Triad + Triad + … / C**
 
@@ -169,23 +170,26 @@ Root is the **C bass button**.
 Example:  
 `Em / C` = press C bass + E minor chord.
 
-
 ## Practically
+
 How to identify what chord a stack of notes is? Example: Db, E, A.
+
 1. Root note tells us "X-something" chord. Ex: Db-something.
 2. Count semitones from root to other notes. Ex: Db, +3 semitones to E (minor 3rd), +5 semitones to A (minor 6th).
-3. 
+3.
 
 A triad (A C# E) fits this?
 
 ### Stradella Chords
-* 7th - omits 5th, plays only 1 3 b7
-* Implies dim7 can be made ... hmm. Ddim7: D,F,Ab,B   G7: G,B,_,F + 
+
+- 7th - omits 5th, plays only 1 3 b7
+- Implies dim7 can be made ... hmm. Ddim7: D,F,Ab,B G7: G,B,\_,F +
 
 But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-bass-accordion-chart/)
-* Another resource for [chord combos](https://georgewhitfield.co.uk/chord-combinations-on-stradella-basses/)
-* Jazz Accordion Solos [youtube](https://www.youtube.com/channel/UCbTwGWrQQJ20odJ7Rpeljrg) [blog](https://accordionchords.com/tutorials/jazz-accordion-solos/)
-* Book I wish I had when starting out [blog to pdf](https://accordionchords.com/tutorials/stradella-xtensions-harmonic-technique-for-the-accordion/), [Stradella Xtensions](https://sites.google.com/view/download-book/home) by Evan Perry-Giblin, former owner of Brooklyn Bellows
+
+- Another resource for [chord combos](https://georgewhitfield.co.uk/chord-combinations-on-stradella-basses/)
+- Jazz Accordion Solos [youtube](https://www.youtube.com/channel/UCbTwGWrQQJ20odJ7Rpeljrg) [blog](https://accordionchords.com/tutorials/jazz-accordion-solos/)
+- Book I wish I had when starting out [blog to pdf](https://accordionchords.com/tutorials/stradella-xtensions-harmonic-technique-for-the-accordion/), [Stradella Xtensions](https://sites.google.com/view/download-book/home) by Evan Perry-Giblin, former owner of Brooklyn Bellows
 
 # Interval Reference Sheet (By Semitones)
 
@@ -195,28 +199,28 @@ A complete list of intervals from 0–12 semitones, with formal names, common na
 
 ## Semitones
 
-| Semitones | Interval Name          | Common Name      | Example (from C) |
-|-----------|-------------------------|------------------|------------------|
-| **0**     | Perfect Unison (P1)    | Unison           | C → C            |
-| **1**     | Minor 2nd (m2)        | Half-step        | C → Db           |
-| **2**     | Major 2nd (M2)        | Whole step       | C → D            |
-| **3**     | Minor 3rd (m3)        |                  | C → Eb           |
-| **4**     | Major 3rd (M3)        |                  | C → E            |
-| **5**     | Perfect 4th (P4)      |                  | C → F            |
-| **6**     | Tritone (A4 or d5)            | Augmented 4th, Diminished 5th | C → F# / Gb |
-| **7**     | Perfect 5th (P5)     |                  | C → G            |
-| **8**     | Minor 6th (m6)        |                  | C → Ab           |
-| **9**     | Major 6th (M6)        |                  | C → A            |
-| **10**    | Minor 7th (m7)        |                  | C → Bb           |
-| **11**    | Major 7th (M7)        |                  | C → B            |
-| **12**    | Perfect Octave (P8)       | Octave, 8ve               | C → C            |
-
+| Semitones | Interval Name       | Common Name                   | Example (from C) |
+| --------- | ------------------- | ----------------------------- | ---------------- |
+| **0**     | Perfect Unison (P1) | Unison                        | C → C            |
+| **1**     | Minor 2nd (m2)      | Half-step                     | C → Db           |
+| **2**     | Major 2nd (M2)      | Whole step                    | C → D            |
+| **3**     | Minor 3rd (m3)      |                               | C → Eb           |
+| **4**     | Major 3rd (M3)      |                               | C → E            |
+| **5**     | Perfect 4th (P4)    |                               | C → F            |
+| **6**     | Tritone (A4 or d5)  | Augmented 4th, Diminished 5th | C → F# / Gb      |
+| **7**     | Perfect 5th (P5)    |                               | C → G            |
+| **8**     | Minor 6th (m6)      |                               | C → Ab           |
+| **9**     | Major 6th (M6)      |                               | C → A            |
+| **10**    | Minor 7th (m7)      |                               | C → Bb           |
+| **11**    | Major 7th (M7)      |                               | C → B            |
+| **12**    | Perfect Octave (P8) | Octave, 8ve                   | C → C            |
 
 ## Stadella Chord Recipes in C
+
 {% include stradella_table.html data=site.data.music.stradella_c_construction %}
 
-
 # Notes
-- Some multi-triad stacks (11, 13, altered) are **theoretical full sets**, not ergonomic LH voicings.  
-- For actual playing: use **1 or 2 triads max**; bring extra tensions in the **right hand**.  
+
+- Some multi-triad stacks (11, 13, altered) are **theoretical full sets**, not ergonomic LH voicings.
+- For actual playing: use **1 or 2 triads max**; bring extra tensions in the **right hand**.
 - All chords here are **specifically voiced for C**; to transpose, shift everything by the same interval.

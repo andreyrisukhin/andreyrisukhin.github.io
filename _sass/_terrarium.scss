@@ -1,5 +1,6 @@
 /* assets/css/terrarium.scss */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -30,12 +31,17 @@ html, body {
   background: rgba(20, 20, 25, 0.65);
   backdrop-filter: blur(8px);
   color: #ddd;
-  font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font:
+    14px/1.2 system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
 }
 
 #terrarium-ui button {
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   color: inherit;
   border-radius: 8px;
   padding: 6px 10px;
@@ -43,7 +49,7 @@ html, body {
 }
 
 #terrarium-ui button:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 #terrarium-alert {
@@ -60,7 +66,12 @@ html, body {
   background: rgba(18, 18, 22, 0.72);
   backdrop-filter: blur(10px);
   color: #d8d8de;
-  font: 12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font:
+    12px/1.3 system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
   display: none;
 }
 
@@ -81,8 +92,8 @@ html, body {
 }
 
 #terrarium-panel .panel-title button {
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
   color: inherit;
   border-radius: 8px;
   padding: 4px 8px;
@@ -101,8 +112,8 @@ html, body {
 
 #terrarium-panel .panel-row button,
 #terrarium-panel .panel-title button {
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
   color: inherit;
   border-radius: 8px;
   padding: 6px 10px;
@@ -111,11 +122,11 @@ html, body {
 
 #terrarium-panel .panel-row button:hover,
 #terrarium-panel .panel-title button:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 #terrarium-panel .panel-note {
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.55);
   font-size: 11px;
 }
 
@@ -129,7 +140,7 @@ html, body {
 }
 
 #terrarium-panel .panel-value {
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   font-variant-numeric: tabular-nums;
 }
 
@@ -142,15 +153,14 @@ html, body {
   display: none;
 }
 
-
 .terrarium-scenes {
   display: inline-flex;
   gap: 6px;
   padding-left: 4px;
-  border-left: 1px solid rgba(255,255,255,0.12);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .terrarium-scenes button.is-active {
-  background: rgba(255,255,255,0.18);
-  border-color: rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
 }

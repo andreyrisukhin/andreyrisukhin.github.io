@@ -4,13 +4,18 @@ import { createHerbavoresSimulation } from "../assets/js/terrarium/scenes/herbav
 
 function parseList(value, parser = Number) {
   if (!value) return null;
-  return value.split(",").map((v) => parser(v.trim())).filter((v) => !Number.isNaN(v));
+  return value
+    .split(",")
+    .map((v) => parser(v.trim()))
+    .filter((v) => !Number.isNaN(v));
 }
 
-const args = Object.fromEntries(process.argv.slice(2).map((pair) => {
-  const [key, val] = pair.split("=");
-  return [key.replace(/^--/, ""), val ?? true];
-}));
+const args = Object.fromEntries(
+  process.argv.slice(2).map((pair) => {
+    const [key, val] = pair.split("=");
+    return [key.replace(/^--/, ""), val ?? true];
+  })
+);
 
 const paramGrid = {
   hungerRate: parseList(args.hungerRate) || [0.03, 0.04, 0.05],
@@ -39,9 +44,11 @@ const top = Number(args.top || 10);
 console.log(`Total combos: ${results.length}`);
 console.log(`Survivors: ${survivors.length}`);
 console.log("");
-console.log(survivors.slice(0, top).map((r) => ({
-  params: r.params,
-  final: r.metrics.final,
-  mean: Number(r.metrics.mean.toFixed(2)),
-  cv: Number(r.metrics.cv.toFixed(2)),
-})));
+console.log(
+  survivors.slice(0, top).map((r) => ({
+    params: r.params,
+    final: r.metrics.final,
+    mean: Number(r.metrics.mean.toFixed(2)),
+    cv: Number(r.metrics.cv.toFixed(2)),
+  }))
+);

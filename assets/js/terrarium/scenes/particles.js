@@ -49,10 +49,22 @@ export const particlesScene = {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
 
-      if (p.x < p.r) { p.x = p.r; p.vx = Math.abs(p.vx) * this.params.bounce; }
-      if (p.x > w - p.r) { p.x = w - p.r; p.vx = -Math.abs(p.vx) * this.params.bounce; }
-      if (p.y < p.r) { p.y = p.r; p.vy = Math.abs(p.vy) * this.params.bounce; }
-      if (p.y > h - p.r) { p.y = h - p.r; p.vy = -Math.abs(p.vy) * this.params.bounce; }
+      if (p.x < p.r) {
+        p.x = p.r;
+        p.vx = Math.abs(p.vx) * this.params.bounce;
+      }
+      if (p.x > w - p.r) {
+        p.x = w - p.r;
+        p.vx = -Math.abs(p.vx) * this.params.bounce;
+      }
+      if (p.y < p.r) {
+        p.y = p.r;
+        p.vy = Math.abs(p.vy) * this.params.bounce;
+      }
+      if (p.y > h - p.r) {
+        p.y = h - p.r;
+        p.vy = -Math.abs(p.vy) * this.params.bounce;
+      }
     }
   },
   render({ w, h }) {

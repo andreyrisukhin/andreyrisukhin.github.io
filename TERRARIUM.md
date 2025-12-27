@@ -5,15 +5,15 @@ registry and a shared render loop. Scenes are plain ES modules under `assets/js/
 
 ## Run locally
 
-1) Start the Jekyll dev server (per the repo README).
-2) Visit `/terrarium/` or `/terrarium/?scene=particles`.
+1. Start the Jekyll dev server (per the repo README).
+2. Visit `/terrarium/` or `/terrarium/?scene=particles`.
 
 ## Add a new scene
 
-1) Create a scene module in `assets/js/terrarium/scenes/`.
-2) Export a scene object with the lifecycle methods below.
-3) Register the scene in `assets/js/terrarium/main.js`.
-4) Add a button in `/_pages/terrarium.md` (optional but recommended).
+1. Create a scene module in `assets/js/terrarium/scenes/`.
+2. Export a scene object with the lifecycle methods below.
+3. Register the scene in `assets/js/terrarium/main.js`.
+4. Add a button in `/_pages/terrarium.md` (optional but recommended).
 
 ### Scene contract
 
@@ -28,6 +28,7 @@ export const myScene = {
 ```
 
 Notes:
+
 - `init` is called when the scene becomes active.
 - `update` runs at a fixed timestep (currently 120 Hz).
 - `render` is called every frame.
