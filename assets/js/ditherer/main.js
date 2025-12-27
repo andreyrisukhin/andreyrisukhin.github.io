@@ -5,12 +5,15 @@ const kInput = document.getElementById("ditherer-k");
 const pixelInput = document.getElementById("ditherer-pixel");
 const pixelValue = document.getElementById("ditherer-pixel-value");
 const methodSelect = document.getElementById("ditherer-method");
+const stochasticToggle = document.getElementById("ditherer-stochastic");
+const stochasticRow = document.getElementById("ditherer-stochastic-row");
 const resetButton = document.getElementById("ditherer-reset");
 const downloadButton = document.getElementById("ditherer-download");
 const statusEl = document.getElementById("ditherer-status");
 const swatchesEl = document.getElementById("ditherer-swatches");
 const sourceCanvas = document.getElementById("ditherer-source");
 const outputCanvas = document.getElementById("ditherer-output");
+const sampleButtons = Array.from(document.querySelectorAll("[data-sample]"));
 
 const namedColors = {
   black: "#000000",
@@ -114,6 +117,33 @@ function nearestColor(colors, r, g, b) {
   return best;
 }
 
+function nearestTwoColors(colors, r, g, b) {
+  let first = colors[0];
+  let second = colors[0];
+  let firstDist = Number.POSITIVE_INFINITY;
+  let secondDist = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < colors.length; i += 1) {
+    const candidate = colors[i];
+    const dr = r - candidate.r;
+    const dg = g - candidate.g;
+    const db = b - candidate.b;
+    const dist = dr * dr + dg * dg + db * db;
+
+    if (dist < firstDist) {
+      second = first;
+      secondDist = firstDist;
+      first = candidate;
+      firstDist = dist;
+    } else if (dist < secondDist) {
+      second = candidate;
+      secondDist = dist;
+    }
+  }
+
+  return { first, second, firstDist, secondDist };
+}
+
 function drawSourcePreview() {
   if (!sourceImage) {
     return;
@@ -176,17 +206,30 @@ function applyDither() {
       const g = data[idx + 1];
       const b = data[idx + 2];
 
-      const noise = ign(x, y) - 0.5;
+      const noise01 = ign(x, y);
+      const noiseCentered = noise01 - 0.5;
 
       let color;
       if (method === "closest") {
-        const nr = clamp(Math.round(r + noise * noiseStrength * 255), 0, 255);
-        const ng = clamp(Math.round(g + noise * noiseStrength * 255), 0, 255);
-        const nb = clamp(Math.round(b + noise * noiseStrength * 255), 0, 255);
-        color = nearestColor(paletteSubset, nr, ng, nb);
+        if (stochasticToggle.checked && paletteSubset.length > 1) {
+          const { first, second, firstDist, secondDist } = nearestTwoColors(
+            paletteSubset,
+            r,
+            g,
+            b
+          );
+          const denom = firstDist + secondDist;
+          const threshold = denom === 0 ? 0 : firstDist / denom;
+          color = noise01 < threshold ? second : first;
+        } else {
+          const nr = clamp(Math.round(r + noiseCentered * noiseStrength * 255), 0, 255);
+          const ng = clamp(Math.round(g + noiseCentered * noiseStrength * 255), 0, 255);
+          const nb = clamp(Math.round(b + noiseCentered * noiseStrength * 255), 0, 255);
+          color = nearestColor(paletteSubset, nr, ng, nb);
+        }
       } else {
         const luma = luminance(r, g, b);
-        const adjusted = clamp(luma + noise * noiseStrength, 0, 0.9999);
+        const adjusted = clamp(luma + noiseCentered * noiseStrength, 0, 0.9999);
         const bandIndex = Math.min(k - 1, Math.floor(adjusted * k));
         color = paletteSubset[bandIndex];
       }
@@ -231,11 +274,22 @@ function loadImage(file) {
     const img = new Image();
     img.onload = () => {
       sourceImage = img;
+      downloadButton.disabled = false;
       scheduleRender();
     };
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
+}
+
+function loadImageFromUrl(url) {
+  const img = new Image();
+  img.onload = () => {
+    sourceImage = img;
+    downloadButton.disabled = false;
+    scheduleRender();
+  };
+  img.src = url;
 }
 
 function resetControls() {
@@ -244,14 +298,21 @@ function resetControls() {
   kInput.value = "0";
   pixelInput.value = "6";
   methodSelect.value = "bands";
+  stochasticToggle.checked = false;
   pixelValue.textContent = "6";
   renderSwatches(parsePalette(paletteInput.value));
+  updateOptionVisibility();
   if (sourceImage) {
     scheduleRender();
   } else {
     setStatus("Load an image to start.");
     downloadButton.disabled = true;
   }
+}
+
+function updateOptionVisibility() {
+  const showStochastic = methodSelect.value === "closest";
+  stochasticRow.style.display = showStochastic ? "grid" : "none";
 }
 
 fileInput.addEventListener("change", (event) => {
@@ -272,8 +333,11 @@ paletteInput.addEventListener("input", () => {
   scheduleRender();
 });
 
-[kInput, pixelInput, methodSelect].forEach((input) => {
-  input.addEventListener("input", () => scheduleRender());
+[kInput, pixelInput, methodSelect, stochasticToggle].forEach((input) => {
+  input.addEventListener("input", () => {
+    updateOptionVisibility();
+    scheduleRender();
+  });
 });
 
 resetButton.addEventListener("click", () => resetControls());
@@ -289,3 +353,51 @@ downloadButton.addEventListener("click", () => {
 });
 
 renderSwatches(parsePalette(paletteInput.value));
+updateOptionVisibility();
+
+const sampleConfigs = {
+  llamamerc: {
+    palette: "#0f380f, #306230, #8bac0f, #9bbc0f",
+    pixel: 6,
+    method: "closest",
+    stochastic: false,
+    k: 0,
+  },
+  brightsignals: {
+    palette: "#000000, #ffffff",
+    pixel: 8,
+    method: "bands",
+    stochastic: false,
+    k: 0,
+  },
+  flymeaccorded: {
+    palette: "#ffefe0, #e39c52, #4a3a26, #0d0c0b",
+    pixel: 7,
+    method: "closest",
+    stochastic: true,
+    k: 0,
+  },
+};
+
+sampleButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const key = button.dataset.sample;
+    const config = sampleConfigs[key];
+    const url = button.dataset.url;
+    if (!config) {
+      return;
+    }
+    presetSelect.value = "custom";
+    paletteInput.value = config.palette;
+    kInput.value = String(config.k);
+    pixelInput.value = String(config.pixel);
+    methodSelect.value = config.method;
+    stochasticToggle.checked = config.stochastic;
+    pixelValue.textContent = String(config.pixel);
+    renderSwatches(parsePalette(paletteInput.value));
+    updateOptionVisibility();
+    fileInput.value = "";
+    downloadButton.disabled = true;
+    loadImageFromUrl(url);
+  });
+});

@@ -19,6 +19,21 @@ Upload an image, pick a palette, set pixel size, and preview interleaved gradien
     </div>
 
     <div class="ditherer-field">
+      <label>Samples</label>
+      <div class="ditherer-samples">
+        <button type="button" data-sample="llamamerc" data-url="{{ '/assets/img/ditherer/llamamerc.png' | relative_url }}">
+          <img src="{{ '/assets/img/ditherer/llamamerc.png' | relative_url }}" alt="llamamerc sample">
+        </button>
+        <button type="button" data-sample="brightsignals" data-url="{{ '/assets/img/ditherer/BrightSignals.jpg' | relative_url }}">
+          <img src="{{ '/assets/img/ditherer/BrightSignals.jpg' | relative_url }}" alt="BrightSignals sample">
+        </button>
+        <button type="button" data-sample="flymeaccorded" data-url="{{ '/assets/img/ditherer/FlyMeAccorded.jpg' | relative_url }}">
+          <img src="{{ '/assets/img/ditherer/FlyMeAccorded.jpg' | relative_url }}" alt="FlyMeAccorded sample">
+        </button>
+      </div>
+    </div>
+
+    <div class="ditherer-field">
       <label for="ditherer-preset">Palette preset</label>
       <select id="ditherer-preset">
         <option value="custom" selected>Custom</option>
@@ -51,6 +66,13 @@ Upload an image, pick a palette, set pixel size, and preview interleaved gradien
         <option value="bands" selected>Luminance bands</option>
         <option value="closest">Closest RGB</option>
       </select>
+    </div>
+
+    <div class="ditherer-field" id="ditherer-stochastic-row">
+      <label>
+        <input id="ditherer-stochastic" type="checkbox">
+        Stochastic mix (top-2)
+      </label>
     </div>
 
     <div class="ditherer-actions">
