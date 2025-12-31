@@ -9,4 +9,6 @@ children:
     permalink: /music-theory/
   - title: ditherer
     permalink: /ditherer/
+  - title: kata
+    permalink: /kata/
 ---

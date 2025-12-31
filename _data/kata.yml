@@ -1,0 +1,49 @@
+recipes:
+  - id: morning-rise
+    title: Morning Rise
+    summary: Wake up the spine and set a steady pace for the day.
+    image: /assets/img/1.jpg
+    image_alt: Sunlit mountain path
+    steps:
+      - Stand tall. Inhale 4 counts, exhale 6 counts, 5 rounds.
+      - Shoulder rolls x 10 each direction while breathing 4-4.
+      - Forward fold, hang for 4 slow breaths, soften knees.
+      - Half lift + fold, 6 cycles with a 3-count inhale and 4-count exhale.
+      - Slow march in place for 90 seconds, breathe 4-2-6.
+    tip: keep the exhale longer than the inhale.
+  - id: midday-reset
+    title: Midday Reset
+    summary: Clear tension and re-focus between tasks.
+    image: /assets/img/7.jpg
+    image_alt: Calm water and sky
+    steps:
+      - Seated or standing: inhale 4, hold 2, exhale 6, 6 rounds.
+      - Neck glide: look right, left, center, 6 cycles total.
+      - Side bend reach, 4 breaths each side.
+      - Wall push or desk lean, 8 slow reps with 4-4 breathing.
+      - Walk 2 minutes, scan the room with each exhale.
+    tip: keep eyes soft and shoulders relaxed.
+  - id: evening-downshift
+    title: Evening Downshift
+    summary: Transition out of work mode and release tension.
+    image: /assets/img/10.jpg
+    image_alt: Warm dusk landscape
+    steps:
+      - Box breathing: inhale 4, hold 4, exhale 4, hold 4, 4 rounds.
+      - Slow squat-to-stand, 6 reps, inhale down, exhale up.
+      - Seated twist, 4 breaths each side.
+      - Child's pose or knees-to-chest, 6 slow breaths.
+      - Finish with 3 sighing exhales through the mouth.
+    tip: feel each exhale drop the shoulders.
+  - id: night-soften
+    title: Night Soften
+    summary: Quiet the system and prepare for sleep.
+    image: /assets/img/12.jpg
+    image_alt: Night sky with stars
+    steps:
+      - Lie down. Inhale 4, exhale 8, 8 rounds.
+      - Progressive release: jaw, shoulders, hands, belly, legs.
+      - Legs up the wall, 2 minutes with slow nasal breathing.
+      - Place one hand on belly, one on chest, 10 gentle breaths.
+      - End with a long exhale and a brief pause.
+    tip: keep the face relaxed and tongue soft.
