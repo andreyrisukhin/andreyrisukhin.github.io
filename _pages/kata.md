@@ -37,10 +37,36 @@ _styles: |
     padding: 1.25rem;
     background: var(--global-card-bg-color, #fff);
     display: none;
+    cursor: pointer;
   }
 
   .kata-recipe.is-visible {
     display: grid;
+  }
+
+  .kata-detail {
+    margin-top: 0.75rem;
+  }
+
+  .kata-recipe.is-expanded .kata-detail-label {
+    font-weight: 700;
+  }
+
+  .kata-detail-text {
+    display: none;
+  }
+
+  .kata-recipe.is-expanded .kata-detail-text {
+    display: inline;
+  }
+
+  .kata-recipe .kata-toggle {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
   }
 
   .kata-recipes {
@@ -110,12 +136,25 @@ _styles: |
       <img src="{{ recipe.image | relative_url }}" alt="{{ recipe.image_alt }}">
       <div>
         <h2>{{ recipe.title }}</h2>
-        <p>{{ recipe.summary }}</p>
-        <ol class="kata-steps">
-          {% for step in recipe.steps %}
-            <li>{{ step }}</li>
-          {% endfor %}
-        </ol>
+        <p class="kata-summary">
+          <button class="kata-toggle" type="button" aria-expanded="false">
+            {{ recipe.summary }}
+          </button>
+        </p>
+        <div class="kata-detail">
+          <ol class="kata-steps">
+            {% for item in recipe.details %}
+              {% assign detail_label = item.label | default: item %}
+              {% assign detail_text = item.detail %}
+              <li>
+                <span class="kata-detail-label">{{ detail_label }}</span>
+                {% if detail_text %}
+                  <span class="kata-detail-text">: {{ detail_text }}</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ol>
+        </div>
         {% if recipe.tip %}
           <p class="kata-tips">Cue: {{ recipe.tip }}</p>
         {% endif %}
@@ -143,6 +182,27 @@ _styles: |
         const isActive = button.classList.toggle("is-active");
         button.setAttribute("aria-pressed", String(isActive));
         section.classList.toggle("is-visible", isActive);
+        if (!isActive) {
+          section.classList.remove("is-expanded");
+          const toggle = section.querySelector(".kata-toggle");
+          if (toggle) toggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+
+    sections.forEach((section) => {
+      const toggle = section.querySelector(".kata-toggle");
+      if (!toggle) return;
+
+      toggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const isExpanded = section.classList.toggle("is-expanded");
+        toggle.setAttribute("aria-expanded", String(isExpanded));
+      });
+
+      section.addEventListener("click", () => {
+        const isExpanded = section.classList.toggle("is-expanded");
+        toggle.setAttribute("aria-expanded", String(isExpanded));
       });
     });
   })();

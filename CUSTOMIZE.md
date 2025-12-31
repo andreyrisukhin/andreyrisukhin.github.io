@@ -58,6 +58,16 @@ The user and repository information is defined in [\_data/repositories.yml](_dat
 
 You can create new pages by adding new Markdown files in the [\_pages](_pages/) directory. The easiest way to do this is to copy an existing page and modify it. You can choose the layout of the page by changing the [layout](https://jekyllrb.com/docs/layouts/) attribute in the [frontmatter](https://jekyllrb.com/docs/front-matter/) of the Markdown file, and also the path to access it by changing the [permalink](https://jekyllrb.com/docs/permalinks/) attribute. You can also add new layouts in the [\_layouts](_layouts/) directory if you feel the need for it.
 
+## Editing Kata recipes
+
+Kata recipes are stored in [\_data/kata.yml](_data/kata.yml) and rendered by [\_pages/kata.md](_pages/kata.md).
+
+- Add: append a new item under `recipes` with a unique `id`, `title`, `summary`, `image`, `image_alt`, `steps`, and optional `tip`.
+- Edit: update any fields in the matching recipe entry.
+- Remove: delete the recipe item from the list.
+
+The order in the YAML file controls the button order on the page.
+
 ## Creating new blog posts
 
 To create a new blog post, you can add a new Markdown file in the [\_posts](_posts/) directory, which is the [default location for posts in Jekyll](https://jekyllrb.com/docs/posts/). The [name of the file must follow](https://jekyllrb.com/docs/posts/#creating-posts) the format `YYYY-MM-DD-title.md`. The easiest way to do this is to copy an existing blog post and modify it. Note that some blog posts have optional fields in the [frontmatter](https://jekyllrb.com/docs/front-matter/) that are used to enable specific behaviors or functions.

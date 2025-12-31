@@ -1,49 +1,96 @@
 recipes:
+  - id: morning-clear-form
+    title: Morning Clear Form
+    summary: A short, repeatable moving kata for clarity using motion, stretching, and breath.
+    image: /assets/img/kata/rearview-flaming-sky.jpg
+    image_alt: Rearview mirror with a flaming sunrise sky
+    details:
+      - label: "Opening stillness (1 min)"
+        detail: "stand tall, knees soft, hands on lower ribs, eyes half-closed. Breathe 4-2-6 for 5 cycles. Cue: Arriving."
+      - label: Neck + spine wave (1.5 min)
+        detail: "slow neck half-circles x 3 each way, shoulder rolls back x 6, chin to chest -> roll down -> roll up. Breathe in to lift, out to fold."
+      - label: Grounded hip + leg flow (1.5 min)
+        detail: "wide stance, shift side to side, gentle squat x 5, forward fold -> half-lift -> fold x 3. Exhale on effort, inhale on rise. Cue: Heavy feet, light head."
+      - label: Sun-style flow (2 min)
+        detail: "3 slow rounds (arms up inhale, fold exhale, half lift inhale, step back to plank, gentle cobra inhale, downward dog exhale 2 breaths, step forward to rise)."
+      - label: Standing balance + breath (1 min)
+        detail: "one leg, hands on belly, 3 slow breaths each side. Optional eyes closed."
+      - label: Closing breath (1 min)
+        detail: "stand still, inhale 4, exhale 8, 5 rounds. Cue: Ready."
+      - label: Optional variants
+        detail: "Minimalist 5-min (opening breath, spine wave, squats + fold, balance, long exhale)."
+      - label: Optional variants
+        detail: "Martial (add slow punches/blocks, sharp nasal exhale on strikes, precision over power)."
+      - label: Optional variants
+        detail: "Silent walk (replace sun flow with 2 min walk, inhale 3 steps, exhale 5 steps)."
+      - label: Usage notes
+        detail: "same place, same time, same sequence, no music initially. This is state training, not fitness."
+    tip: consistency over depth. no rushing.
   - id: morning-rise
     title: Morning Rise
     summary: Wake up the spine and set a steady pace for the day.
     image: /assets/img/1.jpg
     image_alt: Sunlit mountain path
-    steps:
-      - Stand tall. Inhale 4 counts, exhale 6 counts, 5 rounds.
-      - Shoulder rolls x 10 each direction while breathing 4-4.
-      - Forward fold, hang for 4 slow breaths, soften knees.
-      - Half lift + fold, 6 cycles with a 3-count inhale and 4-count exhale.
-      - Slow march in place for 90 seconds, breathe 4-2-6.
+    details:
+      - label: Opening breath (2 min)
+        detail: "stand tall. Inhale 4 counts, exhale 6 counts, 5 rounds."
+      - label: Shoulder rolls (1 min)
+        detail: "roll x 10 each direction while breathing 4-4."
+      - label: Forward fold (1 min)
+        detail: "hang for 4 slow breaths, soften knees."
+      - label: Half lift + fold (2 min)
+        detail: "6 cycles with a 3-count inhale and 4-count exhale."
+      - label: Slow march (90 sec)
+        detail: "in place, breathe 4-2-6."
     tip: keep the exhale longer than the inhale.
   - id: midday-reset
     title: Midday Reset
     summary: Clear tension and re-focus between tasks.
     image: /assets/img/7.jpg
     image_alt: Calm water and sky
-    steps:
-      - Seated or standing: inhale 4, hold 2, exhale 6, 6 rounds.
-      - Neck glide: look right, left, center, 6 cycles total.
-      - Side bend reach, 4 breaths each side.
-      - Wall push or desk lean, 8 slow reps with 4-4 breathing.
-      - Walk 2 minutes, scan the room with each exhale.
+    details:
+      - label: Centering breath (2 min)
+        detail: "seated or standing, inhale 4, hold 2, exhale 6, 6 rounds."
+      - label: Neck glide (1 min)
+        detail: "look right, left, center, 6 cycles total."
+      - label: Side bend reach (1 min)
+        detail: "4 breaths each side."
+      - label: Wall push or desk lean (2 min)
+        detail: "8 slow reps with 4-4 breathing."
+      - label: Walk (2 min)
+        detail: "scan the room with each exhale."
     tip: keep eyes soft and shoulders relaxed.
   - id: evening-downshift
     title: Evening Downshift
     summary: Transition out of work mode and release tension.
     image: /assets/img/10.jpg
     image_alt: Warm dusk landscape
-    steps:
-      - Box breathing: inhale 4, hold 4, exhale 4, hold 4, 4 rounds.
-      - Slow squat-to-stand, 6 reps, inhale down, exhale up.
-      - Seated twist, 4 breaths each side.
-      - Child's pose or knees-to-chest, 6 slow breaths.
-      - Finish with 3 sighing exhales through the mouth.
+    details:
+      - label: Box breathing (2 min)
+        detail: "inhale 4, hold 4, exhale 4, hold 4, 4 rounds."
+      - label: Squat-to-stand (2 min)
+        detail: "6 reps, inhale down, exhale up."
+      - label: Seated twist (1 min)
+        detail: "4 breaths each side."
+      - label: Child's pose (2 min)
+        detail: "or knees-to-chest, 6 slow breaths."
+      - label: Sighing exhales (1 min)
+        detail: "finish with 3 exhales through the mouth."
     tip: feel each exhale drop the shoulders.
   - id: night-soften
     title: Night Soften
     summary: Quiet the system and prepare for sleep.
     image: /assets/img/12.jpg
     image_alt: Night sky with stars
-    steps:
-      - Lie down. Inhale 4, exhale 8, 8 rounds.
-      - Progressive release: jaw, shoulders, hands, belly, legs.
-      - Legs up the wall, 2 minutes with slow nasal breathing.
-      - Place one hand on belly, one on chest, 10 gentle breaths.
-      - End with a long exhale and a brief pause.
+    details:
+      - label: Long exhale (2 min)
+        detail: "lie down, inhale 4, exhale 8, 8 rounds."
+      - label: Progressive release (2 min)
+        detail: "jaw, shoulders, hands, belly, legs."
+      - label: Legs up the wall (2 min)
+        detail: "slow nasal breathing."
+      - label: Hand on belly/chest (2 min)
+        detail: "10 gentle breaths."
+      - label: Closing pause (1 min)
+        detail: "end with a long exhale and a brief pause."
     tip: keep the face relaxed and tongue soft.
