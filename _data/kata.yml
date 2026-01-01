@@ -17,80 +17,27 @@ recipes:
         detail: "one leg, hands on belly, 3 slow breaths each side. Optional eyes closed."
       - label: Closing breath (1 min)
         detail: "stand still, inhale 4, exhale 8, 5 rounds. Cue: Ready."
-      - label: Optional variants
-        detail: "Minimalist 5-min (opening breath, spine wave, squats + fold, balance, long exhale)."
-      - label: Optional variants
-        detail: "Martial (add slow punches/blocks, sharp nasal exhale on strikes, precision over power)."
-      - label: Optional variants
-        detail: "Silent walk (replace sun flow with 2 min walk, inhale 3 steps, exhale 5 steps)."
-      - label: Usage notes
-        detail: "same place, same time, same sequence, no music initially. This is state training, not fitness."
-    tip: consistency over depth. no rushing.
-  - id: morning-rise
-    title: Morning Rise
-    summary: Wake up the spine and set a steady pace for the day.
-    image: /assets/img/1.jpg
-    image_alt: Sunlit mountain path
-    details:
-      - label: Opening breath (2 min)
-        detail: "stand tall. Inhale 4 counts, exhale 6 counts, 5 rounds."
-      - label: Shoulder rolls (1 min)
-        detail: "roll x 10 each direction while breathing 4-4."
-      - label: Forward fold (1 min)
-        detail: "hang for 4 slow breaths, soften knees."
-      - label: Half lift + fold (2 min)
-        detail: "6 cycles with a 3-count inhale and 4-count exhale."
-      - label: Slow march (90 sec)
-        detail: "in place, breathe 4-2-6."
-    tip: keep the exhale longer than the inhale.
-  - id: midday-reset
-    title: Midday Reset
-    summary: Clear tension and re-focus between tasks.
-    image: /assets/img/7.jpg
-    image_alt: Calm water and sky
-    details:
-      - label: Centering breath (2 min)
-        detail: "seated or standing, inhale 4, hold 2, exhale 6, 6 rounds."
-      - label: Neck glide (1 min)
-        detail: "look right, left, center, 6 cycles total."
-      - label: Side bend reach (1 min)
-        detail: "4 breaths each side."
-      - label: Wall push or desk lean (2 min)
-        detail: "8 slow reps with 4-4 breathing."
-      - label: Walk (2 min)
-        detail: "scan the room with each exhale."
-    tip: keep eyes soft and shoulders relaxed.
-  - id: evening-downshift
-    title: Evening Downshift
-    summary: Transition out of work mode and release tension.
-    image: /assets/img/10.jpg
-    image_alt: Warm dusk landscape
-    details:
-      - label: Box breathing (2 min)
-        detail: "inhale 4, hold 4, exhale 4, hold 4, 4 rounds."
-      - label: Squat-to-stand (2 min)
-        detail: "6 reps, inhale down, exhale up."
-      - label: Seated twist (1 min)
-        detail: "4 breaths each side."
-      - label: Child's pose (2 min)
-        detail: "or knees-to-chest, 6 slow breaths."
-      - label: Sighing exhales (1 min)
-        detail: "finish with 3 exhales through the mouth."
-    tip: feel each exhale drop the shoulders.
+    tip: awareness onto steady breath, we'll think about tasks soon.
   - id: night-soften
-    title: Night Soften
-    summary: Quiet the system and prepare for sleep.
-    image: /assets/img/12.jpg
-    image_alt: Night sky with stars
+    title: Night Closing Form
+    summary: A 8-10 minute closing kata to downshift the nervous system before sleep.
+    image: /assets/img/kata/end-of-the-day.jpg
+    image_alt: Empty rooftop parking lot at night
     details:
-      - label: Long exhale (2 min)
-        detail: "lie down, inhale 4, exhale 8, 8 rounds."
-      - label: Progressive release (2 min)
-        detail: "jaw, shoulders, hands, belly, legs."
-      - label: Legs up the wall (2 min)
-        detail: "slow nasal breathing."
-      - label: Hand on belly/chest (2 min)
-        detail: "10 gentle breaths."
-      - label: Closing pause (1 min)
-        detail: "end with a long exhale and a brief pause."
-    tip: keep the face relaxed and tongue soft.
+      - label: Hard stop (30 sec)
+        detail: "close laptop, turn screen face down, stand, say: Done for today."
+      - label: Standing unload (2 min)
+        detail: "feet hip-width, arms heavy, low gaze. Breathe 4 in / 8 out for 6 cycles. Add neck drops, shoulder shakes, jaw release. Cue: Let go."
+      - label: Forward folding sequence (3 min)
+        detail: "slow fold with bent knees, sway. Half-lift -> fold x 3. Hamstring stretch seated or standing. Hug knees to chest if on floor. Long quiet exhales."
+      - label: Ground contact (2-3 min)
+        detail: "sit or lie down, one hand chest, one belly. Inhale 3-4, exhale 7-10. Optional gentle twist or knees side to side. Cue: Nothing to solve."
+      - label: Closing signal (1 min)
+        detail: "lie flat or sit upright, hands by sides, stillness. Say internally: Body resting. Mind resting. Tomorrow later."
+      - label: Ideal sequence
+        detail: "Laptop off -> Night Kata (8-10 min) -> Warm shower (5-10 min, dim light) -> Bed."
+      - label: Minimal sequence
+        detail: "Laptop off -> Short Kata (5 min) -> Bed."
+      - label: Avoid
+        detail: "Laptop -> phone -> bed."
+    tip: feel each mouth exhale drop the shoulders.
