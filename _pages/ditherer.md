@@ -47,7 +47,29 @@ Upload an image, choose a palette, and preview interleaved gradient noise dither
       <label>Palette</label>
       <div class="ditherer-palette-row">
         <div class="ditherer-palette-editor" id="ditherer-palette-editor" aria-label="Palette editor"></div>
-        <button class="ditherer-palette-add" id="ditherer-palette-add" type="button" aria-label="Add color">+</button>
+        <div class="ditherer-palette-controls">
+          <button class="ditherer-palette-add" id="ditherer-palette-add" type="button" aria-label="Add color">+</button>
+          <div class="ditherer-palette-actions" aria-label="Palette actions">
+            <button class="ditherer-palette-action" id="ditherer-palette-undo" type="button" disabled>Undo</button>
+            <button class="ditherer-palette-action" id="ditherer-palette-redo" type="button" disabled>Redo</button>
+            <div class="ditherer-palette-sort">
+              <button
+                class="ditherer-palette-action"
+                id="ditherer-palette-sort-toggle"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                Sort
+              </button>
+              <div class="ditherer-palette-sort-menu" role="menu">
+                <button type="button" data-sort="luminance">By luminance</button>
+                <button type="button" data-sort="hue">By hue</button>
+                <button type="button" data-sort="saturation">By saturation</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <details class="ditherer-advanced">
         <summary>Edit as text</summary>

@@ -115,10 +115,18 @@
   gap: 0.4rem;
 }
 
+.ditherer-palette-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
 .ditherer-swatch-item {
   display: flex;
   align-items: center;
   gap: 0.2rem;
+  position: relative;
 }
 
 .ditherer-swatch {
@@ -128,6 +136,26 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: var(--swatch-color);
   cursor: pointer;
+}
+
+.ditherer-swatch-handle {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: grab;
+  border-radius: 6px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.ditherer-swatch-item.is-dragging {
+  opacity: 0.5;
+}
+
+.ditherer-swatch-item.is-drop-target {
+  outline: 2px dashed rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
 }
 
 .ditherer-swatch-remove,
@@ -141,6 +169,79 @@
   cursor: pointer;
   font-size: 0.9rem;
   line-height: 1;
+}
+
+.ditherer-palette-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.ditherer-palette-row:hover .ditherer-palette-actions,
+.ditherer-palette-row:focus-within .ditherer-palette-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.ditherer-palette-action {
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.ditherer-palette-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ditherer-palette-sort {
+  position: relative;
+}
+
+.ditherer-palette-sort-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.25rem;
+  padding: 0.4rem;
+  border-radius: 8px;
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: grid;
+  gap: 0.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 5;
+}
+
+.ditherer-palette-sort:focus-within .ditherer-palette-sort-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.ditherer-palette-sort-menu button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  text-align: left;
+  cursor: pointer;
 }
 
 .ditherer-advanced {
