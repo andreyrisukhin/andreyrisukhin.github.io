@@ -3,120 +3,16 @@ layout: page
 title: kata
 permalink: /kata/
 description: "Breath and motion recipes for quick resets."
-_styles: |
-  .kata-intro {
-    margin-bottom: 1.5rem;
-  }
-
-  .kata-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 0.75rem 0 1.5rem;
-  }
-
-  .kata-nav button {
-    background: transparent;
-    border: 1px solid var(--global-divider-color, #d0d0d0);
-    border-radius: 999px;
-    padding: 0.35rem 0.9rem;
-    font-size: 0.95rem;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .kata-nav button.is-active {
-    background: var(--global-theme-color, #222);
-    color: var(--global-bg-color, #fff);
-    border-color: var(--global-theme-color, #222);
-  }
-
-  .kata-recipe {
-    border: 1px solid var(--global-divider-color, #d0d0d0);
-    border-radius: 16px;
-    padding: 1.25rem;
-    background: var(--global-card-bg-color, #fff);
-    display: none;
-    cursor: pointer;
-  }
-
-  .kata-recipe.is-visible {
-    display: grid;
-  }
-
-  .kata-detail {
-    margin-top: 0.75rem;
-  }
-
-  .kata-recipe.is-expanded .kata-detail-label {
-    font-weight: 700;
-  }
-
-  .kata-detail-text {
-    display: none;
-  }
-
-  .kata-recipe.is-expanded .kata-detail-text {
-    display: inline;
-  }
-
-  .kata-recipe .kata-toggle {
-    border: 0;
-    background: transparent;
-    padding: 0;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .kata-recipes {
-    display: grid;
-    gap: 2rem;
-  }
-
-  .kata-recipe {
-    gap: 1.25rem;
-  }
-
-  .kata-recipe img {
-    border-radius: 12px;
-    width: 100%;
-    height: auto;
-  }
-
-  .kata-recipe h2 {
-    margin-top: 0;
-  }
-
-  .kata-steps {
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .kata-steps li {
-    line-height: 1.5;
-  }
-
-  .kata-tips {
-    font-size: 0.95rem;
-    color: var(--global-text-muted-color, #555);
-  }
-
-  @media (min-width: 860px) {
-    .kata-recipe {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-      align-items: start;
-    }
-  }
 ---
 
 ## Kata
 
-<div class="kata-intro">
+<div class="kata-intro">  
   <p>
-    These short routines pair breathing with simple motion. Each recipe is a
-    6-10 minute loop you can run any time. Use the quick links to jump to a
-    section and follow the step list in order.
+    Breathing is important. Marching band focused on air support and control, steady breathing.
+  </p>
+  <p>
+    Inspired by the kata from Brandon Sanderson's "Stormlight Archive", these are combined yoga and marching band ideas.
   </p>
 </div>
 

@@ -1,7 +1,7 @@
 recipes:
   - id: morning-clear-form
-    title: Morning Clear Form
-    summary: A short, repeatable moving kata for clarity using motion, stretching, and breath.
+    title: Morning Form
+    summary: Start the day, building up movement and breath.
     image: /assets/img/kata/rearview-flaming-sky.jpg
     image_alt: Rearview mirror with a flaming sunrise sky
     details:
@@ -19,7 +19,7 @@ recipes:
         detail: "stand still, inhale 4, exhale 8, 5 rounds. Cue: Ready."
     tip: awareness onto steady breath, we'll think about tasks soon.
   - id: night-soften
-    title: Night Closing Form
+    title: Sleep Form
     summary: A 8-10 minute closing kata to downshift the nervous system before sleep.
     image: /assets/img/kata/end-of-the-day.jpg
     image_alt: Empty rooftop parking lot at night
@@ -34,10 +34,4 @@ recipes:
         detail: "sit or lie down, one hand chest, one belly. Inhale 3-4, exhale 7-10. Optional gentle twist or knees side to side. Cue: Nothing to solve."
       - label: Closing signal (1 min)
         detail: "lie flat or sit upright, hands by sides, stillness. Say internally: Body resting. Mind resting. Tomorrow later."
-      - label: Ideal sequence
-        detail: "Laptop off -> Night Kata (8-10 min) -> Warm shower (5-10 min, dim light) -> Bed."
-      - label: Minimal sequence
-        detail: "Laptop off -> Short Kata (5 min) -> Bed."
-      - label: Avoid
-        detail: "Laptop -> phone -> bed."
     tip: feel each mouth exhale drop the shoulders.
