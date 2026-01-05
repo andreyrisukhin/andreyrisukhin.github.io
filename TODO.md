@@ -1,3 +1,7 @@
+2026-01-05 - Add PT to Kata section
+
+Add library
+
 2025-12-31 - How to add little info piece to each of my photos? Like XKCD. Each photo has meaning, neat to show on hover or something. 
 2025-12-31 - Interactive chromatic accordion keyboard on Music tab? 
 
