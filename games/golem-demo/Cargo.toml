@@ -1,0 +1,21 @@
+[package]
+name = "golem_demo"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+bevy = { version = "0.12", default-features = false, features = [
+  "bevy_winit",
+  "bevy_render",
+  "bevy_core_pipeline",
+  "bevy_sprite",
+  "bevy_asset",
+  "png",
+  "webgl2",
+] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
+wasm-bindgen = "0.2"
+uuid = { version = "1", features = ["rng-getrandom"] }
