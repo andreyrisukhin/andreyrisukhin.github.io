@@ -1,0 +1,1 @@
+function setStatus(t){statusEl&&(statusEl.textContent=t)}async function boot(){try{setStatus("Loading wasm...");const t=window.__GOLEM_WASM_URL__||"/assets/wasm/golem-demo/golem_demo.js",s=await import(t);await s.default(),setStatus("")}catch(t){setStatus("Failed to load wasm. Build with wasm-pack and refresh.")}}const statusEl=document.getElementById("golem-status");boot();
