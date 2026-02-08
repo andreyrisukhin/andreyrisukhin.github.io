@@ -5,8 +5,8 @@ nav: true
 nav_order: 9
 dropdown: true
 children:
-  - title: music theory
-    permalink: /music-theory/
+  - title: music
+    permalink: /music/
   - title: ditherer
     permalink: /ditherer/
   - title: kata
