@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-bevy = { version = "0.12", default-features = false, features = [
+bevy = { version = "0.13.2", default-features = false, features = [
   "bevy_winit",
   "bevy_render",
   "bevy_core_pipeline",
@@ -16,6 +16,10 @@ bevy = { version = "0.12", default-features = false, features = [
   "png",
   "webgl2",
 ] }
+bevy_rapier2d = "0.26"
+bevy_ecs_ldtk = "0.10"
+bevy-tnua = "0.7"
+bevy-tnua-rapier2d = "0.7"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 wasm-bindgen = "0.2"
 uuid = { version = "1", features = ["rng-getrandom"] }

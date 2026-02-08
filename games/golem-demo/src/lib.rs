@@ -1,10 +1,13 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 use wasm_bindgen::prelude::*;
 
-const PLAYER_SPEED: f32 = 320.0;
-
-#[derive(Component)]
-struct Player;
+mod constants;
+mod editor;
+mod level;
+mod mode;
+mod player;
+mod world;
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -20,41 +23,18 @@ pub fn start() {
             }),
             ..default()
         }))
-        .add_systems(Startup, setup)
-        .add_systems(Update, player_movement)
+        .add_plugins((
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(constants::PIXELS_PER_METER),
+            RapierDebugRenderPlugin::default(),
+        ))
+        .insert_resource(level::Level::default())
+        .insert_resource(mode::GameMode::Play)
+        .add_event::<world::LevelChanged>()
+        .add_systems(Startup, world::setup_scene)
+        .add_systems(Update, mode::toggle_mode)
+        .add_systems(Update, editor::export_level.run_if(mode::is_edit_mode))
+        .add_systems(Update, editor::edit_level.run_if(mode::is_edit_mode))
+        .add_systems(Update, world::apply_level_changes)
+        .add_systems(Update, player::player_movement.run_if(mode::is_play_mode))
         .run();
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: Color::rgb(0.2, 0.7, 0.9),
-            custom_size: Some(Vec2::new(220.0, 220.0)),
-            ..default()
-        },
-        ..default()
-    })
-    .insert(Player);
-}
-
-fn player_movement(
-    keyboard: Res<Input<KeyCode>>,
-    time: Res<Time>,
-    mut query: Query<&mut Transform, With<Player>>,
-) {
-    let mut direction = 0.0;
-    if keyboard.pressed(KeyCode::A) {
-        direction -= 1.0;
-    }
-    if keyboard.pressed(KeyCode::D) {
-        direction += 1.0;
-    }
-
-    if direction != 0.0 {
-        let delta = direction * PLAYER_SPEED * time.delta_seconds();
-        for mut transform in &mut query {
-            transform.translation.x += delta;
-        }
-    }
 }
