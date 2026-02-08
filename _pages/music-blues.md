@@ -13,5 +13,3 @@ Planned content:
 - Key selector for viewing the progression in any key
 - Blues scale display and common licks
 - Turnarounds and variations
-
-[Back to Music](/music/)

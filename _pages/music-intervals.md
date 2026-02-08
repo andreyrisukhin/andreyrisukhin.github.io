@@ -26,5 +26,3 @@ A complete list of intervals from 0–12 semitones, with formal names, common na
 | **10**    | Minor 7th (m7)      |                               | C → Bb           |
 | **11**    | Major 7th (M7)      |                               | C → B            |
 | **12**    | Perfect Octave (P8) | Octave, 8ve                   | C → C            |
-
-[Back to Music](/music/)

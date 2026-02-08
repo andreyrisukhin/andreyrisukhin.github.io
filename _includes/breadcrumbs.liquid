@@ -1,0 +1,28 @@
+{% assign parts = page.url | split: '/' %}
+{% if parts.size > 2 %}
+{%- assign last = parts.size | minus: 1 -%}
+<nav aria-label="breadcrumb" class="breadcrumbs">
+  {%- for i in (1..last) -%}
+    {%- assign path = '' -%}
+    {%- for j in (1..i) -%}
+      {%- assign path = path | append: '/' | append: parts[j] -%}
+    {%- endfor -%}
+    {%- assign path = path | append: '/' -%}
+    {%- assign crumb_title = parts[i] -%}
+    {%- for p in site.pages -%}
+      {%- if p.permalink == path or p.url == path -%}
+        {%- if p.title and p.title != '' -%}
+          {%- assign crumb_title = p.title -%}
+        {%- endif -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- if i > 1 %} / {% endif -%}
+    {%- if i == last -%}
+      <span>{{ crumb_title }}</span>
+    {%- else -%}
+      <a href="{{ path }}">{{ crumb_title }}</a>
+    {%- endif -%}
+  {%- endfor -%}
+</nav>
+{% endif %}

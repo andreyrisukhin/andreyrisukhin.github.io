@@ -156,5 +156,3 @@ Abbreviations:
 - ø7 = half-diminished seventh
 - °7 = fully diminished seventh
 - +maj7 = augmented major seventh
-
-[Back to Music](/music/)

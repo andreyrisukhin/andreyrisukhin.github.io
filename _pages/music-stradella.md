@@ -44,5 +44,3 @@ But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-ba
 - Some multi-triad stacks (11, 13, altered) are **theoretical full sets**, not ergonomic LH voicings.
 - For actual playing: use **1 or 2 triads max**; bring extra tensions in the **right hand**.
 - All chords here are **specifically voiced for C**; to transpose, shift everything by the same interval.
-
-[Back to Music](/music/)
