@@ -23,12 +23,12 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/teaching/";
           },
-        },{id: "dropdown-music-theory",
-              title: "music theory",
+        },{id: "dropdown-music",
+              title: "music",
               description: "",
               section: "Dropdown",
               handler: () => {
-                window.location.href = "/music-theory/";
+                window.location.href = "/music/";
               },
             },{id: "dropdown-ditherer",
               title: "ditherer",
