@@ -3,15 +3,15 @@ layout: page
 permalink: /music/stradella/
 ---
 
-# Stradella Chord Recipes — All in C
+# Stradella Chord Recipes
 
 How to create chords out of root and major, minor, 7th triads.
-Format: **Triad + Triad + … / C**
+Format: **Triad + Triad + … / Bass**
 
 Triads are the **left-hand chord buttons** (Major, Minor, 7th).
-Root is the **C bass button**.
+Bass is the **bass button** for the root (or an inversion).
 
-Example:
+Example (in C):
 `Em / C` = press C bass + E minor chord.
 
 ## Practically
@@ -35,12 +35,28 @@ But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-ba
 - Jazz Accordion Solos [youtube](https://www.youtube.com/channel/UCbTwGWrQQJ20odJ7Rpeljrg) [blog](https://accordionchords.com/tutorials/jazz-accordion-solos/)
 - Book I wish I had when starting out [blog to pdf](https://accordionchords.com/tutorials/stradella-xtensions-harmonic-technique-for-the-accordion/), [Stradella Xtensions](https://sites.google.com/view/download-book/home) by Evan Perry-Giblin, former owner of Brooklyn Bellows
 
-## Stradella Chord Recipes in C
+## Set List
 
-{% include stradella_table.html data=site.data.music.stradella_c_construction %}
+<div id="stradella-setlist" class="stradella-setlist"></div>
+
+<div class="stradella-share">
+  <label>Share:</label>
+  <input type="text" id="stradella-share-text" class="stradella-share-text">
+  <button id="stradella-share-copy" class="stradella-share-btn">Copy</button>
+  <button id="stradella-share-load" class="stradella-share-btn">Load</button>
+</div>
+
+<details id="stradella-catalog-details">
+  <summary>Chord Catalog</summary>
+  <div class="stradella-key-bar" id="stradella-key-bar"></div>
+  <div id="stradella-catalog" class="stradella-catalog"></div>
+</details>
+
+<noscript><p>This interactive tool requires JavaScript.</p></noscript>
+<script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
 
 ## Notes
 
 - Some multi-triad stacks (11, 13, altered) are **theoretical full sets**, not ergonomic LH voicings.
 - For actual playing: use **1 or 2 triads max**; bring extra tensions in the **right hand**.
-- All chords here are **specifically voiced for C**; to transpose, shift everything by the same interval.
+- Use the **Key** dropdown above to transpose all recipes to any key.

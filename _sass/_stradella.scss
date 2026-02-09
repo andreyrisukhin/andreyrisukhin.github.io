@@ -1,0 +1,254 @@
+/* ===== Stradella jam set list ===== */
+
+.stradella-key-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--global-bg-color);
+  padding: 0.4rem 0;
+}
+
+.stradella-key-btn {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  min-width: 2.4rem;
+  text-align: center;
+
+  &:not(:first-child) {
+    border-left: none;
+  }
+
+  &:first-child {
+    border-radius: 4px 0 0 4px;
+  }
+
+  &:last-child {
+    border-radius: 0 4px 4px 0;
+  }
+
+  &.is-active {
+    background: var(--global-theme-color);
+    color: #fff;
+    border-color: var(--global-theme-color);
+  }
+}
+
+/* ── Set list cards ── */
+
+.stradella-setlist {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.stradella-empty {
+  grid-column: 1 / -1;
+  color: var(--global-text-color);
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.stradella-card {
+  position: relative;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 5px;
+  background: var(--global-bg-color);
+  padding: 0.35rem 0.5rem;
+}
+
+.stradella-card__chord {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--global-text-color);
+  padding-right: 1.2rem; /* room for ✕ */
+}
+
+.stradella-card__recipe {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  color: var(--global-text-color);
+  opacity: 0.8;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+}
+
+.stradella-card__semitones {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: var(--global-text-color);
+  opacity: 0.5;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+}
+
+.stradella-card__remove {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #c44;
+  cursor: pointer;
+  font-size: 0.75rem;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .stradella-setlist {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Catalog ── */
+
+#stradella-catalog-details {
+  margin-bottom: 2rem;
+}
+
+#stradella-catalog-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0.5rem 0;
+  color: var(--global-text-color);
+}
+
+.stradella-catalog-family__title {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--global-text-color);
+  opacity: 0.7;
+}
+
+.stradella-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.5rem;
+}
+
+.stradella-catalog-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.6rem 0.5rem;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 6px;
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+  min-height: 44px;
+
+  &:hover {
+    border-color: var(--global-theme-color);
+  }
+
+  &.is-selected {
+    background: var(--global-theme-color);
+    color: #fff;
+    border-color: var(--global-theme-color);
+  }
+
+  /* Uncertain chords: yellow border + tint */
+  &.is-uncertain {
+    border-color: #d4a017;
+    background: rgba(212, 160, 23, 0.08);
+  }
+
+  &.is-uncertain.is-selected {
+    background: var(--global-theme-color);
+    border-color: var(--global-theme-color);
+  }
+}
+
+.stradella-catalog-item__name {
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.stradella-catalog-item__recipe {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  margin-top: 0.15rem;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+
+  .is-selected & {
+    opacity: 0.9;
+  }
+}
+
+.stradella-catalog-item__warn {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: #d4a017;
+  margin-top: 0.15rem;
+
+  .is-selected & {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* ── Share / export box ── */
+
+.stradella-share {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stradella-share label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.stradella-share-text {
+  flex: 1;
+  min-width: 180px;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+}
+
+.stradella-share-btn {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--global-divider-color);
+  }
+}
