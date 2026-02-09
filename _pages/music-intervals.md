@@ -1,10 +1,8 @@
 ---
 layout: page
-title: Intervals
+title: Interval Reference Sheet (By Semitones)
 permalink: /music/intervals/
 ---
-
-# Interval Reference Sheet (By Semitones)
 
 A complete list of intervals from 0–12 semitones, with formal names, common names, and an example starting from C.
 

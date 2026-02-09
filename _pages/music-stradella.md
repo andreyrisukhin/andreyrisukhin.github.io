@@ -4,16 +4,9 @@ title: Stradella Chord Recipes
 permalink: /music/stradella/
 ---
 
-# Stradella Chord Recipes
-
 How to create chords out of root and major, minor, 7th triads.
-Format: **Triad + Triad + … / Bass**
-
-Triads are the **left-hand chord buttons** (Major, Minor, 7th).
-Bass is the **bass button** for the root (or an inversion).
-
-Example (in C):
-`Em / C` = press C bass + E minor chord.
+Format: **Triad + Triad + … / Bass**. 
+Example: `Em / C` = press C bass + E minor chord.
 
 ## Practically
 

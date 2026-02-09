@@ -1,10 +1,8 @@
 ---
 layout: page
-title: Blues Jam Helper
+title: 12-Bar Blues Jam Helper
 permalink: /music/blues/
 ---
-
-# 12-Bar Blues Jam Helper
 
 Pick a key and progression variant to see the 12-bar form with real chord names.
 

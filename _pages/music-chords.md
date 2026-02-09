@@ -1,10 +1,8 @@
 ---
 layout: page
-title: Chord Reference
+title: Diatonic Chord Quality Order by Scale Type and Chord Structure
 permalink: /music/chords/
 ---
-
-# Diatonic Chord Quality Order by Scale Type and Chord Structure
 
 Notes:
 

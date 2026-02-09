@@ -4,8 +4,6 @@ title: Music
 permalink: /music/
 ---
 
-# Music
-
 References, cheat sheets, and tools for music theory and accordion playing.
 
 - [Chord Reference](/music/chords/) — Diatonic chord qualities for every scale type and chord structure
