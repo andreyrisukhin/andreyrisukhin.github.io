@@ -128,6 +128,31 @@ window.Music = (function () {
     };
   }
 
+  // Convert semitone to ASCII note name for Tonal (e.g. 3 → "Eb")
+  function asciiNoteName(semitone) {
+    return toAscii(noteName(semitone));
+  }
+
+  // Parse space-separated note names into array of semitone values
+  // Accepts Unicode (E♭) and ASCII (Eb) accidentals
+  // Returns [] for empty/invalid input
+  function parseNoteInput(str) {
+    if (!str || !str.trim()) return [];
+    var tokens = str.trim().split(/\s+/);
+    var result = [];
+    for (var i = 0; i < tokens.length; i++) {
+      var tok = tokens[i];
+      // Capitalize first letter, keep rest
+      tok = tok.charAt(0).toUpperCase() + tok.slice(1);
+      // Normalize ASCII accidentals after the letter: Eb→E♭, F#→F♯
+      tok = tok.replace(/b$/, '\u266D').replace(/#$/, '\u266F');
+      var idx = NOTES.indexOf(tok);
+      if (idx === -1) continue; // skip unrecognized tokens
+      result.push(idx);
+    }
+    return result;
+  }
+
   return {
     NOTES: NOTES,
     noteName: noteName,
@@ -139,6 +164,8 @@ window.Music = (function () {
     SUFFIX_TO_TONAL: SUFFIX_TO_TONAL,
     toAscii: toAscii,
     formatInterval: formatInterval,
-    chordInfo: chordInfo
+    chordInfo: chordInfo,
+    asciiNoteName: asciiNoteName,
+    parseNoteInput: parseNoteInput
   };
 })();

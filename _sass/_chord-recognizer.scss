@@ -1,0 +1,153 @@
+/* ===== Chord recognizer tool ===== */
+
+/* ── Note input buttons ── */
+
+.recognizer-note-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 0.75rem;
+}
+
+.recognizer-note-btn {
+  position: relative;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  min-width: 2.4rem;
+  text-align: center;
+
+  &:not(:first-child) {
+    border-left: none;
+  }
+
+  &:first-child {
+    border-radius: 4px 0 0 4px;
+  }
+
+  &:last-child {
+    border-radius: 0 4px 4px 0;
+  }
+
+  &.is-active {
+    background: var(--global-theme-color);
+    color: #fff;
+    border-color: var(--global-theme-color);
+  }
+}
+
+/* Order badge on selected notes */
+.recognizer-order {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  font-size: 0.6rem;
+  background: var(--global-theme-color);
+  color: #fff;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  filter: brightness(0.8);
+}
+
+/* ── Input row ── */
+
+.recognizer-input-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Result display ── */
+
+.recognizer-result {
+  margin-bottom: 1rem;
+}
+
+.recognizer-prompt {
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
+
+.recognizer-chord-name {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.recognizer-inversion {
+  font-size: 0.9rem;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 0.5rem;
+}
+
+.recognizer-alternatives {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+}
+
+.recognizer-details {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* ── Staff SVG ── */
+
+.recognizer-staff {
+  margin-top: 1rem;
+}
+
+.recognizer-staff-svg {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+}
+
+.recognizer-staff-line {
+  stroke: var(--global-text-color);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+.recognizer-staff-ledger {
+  stroke: var(--global-text-color);
+  stroke-width: 1;
+  opacity: 0.3;
+}
+
+.recognizer-staff-notehead {
+  fill: var(--global-text-color);
+}
+
+.recognizer-staff-accidental {
+  fill: var(--global-text-color);
+  font-size: 14px;
+}
+
+.recognizer-staff-clef {
+  fill: var(--global-text-color);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 480px) {
+  .recognizer-chord-name {
+    font-size: 1.5rem;
+  }
+
+  .recognizer-note-btn {
+    min-width: 2rem;
+    padding: 0.3rem 0.35rem;
+    font-size: 0.8rem;
+  }
+}
