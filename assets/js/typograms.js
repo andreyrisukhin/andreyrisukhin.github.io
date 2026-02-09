@@ -85,10 +85,6 @@ glyphs["|"] = ([top, right, bottom, left, topRight, bottomRight, bottomLeft, top
     line.setAttribute("class", "part");
     result.appendChild(line);
   }
-  // const leg =  && ;
-  // const head =  && ;
-  //console.log(!(bottomLeft == "/" && bottomRight == "\\"));
-  //console.log(!(topRight == "/" && topLeft == "\\"));
   result.appendChild(
     cross([
       !(topRight == "/" && topLeft == "\\"), // top
@@ -455,7 +451,6 @@ glyphs["+"] = ([top, right, bottom, left, topRight, bottomRight, bottomLeft, top
       tR && tL, // bottomLeft
       bR && bL, // topLeft
     ]);
-    //console.log(center);
     center.setAttribute("clip-path", "polygon(15 0, 30 0, 30 54, 15 54)");
     result.appendChild(center);
   }
@@ -1133,15 +1128,9 @@ function cross([top, right, bottom, left, topRight, bottomRight, bottomLeft, top
     // line.setAttribute("clip-path", "polygon(-6 -6, 15 -6, 15 30, -6 30)");
     // line.setAttribute("stroke-linecap", "square !important");
     result.appendChild(line);
-    //const mask = document.createElementNS(
-    //  "http://www.w3.org/2000/svg", "polygon");
-    //mask.setAttribute("points", "0 0, 15 0, 15 18, 0 18");
-    //result.appendChild(mask);
-    //console.log("hi");
   }
 
   if (bottomRight) {
-    //{
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     line.setAttribute("x1", 15);
     line.setAttribute("y1", 27);
@@ -1296,19 +1285,10 @@ function around(diagram, [x, y]) {
     left = diagram[y][x - 1] || " ";
   }
   if (y > 0 && x < diagram[y - 1].length - 1) {
-    // console.log(`@${diagram[y][x]}: ${diagram[y - 1][x + 1]}`);
     topRight = diagram[y - 1][x + 1] || " ";
   }
-  //if (diagram[y][x] == ".") {
-  //console.log(`${diagram[y][x]}}: ${(y + 1) < (diagram.length)}`);
-  //console.log(diagram[y + 1]);
-  //throw new Error("hi");
-  //}
   if (y + 1 < diagram.length && x < diagram[y + 1].length) {
     bottomRight = diagram[y + 1][x + 1] || " ";
-    //console.log(diagram[y + 1]);
-    //console.log(`${diagram[y][x]}: ${x} ${y} ${bottomRight}`);
-    //throw new Error("hi");
   }
   if (y < diagram.length - 1 && x > 0) {
     bottomLeft = diagram[y + 1][x - 1] || " ";

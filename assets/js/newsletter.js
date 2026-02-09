@@ -1,14 +1,14 @@
 function submitHandler(event) {
   event.preventDefault();
-  var container = event.target.parentNode;
-  var form = container.querySelector(".newsletter-form");
-  var formInput = container.querySelector(".newsletter-form-input");
-  var success = container.querySelector(".newsletter-success");
-  var errorContainer = container.querySelector(".newsletter-error");
-  var errorMessage = container.querySelector(".newsletter-error-message");
-  var backButton = container.querySelector(".newsletter-back-button");
-  var submitButton = container.querySelector(".newsletter-form-button");
-  var loadingButton = container.querySelector(".newsletter-loading-button");
+  const container = event.target.parentNode;
+  const form = container.querySelector(".newsletter-form");
+  const formInput = container.querySelector(".newsletter-form-input");
+  const success = container.querySelector(".newsletter-success");
+  const errorContainer = container.querySelector(".newsletter-error");
+  const errorMessage = container.querySelector(".newsletter-error-message");
+  const backButton = container.querySelector(".newsletter-back-button");
+  const submitButton = container.querySelector(".newsletter-form-button");
+  const loadingButton = container.querySelector(".newsletter-loading-button");
 
   const rateLimit = () => {
     errorContainer.style.display = "flex";
@@ -19,9 +19,9 @@ function submitHandler(event) {
   };
 
   // Compare current time with time of previous sign up
-  var time = new Date();
-  var timestamp = time.valueOf();
-  var previousTimestamp = localStorage.getItem("loops-form-timestamp");
+  const time = new Date();
+  const timestamp = time.valueOf();
+  const previousTimestamp = localStorage.getItem("loops-form-timestamp");
 
   // If last sign up was less than a minute ago
   // display error
@@ -34,7 +34,7 @@ function submitHandler(event) {
   submitButton.style.display = "none";
   loadingButton.style.display = "flex";
 
-  var formBody = "userGroup=&email=" + encodeURIComponent(formInput.value);
+  const formBody = "userGroup=&email=" + encodeURIComponent(formInput.value);
   fetch(event.target.action, {
     method: "POST",
     body: formBody,
@@ -77,13 +77,13 @@ function submitHandler(event) {
     });
 }
 function resetFormHandler(event) {
-  var container = event.target.parentNode;
-  var formInput = container.querySelector(".newsletter-form-input");
-  var success = container.querySelector(".newsletter-success");
-  var errorContainer = container.querySelector(".newsletter-error");
-  var errorMessage = container.querySelector(".newsletter-error-message");
-  var backButton = container.querySelector(".newsletter-back-button");
-  var submitButton = container.querySelector(".newsletter-form-button");
+  const container = event.target.parentNode;
+  const formInput = container.querySelector(".newsletter-form-input");
+  const success = container.querySelector(".newsletter-success");
+  const errorContainer = container.querySelector(".newsletter-error");
+  const errorMessage = container.querySelector(".newsletter-error-message");
+  const backButton = container.querySelector(".newsletter-back-button");
+  const submitButton = container.querySelector(".newsletter-form-button");
 
   success.style.display = "none";
   errorContainer.style.display = "none";
@@ -93,11 +93,11 @@ function resetFormHandler(event) {
   submitButton.style.display = "flex";
 }
 
-var formContainers = document.getElementsByClassName("newsletter-form-container");
+const formContainers = document.getElementsByClassName("newsletter-form-container");
 
-for (var i = 0; i < formContainers.length; i++) {
-  var formContainer = formContainers[i];
-  var handlersAdded = formContainer.classList.contains("newsletter-handlers-added");
+for (let i = 0; i < formContainers.length; i++) {
+  const formContainer = formContainers[i];
+  const handlersAdded = formContainer.classList.contains("newsletter-handlers-added");
   if (handlersAdded) continue;
   formContainer.querySelector(".newsletter-form").addEventListener("submit", submitHandler);
   formContainer.querySelector(".newsletter-back-button").addEventListener("click", resetFormHandler);

@@ -151,7 +151,6 @@ function movePaletteIndex(fromIndex, toIndex) {
 
 function renderPaletteEditor() {
   paletteEditor.innerHTML = "";
-  // TODO: Reintroduce per-swatch move controls with more reliable interaction.
   paletteHex.forEach((hex, index) => {
     const item = document.createElement("div");
     item.className = "ditherer-swatch-item";

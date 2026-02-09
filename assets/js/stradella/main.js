@@ -2,13 +2,13 @@
 (function () {
   'use strict';
 
-  var M = window.Music;
+  const M = window.Music;
 
   // qual display labels for Stradella buttons
-  var QUAL = { M: 'M', m: 'm', '7': '7' };
+  const QUAL = { M: 'M', m: 'm', '7': '7' };
 
   // ── Chord data (semitone offsets from root) ──
-  var CHORDS = [
+  const CHORDS = [
     // Basic Triads
     { id: 'maj', suffix: '', family: 'Basic Triads',
       intervals: '1–3–5', semitones: '0–4–3',
@@ -158,13 +158,13 @@
   }
 
   function renderRecipe(entry, key) {
-    var r = entry.recipe;
+    const r = entry.recipe;
     if (!r) return '\u2014'; // em-dash
-    var parts = r.parts.map(function (p) {
+    const parts = r.parts.map(function (p) {
       return M.noteName(key + p.note) + QUAL[p.qual];
     });
-    var bass = M.noteName(key + r.bass);
-    var str = parts.join(' + ') + ' / ' + bass;
+    const bass = M.noteName(key + r.bass);
+    let str = parts.join(' + ') + ' / ' + bass;
     if (r.rh != null) {
       str += ' + ' + M.noteName(key + r.rh) + ' (RH)';
     }
@@ -172,7 +172,7 @@
   }
 
   function chordById(id) {
-    for (var i = 0; i < CHORDS.length; i++) {
+    for (let i = 0; i < CHORDS.length; i++) {
       if (CHORDS[i].id === id) return CHORDS[i];
     }
     return null;
@@ -180,8 +180,8 @@
 
   // ── State ──
 
-  var STORAGE_KEY = 'stradella-setlist';
-  var state = { catalogKey: 0, selected: [] };
+  const STORAGE_KEY = 'stradella-setlist';
+  const state = { catalogKey: 0, selected: [] };
 
   function saveState() {
     try {
@@ -191,14 +191,14 @@
 
   function loadState() {
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      var s = JSON.parse(raw);
+      const s = JSON.parse(raw);
       // Migrate v1 format: {key: N, selected: ['id', ...]}
       if (typeof s.key === 'number' && Array.isArray(s.selected) &&
           s.selected.length > 0 && typeof s.selected[0] === 'string') {
         state.catalogKey = s.key;
-        var ids = {};
+        const ids = {};
         CHORDS.forEach(function (c) { ids[c.id] = true; });
         state.selected = s.selected
           .filter(function (id) { return ids[id]; })
@@ -209,7 +209,7 @@
       // v2 format: {catalogKey: N, selected: [{id, key}, ...]}
       if (typeof s.catalogKey === 'number') state.catalogKey = s.catalogKey;
       if (Array.isArray(s.selected)) {
-        var valid = {};
+        const valid = {};
         CHORDS.forEach(function (c) { valid[c.id] = true; });
         state.selected = s.selected.filter(function (e) {
           return e && valid[e.id] && typeof e.key === 'number';
@@ -241,9 +241,9 @@
   }
 
   function importString(str) {
-    var validIds = {};
+    const validIds = {};
     CHORDS.forEach(function (c) { validIds[c.id] = true; });
-    var result = M.decodeEntries(str, validIds);
+    const result = M.decodeEntries(str, validIds);
     if (!result) return false;
     state.catalogKey = result.prefix;
     state.selected = result.entries;
@@ -254,7 +254,7 @@
   // ── Rendering ──
 
   function renderSetList() {
-    var el = document.getElementById('stradella-setlist');
+    const el = document.getElementById('stradella-setlist');
     if (!el) return;
 
     if (state.selected.length === 0) {
@@ -262,11 +262,11 @@
       return;
     }
 
-    var html = '';
+    let html = '';
     state.selected.forEach(function (entry, i) {
-      var c = chordById(entry.id);
+      const c = chordById(entry.id);
       if (!c) return;
-      var key = entry.key;
+      const key = entry.key;
       html += '<div class="stradella-card">';
       html += '<button class="stradella-card__remove" data-action="remove" data-idx="' + i + '" aria-label="Remove">&#10005;</button>';
       html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key)) + '</div>';
@@ -280,11 +280,11 @@
   }
 
   function renderCatalog() {
-    var el = document.getElementById('stradella-catalog');
+    const el = document.getElementById('stradella-catalog');
     if (!el) return;
 
-    var families = [];
-    var familyMap = {};
+    const families = [];
+    const familyMap = {};
     CHORDS.forEach(function (c) {
       if (!familyMap[c.family]) {
         familyMap[c.family] = [];
@@ -293,15 +293,15 @@
       familyMap[c.family].push(c);
     });
 
-    var key = state.catalogKey;
-    var html = '';
+    const key = state.catalogKey;
+    let html = '';
     families.forEach(function (fam) {
       html += '<div class="stradella-catalog-family">';
       html += '<h4 class="stradella-catalog-family__title">' + M.esc(fam) + '</h4>';
       html += '<div class="stradella-catalog-grid">';
       familyMap[fam].forEach(function (c) {
-        var sel = isSelectedAtKey(c.id, key);
-        var cls = 'stradella-catalog-item';
+        const sel = isSelectedAtKey(c.id, key);
+        let cls = 'stradella-catalog-item';
         if (sel) cls += ' is-selected';
         if (c.uncertain) cls += ' is-uncertain';
         html += '<button class="' + cls + '" data-id="' + c.id + '">';
@@ -318,11 +318,11 @@
   }
 
   function renderKeyBar() {
-    var bar = document.getElementById('stradella-key-bar');
+    const bar = document.getElementById('stradella-key-bar');
     if (!bar) return;
-    var html = '';
+    let html = '';
     M.NOTES.forEach(function (n, i) {
-      var cls = 'music-key-btn';
+      let cls = 'music-key-btn';
       if (i === state.catalogKey) cls += ' is-active';
       html += '<button class="' + cls + '" data-key="' + i + '">' + M.esc(n) + '</button>';
     });
@@ -330,7 +330,7 @@
   }
 
   function renderShareBox() {
-    var el = document.getElementById('stradella-share-text');
+    const el = document.getElementById('stradella-share-text');
     if (!el) return;
     el.value = exportString();
   }
@@ -349,10 +349,10 @@
     renderAll();
 
     // Key bar — delegated click on note buttons
-    var keyBar = document.getElementById('stradella-key-bar');
+    const keyBar = document.getElementById('stradella-key-bar');
     if (keyBar) {
       keyBar.addEventListener('click', function (e) {
-        var btn = e.target.closest('.music-key-btn');
+        const btn = e.target.closest('.music-key-btn');
         if (!btn) return;
         state.catalogKey = parseInt(btn.getAttribute('data-key'), 10);
         saveState();
@@ -361,10 +361,10 @@
     }
 
     // Set list remove (delegated)
-    var setListEl = document.getElementById('stradella-setlist');
+    const setListEl = document.getElementById('stradella-setlist');
     if (setListEl) {
       setListEl.addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-action="remove"]');
+        const btn = e.target.closest('[data-action="remove"]');
         if (!btn) return;
         removeEntry(parseInt(btn.getAttribute('data-idx'), 10));
         renderAll();
@@ -372,22 +372,22 @@
     }
 
     // Catalog click — toggle chord at current catalog key
-    var catalogEl = document.getElementById('stradella-catalog');
+    const catalogEl = document.getElementById('stradella-catalog');
     if (catalogEl) {
       catalogEl.addEventListener('click', function (e) {
-        var item = e.target.closest('.stradella-catalog-item');
+        const item = e.target.closest('.stradella-catalog-item');
         if (!item) return;
-        var id = item.getAttribute('data-id');
+        const id = item.getAttribute('data-id');
         addEntry(id, state.catalogKey);
         renderAll();
       });
     }
 
     // Share: copy button
-    var copyBtn = document.getElementById('stradella-share-copy');
+    const copyBtn = document.getElementById('stradella-share-copy');
     if (copyBtn) {
       copyBtn.addEventListener('click', function () {
-        var el = document.getElementById('stradella-share-text');
+        const el = document.getElementById('stradella-share-text');
         if (!el) return;
         el.select();
         navigator.clipboard.writeText(el.value).then(function () {
@@ -398,10 +398,10 @@
     }
 
     // Share: load button
-    var loadBtn = document.getElementById('stradella-share-load');
+    const loadBtn = document.getElementById('stradella-share-load');
     if (loadBtn) {
       loadBtn.addEventListener('click', function () {
-        var el = document.getElementById('stradella-share-text');
+        const el = document.getElementById('stradella-share-text');
         if (!el) return;
         if (importString(el.value)) {
           renderAll();
