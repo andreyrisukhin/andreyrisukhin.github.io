@@ -2,20 +2,12 @@
 (function () {
   'use strict';
 
-  // ── Note names (chromatic, unicode) ──
-  var NOTES = ['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+  var M = window.Music;
 
   // qual display labels for Stradella buttons
   var QUAL = { M: 'M', m: 'm', '7': '7' };
 
   // ── Chord data (semitone offsets from root) ──
-  // parts[].note  = semitone offset for chord button (0–11)
-  // parts[].qual  = Stradella button type: 'M', 'm', '7'
-  // bass           = semitone offset for bass button (usually 0 = root)
-  // rh             = semitone offset for right-hand note addition (optional)
-  // semitones      = interval jumps between chord tones (for RH construction)
-  // uncertain      = true if recipe is approximate / unverified
-  // uncertainNote  = short explanation of what's uncertain
   var CHORDS = [
     // Basic Triads
     { id: 'maj', suffix: '', family: 'Basic Triads',
@@ -161,24 +153,20 @@
 
   // ── Helpers ──
 
-  function noteName(semitone) {
-    return NOTES[((semitone % 12) + 12) % 12];
-  }
-
   function renderChordName(entry, key) {
-    return noteName(key) + entry.suffix;
+    return M.noteName(key) + entry.suffix;
   }
 
   function renderRecipe(entry, key) {
     var r = entry.recipe;
     if (!r) return '\u2014'; // em-dash
     var parts = r.parts.map(function (p) {
-      return noteName(key + p.note) + QUAL[p.qual];
+      return M.noteName(key + p.note) + QUAL[p.qual];
     });
-    var bass = noteName(key + r.bass);
+    var bass = M.noteName(key + r.bass);
     var str = parts.join(' + ') + ' / ' + bass;
     if (r.rh != null) {
-      str += ' + ' + noteName(key + r.rh) + ' (RH)';
+      str += ' + ' + M.noteName(key + r.rh) + ' (RH)';
     }
     return str;
   }
@@ -190,14 +178,7 @@
     return null;
   }
 
-  function esc(s) {
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-  }
-
   // ── State ──
-  // selected[] entries are {id, key} — each card has its own root
 
   var STORAGE_KEY = 'stradella-setlist';
   var state = { catalogKey: 0, selected: [] };
@@ -237,7 +218,6 @@
     } catch (e) { /* ignore */ }
   }
 
-  // Does the set list contain this exact chord+key combo?
   function isSelectedAtKey(id, key) {
     return state.selected.some(function (e) {
       return e.id === id && e.key === key;
@@ -249,53 +229,24 @@
     saveState();
   }
 
-  function moveEntry(idx, dir) {
-    var newIdx = idx + dir;
-    if (newIdx < 0 || newIdx >= state.selected.length) return;
-    var item = state.selected.splice(idx, 1)[0];
-    state.selected.splice(newIdx, 0, item);
-    saveState();
-  }
-
   function removeEntry(idx) {
     state.selected.splice(idx, 1);
     saveState();
   }
 
   // ── Export / Import ──
-  // Compact string format: "catalogKey:id@key,id@key,..."
-  // key is stored as semitone number (0–11)
 
   function exportString() {
-    var parts = state.selected.map(function (e) {
-      return e.id + '@' + e.key;
-    });
-    return state.catalogKey + ':' + parts.join(',');
+    return M.encodeEntries(state.catalogKey, state.selected);
   }
 
   function importString(str) {
-    str = str.trim();
-    var colonIdx = str.indexOf(':');
-    if (colonIdx === -1) return false;
-    var catKey = parseInt(str.substring(0, colonIdx), 10);
-    if (isNaN(catKey) || catKey < 0 || catKey > 11) return false;
-    var rest = str.substring(colonIdx + 1);
-    var entries = [];
-    if (rest.length > 0) {
-      var valid = {};
-      CHORDS.forEach(function (c) { valid[c.id] = true; });
-      var tokens = rest.split(',');
-      for (var i = 0; i < tokens.length; i++) {
-        var atIdx = tokens[i].lastIndexOf('@');
-        if (atIdx === -1) return false;
-        var id = tokens[i].substring(0, atIdx);
-        var key = parseInt(tokens[i].substring(atIdx + 1), 10);
-        if (!valid[id] || isNaN(key) || key < 0 || key > 11) return false;
-        entries.push({ id: id, key: key });
-      }
-    }
-    state.catalogKey = catKey;
-    state.selected = entries;
+    var validIds = {};
+    CHORDS.forEach(function (c) { validIds[c.id] = true; });
+    var result = M.decodeEntries(str, validIds);
+    if (!result) return false;
+    state.catalogKey = result.prefix;
+    state.selected = result.entries;
     saveState();
     return true;
   }
@@ -318,10 +269,10 @@
       var key = entry.key;
       html += '<div class="stradella-card">';
       html += '<button class="stradella-card__remove" data-action="remove" data-idx="' + i + '" aria-label="Remove">&#10005;</button>';
-      html += '<div class="stradella-card__chord">' + esc(renderChordName(c, key)) + '</div>';
-      html += '<div class="stradella-card__recipe">' + esc(renderRecipe(c, key)) + '</div>';
+      html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key)) + '</div>';
+      html += '<div class="stradella-card__recipe">' + M.esc(renderRecipe(c, key)) + '</div>';
       if (c.semitones) {
-        html += '<div class="stradella-card__semitones">' + esc(c.semitones) + '</div>';
+        html += '<div class="stradella-card__semitones">' + M.esc(c.semitones) + '</div>';
       }
       html += '</div>';
     });
@@ -332,7 +283,6 @@
     var el = document.getElementById('stradella-catalog');
     if (!el) return;
 
-    // Group by family
     var families = [];
     var familyMap = {};
     CHORDS.forEach(function (c) {
@@ -347,7 +297,7 @@
     var html = '';
     families.forEach(function (fam) {
       html += '<div class="stradella-catalog-family">';
-      html += '<h4 class="stradella-catalog-family__title">' + esc(fam) + '</h4>';
+      html += '<h4 class="stradella-catalog-family__title">' + M.esc(fam) + '</h4>';
       html += '<div class="stradella-catalog-grid">';
       familyMap[fam].forEach(function (c) {
         var sel = isSelectedAtKey(c.id, key);
@@ -355,10 +305,10 @@
         if (sel) cls += ' is-selected';
         if (c.uncertain) cls += ' is-uncertain';
         html += '<button class="' + cls + '" data-id="' + c.id + '">';
-        html += '<span class="stradella-catalog-item__name">' + esc(c.suffix || 'maj') + '</span>';
-        html += '<span class="stradella-catalog-item__recipe">' + esc(renderRecipe(c, key)) + '</span>';
+        html += '<span class="stradella-catalog-item__name">' + M.esc(c.suffix || 'maj') + '</span>';
+        html += '<span class="stradella-catalog-item__recipe">' + M.esc(renderRecipe(c, key)) + '</span>';
         if (c.uncertain && c.uncertainNote) {
-          html += '<span class="stradella-catalog-item__warn">' + esc(c.uncertainNote) + '</span>';
+          html += '<span class="stradella-catalog-item__warn">' + M.esc(c.uncertainNote) + '</span>';
         }
         html += '</button>';
       });
@@ -371,10 +321,10 @@
     var bar = document.getElementById('stradella-key-bar');
     if (!bar) return;
     var html = '';
-    NOTES.forEach(function (n, i) {
-      var cls = 'stradella-key-btn';
+    M.NOTES.forEach(function (n, i) {
+      var cls = 'music-key-btn';
       if (i === state.catalogKey) cls += ' is-active';
-      html += '<button class="' + cls + '" data-key="' + i + '">' + esc(n) + '</button>';
+      html += '<button class="' + cls + '" data-key="' + i + '">' + M.esc(n) + '</button>';
     });
     bar.innerHTML = html;
   }
@@ -402,7 +352,7 @@
     var keyBar = document.getElementById('stradella-key-bar');
     if (keyBar) {
       keyBar.addEventListener('click', function (e) {
-        var btn = e.target.closest('.stradella-key-btn');
+        var btn = e.target.closest('.music-key-btn');
         if (!btn) return;
         state.catalogKey = parseInt(btn.getAttribute('data-key'), 10);
         saveState();
@@ -454,7 +404,6 @@
         var el = document.getElementById('stradella-share-text');
         if (!el) return;
         if (importString(el.value)) {
-          renderKeySelect();
           renderAll();
           loadBtn.textContent = 'Loaded!';
           setTimeout(function () { loadBtn.textContent = 'Load'; }, 1500);

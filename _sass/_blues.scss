@@ -1,28 +1,7 @@
 /* ===== Blues jam helper ===== */
 
-.blues-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.blues-controls label {
-  font-weight: 600;
-  margin-right: 0.25rem;
-}
-
-.blues-controls select {
-  font-size: 1rem;
-  padding: 0.3rem 0.5rem;
-  border-radius: 4px;
-  border: 1px solid var(--global-divider-color);
-  background: var(--global-bg-color);
-  color: var(--global-text-color);
-}
-
 .blues-variant-group {
+  margin-bottom: 1rem;
   display: flex;
   gap: 0;
 }
@@ -81,11 +60,57 @@
   color: var(--global-text-color);
 }
 
-.blues-degree {
+.blues-toggle-group {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.75rem;
+}
+
+.blues-toggle-btn {
+  padding: 0.35rem 0.75rem;
   font-size: 0.85rem;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
   color: var(--global-text-color);
-  opacity: 0.5;
-  margin-top: 0.15rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:first-child {
+    border-radius: 4px 0 0 4px;
+  }
+
+  &:last-child {
+    border-radius: 0 4px 4px 0;
+  }
+
+  &:not(:first-child) {
+    border-left: none;
+  }
+
+  &.is-active {
+    background: var(--global-theme-color);
+    color: #fff;
+    border-color: var(--global-theme-color);
+  }
+}
+
+.blues-detail {
+  font-size: 0.75rem;
+  color: var(--global-text-color);
+  opacity: 0.6;
+  margin-top: 0.1rem;
+}
+
+.blues-notes {
+  font-weight: 600;
+  opacity: 0.8;
+  letter-spacing: 0.05em;
+}
+
+.blues-intervals,
+.blues-semitones {
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.7rem;
 }
 
 .blues-scale-notes {
@@ -126,8 +151,13 @@
     padding: 0.5rem 0.25rem;
   }
 
-  .blues-degree {
-    font-size: 0.75rem;
+  .blues-detail {
+    font-size: 0.65rem;
+  }
+
+  .blues-intervals,
+  .blues-semitones {
+    font-size: 0.6rem;
   }
 
   .blues-note {

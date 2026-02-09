@@ -39,20 +39,21 @@ But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-ba
 
 <div id="stradella-setlist" class="stradella-setlist"></div>
 
-<div class="stradella-share">
+<div class="music-share">
   <label>Share:</label>
-  <input type="text" id="stradella-share-text" class="stradella-share-text">
-  <button id="stradella-share-copy" class="stradella-share-btn">Copy</button>
-  <button id="stradella-share-load" class="stradella-share-btn">Load</button>
+  <input type="text" id="stradella-share-text" class="music-share-text">
+  <button id="stradella-share-copy" class="music-share-btn">Copy</button>
+  <button id="stradella-share-load" class="music-share-btn">Load</button>
 </div>
 
 <details id="stradella-catalog-details">
   <summary>Chord Catalog</summary>
-  <div class="stradella-key-bar" id="stradella-key-bar"></div>
+  <div class="music-key-bar" id="stradella-key-bar"></div>
   <div id="stradella-catalog" class="stradella-catalog"></div>
 </details>
 
 <noscript><p>This interactive tool requires JavaScript.</p></noscript>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
 
 ## Notes

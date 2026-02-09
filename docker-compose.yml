@@ -12,6 +12,7 @@ services:
     #     GROUPNAME: # id -gn
     #     USERID: # id -u
     #     USERNAME: # echo $USER
+    # Access the site at http://localhost:4000 (maps to port 8080 inside the container)
     ports:
       - 4000:8080
       - 35729:35729
