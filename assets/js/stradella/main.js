@@ -181,7 +181,11 @@
   // ── State ──
 
   const STORAGE_KEY = 'stradella-setlist';
-  const state = { catalogKey: 0, selected: [] };
+  const state = {
+    catalogKey: 0,
+    selected: [],
+    show: { recipe: true, notes: false, intervals: false, semitones: false }
+  };
 
   function saveState() {
     try {
@@ -270,9 +274,20 @@
       html += '<div class="stradella-card">';
       html += '<button class="stradella-card__remove" data-action="remove" data-idx="' + i + '" aria-label="Remove">&#10005;</button>';
       html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key)) + '</div>';
-      html += '<div class="stradella-card__recipe">' + M.esc(renderRecipe(c, key)) + '</div>';
-      if (c.semitones) {
-        html += '<div class="stradella-card__semitones">' + M.esc(c.semitones) + '</div>';
+      if (state.show.recipe) {
+        html += '<div class="stradella-card__recipe">' + M.esc(renderRecipe(c, key)) + '</div>';
+      }
+      const info = M.chordInfo(key, c.suffix);
+      if (info) {
+        if (state.show.notes) {
+          html += '<div class="stradella-detail stradella-notes">' + M.esc(info.notes.join(' ')) + '</div>';
+        }
+        if (state.show.intervals) {
+          html += '<div class="stradella-detail stradella-intervals">' + M.esc(info.intervals.join(' ')) + '</div>';
+        }
+        if (state.show.semitones) {
+          html += '<div class="stradella-detail stradella-semitones">' + M.esc(info.semitones.join('\u2013')) + '</div>';
+        }
       }
       html += '</div>';
     });
@@ -306,7 +321,21 @@
         if (c.uncertain) cls += ' is-uncertain';
         html += '<button class="' + cls + '" data-id="' + c.id + '">';
         html += '<span class="stradella-catalog-item__name">' + M.esc(c.suffix || 'maj') + '</span>';
-        html += '<span class="stradella-catalog-item__recipe">' + M.esc(renderRecipe(c, key)) + '</span>';
+        if (state.show.recipe) {
+          html += '<span class="stradella-catalog-item__recipe">' + M.esc(renderRecipe(c, key)) + '</span>';
+        }
+        const info = M.chordInfo(key, c.suffix);
+        if (info) {
+          if (state.show.notes) {
+            html += '<span class="stradella-detail stradella-notes">' + M.esc(info.notes.join(' ')) + '</span>';
+          }
+          if (state.show.intervals) {
+            html += '<span class="stradella-detail stradella-intervals">' + M.esc(info.intervals.join(' ')) + '</span>';
+          }
+          if (state.show.semitones) {
+            html += '<span class="stradella-detail stradella-semitones">' + M.esc(info.semitones.join('\u2013')) + '</span>';
+          }
+        }
         if (c.uncertain && c.uncertainNote) {
           html += '<span class="stradella-catalog-item__warn">' + M.esc(c.uncertainNote) + '</span>';
         }
@@ -357,6 +386,21 @@
         state.catalogKey = parseInt(btn.getAttribute('data-key'), 10);
         saveState();
         renderAll();
+      });
+    }
+
+    // Toggle buttons (multi-select)
+    const toggleGroup = document.getElementById('stradella-toggle-group');
+    if (toggleGroup) {
+      toggleGroup.addEventListener('click', function (e) {
+        const btn = e.target.closest('.music-toggle-btn');
+        if (!btn) return;
+        const layer = btn.dataset.layer;
+        if (!state.show.hasOwnProperty(layer)) return;
+        state.show[layer] = !state.show[layer];
+        btn.classList.toggle('is-active', state.show[layer]);
+        renderSetList();
+        renderCatalog();
       });
     }
 

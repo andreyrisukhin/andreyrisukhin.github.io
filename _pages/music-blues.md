@@ -15,11 +15,11 @@ Pick a key and progression variant to see the 12-bar form with real chord names.
   <button class="blues-variant-btn" data-variant="jazz">Jazz</button>
 </div>
 
-<div class="blues-toggle-group">
-  <button class="blues-toggle-btn is-active" data-layer="degree">Degree</button>
-  <button class="blues-toggle-btn" data-layer="notes">Notes</button>
-  <button class="blues-toggle-btn" data-layer="intervals">Intervals</button>
-  <button class="blues-toggle-btn" data-layer="semitones">Semitones</button>
+<div class="music-toggle-group" id="blues-toggle-group">
+  <button class="music-toggle-btn is-active" data-layer="degree">Degree</button>
+  <button class="music-toggle-btn" data-layer="notes">Notes</button>
+  <button class="music-toggle-btn" data-layer="intervals">Intervals</button>
+  <button class="music-toggle-btn" data-layer="semitones">Semitones</button>
 </div>
 
 <div id="blues-grid" class="blues-grid"></div>
@@ -35,6 +35,8 @@ Pick a key and progression variant to see the 12-bar form with real chord names.
 <p>Use for improvisation over the progression. The highlighted note is the <strong>blue note</strong> (♭5) — a chromatic passing tone that gives the blues its characteristic sound.</p>
 
 <div id="blues-scale-notes" class="blues-scale-notes"></div>
+
+<div id="blues-scale-staff" class="blues-scale-staff"></div>
 
 <noscript>
   <p>This interactive tool requires JavaScript to run.</p>

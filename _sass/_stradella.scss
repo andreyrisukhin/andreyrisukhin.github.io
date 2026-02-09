@@ -40,12 +40,23 @@
   font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
 }
 
-.stradella-card__semitones {
+.stradella-detail {
   font-size: 0.7rem;
-  line-height: 1.2;
   color: var(--global-text-color);
-  opacity: 0.5;
-  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+  opacity: 0.6;
+  margin-top: 0.1rem;
+}
+
+.stradella-notes {
+  font-weight: 600;
+  opacity: 0.8;
+  letter-spacing: 0.05em;
+}
+
+.stradella-intervals,
+.stradella-semitones {
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.65rem;
 }
 
 .stradella-card__remove {

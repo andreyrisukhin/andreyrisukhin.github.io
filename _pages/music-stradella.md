@@ -37,6 +37,13 @@ But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-ba
 
 ## Set List
 
+<div class="music-toggle-group" id="stradella-toggle-group">
+  <button class="music-toggle-btn is-active" data-layer="recipe">Recipe</button>
+  <button class="music-toggle-btn" data-layer="notes">Notes</button>
+  <button class="music-toggle-btn" data-layer="intervals">Intervals</button>
+  <button class="music-toggle-btn" data-layer="semitones">Semitones</button>
+</div>
+
 <div id="stradella-setlist" class="stradella-setlist"></div>
 
 <div class="music-share">
@@ -53,6 +60,7 @@ But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-ba
 </details>
 
 <noscript><p>This interactive tool requires JavaScript.</p></noscript>
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
 

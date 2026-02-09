@@ -86,3 +86,39 @@
     background: var(--global-divider-color);
   }
 }
+
+/* ── Toggle button group (shared across music tools) ── */
+
+.music-toggle-group {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.75rem;
+}
+
+.music-toggle-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:first-child {
+    border-radius: 4px 0 0 4px;
+  }
+
+  &:last-child {
+    border-radius: 0 4px 4px 0;
+  }
+
+  &:not(:first-child) {
+    border-left: none;
+  }
+
+  &.is-active {
+    background: var(--global-theme-color);
+    color: #fff;
+    border-color: var(--global-theme-color);
+  }
+}

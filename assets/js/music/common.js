@@ -74,7 +74,12 @@ window.Music = (function () {
   var SUFFIX_TO_TONAL = {
     '7': '7', 'm7': 'm7', '\u00B07': 'dim7',
     '': 'M', 'm': 'm', 'maj7': 'maj7',
-    'dim': 'dim', 'aug': 'aug', 'm7b5': 'm7b5'
+    'dim': 'dim', 'aug': 'aug', 'm7b5': 'm7b5',
+    '+': 'aug', '+7': '7#5', '\u00F87': 'm7b5',
+    'maj7\u266F5': 'maj7#5', '7\u266D5': '7b5',
+    '7\u266D9': '7b9', '7\u266F9': '7#9',
+    '7\u266F11': '7#11', '7\u266D13': '7b13',
+    'maj6': '6', '9sus4': '9sus4'
   };
 
   // Convert Unicode accidentals to ASCII for Tonal input
@@ -109,7 +114,7 @@ window.Music = (function () {
   function chordInfo(rootSemitone, suffix) {
     if (!window.Tonal) return null;
     var tonalSuffix = SUFFIX_TO_TONAL[suffix];
-    if (tonalSuffix === undefined) tonalSuffix = suffix;
+    if (tonalSuffix === undefined) tonalSuffix = toAscii(suffix);
     var asciiRoot = toAscii(noteName(rootSemitone));
     var chord = Tonal.Chord.get(asciiRoot + tonalSuffix);
     if (chord.empty) return null;
