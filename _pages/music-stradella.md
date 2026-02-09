@@ -1,5 +1,6 @@
 ---
 layout: page
+title: Stradella Chord Recipes
 permalink: /music/stradella/
 ---
 

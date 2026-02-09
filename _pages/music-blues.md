@@ -1,5 +1,6 @@
 ---
 layout: page
+title: Blues Jam Helper
 permalink: /music/blues/
 ---
 

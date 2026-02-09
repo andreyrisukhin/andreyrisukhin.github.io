@@ -1,5 +1,6 @@
 ---
 layout: page
+title: Intervals
 permalink: /music/intervals/
 ---
 

@@ -1,5 +1,6 @@
 ---
 layout: page
+title: Chord Reference
 permalink: /music/chords/
 ---
 
