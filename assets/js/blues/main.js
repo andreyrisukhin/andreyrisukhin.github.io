@@ -63,17 +63,129 @@
   var state = {
     root: 0,
     variant: 'standard',
-    show: { degree: true, notes: false, intervals: false, semitones: false }
+    show: { degree: true, notes: false, intervals: false, semitones: false },
+    playing: false,
+    bpm: 120,
+    currentBar: 0,
+    currentBeat: 0
   };
+
+  var tickTimer = null;
+  var audioCtx = null;
+
+  // ── Chord playback via Web Audio ──
+
+  function semitoneToFreq(semitone) {
+    // semitone 0 = C in octave 3 (MIDI 48)
+    return 440 * Math.pow(2, (48 + semitone - 69) / 12);
+  }
+
+  function playChord(accent) {
+    if (!audioCtx) return;
+    var now = audioCtx.currentTime;
+    var bars = PROGRESSIONS[state.variant];
+    var bar = bars[state.currentBar];
+    var rootSemitone = (bar.deg + state.root) % 12;
+
+    var info = M.chordInfo(bar.deg + state.root, bar.suf);
+    if (!info || !info.semitones) return;
+
+    var gainVal = accent ? 0.15 : 0.08;
+    var duration = accent ? 0.5 : 0.3;
+
+    info.semitones.forEach(function (offset) {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = semitoneToFreq(rootSemitone + offset);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      gain.gain.setValueAtTime(gainVal, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      osc.start(now);
+      osc.stop(now + duration);
+    });
+  }
+
+  // ── Lightweight per-beat DOM update (no full rebuild) ──
+
+  function updatePlayhead() {
+    var cells = document.querySelectorAll('.blues-cell');
+    cells.forEach(function (cell, i) {
+      if (state.playing && i === state.currentBar) {
+        cell.classList.add('blues-cell--active');
+        // Add or update beat counter
+        var counter = cell.querySelector('.blues-beat-counter');
+        if (!counter) {
+          counter = document.createElement('div');
+          counter.className = 'blues-beat-counter';
+          cell.appendChild(counter);
+        }
+        counter.textContent = state.currentBeat + 1;
+      } else {
+        cell.classList.remove('blues-cell--active');
+        var old = cell.querySelector('.blues-beat-counter');
+        if (old) old.remove();
+      }
+    });
+  }
+
+  // ── Tick engine ──
+
+  function tick() {
+    state.currentBeat++;
+    if (state.currentBeat >= 4) {
+      state.currentBeat = 0;
+      state.currentBar++;
+      if (state.currentBar >= 12) {
+        state.currentBar = 0;
+      }
+    }
+    updatePlayhead();
+    playChord(state.currentBeat === 0);
+  }
+
+  function startPlayback() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    state.playing = true;
+    state.currentBar = 0;
+    state.currentBeat = 0;
+    var btn = document.getElementById('blues-play-btn');
+    if (btn) btn.innerHTML = '&#9724; Stop';
+    updatePlayhead();
+    playChord(true); // accent on first beat
+    tickTimer = setInterval(tick, 60000 / state.bpm);
+  }
+
+  function stopPlayback() {
+    if (tickTimer) {
+      clearInterval(tickTimer);
+      tickTimer = null;
+    }
+    state.playing = false;
+    state.currentBar = 0;
+    state.currentBeat = 0;
+    var btn = document.getElementById('blues-play-btn');
+    if (btn) btn.innerHTML = '&#9654; Play';
+    updatePlayhead();
+  }
 
   function renderGrid() {
     var grid = document.getElementById('blues-grid');
     grid.innerHTML = '';
     var bars = PROGRESSIONS[state.variant];
 
-    bars.forEach(function (bar) {
+    bars.forEach(function (bar, barIndex) {
       var cell = document.createElement('div');
       cell.className = 'blues-cell';
+      if (state.playing && barIndex === state.currentBar) {
+        cell.classList.add('blues-cell--active');
+      }
 
       var chord = document.createElement('div');
       chord.className = 'blues-chord';
@@ -107,6 +219,13 @@
           semitones.textContent = info.semitones.join('\u2013');
           cell.appendChild(semitones);
         }
+      }
+
+      if (state.playing && barIndex === state.currentBar) {
+        var counter = document.createElement('div');
+        counter.className = 'blues-beat-counter';
+        counter.textContent = state.currentBeat + 1;
+        cell.appendChild(counter);
       }
 
       grid.appendChild(cell);
@@ -325,6 +444,42 @@
           copyBtn.textContent = 'Copied!';
           setTimeout(function () { copyBtn.textContent = 'Copy for Stradella'; }, 1500);
         });
+      });
+    }
+
+    // Transport controls
+    var playBtn = document.getElementById('blues-play-btn');
+    if (playBtn) {
+      playBtn.addEventListener('click', function () {
+        if (state.playing) {
+          stopPlayback();
+        } else {
+          startPlayback();
+        }
+      });
+    }
+
+    var bpmSlider = document.getElementById('blues-bpm-slider');
+    var bpmNumber = document.getElementById('blues-bpm-number');
+    if (bpmSlider && bpmNumber) {
+      bpmSlider.addEventListener('input', function () {
+        var v = parseInt(bpmSlider.value, 10);
+        bpmNumber.value = v;
+        state.bpm = v;
+        if (state.playing) {
+          clearInterval(tickTimer);
+          tickTimer = setInterval(tick, 60000 / state.bpm);
+        }
+      });
+      bpmNumber.addEventListener('change', function () {
+        var v = Math.min(200, Math.max(60, parseInt(bpmNumber.value, 10) || 120));
+        bpmNumber.value = v;
+        bpmSlider.value = v;
+        state.bpm = v;
+        if (state.playing) {
+          clearInterval(tickTimer);
+          tickTimer = setInterval(tick, 60000 / state.bpm);
+        }
       });
     }
 

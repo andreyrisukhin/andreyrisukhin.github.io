@@ -21,6 +21,15 @@ Pick a key and progression variant to see the 12-bar form with real chord names.
   <button class="music-toggle-btn" data-layer="semitones">Semitones</button>
 </div>
 
+<div id="blues-transport" class="blues-transport">
+  <button id="blues-play-btn" class="blues-play-btn" aria-label="Play">&#9654; Play</button>
+  <label class="blues-bpm-label">
+    BPM
+    <input type="range" id="blues-bpm-slider" class="blues-bpm-slider" min="60" max="200" value="120">
+    <input type="number" id="blues-bpm-number" class="blues-bpm-number" min="60" max="200" value="120">
+  </label>
+</div>
+
 <div id="blues-grid" class="blues-grid"></div>
 
 <div class="music-share">

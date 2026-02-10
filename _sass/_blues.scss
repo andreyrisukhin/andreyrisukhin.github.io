@@ -147,6 +147,76 @@
   fill: var(--global-text-color);
 }
 
+/* ── Transport bar (play/stop + BPM) ── */
+
+.blues-transport {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.blues-play-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 4px;
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--global-theme-color);
+    color: #fff;
+  }
+}
+
+.blues-bpm-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--global-text-color);
+}
+
+.blues-bpm-slider {
+  width: 120px;
+  accent-color: var(--global-theme-color);
+}
+
+.blues-bpm-number {
+  width: 3.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 4px;
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+}
+
+/* ── Active cell highlight during playback ── */
+
+.blues-cell--active {
+  background: var(--global-theme-color);
+  color: #fff;
+
+  .blues-chord,
+  .blues-detail {
+    color: #fff;
+  }
+}
+
+.blues-beat-counter {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.15rem;
+}
+
 /* Responsive: tighten up on small screens */
 @media (max-width: 480px) {
   .blues-chord {
@@ -171,5 +241,13 @@
     min-width: 2rem;
     font-size: 0.95rem;
     padding: 0.3rem 0.4rem;
+  }
+
+  .blues-bpm-slider {
+    width: 80px;
+  }
+
+  .blues-beat-counter {
+    font-size: 1.1rem;
   }
 }
