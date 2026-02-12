@@ -1,11 +1,9 @@
 ---
 layout: page
-title: kata
+title: Kata
 permalink: /kata/
 description: "Breath and motion recipes for quick resets."
 ---
-
-## Kata
 
 <div class="kata-intro">  
   <p>
