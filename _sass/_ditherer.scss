@@ -205,43 +205,9 @@
   cursor: not-allowed;
 }
 
-.ditherer-palette-sort {
-  position: relative;
-}
-
-.ditherer-palette-sort-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 0.25rem;
-  padding: 0.4rem;
-  border-radius: 8px;
-  background: var(--global-bg-color);
-  border: 1px solid var(--global-divider-color);
-  display: grid;
+.ditherer-sort-buttons {
+  display: flex;
   gap: 0.25rem;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(4px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 5;
-}
-
-.ditherer-palette-sort:focus-within .ditherer-palette-sort-menu {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.ditherer-palette-sort-menu button {
-  border: 1px solid var(--global-divider-color);
-  background: var(--global-bg-color);
-  color: inherit;
-  border-radius: 6px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  text-align: left;
-  cursor: pointer;
 }
 
 .ditherer-advanced {

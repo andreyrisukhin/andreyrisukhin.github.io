@@ -5,8 +5,7 @@ const paletteEditor = document.getElementById("ditherer-palette-editor");
 const paletteAddButton = document.getElementById("ditherer-palette-add");
 const paletteUndoButton = document.getElementById("ditherer-palette-undo");
 const paletteRedoButton = document.getElementById("ditherer-palette-redo");
-const paletteSortToggle = document.getElementById("ditherer-palette-sort-toggle");
-const paletteSortMenu = document.querySelector(".ditherer-palette-sort-menu");
+const sortButtons = document.querySelector(".ditherer-sort-buttons");
 const colorPicker = document.getElementById("ditherer-color-picker");
 const kInput = document.getElementById("ditherer-k");
 const pixelInput = document.getElementById("ditherer-pixel");
@@ -624,34 +623,11 @@ if (paletteRedoButton) {
   paletteRedoButton.addEventListener("click", () => redoPalette());
 }
 
-if (paletteSortMenu) {
-  paletteSortMenu.querySelectorAll("button[data-sort]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const mode = button.dataset.sort;
-      if (mode) {
-        sortPaletteBy(mode);
-      }
-      if (paletteSortToggle) {
-        paletteSortToggle.setAttribute("aria-expanded", "false");
-        paletteSortToggle.focus();
-      }
-    });
+if (sortButtons) {
+  sortButtons.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-sort]");
+    if (btn) sortPaletteBy(btn.dataset.sort);
   });
-}
-
-if (paletteSortToggle) {
-  paletteSortToggle.addEventListener("click", () => {
-    const expanded = paletteSortToggle.getAttribute("aria-expanded") === "true";
-    paletteSortToggle.setAttribute("aria-expanded", String(!expanded));
-  });
-  const sortContainer = paletteSortToggle.closest(".ditherer-palette-sort");
-  if (sortContainer) {
-    sortContainer.addEventListener("focusout", (event) => {
-      if (!sortContainer.contains(event.relatedTarget)) {
-        paletteSortToggle.setAttribute("aria-expanded", "false");
-      }
-    });
-  }
 }
 
 if (paletteEditor) {

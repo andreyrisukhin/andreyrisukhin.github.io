@@ -52,21 +52,10 @@ Upload an image, choose a palette, and preview interleaved gradient noise dither
           <div class="ditherer-palette-actions" aria-label="Palette actions">
             <button class="ditherer-palette-action" id="ditherer-palette-undo" type="button" disabled>Undo</button>
             <button class="ditherer-palette-action" id="ditherer-palette-redo" type="button" disabled>Redo</button>
-            <div class="ditherer-palette-sort">
-              <button
-                class="ditherer-palette-action"
-                id="ditherer-palette-sort-toggle"
-                type="button"
-                aria-haspopup="true"
-                aria-expanded="false"
-              >
-                Sort
-              </button>
-              <div class="ditherer-palette-sort-menu" role="menu">
-                <button type="button" data-sort="luminance">By luminance</button>
-                <button type="button" data-sort="hue">By hue</button>
-                <button type="button" data-sort="saturation">By saturation</button>
-              </div>
+            <div class="ditherer-sort-buttons">
+              <button class="ditherer-palette-action" type="button" data-sort="luminance">Luminance</button>
+              <button class="ditherer-palette-action" type="button" data-sort="hue">Hue</button>
+              <button class="ditherer-palette-action" type="button" data-sort="saturation">Saturation</button>
             </div>
           </div>
         </div>
