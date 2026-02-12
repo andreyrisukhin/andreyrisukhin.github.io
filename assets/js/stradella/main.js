@@ -20,6 +20,11 @@
       notes: '' },
 
     // Major Family
+    { id: 'maj6', suffix: 'maj6', family: 'Major Family',
+      intervals: '1–3–5–6', semitones: '0–4–3–2',
+      recipe: { parts: [{note:9, qual:'m'}], bass: 0 },
+      notes: '6m = 6–1–3 over root',
+      uncertain: true, uncertainNote: 'Missing 5th?' },
     { id: 'maj7', suffix: 'maj7', family: 'Major Family',
       intervals: '1–3–5–7', semitones: '0–4–3–4',
       recipe: { parts: [{note:4, qual:'m'}], bass: 0 },
@@ -32,11 +37,6 @@
       intervals: '1–3–5–7–9', semitones: '0–4–3–4–3',
       recipe: { parts: [{note:0, qual:'M'},{note:7, qual:'M'}], bass: 0 },
       notes: 'Root gives 1–3–5; 5th gives 5–7–9' },
-    { id: 'maj6', suffix: 'maj6', family: 'Major Family',
-      intervals: '1–3–5–6', semitones: '0–4–3–2',
-      recipe: { parts: [{note:9, qual:'m'}], bass: 0 },
-      notes: '6m = 6–1–3 over root',
-      uncertain: true, uncertainNote: 'Missing 5th?' },
     { id: 'add9', suffix: 'add9', family: 'Major Family',
       intervals: '1–3–5–9', semitones: '0–4–3–7',
       recipe: { parts: [{note:0, qual:'M'}], bass: 0, rh: 2 },
@@ -44,6 +44,10 @@
       uncertain: true, uncertainNote: 'Better way?' },
 
     // Minor Family
+    { id: 'm6', suffix: 'm6', family: 'Minor Family',
+      intervals: '1–♭3–5–6', semitones: '0–3–4–2',
+      recipe: { parts: [{note:9, qual:'m'}], bass: 0 },
+      notes: 'Shared voicing with maj6' },
     { id: 'm7', suffix: 'm7', family: 'Minor Family',
       intervals: '1–♭3–5–♭7', semitones: '0–3–4–3',
       recipe: { parts: [{note:3, qual:'M'}], bass: 0 },
@@ -52,10 +56,6 @@
       intervals: '1–♭3–5–♭7–9', semitones: '0–3–4–3–4',
       recipe: { parts: [{note:0, qual:'m'},{note:7, qual:'m'}], bass: 0 },
       notes: '♭3 gives ♭3–5–♭7; 5 adds 9' },
-    { id: 'm6', suffix: 'm6', family: 'Minor Family',
-      intervals: '1–♭3–5–6', semitones: '0–3–4–2',
-      recipe: { parts: [{note:9, qual:'m'}], bass: 0 },
-      notes: 'Shared voicing with maj6' },
     { id: 'mMaj9', suffix: 'm(Maj9)', family: 'Minor Family',
       intervals: '1–♭3–5–7–9', semitones: null,
       recipe: { parts: [{note:0, qual:'m'},{note:7, qual:'M'}], bass: 0 },
@@ -262,7 +262,7 @@
     if (!el) return;
 
     if (state.selected.length === 0) {
-      el.innerHTML = '<p class="stradella-empty">No chords selected. Open the catalog below to add chords.</p>';
+      el.innerHTML = '<p class="stradella-empty">No chords selected. Use the catalog to add chords.</p>';
       return;
     }
 

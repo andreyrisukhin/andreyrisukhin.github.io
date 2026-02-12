@@ -89,17 +89,6 @@
 
 /* ── Catalog ── */
 
-#stradella-catalog-details {
-  margin-bottom: 2rem;
-}
-
-#stradella-catalog-details summary {
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1.1rem;
-  padding: 0.5rem 0;
-  color: var(--global-text-color);
-}
 
 .stradella-catalog-family__title {
   margin: 1rem 0 0.5rem;
@@ -166,6 +155,10 @@
   .is-selected & {
     opacity: 0.9;
   }
+}
+
+.stradella-catalog {
+  margin-bottom: 3rem;
 }
 
 .stradella-catalog-item__warn {

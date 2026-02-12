@@ -5,8 +5,40 @@ permalink: /music/stradella/
 ---
 
 How to create chords out of root and major, minor, 7th triads.
-Format: **Triad + Triad + … / Bass**. 
+Format: **Triad + Triad + … / Bass**.
 Example: `Em / C` = press C bass + E minor chord.
+
+## Set List
+
+<div class="music-share">
+  <label>Share:</label>
+  <input type="text" id="stradella-share-text" class="music-share-text">
+  <button id="stradella-share-copy" class="music-share-btn">Copy</button>
+  <button id="stradella-share-load" class="music-share-btn">Load</button>
+</div>
+
+<div class="music-toggle-group" id="stradella-toggle-group">
+  <button class="music-toggle-btn is-active" data-layer="recipe">Recipe</button>
+  <button class="music-toggle-btn" data-layer="notes">Notes</button>
+  <button class="music-toggle-btn" data-layer="intervals">Intervals</button>
+  <button class="music-toggle-btn" data-layer="semitones">Semitones</button>
+</div>
+
+<div id="stradella-setlist" class="stradella-setlist"></div>
+
+<div class="music-key-bar" id="stradella-key-bar"></div>
+<div id="stradella-catalog" class="stradella-catalog"></div>
+
+<noscript><p>This interactive tool requires JavaScript.</p></noscript>
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
+
+## Notes
+
+- Some multi-triad stacks (11, 13, altered) are **theoretical full sets**, not ergonomic LH voicings.
+- For actual playing: use **1 or 2 triads max**; bring extra tensions in the **right hand**.
+- Use the **Key** dropdown above to transpose all recipes to any key.
 
 ## Practically
 
@@ -28,38 +60,3 @@ But wait [there's more](https://accordionchords.com/stradella-bass-layouts/60-ba
 - Another resource for [chord combos](https://georgewhitfield.co.uk/chord-combinations-on-stradella-basses/)
 - Jazz Accordion Solos [youtube](https://www.youtube.com/channel/UCbTwGWrQQJ20odJ7Rpeljrg) [blog](https://accordionchords.com/tutorials/jazz-accordion-solos/)
 - Book I wish I had when starting out [blog to pdf](https://accordionchords.com/tutorials/stradella-xtensions-harmonic-technique-for-the-accordion/), [Stradella Xtensions](https://sites.google.com/view/download-book/home) by Evan Perry-Giblin, former owner of Brooklyn Bellows
-
-## Set List
-
-<div class="music-toggle-group" id="stradella-toggle-group">
-  <button class="music-toggle-btn is-active" data-layer="recipe">Recipe</button>
-  <button class="music-toggle-btn" data-layer="notes">Notes</button>
-  <button class="music-toggle-btn" data-layer="intervals">Intervals</button>
-  <button class="music-toggle-btn" data-layer="semitones">Semitones</button>
-</div>
-
-<div id="stradella-setlist" class="stradella-setlist"></div>
-
-<div class="music-share">
-  <label>Share:</label>
-  <input type="text" id="stradella-share-text" class="music-share-text">
-  <button id="stradella-share-copy" class="music-share-btn">Copy</button>
-  <button id="stradella-share-load" class="music-share-btn">Load</button>
-</div>
-
-<details id="stradella-catalog-details">
-  <summary>Chord Catalog</summary>
-  <div class="music-key-bar" id="stradella-key-bar"></div>
-  <div id="stradella-catalog" class="stradella-catalog"></div>
-</details>
-
-<noscript><p>This interactive tool requires JavaScript.</p></noscript>
-<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
-
-## Notes
-
-- Some multi-triad stacks (11, 13, altered) are **theoretical full sets**, not ergonomic LH voicings.
-- For actual playing: use **1 or 2 triads max**; bring extra tensions in the **right hand**.
-- Use the **Key** dropdown above to transpose all recipes to any key.
