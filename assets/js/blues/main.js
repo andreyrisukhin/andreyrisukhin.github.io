@@ -82,6 +82,7 @@
 
   function playChord(accent) {
     if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     var now = audioCtx.currentTime;
     var bars = PROGRESSIONS[state.variant];
     var bar = bars[state.currentBar];
