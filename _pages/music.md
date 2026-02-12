@@ -6,8 +6,32 @@ permalink: /music/
 
 References, cheat sheets, and tools for music theory and accordion playing.
 
-- [Chord Reference](/music/chords/) — Diatonic chord qualities for every scale type and chord structure
-- [Interval Reference](/music/intervals/) — Intervals from 0–12 semitones with names and examples
-- [Stradella Recipes](/music/stradella/) — How to build chords from Stradella bass buttons
-- [12-Bar Blues Jam Helper](/music/blues/) — Pick a key, see the progression and blues scale
-- [Chord Recognizer](/music/chord-recognizer/) — Enter notes to identify a chord and see inversions
+## Tools
+
+<div class="music-landing-grid">
+  <a href="/music/stradella/" class="music-landing-card">
+    <span class="music-landing-card__title">Stradella Recipes</span>
+    <span class="music-landing-card__desc">How to build chords from Stradella bass buttons</span>
+  </a>
+  <a href="/music/blues/" class="music-landing-card">
+    <span class="music-landing-card__title">12-Bar Blues Jam Helper</span>
+    <span class="music-landing-card__desc">Pick a key, see the progression and blues scale</span>
+  </a>
+  <a href="/music/chord-recognizer/" class="music-landing-card">
+    <span class="music-landing-card__title">Chord Recognizer</span>
+    <span class="music-landing-card__desc">Enter notes to identify a chord and see inversions</span>
+  </a>
+</div>
+
+## References
+
+<div class="music-landing-grid">
+  <a href="/music/chords/" class="music-landing-card">
+    <span class="music-landing-card__title">Chord Reference</span>
+    <span class="music-landing-card__desc">Diatonic chord qualities for every scale type and chord structure</span>
+  </a>
+  <a href="/music/intervals/" class="music-landing-card">
+    <span class="music-landing-card__title">Interval Reference</span>
+    <span class="music-landing-card__desc">Intervals from 0–12 semitones with names and examples</span>
+  </a>
+</div>
