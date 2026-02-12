@@ -50,3 +50,11 @@ $back-to-top-right: 30px;
 $back-to-top-diameter: 40px;
 $back-to-top-height: $back-to-top-diameter;
 $back-to-top-width: $back-to-top-diameter;
+
+// Reusable hover tint for interactive buttons / cards
+@mixin hover-tint($amount: 10%) {
+  &:hover:not(.is-active):not(.is-selected) {
+    border-color: var(--global-theme-color);
+    background: color-mix(in srgb, var(--global-theme-color) #{$amount}, transparent);
+  }
+}

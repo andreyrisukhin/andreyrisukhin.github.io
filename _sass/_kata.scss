@@ -17,6 +17,8 @@
   font-size: 0.95rem;
   text-decoration: none;
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  @include hover-tint;
 }
 
 .kata-nav button.is-active {
@@ -33,6 +35,12 @@
   display: none;
   cursor: pointer;
   gap: 1.25rem;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  @include hover-tint(8%);
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  }
 }
 
 .kata-recipe.is-visible {

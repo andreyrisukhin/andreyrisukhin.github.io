@@ -18,9 +18,10 @@
   background: var(--global-bg-color);
   color: var(--global-text-color);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
   min-width: 2.4rem;
   text-align: center;
+  @include hover-tint;
 
   &:not(:first-child) {
     border-left: none;
