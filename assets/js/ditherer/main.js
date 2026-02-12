@@ -717,19 +717,23 @@ sampleButtons.forEach((button) => {
     if (!config) {
       return;
     }
-    presetSelect.value = "custom";
-    paletteInput.value = config.palette;
-    const nextPalette = parsePalette(paletteInput.value).map((color) => color.hex);
-    kInput.value = String(config.k);
-    pixelInput.value = String(config.pixel);
-    methodSelect.value = config.method;
-    stochasticToggle.checked = config.stochastic;
-    pixelValue.textContent = String(config.pixel);
-    setPaletteHex(nextPalette, { recordHistory: true, updateInput: false });
-    updateOptionVisibility();
-    fileInput.value = "";
-    downloadButton.disabled = true;
-    loadImageFromUrl(url);
+    const img = new Image();
+    img.onload = () => {
+      sourceImage = img;
+      presetSelect.value = "custom";
+      paletteInput.value = config.palette;
+      const nextPalette = parsePalette(paletteInput.value).map((color) => color.hex);
+      kInput.value = String(config.k);
+      pixelInput.value = String(config.pixel);
+      methodSelect.value = config.method;
+      stochasticToggle.checked = config.stochastic;
+      pixelValue.textContent = String(config.pixel);
+      setPaletteHex(nextPalette, { recordHistory: true, updateInput: false });
+      updateOptionVisibility();
+      fileInput.value = "";
+      downloadButton.disabled = false;
+    };
+    img.src = url;
   });
 });
 
