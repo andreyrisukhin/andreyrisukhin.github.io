@@ -119,6 +119,38 @@
   opacity: 0.6;
 }
 
+/* ── Stradella recipe info ── */
+
+.recognizer-stradella {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.recognizer-stradella-item {
+  margin-top: 0.2rem;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+}
+
+.recognizer-stradella-note {
+  opacity: 0.6;
+  margin-left: 0.5rem;
+  font-family: inherit;
+}
+
+.recognizer-stradella-warn {
+  font-size: 0.75rem;
+  font-style: italic;
+  margin-left: 0.5rem;
+}
+
+.recognizer-stradella-item.is-bug .recognizer-stradella-warn {
+  color: #c44;
+}
+
+.recognizer-stradella-item.is-approx .recognizer-stradella-warn {
+  color: #6a2;
+}
+
 /* ── Staff SVG ── */
 
 .recognizer-staff {

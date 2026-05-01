@@ -46,6 +46,7 @@ Example: `Em / C` = press C bass + E minor chord.
 </script>
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
 
 ## Notes
