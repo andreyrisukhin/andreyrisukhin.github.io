@@ -357,8 +357,7 @@
         if (!state.show.hasOwnProperty(layer)) return;
         state.show[layer] = !state.show[layer];
         btn.classList.toggle('is-active', state.show[layer]);
-        renderSetList();
-        renderCatalog();
+        renderAll();
       });
     }
 
