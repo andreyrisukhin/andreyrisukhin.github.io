@@ -114,16 +114,14 @@
         html += '<div class="stradella-card__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7)) + '</div>';
       }
       var info = M.chordInfo(key, c.suffix);
-      if (info) {
-        if (state.show.notes) {
-          html += '<div class="stradella-detail stradella-notes">' + M.esc(info.notes.join(' ')) + '</div>';
-        }
-        if (state.show.intervals) {
-          html += '<div class="stradella-detail stradella-intervals">' + M.esc(info.intervals.join(' ')) + '</div>';
-        }
-        if (state.show.semitones) {
-          html += '<div class="stradella-detail stradella-semitones">' + M.esc(info.semitones.join('\u2013')) + '</div>';
-        }
+      if (info && state.show.notes) {
+        html += '<div class="stradella-detail stradella-notes">' + M.esc(info.notes.join(' ')) + '</div>';
+      }
+      if (state.show.intervals && c.intervals) {
+        html += '<div class="stradella-detail stradella-intervals">' + M.esc(c.intervals) + '</div>';
+      }
+      if (state.show.semitones && c.semitones) {
+        html += '<div class="stradella-detail stradella-semitones">' + M.esc(c.semitones) + '</div>';
       }
       if (state.show.inversions) {
         var invs = S.computeInversions(c, key);
@@ -198,16 +196,14 @@
       html += '<span class="stradella-catalog-item__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7)) + '</span>';
     }
     var info = M.chordInfo(key, c.suffix);
-    if (info) {
-      if (state.show.notes) {
-        html += '<span class="stradella-detail stradella-notes">' + M.esc(info.notes.join(' ')) + '</span>';
-      }
-      if (state.show.intervals) {
-        html += '<span class="stradella-detail stradella-intervals">' + M.esc(info.intervals.join(' ')) + '</span>';
-      }
-      if (state.show.semitones) {
-        html += '<span class="stradella-detail stradella-semitones">' + M.esc(info.semitones.join('\u2013')) + '</span>';
-      }
+    if (info && state.show.notes) {
+      html += '<span class="stradella-detail stradella-notes">' + M.esc(info.notes.join(' ')) + '</span>';
+    }
+    if (state.show.intervals && c.intervals) {
+      html += '<span class="stradella-detail stradella-intervals">' + M.esc(c.intervals) + '</span>';
+    }
+    if (state.show.semitones && c.semitones) {
+      html += '<span class="stradella-detail stradella-semitones">' + M.esc(c.semitones) + '</span>';
     }
     if (state.show.inversions) {
       var invs = S.computeInversions(c, key);
