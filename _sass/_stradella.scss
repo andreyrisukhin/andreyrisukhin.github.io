@@ -160,6 +160,13 @@
     background: var(--global-theme-color);
     border-color: var(--global-theme-color);
   }
+
+  /* Disabled chords (no d7 fallback) */
+  &.is-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 }
 
 .stradella-catalog-item__name {
@@ -200,5 +207,54 @@
   .is-selected & {
     color: rgba(255, 255, 255, 0.8);
   }
+}
+
+/* ── Options row ── */
+
+.stradella-options {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+
+  .music-toggle-group {
+    margin-bottom: 0;
+  }
+}
+
+.stradella-dim7-toggle {
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+/* ── Inversions ── */
+
+.stradella-inversions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: 0.15rem;
+}
+
+.stradella-inv-item {
+  font-size: 0.65rem;
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: var(--global-text-color);
+  opacity: 0.55;
+
+  .is-selected & {
+    color: rgba(255, 255, 255, 0.75);
+  }
+}
+
+/* ── Disabled set list cards ── */
+
+.stradella-card.is-disabled {
+  opacity: 0.3;
 }
 

@@ -82,7 +82,7 @@ window.Music = (function () {
     'maj6': '6', 'm6': 'm6', '9sus4': '9sus4',
     'maj7 (inv)': 'maj7', '7 (no 5)': '7',
     '\u00B07 (no \u266D5)': 'dim7',
-    'm(Maj9)': 'mMaj7', 'maj9': 'maj9', 'm9': 'm9',
+    'm\u266F5': 'm#5', 'm(Maj9)': 'mMaj7', 'maj9': 'maj9', 'm9': 'm9',
     'add9': 'add9', '9': '9', '11': '11', '13': '13',
     '9(11)': '11', ' tritone': 'dim'
   };

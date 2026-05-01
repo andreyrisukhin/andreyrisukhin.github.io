@@ -57,6 +57,10 @@
       recipe: { parts: [{note:9, qual:'m'}], bass: 0 },
       notes: 'Shared voicing with maj6',
       bug: true, bugNote: 'Gives major 3rd instead of ♭3' },
+    { id: 'ms5', suffix: 'm♯5', family: 'Minor Family',
+      intervals: '1–♭3–♯5', semitones: '0–3–5',
+      recipe: { parts: [{note:8, qual:'M'}], bass: 0 },
+      notes: '♯5M = ♯5–1–♭3' },
     { id: 'm7', suffix: 'm7', family: 'Minor Family',
       intervals: '1–♭3–5–♭7', semitones: '0–3–4–3',
       recipe: { parts: [{note:3, qual:'M'}], bass: 0 },
@@ -78,7 +82,9 @@
     { id: '7', suffix: '7', family: 'Dominant Family',
       intervals: '1–3–5–♭7', semitones: '0–4–3–3',
       recipe: { parts: [{note:7, qual:'d7'}], bass: 0 },
-      notes: '5d7 = 5–♭7–3; full 1–3–5–♭7' },
+      notes: '5d7 = 5–♭7–3; full 1–3–5–♭7',
+      fallback: { parts: [{note:7, qual:'m'}], bass: 0 },
+      fallbackApprox: true, fallbackNote: 'Missing 3rd (no d7)' },
     { id: '9', suffix: '9', family: 'Dominant Family',
       intervals: '1–3–5–♭7–9', semitones: '0–4–3–3–4',
       recipe: { parts: [{note:7, qual:'m'},{note:0, qual:'M'}], bass: 0 },
@@ -98,15 +104,20 @@
     { id: 'dim', suffix: 'dim', family: 'Diminished Family',
       intervals: '1–♭3–♭5', semitones: '0–3–3',
       recipe: { parts: [{note:3, qual:'d7'}], bass: 0 },
-      notes: '♭3d7 = ♭3–♭5–1' },
+      notes: '♭3d7 = ♭3–♭5–1',
+      fallback: { parts: [{note:3, qual:'m'}], bass: 0 },
+      fallbackApprox: true, fallbackNote: 'Extra ♭7 (no d7)' },
     { id: 'dim7partial', suffix: '°7 (no ♭5)', family: 'Diminished Family',
       intervals: '1–♭3–𝄫7', semitones: '0–3–6',
       recipe: { parts: [{note:0, qual:'d7'}], bass: 0 },
-      notes: 'd7 button alone; omits ♭5' },
+      notes: 'd7 button alone; omits ♭5',
+      fallback: null },
     { id: 'dim7', suffix: '°7', family: 'Diminished Family',
       intervals: '1–♭3–♭5–𝄫7', semitones: '0–3–3–3',
       recipe: { parts: [{note:0, qual:'d7'}], bass: 6 },
-      notes: 'd7 + ♭5 bass; full 1–♭3–♭5–𝄫7' },
+      notes: 'd7 + ♭5 bass; full 1–♭3–♭5–𝄫7',
+      fallback: { parts: [{note:3, qual:'m'}], bass: 0 },
+      fallbackUncertain: true, fallbackNote: 'Half-dim voicing (no d7)' },
     { id: 'hdim7', suffix: 'ø7', family: 'Diminished Family',
       intervals: '1–♭3–♭5–♭7', semitones: '0–3–3–4',
       recipe: { parts: [{note:3, qual:'m'}], bass: 0 },
@@ -142,7 +153,9 @@
     { id: '7s9', suffix: '7♯9', family: 'Altered Dominants',
       intervals: '1–3–5–♭7–♯9', semitones: '0–4–3–3–5',
       recipe: { parts: [{note:3, qual:'M'},{note:7, qual:'d7'}], bass: 0 },
-      notes: '♭3M + 5d7 = ♯9–5–♭7 + 5–♭7–3' },
+      notes: '♭3M + 5d7 = ♯9–5–♭7 + 5–♭7–3',
+      fallback: { parts: [{note:3, qual:'M'}], bass: 0 },
+      fallbackApprox: true, fallbackNote: 'Missing 3rd (no d7)' },
     { id: '7s11', suffix: '7♯11', family: 'Altered Dominants',
       intervals: '1–3–5–♭7–♯11', semitones: '0–4–3–3–6',
       recipe: { parts: [{note:7, qual:'m'},{note:2, qual:'M'}], bass: 0 },
@@ -176,12 +189,40 @@
 
   // ── Helpers ──
 
+  function usesD7(c) {
+    return c.recipe && c.recipe.parts.some(function (p) { return p.qual === 'd7'; });
+  }
+
+  function activeRecipe(c) {
+    if (!state.hasDim7 && usesD7(c)) return c.fallback;
+    return c.recipe;
+  }
+
+  function computeInversions(entry, key) {
+    if (!entry.semitones) return [];
+    var splits = entry.semitones.split('\u2013');
+    var cum = [];
+    var sum = 0;
+    for (var i = 0; i < splits.length; i++) {
+      sum += parseInt(splits[i], 10);
+      cum.push(sum % 12);
+    }
+    var inversions = [];
+    for (var j = 1; j < cum.length; j++) {
+      inversions.push({
+        bass: cum[j],
+        label: M.noteName(key) + entry.suffix + ' / ' + M.noteName(key + cum[j])
+      });
+    }
+    return inversions;
+  }
+
   function renderChordName(entry, key) {
     return M.noteName(key) + entry.suffix;
   }
 
   function renderRecipe(entry, key) {
-    const r = entry.recipe;
+    const r = activeRecipe(entry);
     if (!r) return '\u2014'; // em-dash
     const parts = r.parts.map(function (p) {
       return M.noteName(key + p.note) + QUAL[p.qual];
@@ -207,7 +248,8 @@
   const state = {
     catalogKey: 0,
     selected: [],
-    show: { recipe: true, notes: false, intervals: false, semitones: false }
+    show: { recipe: true, notes: false, intervals: false, semitones: false, inversions: false },
+    hasDim7: true
   };
 
   function saveState() {
@@ -235,6 +277,7 @@
       }
       // v2 format: {catalogKey: N, selected: [{id, key}, ...]}
       if (typeof s.catalogKey === 'number') state.catalogKey = s.catalogKey;
+      if (typeof s.hasDim7 === 'boolean') state.hasDim7 = s.hasDim7;
       if (Array.isArray(s.selected)) {
         const valid = {};
         CHORDS.forEach(function (c) { valid[c.id] = true; });
@@ -294,7 +337,8 @@
       const c = chordById(entry.id);
       if (!c) return;
       const key = entry.key;
-      html += '<div class="stradella-card">';
+      const disabled = !state.hasDim7 && usesD7(c) && !c.fallback;
+      html += '<div class="stradella-card' + (disabled ? ' is-disabled' : '') + '">';
       html += '<button class="stradella-card__remove" data-action="remove" data-idx="' + i + '" aria-label="Remove">&#10005;</button>';
       html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key)) + '</div>';
       if (state.show.recipe) {
@@ -310,6 +354,16 @@
         }
         if (state.show.semitones) {
           html += '<div class="stradella-detail stradella-semitones">' + M.esc(info.semitones.join('\u2013')) + '</div>';
+        }
+      }
+      if (state.show.inversions) {
+        var invs = computeInversions(c, key);
+        if (invs.length > 0) {
+          html += '<div class="stradella-inversions">';
+          for (var k = 0; k < invs.length; k++) {
+            html += '<span class="stradella-inv-item">' + M.esc(invs[k].label) + '</span>';
+          }
+          html += '</div>';
         }
       }
       html += '</div>';
@@ -339,11 +393,23 @@
       html += '<div class="stradella-catalog-grid">';
       familyMap[fam].forEach(function (c) {
         const sel = isSelectedAtKey(c.id, key);
+        const d7disabled = !state.hasDim7 && usesD7(c);
+        const noFallback = d7disabled && !c.fallback;
         let cls = 'stradella-catalog-item';
         if (sel) cls += ' is-selected';
-        if (c.bug) cls += ' is-bug';
-        else if (c.approx) cls += ' is-approx';
-        else if (c.uncertain) cls += ' is-uncertain';
+        if (noFallback) {
+          cls += ' is-disabled';
+        } else if (d7disabled && c.fallbackApprox) {
+          cls += ' is-approx';
+        } else if (d7disabled && c.fallbackUncertain) {
+          cls += ' is-uncertain';
+        } else if (c.bug) {
+          cls += ' is-bug';
+        } else if (c.approx) {
+          cls += ' is-approx';
+        } else if (c.uncertain) {
+          cls += ' is-uncertain';
+        }
         html += '<button class="' + cls + '" data-id="' + c.id + '">';
         html += '<span class="stradella-catalog-item__name">' + M.esc(c.suffix || 'maj') + '</span>';
         if (state.show.recipe) {
@@ -361,7 +427,18 @@
             html += '<span class="stradella-detail stradella-semitones">' + M.esc(info.semitones.join('\u2013')) + '</span>';
           }
         }
-        const warnNote = c.bugNote || c.approxNote || c.uncertainNote;
+        if (state.show.inversions) {
+          var invs = computeInversions(c, key);
+          if (invs.length > 0) {
+            html += '<span class="stradella-inversions">';
+            for (var k = 0; k < invs.length; k++) {
+              html += '<span class="stradella-inv-item">' + M.esc(invs[k].label) + '</span>';
+            }
+            html += '</span>';
+          }
+        }
+        var warnNote = (d7disabled && c.fallbackNote) ? c.fallbackNote
+          : (c.bugNote || c.approxNote || c.uncertainNote);
         if (warnNote) {
           html += '<span class="stradella-catalog-item__warn">' + M.esc(warnNote) + '</span>';
         }
@@ -402,6 +479,17 @@
   function init() {
     loadState();
     renderAll();
+
+    // dim7 toggle checkbox
+    const dim7Check = document.getElementById('stradella-dim7-check');
+    if (dim7Check) {
+      dim7Check.checked = state.hasDim7;
+      dim7Check.addEventListener('change', function () {
+        state.hasDim7 = dim7Check.checked;
+        saveState();
+        renderAll();
+      });
+    }
 
     // Key bar — delegated click on note buttons
     const keyBar = document.getElementById('stradella-key-bar');
@@ -446,7 +534,7 @@
     if (catalogEl) {
       catalogEl.addEventListener('click', function (e) {
         const item = e.target.closest('.stradella-catalog-item');
-        if (!item) return;
+        if (!item || item.classList.contains('is-disabled')) return;
         const id = item.getAttribute('data-id');
         addEntry(id, state.catalogKey);
         renderAll();
@@ -498,6 +586,13 @@
         c.recipe.parts.forEach(function (p) {
           if (!BUTTONS[p.qual]) errors.push(c.id + ': unknown button qual "' + p.qual + '"');
         });
+      }
+      if (c.fallback) {
+        c.fallback.parts.forEach(function (p) {
+          if (!BUTTONS[p.qual]) errors.push(c.id + ': unknown fallback button qual "' + p.qual + '"');
+        });
+      }
+      if (c.recipe) {  // recipe accuracy check
         // Check recipe notes vs semitone intervals
         if (c.semitones && !c.bug && !c.approx && !c.uncertain) {
           var got = {};

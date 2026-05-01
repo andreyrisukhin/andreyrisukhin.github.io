@@ -17,11 +17,18 @@ Example: `Em / C` = press C bass + E minor chord.
   <button id="stradella-share-load" class="music-share-btn">Load</button>
 </div>
 
-<div class="music-toggle-group" id="stradella-toggle-group">
-  <button class="music-toggle-btn is-active" data-layer="recipe">Recipe</button>
-  <button class="music-toggle-btn" data-layer="notes">Notes</button>
-  <button class="music-toggle-btn" data-layer="intervals">Intervals</button>
-  <button class="music-toggle-btn" data-layer="semitones">Semitones</button>
+<div class="stradella-options">
+  <div class="music-toggle-group" id="stradella-toggle-group">
+    <button class="music-toggle-btn is-active" data-layer="recipe">Recipe</button>
+    <button class="music-toggle-btn" data-layer="notes">Notes</button>
+    <button class="music-toggle-btn" data-layer="intervals">Intervals</button>
+    <button class="music-toggle-btn" data-layer="semitones">Semitones</button>
+    <button class="music-toggle-btn" data-layer="inversions">Inversions</button>
+  </div>
+  <label class="stradella-dim7-toggle">
+    <input type="checkbox" id="stradella-dim7-check" checked>
+    dim7 column
+  </label>
 </div>
 
 <div id="stradella-setlist" class="stradella-setlist"></div>
