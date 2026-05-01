@@ -105,7 +105,7 @@ window.StradellaData = (function () {
     // Dominant Family
     { id: '7partial', suffix: '7 (no 5)', family: 'Dominant Family',
       quality: 'Dominant', extension: '7th',
-      intervals: '1–3–♭7', semitones: '0–4–6',
+      intervals: '1–3–(5)–♭7', semitones: '0–4–(3)–3',
       recipe: { parts: [{note:0, qual:'7'}], bass: 0 },
       notes: '7 button alone; omits 5th' },
     { id: '7', suffix: '7', family: 'Dominant Family',
@@ -143,7 +143,7 @@ window.StradellaData = (function () {
       fallbackApprox: true, fallbackNote: 'Extra ♭7 (no d7)' },
     { id: 'dim7partial', suffix: '°7 (no ♭5)', family: 'Diminished Family',
       quality: 'Diminished', extension: '7th',
-      intervals: '1–♭3–𝄫7', semitones: '0–3–6',
+      intervals: '1–♭3–(♭5)–𝄫7', semitones: '0–3–(3)–3',
       recipe: { parts: [{note:0, qual:'d7'}], bass: 0 },
       notes: 'd7 button alone; omits ♭5',
       fallback: null },
@@ -235,7 +235,7 @@ window.StradellaData = (function () {
       fallbackApprox: true, fallbackNote: 'Missing 3rd (no d7)' },
     { id: '7s11', suffix: '7♯11', family: 'Altered Dominants',
       quality: 'Dominant', extension: '11th',
-      intervals: '1–3–5–♭7–♯11', semitones: '0–4–3–3–6',
+      intervals: '1–3–5–♭7–♯11', semitones: '0–4–3–3–8',
       recipe: { parts: [{note:7, qual:'m'},{note:2, qual:'M'}], bass: 0 },
       notes: '2 major gives ♯11',
       approx: true, approxNote: 'Missing 3rd, extra 9th/13th' },
@@ -322,8 +322,10 @@ window.StradellaData = (function () {
     var cum = [];
     var sum = 0;
     for (var i = 0; i < splits.length; i++) {
-      sum += parseInt(splits[i], 10);
-      cum.push(sum % 12);
+      var s = splits[i].trim();
+      var missing = s.charAt(0) === '(';
+      sum += parseInt(s.replace(/[()]/g, ''), 10);
+      if (!missing) cum.push(sum % 12);
     }
     var inversions = [];
     for (var j = 1; j < cum.length; j++) {
@@ -365,8 +367,10 @@ window.StradellaData = (function () {
           if (c.recipe.rh != null) got[c.recipe.rh % 12] = true;
           var want = {};
           c.semitones.split('\u2013').reduce(function (acc, s) {
-            acc += parseInt(s, 10);
-            want[acc % 12] = true;
+            s = s.trim();
+            var missing = s.charAt(0) === '(';
+            acc += parseInt(s.replace(/[()]/g, ''), 10);
+            if (!missing) want[acc % 12] = true;
             return acc;
           }, 0);
           var gotKeys = Object.keys(got).sort();
