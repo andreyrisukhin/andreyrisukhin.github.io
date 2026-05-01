@@ -260,6 +260,51 @@
   }
 }
 
+/* ── Grid (periodic table) view ── */
+
+.stradella-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+.stradella-grid-table th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem;
+  text-align: center;
+  color: var(--global-text-color);
+  opacity: 0.7;
+}
+
+.stradella-grid-table thead th {
+  border-bottom: 2px solid var(--global-divider-color);
+}
+
+.stradella-grid-table tbody th {
+  border-right: 2px solid var(--global-divider-color);
+  white-space: nowrap;
+}
+
+.stradella-grid-table td {
+  padding: 0.3rem;
+  vertical-align: top;
+  border: 1px solid var(--global-divider-color);
+}
+
+.stradella-grid-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: stretch;
+}
+
+.stradella-grid-empty {
+  color: var(--global-text-color);
+  opacity: 0.15;
+  text-align: center;
+}
+
 /* ── Disabled set list cards ── */
 
 .stradella-card.is-disabled {

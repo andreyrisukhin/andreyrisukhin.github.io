@@ -29,6 +29,7 @@ Example: `Em / C` = press C bass + E minor chord.
     <input type="checkbox" id="stradella-dim7-check" checked>
     dim7 column
   </label>
+  <button id="stradella-view-toggle" class="music-share-btn">Grid view</button>
 </div>
 
 <div id="stradella-setlist" class="stradella-setlist"></div>
