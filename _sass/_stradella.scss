@@ -128,6 +128,28 @@
     border-color: var(--global-theme-color);
   }
 
+  /* Bug chords: red border + tint */
+  &.is-bug {
+    border-color: #c44;
+    background: rgba(204, 68, 68, 0.08);
+  }
+
+  &.is-bug.is-selected {
+    background: var(--global-theme-color);
+    border-color: var(--global-theme-color);
+  }
+
+  /* Approx chords: lime border + tint */
+  &.is-approx {
+    border-color: #6a2;
+    background: rgba(102, 170, 34, 0.08);
+  }
+
+  &.is-approx.is-selected {
+    background: var(--global-theme-color);
+    border-color: var(--global-theme-color);
+  }
+
   /* Uncertain chords: yellow border + tint */
   &.is-uncertain {
     border-color: #d4a017;
@@ -166,6 +188,14 @@
   font-style: italic;
   color: #d4a017;
   margin-top: 0.15rem;
+
+  .is-bug & {
+    color: #c44;
+  }
+
+  .is-approx & {
+    color: #6a2;
+  }
 
   .is-selected & {
     color: rgba(255, 255, 255, 0.8);

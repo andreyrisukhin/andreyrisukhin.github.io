@@ -79,7 +79,12 @@ window.Music = (function () {
     'maj7\u266F5': 'maj7#5', '7\u266D5': '7b5',
     '7\u266D9': '7b9', '7\u266F9': '7#9',
     '7\u266F11': '7#11', '7\u266D13': '7b13',
-    'maj6': '6', '9sus4': '9sus4'
+    'maj6': '6', 'm6': 'm6', '9sus4': '9sus4',
+    'maj7 (inv)': 'maj7', '7 (no 5)': '7',
+    '\u00B07 (no \u266D5)': 'dim7',
+    'm(Maj9)': 'mMaj7', 'maj9': 'maj9', 'm9': 'm9',
+    'add9': 'add9', '9': '9', '11': '11', '13': '13',
+    '9(11)': '11', ' tritone': 'dim'
   };
 
   // Convert Unicode accidentals to ASCII for Tonal input
@@ -147,6 +152,15 @@ window.Music = (function () {
       // Normalize ASCII accidentals after the letter: Eb→E♭, F#→F♯
       tok = tok.replace(/b$/, '\u266D').replace(/#$/, '\u266F');
       var idx = NOTES.indexOf(tok);
+      // Handle enharmonic equivalents not in NOTES (e.g. D♯→E♭, G♭→F♯)
+      if (idx === -1 && tok.length === 2) {
+        var natural = NOTES.indexOf(tok.charAt(0));
+        if (natural !== -1) {
+          var acc = tok.charAt(1);
+          if (acc === '\u266F') idx = (natural + 1) % 12;       // sharp = +1
+          else if (acc === '\u266D') idx = (natural + 11) % 12; // flat  = -1
+        }
+      }
       if (idx === -1) continue; // skip unrecognized tokens
       result.push(idx);
     }

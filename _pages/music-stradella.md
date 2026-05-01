@@ -4,7 +4,7 @@ title: Stradella Chord Recipes
 permalink: /music/stradella/
 ---
 
-How to create chords out of root and major, minor, 7th triads.
+How to create chords out of root and major, minor, 7th, and dim7 triads.
 Format: **Triad + Triad + … / Bass**.
 Example: `Em / C` = press C bass + E minor chord.
 
@@ -30,6 +30,13 @@ Example: `Em / C` = press C bass + E minor chord.
 <div id="stradella-catalog" class="stradella-catalog"></div>
 
 <noscript><p>This interactive tool requires JavaScript.</p></noscript>
+<script>
+  window.StradellaButtons = {
+    {% for btn in site.data.music.stradella_buttons.buttons %}
+    {{ btn.id | jsonify }}: {{ btn.offsets | jsonify }}{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  };
+</script>
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>

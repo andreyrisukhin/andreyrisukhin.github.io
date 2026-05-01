@@ -31,31 +31,59 @@
 
   // ── Note management ──
 
-  function addNote(semitone) {
-    if (state.notes.indexOf(semitone) === -1) {
-      state.notes.push(semitone);
-    }
+  function appendNote(semitone) {
+    state.notes.push(semitone);
   }
 
-  function removeNote(semitone) {
-    var idx = state.notes.indexOf(semitone);
-    if (idx !== -1) state.notes.splice(idx, 1);
-  }
-
-  function toggleNote(semitone) {
-    if (state.notes.indexOf(semitone) !== -1) {
-      removeNote(semitone);
-    } else {
-      addNote(semitone);
-    }
+  function removeLastNote() {
+    state.notes.pop();
   }
 
   // ── Chord detection ──
 
   function detectChord() {
     if (state.notes.length < 2 || !window.Tonal) return [];
-    var names = state.notes.map(function (s) { return M.asciiNoteName(s); });
+    var unique = uniqueNotes();
+    if (unique.length < 2) return [];
+    var names = unique.map(function (s) { return M.asciiNoteName(s); });
     return Tonal.Chord.detect(names);
+  }
+
+  // Return unique pitch classes from state.notes, preserving first-occurrence order
+  function uniqueNotes() {
+    var seen = {};
+    var unique = [];
+    for (var i = 0; i < state.notes.length; i++) {
+      if (!seen[state.notes[i]]) {
+        seen[state.notes[i]] = true;
+        unique.push(state.notes[i]);
+      }
+    }
+    return unique;
+  }
+
+  // Find recognized chords from (n-1)-note subsets when full set is unrecognized
+  // Returns array of { removed: noteName, chords: [...] }
+  function detectSubsets() {
+    if (!window.Tonal) return [];
+    var unique = uniqueNotes();
+    if (unique.length < 3) return [];
+    var results = [];
+    var seenChords = {};
+    for (var i = 0; i < unique.length; i++) {
+      var subset = unique.filter(function (_, j) { return j !== i; });
+      var names = subset.map(function (s) { return M.asciiNoteName(s); });
+      var detected = Tonal.Chord.detect(names);
+      if (detected.length > 0) {
+        // Deduplicate across subsets — only show first occurrence of each chord
+        var novel = detected.filter(function (c) { return !seenChords[c]; });
+        novel.forEach(function (c) { seenChords[c] = true; });
+        if (novel.length > 0) {
+          results.push({ removed: M.noteName(unique[i]), chords: novel });
+        }
+      }
+    }
+    return results;
   }
 
   // Determine inversion label from a chord name like "C/E"
@@ -102,15 +130,23 @@
   function renderNoteButtons() {
     var container = document.getElementById('recognizer-note-buttons');
     if (!container) return;
+
+    // Build map: semitone -> [1-based positions]
+    var positions = {};
+    for (var j = 0; j < state.notes.length; j++) {
+      var s = state.notes[j];
+      if (!positions[s]) positions[s] = [];
+      positions[s].push(j + 1);
+    }
+
     var html = '';
     M.NOTES.forEach(function (n, i) {
-      var isActive = state.notes.indexOf(i) !== -1;
-      var order = isActive ? state.notes.indexOf(i) + 1 : 0;
+      var isActive = positions[i] && positions[i].length > 0;
       var cls = 'recognizer-note-btn';
       if (isActive) cls += ' is-active';
       html += '<button class="' + cls + '" data-semitone="' + i + '">';
       if (isActive) {
-        html += '<span class="recognizer-order">' + order + '</span>';
+        html += '<span class="recognizer-order">' + positions[i].join(',') + '</span>';
       }
       html += M.esc(n) + '</button>';
     });
@@ -144,9 +180,23 @@
 
     if (detected.length === 0) {
       var noteNames = state.notes.map(function (s) { return M.noteName(s); });
-      container.innerHTML = '<div class="recognizer-chord-name">?</div>' +
+      var html = '<div class="recognizer-chord-name">?</div>' +
         '<p class="recognizer-prompt">No chord recognized for ' +
         M.esc(noteNames.join(' ')) + '</p>';
+
+      var subsets = detectSubsets();
+      if (subsets.length > 0) {
+        html += '<div class="recognizer-subsets"><strong>Subsets recognized:</strong>';
+        for (var si = 0; si < subsets.length; si++) {
+          html += '<div class="recognizer-subset-row">' +
+            M.esc(subsets[si].chords.join(', ')) +
+            '<span class="recognizer-subset-note"> (without ' +
+            M.esc(subsets[si].removed) + ')</span></div>';
+        }
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
       return;
     }
 
@@ -282,7 +332,7 @@
         var btn = e.target.closest('.recognizer-note-btn');
         if (!btn) return;
         var semitone = parseInt(btn.getAttribute('data-semitone'), 10);
-        toggleNote(semitone);
+        appendNote(semitone);
         render();
       });
     }
@@ -298,6 +348,15 @@
       });
     }
 
+    // Undo button (remove last note)
+    var undoBtn = document.getElementById('recognizer-undo');
+    if (undoBtn) {
+      undoBtn.addEventListener('click', function () {
+        removeLastNote();
+        render();
+      });
+    }
+
     // Clear button
     var clearBtn = document.getElementById('recognizer-clear');
     if (clearBtn) {
@@ -306,6 +365,15 @@
         render();
       });
     }
+
+    // Backspace key removes last note (when text input not focused)
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && document.activeElement !== textInput) {
+        e.preventDefault();
+        removeLastNote();
+        render();
+      }
+    });
 
     render();
   }

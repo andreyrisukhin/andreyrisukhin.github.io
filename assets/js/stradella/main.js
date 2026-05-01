@@ -4,8 +4,16 @@
 
   const M = window.Music;
 
+  // Button voicings: loaded from YAML via Jekyll, fallback to defaults
+  const BUTTONS = window.StradellaButtons || {
+    M:  [0, 4, 7],
+    m:  [0, 3, 7],
+    '7': [0, 4, 10],
+    d7: [0, 3, 9]
+  };
+
   // qual display labels for Stradella buttons
-  const QUAL = { M: 'M', m: 'm', '7': '7' };
+  const QUAL = { M: 'M', m: 'm', '7': '7', d7: 'd7' };
 
   // ── Chord data (semitone offsets from root) ──
   const CHORDS = [
@@ -24,7 +32,7 @@
       intervals: '1–3–5–6', semitones: '0–4–3–2',
       recipe: { parts: [{note:9, qual:'m'}], bass: 0 },
       notes: '6m = 6–1–3 over root',
-      uncertain: true, uncertainNote: 'Missing 5th?' },
+      approx: true, approxNote: 'Missing 5th' },
     { id: 'maj7', suffix: 'maj7', family: 'Major Family',
       intervals: '1–3–5–7', semitones: '0–4–3–4',
       recipe: { parts: [{note:4, qual:'m'}], bass: 0 },
@@ -47,7 +55,8 @@
     { id: 'm6', suffix: 'm6', family: 'Minor Family',
       intervals: '1–♭3–5–6', semitones: '0–3–4–2',
       recipe: { parts: [{note:9, qual:'m'}], bass: 0 },
-      notes: 'Shared voicing with maj6' },
+      notes: 'Shared voicing with maj6',
+      bug: true, bugNote: 'Gives major 3rd instead of ♭3' },
     { id: 'm7', suffix: 'm7', family: 'Minor Family',
       intervals: '1–♭3–5–♭7', semitones: '0–3–4–3',
       recipe: { parts: [{note:3, qual:'M'}], bass: 0 },
@@ -57,58 +66,68 @@
       recipe: { parts: [{note:0, qual:'m'},{note:7, qual:'m'}], bass: 0 },
       notes: '♭3 gives ♭3–5–♭7; 5 adds 9' },
     { id: 'mMaj9', suffix: 'm(Maj9)', family: 'Minor Family',
-      intervals: '1–♭3–5–7–9', semitones: null,
+      intervals: '1–♭3–5–7–9', semitones: '0–3–4–4–3',
       recipe: { parts: [{note:0, qual:'m'},{note:7, qual:'M'}], bass: 0 },
       notes: '' },
 
     // Dominant Family
+    { id: '7partial', suffix: '7 (no 5)', family: 'Dominant Family',
+      intervals: '1–3–♭7', semitones: '0–4–6',
+      recipe: { parts: [{note:0, qual:'7'}], bass: 0 },
+      notes: '7 button alone; omits 5th' },
     { id: '7', suffix: '7', family: 'Dominant Family',
       intervals: '1–3–5–♭7', semitones: '0–4–3–3',
-      recipe: { parts: [{note:7, qual:'m'}], bass: 0 },
-      notes: '5m = 5–♭7–9 over root' },
+      recipe: { parts: [{note:7, qual:'d7'}], bass: 0 },
+      notes: '5d7 = 5–♭7–3; full 1–3–5–♭7' },
     { id: '9', suffix: '9', family: 'Dominant Family',
-      intervals: '1–3–5–♭7–9', semitones: null,
+      intervals: '1–3–5–♭7–9', semitones: '0–4–3–3–4',
       recipe: { parts: [{note:7, qual:'m'},{note:0, qual:'M'}], bass: 0 },
       notes: '' },
     { id: '11', suffix: '11', family: 'Dominant Family',
       intervals: '1–3–5–♭7–9–11', semitones: '0–4–3–3–4–3',
       recipe: { parts: [{note:7, qual:'M'},{note:2, qual:'m'},{note:0, qual:'7'}], bass: 0 },
-      notes: '2m adds 11. Theoretical full set' },
+      notes: '2m adds 11. Theoretical full set',
+      approx: true, approxNote: 'Extra tones from stacking' },
     { id: '13', suffix: '13', family: 'Dominant Family',
       intervals: '1–3–5–♭7–9–11–13', semitones: '0–4–3–3–4–3–4',
       recipe: { parts: [{note:7, qual:'M'},{note:2, qual:'m'},{note:4, qual:'m'},{note:0, qual:'7'}], bass: 0 },
-      notes: 'Full set; RH recommended' },
+      notes: 'Full set; RH recommended',
+      approx: true, approxNote: 'Extra 7th from stacking' },
 
     // Diminished Family
+    { id: 'dim', suffix: 'dim', family: 'Diminished Family',
+      intervals: '1–♭3–♭5', semitones: '0–3–3',
+      recipe: { parts: [{note:3, qual:'d7'}], bass: 0 },
+      notes: '♭3d7 = ♭3–♭5–1' },
+    { id: 'dim7partial', suffix: '°7 (no ♭5)', family: 'Diminished Family',
+      intervals: '1–♭3–𝄫7', semitones: '0–3–6',
+      recipe: { parts: [{note:0, qual:'d7'}], bass: 0 },
+      notes: 'd7 button alone; omits ♭5' },
+    { id: 'dim7', suffix: '°7', family: 'Diminished Family',
+      intervals: '1–♭3–♭5–𝄫7', semitones: '0–3–3–3',
+      recipe: { parts: [{note:0, qual:'d7'}], bass: 6 },
+      notes: 'd7 + ♭5 bass; full 1–♭3–♭5–𝄫7' },
     { id: 'hdim7', suffix: 'ø7', family: 'Diminished Family',
       intervals: '1–♭3–♭5–♭7', semitones: '0–3–3–4',
       recipe: { parts: [{note:3, qual:'m'}], bass: 0 },
       notes: '♭3m = ♭3–♭5–♭7, half diminished' },
-    { id: 'dim7', suffix: '°7', family: 'Diminished Family',
-      intervals: '1–♭3–♭5–𝄫7', semitones: '0–3–3–3',
-      recipe: null,
-      notes: '',
-      uncertain: true, uncertainNote: '♭3m close but ♭7 is half step too high' },
-    { id: 'dim', suffix: 'dim', family: 'Diminished Family',
-      intervals: '1–♭3–♭5', semitones: '0–3–3',
-      recipe: { parts: [{note:3, qual:'m'}], bass: 0 },
-      notes: 'Uses ♭3m',
-      uncertain: true, uncertainNote: 'Added ♭7 may be noticeable' },
 
     // Augmented Family
     { id: 'aug', suffix: '+', family: 'Augmented Family',
       intervals: '1–3–♯5', semitones: '0–4–4',
       recipe: { parts: [{note:4, qual:'M'}], bass: 0 },
-      notes: '3 major gives 3–♯5–7' },
+      notes: '3 major gives 3–♯5–7',
+      approx: true, approxNote: 'Extra 7th from triad' },
     { id: 'aug7', suffix: '+7', family: 'Augmented Family',
       intervals: '1–3–♯5–♭7', semitones: '0–4–4–2',
       recipe: { parts: [{note:4, qual:'7'}], bass: 0 },
-      notes: '3dom7 = 3–♯5–♭7' },
+      notes: '3dom7 = 3–♯5–♭7',
+      bug: true, bugNote: 'Produces wrong notes' },
     { id: 'maj7s5', suffix: 'maj7♯5', family: 'Augmented Family',
       intervals: '1–3–♯5–7', semitones: '0–4–4–3',
       recipe: { parts: [{note:4, qual:'M'},{note:4, qual:'m'}], bass: 0 },
       notes: '',
-      uncertain: true, uncertainNote: 'Check voicing' },
+      approx: true, approxNote: 'Extra 5th from triad' },
 
     // Altered Dominants
     { id: '7b5', suffix: '7♭5', family: 'Altered Dominants',
@@ -118,19 +137,22 @@
     { id: '7b9', suffix: '7♭9', family: 'Altered Dominants',
       intervals: '1–3–5–♭7–♭9', semitones: '0–4–3–3–3',
       recipe: { parts: [{note:1, qual:'M'}], bass: 0 },
-      notes: '♭2 major = ♭9' },
+      notes: '♭2 major = ♭9',
+      bug: true, bugNote: 'Missing 3rd, 5th, ♭7th' },
     { id: '7s9', suffix: '7♯9', family: 'Altered Dominants',
       intervals: '1–3–5–♭7–♯9', semitones: '0–4–3–3–5',
-      recipe: { parts: [{note:3, qual:'M'}], bass: 0 },
-      notes: '♯2 major = ♯9' },
+      recipe: { parts: [{note:3, qual:'M'},{note:7, qual:'d7'}], bass: 0 },
+      notes: '♭3M + 5d7 = ♯9–5–♭7 + 5–♭7–3' },
     { id: '7s11', suffix: '7♯11', family: 'Altered Dominants',
       intervals: '1–3–5–♭7–♯11', semitones: '0–4–3–3–6',
       recipe: { parts: [{note:7, qual:'m'},{note:2, qual:'M'}], bass: 0 },
-      notes: '2 major gives ♯11' },
+      notes: '2 major gives ♯11',
+      approx: true, approxNote: 'Missing 3rd, extra 9th/13th' },
     { id: '7b13', suffix: '7♭13', family: 'Altered Dominants',
       intervals: '1–3–5–♭7–♭13', semitones: '0–4–3–3–5',
       recipe: { parts: [{note:8, qual:'M'}], bass: 0 },
-      notes: '♭6 major = ♭13' },
+      notes: '♭6 major = ♭13',
+      bug: true, bugNote: 'Gives ♭3 instead of 3, missing ♭7' },
 
     // Misc
     { id: 'b9no7', suffix: '♭9', family: 'Misc',
@@ -138,15 +160,16 @@
       recipe: null,
       notes: 'No clean Stradella recipe' },
     { id: 'tritone', suffix: ' tritone', family: 'Misc',
-      intervals: '', semitones: null,
+      intervals: '1–♭5', semitones: '0–6',
       recipe: null,
       notes: 'Ex: G tritone = G7 + D♭M / G' },
     { id: '9sus4', suffix: '9sus4', family: 'Misc',
       intervals: '1–4–5–♭7–9', semitones: '0–5–2–3–4',
       recipe: { parts: [{note:10, qual:'M'}], bass: 0 },
-      notes: 'Dom 9th sus4' },
+      notes: 'Dom 9th sus4',
+      approx: true, approxNote: 'Missing 5th' },
     { id: '9_11', suffix: '9(11)', family: 'Misc',
-      intervals: '1–3–5–♭7–9–11', semitones: null,
+      intervals: '1–3–5–♭7–9–11', semitones: '0–4–3–3–4–3',
       recipe: { parts: [{note:10, qual:'M'},{note:0, qual:'M'}], bass: 0 },
       notes: 'Can omit 5, maybe 3' }
   ];
@@ -318,7 +341,9 @@
         const sel = isSelectedAtKey(c.id, key);
         let cls = 'stradella-catalog-item';
         if (sel) cls += ' is-selected';
-        if (c.uncertain) cls += ' is-uncertain';
+        if (c.bug) cls += ' is-bug';
+        else if (c.approx) cls += ' is-approx';
+        else if (c.uncertain) cls += ' is-uncertain';
         html += '<button class="' + cls + '" data-id="' + c.id + '">';
         html += '<span class="stradella-catalog-item__name">' + M.esc(c.suffix || 'maj') + '</span>';
         if (state.show.recipe) {
@@ -336,8 +361,9 @@
             html += '<span class="stradella-detail stradella-semitones">' + M.esc(info.semitones.join('\u2013')) + '</span>';
           }
         }
-        if (c.uncertain && c.uncertainNote) {
-          html += '<span class="stradella-catalog-item__warn">' + M.esc(c.uncertainNote) + '</span>';
+        const warnNote = c.bugNote || c.approxNote || c.uncertainNote;
+        if (warnNote) {
+          html += '<span class="stradella-catalog-item__warn">' + M.esc(warnNote) + '</span>';
         }
         html += '</button>';
       });
@@ -459,9 +485,55 @@
     }
   }
 
+  // ── Self-check: verify chord data on load ──
+
+  function verify() {
+    var errors = [];
+    CHORDS.forEach(function (c) {
+      if (!c.intervals) errors.push(c.id + ': missing intervals');
+      if (c.semitones == null) errors.push(c.id + ': missing semitones');
+      var info = M.chordInfo(0, c.suffix);
+      if (!info) errors.push(c.id + ': chordInfo failed for suffix "' + c.suffix + '" — add to SUFFIX_TO_TONAL');
+      if (c.recipe) {
+        c.recipe.parts.forEach(function (p) {
+          if (!BUTTONS[p.qual]) errors.push(c.id + ': unknown button qual "' + p.qual + '"');
+        });
+        // Check recipe notes vs semitone intervals
+        if (c.semitones && !c.bug && !c.approx && !c.uncertain) {
+          var got = {};
+          got[(c.recipe.bass) % 12] = true;
+          c.recipe.parts.forEach(function (p) {
+            var offsets = BUTTONS[p.qual];
+            if (!offsets) return;
+            offsets.forEach(function (o) { got[(p.note + o) % 12] = true; });
+          });
+          if (c.recipe.rh != null) got[c.recipe.rh % 12] = true;
+          var want = {};
+          c.semitones.split('\u2013').reduce(function (acc, s) {
+            acc += parseInt(s, 10);
+            want[acc % 12] = true;
+            return acc;
+          }, 0);
+          var gotKeys = Object.keys(got).sort();
+          var wantKeys = Object.keys(want).sort();
+          if (gotKeys.join() !== wantKeys.join()) {
+            var gotNotes = gotKeys.map(function (k) { return M.noteName(+k); });
+            var wantNotes = wantKeys.map(function (k) { return M.noteName(+k); });
+            errors.push(c.id + ': recipe gives [' + gotNotes + '] but expected [' + wantNotes + ']');
+          }
+        }
+      }
+    });
+    if (errors.length) {
+      console.warn('Stradella data issues (' + errors.length + '):');
+      errors.forEach(function (e) { console.warn('  ' + e); });
+    }
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function () { init(); verify(); });
   } else {
     init();
+    verify();
   }
 })();

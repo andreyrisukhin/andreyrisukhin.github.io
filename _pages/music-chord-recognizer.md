@@ -11,6 +11,7 @@ Enter notes to identify the chord. The first note is treated as the bass — reo
 <div class="recognizer-input-row">
   <input type="text" id="recognizer-text-input" class="music-share-text"
          placeholder="e.g. E G C">
+  <button id="recognizer-undo" class="music-share-btn">Undo</button>
   <button id="recognizer-clear" class="music-share-btn">Clear</button>
 </div>
 

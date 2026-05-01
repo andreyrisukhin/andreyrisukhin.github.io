@@ -1,0 +1,22 @@
+# Stradella bass button voicings
+# Each button plays 3 notes defined by semitone offsets from the button root.
+# These are the chord buttons in a standard Stradella column layout,
+# ordered from outermost (nearest bellows) to innermost row.
+
+buttons:
+  - id: M
+    label: Major
+    offsets: [0, 4, 7]
+    tones: "R, 3, 5"
+  - id: m
+    label: Minor
+    offsets: [0, 3, 7]
+    tones: "R, b3, 5"
+  - id: "7"
+    label: Dominant 7th
+    offsets: [0, 4, 10]
+    tones: "R, 3, b7"
+  - id: d7
+    label: Diminished 7th
+    offsets: [0, 3, 9]
+    tones: "R, b3, bb7"
