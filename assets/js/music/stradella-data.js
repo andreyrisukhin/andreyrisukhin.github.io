@@ -28,8 +28,9 @@ window.StradellaData = (function () {
       notes: '' },
     { id: 'sus4', suffix: 'sus4', family: 'Basic Triads',
       intervals: '1–4–5', semitones: '0–5–2',
-      recipe: null,
-      notes: 'No clean Stradella recipe' },
+      recipe: { parts: [{note:7, qual:'7'}], bass: 0 },
+      notes: '57 = 5–1–4; extra 7th',
+      approx: true, approxNote: 'Extra major 7th' },
 
     // Major Family
     { id: 'maj6', suffix: 'maj6', family: 'Major Family',
