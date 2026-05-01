@@ -15,6 +15,19 @@ window.StradellaData = (function () {
   // qual display labels for Stradella buttons
   var QUAL = { M: 'M', m: 'm', '7': '7', d7: 'd7' };
 
+  // Family descriptions
+  var FAMILY_DESC = {
+    'Basic Triads': 'Major and minor — the two fundamental triads.',
+    'Major Family': 'Bright chords built on the major triad with added tones.',
+    'Minor Family': 'Dark chords built on the minor triad with added tones.',
+    'Dominant Family': 'Tension chords with a major 3rd and ♭7th that want to resolve.',
+    'Diminished Family': 'Symmetrical chords built from stacked minor 3rds.',
+    'Augmented Family': 'Chords with a raised 5th — unstable, dreamlike.',
+    'Suspended Family': 'The 3rd is replaced by the 4th or 2nd — neither major nor minor.',
+    'Altered Dominants': 'Dominant 7ths with chromatic alterations to the 5th, 9th, 11th, or 13th.',
+    'Misc': 'Other chord types and special voicings.'
+  };
+
   // ── Chord data (semitone offsets from root) ──
   var CHORDS = [
     // Basic Triads
@@ -334,6 +347,7 @@ window.StradellaData = (function () {
     BUTTONS: BUTTONS,
     QUAL: QUAL,
     CHORDS: CHORDS,
+    FAMILY_DESC: FAMILY_DESC,
     usesD7: usesD7,
     getRecipe: getRecipe,
     renderRecipe: renderRecipe,

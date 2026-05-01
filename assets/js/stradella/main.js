@@ -158,6 +158,10 @@
     families.forEach(function (fam) {
       html += '<div class="stradella-catalog-family">';
       html += '<h4 class="stradella-catalog-family__title">' + M.esc(fam) + '</h4>';
+      var desc = S.FAMILY_DESC[fam];
+      if (desc) {
+        html += '<p class="stradella-catalog-family__desc">' + M.esc(desc) + '</p>';
+      }
       html += '<div class="stradella-catalog-grid">';
       familyMap[fam].forEach(function (c) {
         var sel = isSelectedAtKey(c.id, key);
