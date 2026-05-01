@@ -168,6 +168,80 @@ window.Music = (function () {
     return result;
   }
 
+  // Parse a note name (e.g. "C", "Db", "F#") to semitone index, or -1
+  function parseNote(str) {
+    var tok = str.charAt(0).toUpperCase() + str.slice(1);
+    tok = tok.replace(/b$/, '\u266D').replace(/#$/, '\u266F');
+    var idx = NOTES.indexOf(tok);
+    if (idx === -1 && tok.length === 2) {
+      var natural = NOTES.indexOf(tok.charAt(0));
+      if (natural !== -1) {
+        var acc = tok.charAt(1);
+        if (acc === '\u266F') idx = (natural + 1) % 12;
+        else if (acc === '\u266D') idx = (natural + 11) % 12;
+      }
+    }
+    return idx;
+  }
+
+  // Parse a Stradella recipe string like "Fd7/C" or "CM + Gm/D"
+  // Returns array of semitone values, or null if not a valid recipe
+  function parseRecipeInput(str) {
+    if (!str || !window.StradellaData) return null;
+    str = str.trim();
+    // Must contain "/" for bass note
+    var slashIdx = str.lastIndexOf('/');
+    if (slashIdx === -1) return null;
+
+    var partsStr = str.substring(0, slashIdx).trim();
+    var bassStr = str.substring(slashIdx + 1).trim();
+    var bassSemitone = parseNote(bassStr);
+    if (bassSemitone === -1) return null;
+
+    var BUTTONS = window.StradellaData.BUTTONS;
+    var quals = { 'M': 'M', 'm': 'm', '7': '7', 'd7': 'd7' };
+    var notes = new Set();
+    notes.add(bassSemitone);
+
+    // Split on "+" to get individual button presses
+    var parts = partsStr.split('+');
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i].trim();
+      if (!p) continue;
+      // Parse: NoteName + Qual (e.g. "Fd7", "CM", "Bbm", "G7")
+      // Note name is 1-2 chars (letter + optional accidental), qual is the rest
+      var noteEnd = 1;
+      if (p.length > 1 && (p[1] === 'b' || p[1] === '#') && p[1] !== undefined) {
+        // Check it's an accidental, not a qual like "m"
+        // "b" is accidental only if followed by more chars or nothing... tricky
+        // Heuristic: if char at [1] is b/# and char at [2] exists and is not empty, it could be accidental
+        // Eb7, Bbm, F#d7 — accidental if the remaining after [0:2] is a valid qual
+        var possibleQual = p.substring(2);
+        if (quals[possibleQual] !== undefined || possibleQual === '') {
+          noteEnd = 2;
+        }
+      }
+      var notePart = p.substring(0, noteEnd);
+      var qualPart = p.substring(noteEnd);
+      if (!qualPart) return null; // need a qual
+      if (!quals[qualPart]) return null;
+      var noteSemitone = parseNote(notePart);
+      if (noteSemitone === -1) return null;
+      var offsets = BUTTONS[qualPart];
+      if (!offsets) return null;
+      for (var j = 0; j < offsets.length; j++) {
+        notes.add((noteSemitone + offsets[j]) % 12);
+      }
+    }
+
+    if (notes.size < 2) return null;
+    // Convert Set to sorted array
+    var result = [];
+    notes.forEach(function (n) { result.push(n); });
+    result.sort(function (a, b) { return a - b; });
+    return result;
+  }
+
   return {
     NOTES: NOTES,
     noteName: noteName,
@@ -181,6 +255,8 @@ window.Music = (function () {
     formatInterval: formatInterval,
     chordInfo: chordInfo,
     asciiNoteName: asciiNoteName,
-    parseNoteInput: parseNoteInput
+    parseNoteInput: parseNoteInput,
+    parseNote: parseNote,
+    parseRecipeInput: parseRecipeInput
   };
 })();

@@ -387,11 +387,16 @@
       });
     }
 
-    // Text input
+    // Text input — try recipe format first (e.g. "Fd7/C"), then note names
     var textInput = document.getElementById('recognizer-text-input');
     if (textInput) {
       textInput.addEventListener('input', function () {
-        state.notes = M.parseNoteInput(textInput.value);
+        var recipeNotes = M.parseRecipeInput(textInput.value);
+        if (recipeNotes) {
+          state.notes = recipeNotes;
+        } else {
+          state.notes = M.parseNoteInput(textInput.value);
+        }
         renderNoteButtons();
         renderResult();
         renderStaff();
