@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-Joined [Factory AI](https://factory.ai/) in San Francisco — working on coding agents — after a year at [Perceptron AI](https://www.perceptron.inc/). Reflections [here]({% post_url 2026-05-01-time-at-perceptron-ai %}).
+Joined [Factory AI](https://factory.ai/) in San Francisco, wrote a [reflection]({% post_url 2026-05-01-time-at-perceptron-ai %}).
