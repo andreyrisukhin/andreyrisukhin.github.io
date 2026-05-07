@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-Joined [Factory AI](https://factory.ai/) 🏭 in San Francisco, wrote a [reflection]({% post_url 2026-05-01-time-at-perceptron-ai %}).
+Joined [Factory AI](https://factory.ai/) 🏭 in San Francisco! Wrote a [reflection]({% post_url 2026-05-01-time-at-perceptron-ai %}) on the last year.

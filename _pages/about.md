@@ -36,9 +36,9 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-I work on recursive self-improvement at [Factory AI](https://factory.ai/). 
+I work on recursive self-improvement of coding Droids at [Factory AI](https://factory.ai/) in San Francisco. My research interest is *implicit feedback*: improving systems without relying on reacting to user feedback.
 
-Previously at [Perceptron AI](https://www.perceptron.inc/) on multimodal data with video as a first-class citizen, and [Contextual AI](https://contextual.ai/) on automatic prompt tuning for RAG. I received my combined B.S. and M.S. from the [University of Washington](https://www.washington.edu/). I deferred a CS Ph.D. indefinitely at [UIUC](https://siebelschool.illinois.edu/) under [Tal August](https://talaugust.github.io/) to keep building.
+Previously a Founding Member of Technical Staff at [Perceptron AI](https://www.perceptron.inc/) on multimodal video data, and a research intern at [Contextual AI](https://contextual.ai/) on automatic prompt tuning for RAG. B.S. and M.S. from the [Paul G. Allen School at the University of Washington](https://www.cs.washington.edu/). Deferred a CS Ph.D. indefinitely at [UIUC](https://siebelschool.illinois.edu/) under [Tal August](https://talaugust.github.io/).
 
 <!-- Alternative opening paragraphs (uncomment one to swap):
 
@@ -54,12 +54,18 @@ I recieved my combined B.S. and M.S. from the [University of Washington](https:/
 -->
 
 
-<!-- My research broadly spans **natural language processing** and **machine learning**, motivated by **human-computer interaction**. My current interests primarily include: -->
+<!--
+Removed redundant research-spans paragraph + bullets. The lede above
+covers the same ground in plainer English; the bullets reformulated
+implicit feedback three times. Prior text kept here for reference:
+
+My research broadly spans **natural language processing** and **machine learning**, motivated by **human-computer interaction**.
 
 My research broadly spans user-adaptive systems (**natural language processing** intersecting **human-computer interaction**) accomplished through **reinforcement learning**. My current interests primarily include:
 
 - Implicit goal inference from behavior cues
 - User adaptation of text interfaces
 - Collecting high quality data with implicit annotation
+-->
 
 <!-- Put your address / P.O. box / other info right below your picture. You can also disable any of these elements by editing `profile` property of the YAML header of your `_pages/about.md`. Edit `_bibliography/papers.bib` and Jekyll will render your [publications page](/al-folio/publications/) automatically. -->
