@@ -36,7 +36,7 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-I work on recursive self-improvement of coding Droids at [Factory AI](https://factory.ai/) in San Francisco. My research interest is *implicit feedback*: improving systems without relying on reacting to user feedback.
+I work on recursive self-improvement of coding Droids at [Factory AI](https://factory.ai/) in San Francisco. My research interest is *implicit feedback*: improving systems from how users behave, without asking them for explicit ratings.
 
 Previously a Founding Member of Technical Staff at [Perceptron AI](https://www.perceptron.inc/) on multimodal video data, and a research intern at [Contextual AI](https://contextual.ai/) on automatic prompt tuning for RAG. B.S. and M.S. from the [Paul G. Allen School at the University of Washington](https://www.cs.washington.edu/). Deferred a CS Ph.D. indefinitely at [UIUC](https://siebelschool.illinois.edu/) under [Tal August](https://talaugust.github.io/).
 
