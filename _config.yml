@@ -191,6 +191,8 @@ exclude:
   - _posts/2024-*
   - _posts/2025-*
   - _projects/?_project.md
+  - AGENTS.md
+  - DESIGN.md
   - bin/
   - CONTRIBUTING.md
   - CUSTOMIZE.md
