@@ -36,9 +36,9 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-I work on proactive self-improvement at [Factory AI](https://factory.ai/) in San Francisco. My research interest is implicit feedback - inferring what a user wants from how they behave, not what they say. 
+I work on recursive self-improvement at [Factory AI](https://factory.ai/). 
 
-Previously at [Perceptron AI](https://www.perceptron.inc/) on multimodal data with video as a first-class citizen, and [Contextual AI](https://contextual.ai/) on auto prompt tuning for RAG. I received my combined B.S. and M.S. from the [University of Washington](https://www.washington.edu/). I deferred then suspended (better word?) a CS Ph.D. at [UIUC](https://siebelschool.illinois.edu/) under [Tal August](https://talaugust.github.io/) to keep building.
+Previously at [Perceptron AI](https://www.perceptron.inc/) on multimodal data with video as a first-class citizen, and [Contextual AI](https://contextual.ai/) on automatic prompt tuning for RAG. I received my combined B.S. and M.S. from the [University of Washington](https://www.washington.edu/). I deferred a CS Ph.D. indefinitely at [UIUC](https://siebelschool.illinois.edu/) under [Tal August](https://talaugust.github.io/) to keep building.
 
 <!-- Alternative opening paragraphs (uncomment one to swap):
 
