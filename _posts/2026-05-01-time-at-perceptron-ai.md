@@ -20,7 +20,7 @@ I'm starting a new chapter: This weekend I left Bellevue and Perceptron, and arr
 
 ## Perceptron
 
-After less than 24 hours spanning an initial call, a three-round onsite, and an internship offer, I joined Perceptron AI last spring to work on multimodal data. After a month with the team, I knew I had to stay for a year and see how far we could take multimodal modeling with video data as a first-class citizen.
+After less than 24 hours spanning an initial call, a three-round onsite, and an internship offer, I joined Perceptron AI last spring to work on multimodal data. After a month with the team, I knew I had to defer the PhD and stay for a year and see how far we could take multimodal modeling with video data as a first-class citizen.
 
 Perceptron was the best year of my career so far. I designed production systems for terabyte-scale video data, made friends I’ll keep for life, and got to do it all close to home in Bellevue, WA.
 
@@ -49,9 +49,9 @@ Working with [Naveen](https://www.linkedin.com/in/naveensahi/) and Akshat taught
 
 I’m driving from Bellevue to SF tomorrow morning to join [Factory AI](https://factory.ai/), the model-agnostic coding interface.
 
-Factory makes each lesson sharper. Code is a faster feedback loop than video — copy, train, and evaluate over TB-scale data is expensive in a way a code edit isn’t. And here the loop improves itself: code that improves code, instead of code that improves a video pipeline one step removed.
+Factory makes each lesson sharper. Code is a faster feedback loop than video - copy, train, and evaluate over TB-scale data is expensive in a way a code edit isn’t. And here the loop improves itself: code that improves code, instead of code that improves a video pipeline one step removed.
 
-Every month since January I’ve reached for code over spreadsheets and APIs over documents more than the month before. Frontier model capabilities show up across labs within months; the lasting moat is the interface, not the weights. That’s why I’m excited to jump in. I’m saying “until next time” to the PhD, because I’ll be working on implicit feedback at Factory and that’s been my primary research interest for several years.
+Month over month since January I’ve increasingly reached for code over spreadsheets and APIs over documents. Model capabilities appear across labs within months; the lasting moat is the interface, not the weights. That’s why I’m excited to jump in. I’m saying “until next time” to the PhD, because I’ll be working on implicit feedback at Factory and that’s been my primary research interest for several years.
 
 Perceptron has been amazing. Thanks to everyone there, especially:
 
