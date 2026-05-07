@@ -180,7 +180,16 @@ exclude:
   - _pages/profiles.md
   - _pages/projects.md
   - _pages/repositories.md
-  - _posts/
+  # Al-folio template example posts (kept in _posts/ for reference,
+  # not rendered). Personal posts dated 2026 onward render normally.
+  - _posts/2015-*
+  - _posts/2018-*
+  - _posts/2020-*
+  - _posts/2021-*
+  - _posts/2022-*
+  - _posts/2023-*
+  - _posts/2024-*
+  - _posts/2025-*
   - _projects/?_project.md
   - bin/
   - CONTRIBUTING.md
