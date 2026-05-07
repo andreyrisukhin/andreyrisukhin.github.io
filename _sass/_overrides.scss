@@ -1,0 +1,55 @@
+// _overrides.scss
+// Site-specific overrides applied after upstream al-folio styles.
+// Keep this file the *last* import in assets/css/main.scss so its rules win.
+
+// GitHub-style inline code: subtle background tint, body-color text.
+// Reason: upstream sets `code` and `pre` to var(--global-theme-color), the
+// same color as links. This made code and hyperlinks visually compete.
+// Here we let the background-tint do the differentiation and free the
+// theme color to mean "this is a link".
+
+code {
+  color: var(--global-text-color);
+  background-color: var(--global-code-bg-color);
+}
+
+pre {
+  color: var(--global-text-color);
+  background-color: var(--global-code-bg-color);
+
+  code {
+    color: inherit;
+  }
+}
+
+// Give figures more breathing room. Upstream gives them little vertical
+// margin, which makes images feel jammed against surrounding prose.
+// See DESIGN.md, principle 1: pictures need room to breathe.
+// :not(.highlight):not(.cover) avoids touching code-block figures and the
+// hero/cover figure which have their own layout rules.
+figure:not(.highlight):not(.cover) {
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+// Adjacent figures (no prose between them) should not collapse into each
+// other. Force a real gap between back-to-back images.
+figure:not(.highlight):not(.cover) + figure:not(.highlight):not(.cover) {
+  margin-top: 2.5rem;
+}
+
+// Deliberate figure pairs: wrap two <figure> elements in
+// <div class="figure-pair"> to render them flush, as a single visual unit.
+// The wrapper carries the breathing room; the inner figures collapse against
+// each other.
+.figure-pair {
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+.figure-pair figure:not(.highlight):not(.cover) {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.figure-pair figure:not(.highlight):not(.cover) + figure:not(.highlight):not(.cover) {
+  margin-top: 0.5rem;
+}
