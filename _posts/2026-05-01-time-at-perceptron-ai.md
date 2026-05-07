@@ -1,8 +1,9 @@
 ---
 layout: post
-title: Clocking In to the Factory
+title: A Year at Perceptron
 date: 2026-05-01 12:00:00-0400
-description: A year at Perceptron, then south to Factory.
+description: What I built, what I learned, and the people I'll miss.
+# description (prior): A year at Perceptron, then south to Factory.
 # description: Moving to the San Francisco AI Factory, Inc.
 # description: Leaving Perceptron AI for Factory; lessons from a year of multimodal data.
 # description: From Bellevue to San Francisco, from video data to coding agents.
@@ -14,55 +15,53 @@ related_posts: false
 published: true
 ---
 
-I'm starting a new chapter: This weekend I left Bellevue and Perceptron, and arrived in SF for Factory. 
-
-{% include figure.liquid path="assets/img/posts/2026-perceptron/goldengate.jpg" class="img-fluid rounded z-depth-1" caption="Evening after Day One at Factory." %}
-
-## Perceptron
+This weekend I left Bellevue and Perceptron AI after a year. The move to Factory gets its own post; this one is for Perceptron.
 
 After less than 24 hours spanning an initial call, a three-round onsite, and an internship offer, I joined Perceptron AI last spring to work on multimodal data. After a month with the team, I knew I had to stay for a year and see how far we could take multimodal modeling with video data as a first-class citizen.
 
-Perceptron was the best year of my career so far. I designed production systems for terabyte-scale video data, made friends I’ll keep for life, and got to do it all close to home in Bellevue, WA.
+Perceptron was the best year of my career so far. I designed production systems for terabyte-scale video data, made friends I'll keep, and got to do it all close to home in Bellevue, WA.
 
-{% include figure.liquid path="assets/img/posts/2026-perceptron/navdesk.jpg" class="img-fluid rounded z-depth-1" caption="Halloween: “Are you Steve Jobs or Elizabeth Holmes?”" %}
+{% include figure.liquid path="assets/img/posts/2026-perceptron/navdesk.jpg" class="img-fluid rounded z-depth-1" caption="Halloween at Naveen's desk: \"Are you Steve Jobs or Elizabeth Holmes?\"" %}
 
-## Reflections
+## What the year taught me
+
+Naveen and Akshat taught me three things.
+
+**Prioritize empirical feedback.** Just run it; the bottlenecks show themselves.
+<!-- TODO: anchor with one specific scene where running it beat thinking it through. e.g. the time I spent N hours mapping out a bottleneck on paper, then Naveen ran the actual job and the real bottleneck was somewhere else. -->
+
+**Get faster feedback.** A dataloading bug doesn't need a full training run to debug. Cutting iteration time from hours to seconds is the most leveraged thing you can do.
+<!-- TODO: anchor with one specific bug or one specific tool that compressed the loop. -->
+
+**Overcommunicate.** Faster feedback from humans starts with task visibility — Slack, Linear, logbooks. Pick a format and stick to it.
+<!-- TODO: anchor with one specific moment when overcommunicating saved you (or undercommunicating cost you). -->
+
+## What I built
 
 Our work fell into a simple pipeline: take raw data, format it to our schema, augment it with annotations, and decide whether it belonged in evals or training. Across the year I built up each stage:
 
-1. Hand-written processors on Day 1 became Claude-written, then proactively Claude-initiated. <!-- TODO: confirm “Claude-initiated” captures the actual progression; original said “proactive” -->
+1. Hand-written processors on Day 1 became Claude-written, then proactively Claude-initiated. <!-- TODO: confirm "Claude-initiated" captures the actual progression; original said "proactive" -->
 2. Built a modular pipeline with work distribution, reproducibility, versioning, and heavy/light data sharding.
 3. Added human and synthetic annotation tools, plus producer-consumer systems balancing cheap and expensive compute.
 4. Wrote diagnostic evals for video capabilities (physics tracking).
 5. Automated the loop from experiment results to the next training run.
 
-Along the way, I built other cli tools - a Slack bot for Slurm job status, plus inspection and render tooling for our datasets.
-
-Working with [Naveen](https://www.linkedin.com/in/naveensahi/) and Akshat taught me a few valuable lessons:
-* **Prioritize empirical feedback.** Just run it; the bottlenecks show themselves.
-* **Get faster feedback.** A dataloading bug doesn’t need a full training run to debug, reduces iteration time from hours to seconds.
-* **Overcommunicate.** Getting faster feedback from humans starts with task visibility (Slack/Linear/logbooks).
+Along the way I built other CLI tools — a Slack bot for Slurm job status, plus inspection and render tooling for our datasets.
 
 {% include figure.liquid path="assets/img/posts/2026-perceptron/newofficenight.jpg" class="img-fluid rounded z-depth-1" caption="The new office, after hours." %}
 
-## Factory
+## Thanks
 
-I’m driving from Bellevue to SF tomorrow morning to join [Factory AI](https://factory.ai/), the model-agnostic coding interface.
-
-Factory makes each lesson sharper. Code is a faster feedback loop than video — copy, train, and evaluate over TB-scale data is expensive in a way a code edit isn’t. And here the loop improves itself: code that improves code, instead of code that improves a video pipeline one step removed.
-
-Every month since January I’ve reached for code over spreadsheets and APIs over documents more than the month before. Frontier model capabilities show up across labs within months; the lasting moat is the interface, not the weights. That’s why I’m excited to jump in. I’m saying “until next time” to the PhD, because I’ll be working on implicit feedback at Factory and that’s been my primary research interest for several years.
-
-Perceptron has been amazing. Thanks to everyone there, especially:
+Thanks to everyone at Perceptron, especially:
 
 * Maciej, for teaching me to bench and to love Claude.
 * Jeremy, for inviting me to play music in public again.
 * Akshat, for raising my bar on what a research scientist looks like.
-* Naveen, for being the kind of manager I want to be.
+* [Naveen](https://www.linkedin.com/in/naveensahi/), for being the kind of manager I want to be.
 
 <div class="figure-pair">
 {% include figure.liquid path="assets/img/posts/2026-perceptron/akshatprehug.jpg" class="img-fluid rounded z-depth-1" %}
-{% include figure.liquid path="assets/img/posts/2026-perceptron/akshathug.jpg" class="img-fluid rounded z-depth-1" caption="Saying goodbye." %}
+{% include figure.liquid path="assets/img/posts/2026-perceptron/akshathug.jpg" class="img-fluid rounded z-depth-1" caption="Saying goodbye to Akshat." %}
 </div>
 
 ---
