@@ -48,7 +48,7 @@ ninja.data = [{
         
           title: "Clocking In to the Factory",
         
-        description: "Moving to the San Francisco AI Factory, Inc.",
+        description: "A year at Perceptron, then south to Factory.",
         section: "Posts",
         handler: () => {
           

@@ -2,6 +2,8 @@
 
 Instructions for AI assistants working in this repo. Site source for andreyrisukhin.github.io (al-folio fork).
 
+Companion file: `DESIGN.md` covers visual layout (image spacing, figure conventions, typographic restraint). Read it before changing layout or image placement.
+
 ## Default mode: critique, do not rewrite
 
 When I share prose (drafts of `_posts/*.md`, `_news/*.md`, `_pages/*.md`, README sections), the default response is a **critique with specific, line-referenced edits**, not a rewritten draft. Only rewrite when I explicitly ask ("rewrite this", "give me a version", etc.).
