@@ -7,6 +7,7 @@ permalink: /music/
 References, cheat sheets, and tools for music theory and accordion playing.
 
 ## Tools
+
 {: .music-landing-section}
 
 <div class="music-landing-grid">
@@ -25,9 +26,15 @@ References, cheat sheets, and tools for music theory and accordion playing.
     <span class="music-landing-card__title">Chord Recognizer</span>
     <span class="music-landing-card__desc">Enter notes to identify a chord and see inversions</span>
   </a>
+  <a href="/music/exercises/" class="music-landing-card">
+    <i class="fa-solid fa-dumbbell music-landing-card__icon"></i>
+    <span class="music-landing-card__title">Exercises</span>
+    <span class="music-landing-card__desc">Practice loops with right-hand patterns and theory notes</span>
+  </a>
 </div>
 
 ## References
+
 {: .music-landing-section}
 
 <div class="music-landing-grid">

@@ -1,26 +1,28 @@
 // Stradella Jam Set List — interactive chord recipe tool
 // Uses shared data from stradella-data.js
 (function () {
-  'use strict';
+  "use strict";
 
   var M = window.Music;
   var S = window.StradellaData;
 
   // ── State ──
 
-  var STORAGE_KEY = 'stradella-setlist';
+  var STORAGE_KEY = "stradella-setlist";
   var state = {
     catalogKey: 0,
     selected: [],
     show: { recipe: true, notes: false, intervals: false, semitones: false, inversions: false },
     hasDim7: true,
-    gridView: false
+    gridView: false,
   };
 
   function saveState() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   function loadState() {
@@ -29,28 +31,37 @@
       if (!raw) return;
       var s = JSON.parse(raw);
       // Migrate v1 format: {key: N, selected: ['id', ...]}
-      if (typeof s.key === 'number' && Array.isArray(s.selected) &&
-          s.selected.length > 0 && typeof s.selected[0] === 'string') {
+      if (typeof s.key === "number" && Array.isArray(s.selected) && s.selected.length > 0 && typeof s.selected[0] === "string") {
         state.catalogKey = s.key;
         var ids = {};
-        S.CHORDS.forEach(function (c) { ids[c.id] = true; });
+        S.CHORDS.forEach(function (c) {
+          ids[c.id] = true;
+        });
         state.selected = s.selected
-          .filter(function (id) { return ids[id]; })
-          .map(function (id) { return { id: id, key: s.key }; });
+          .filter(function (id) {
+            return ids[id];
+          })
+          .map(function (id) {
+            return { id: id, key: s.key };
+          });
         saveState();
         return;
       }
       // v2 format: {catalogKey: N, selected: [{id, key}, ...]}
-      if (typeof s.catalogKey === 'number') state.catalogKey = s.catalogKey;
-      if (typeof s.hasDim7 === 'boolean') state.hasDim7 = s.hasDim7;
+      if (typeof s.catalogKey === "number") state.catalogKey = s.catalogKey;
+      if (typeof s.hasDim7 === "boolean") state.hasDim7 = s.hasDim7;
       if (Array.isArray(s.selected)) {
         var valid = {};
-        S.CHORDS.forEach(function (c) { valid[c.id] = true; });
+        S.CHORDS.forEach(function (c) {
+          valid[c.id] = true;
+        });
         state.selected = s.selected.filter(function (e) {
-          return e && valid[e.id] && typeof e.key === 'number';
+          return e && valid[e.id] && typeof e.key === "number";
         });
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   function isSelectedAtKey(id, key) {
@@ -77,7 +88,9 @@
 
   function importString(str) {
     var validIds = {};
-    S.CHORDS.forEach(function (c) { validIds[c.id] = true; });
+    S.CHORDS.forEach(function (c) {
+      validIds[c.id] = true;
+    });
     var result = M.decodeEntries(str, validIds);
     if (!result) return false;
     state.catalogKey = result.prefix;
@@ -93,7 +106,7 @@
   }
 
   function renderSetList() {
-    var el = document.getElementById('stradella-setlist');
+    var el = document.getElementById("stradella-setlist");
     if (!el) return;
 
     if (state.selected.length === 0) {
@@ -101,45 +114,45 @@
       return;
     }
 
-    var html = '';
+    var html = "";
     state.selected.forEach(function (entry, i) {
       var c = S.chordById(entry.id);
       if (!c) return;
       var key = entry.key;
       var disabled = !state.hasDim7 && S.usesD7(c) && !c.fallback;
-      html += '<div class="stradella-card' + (disabled ? ' is-disabled' : '') + '">';
+      html += '<div class="stradella-card' + (disabled ? " is-disabled" : "") + '">';
       html += '<button class="stradella-card__remove" data-action="remove" data-idx="' + i + '" aria-label="Remove">&#10005;</button>';
-      html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key)) + '</div>';
+      html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key)) + "</div>";
       if (state.show.recipe) {
-        html += '<div class="stradella-card__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7)) + '</div>';
+        html += '<div class="stradella-card__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7)) + "</div>";
       }
       var info = M.chordInfo(key, c.suffix);
       if (info && state.show.notes) {
-        html += '<div class="stradella-detail stradella-notes">' + M.esc(info.notes.join(' ')) + '</div>';
+        html += '<div class="stradella-detail stradella-notes">' + M.esc(info.notes.join(" ")) + "</div>";
       }
       if (state.show.intervals && c.intervals) {
-        html += '<div class="stradella-detail stradella-intervals">' + M.esc(c.intervals) + '</div>';
+        html += '<div class="stradella-detail stradella-intervals">' + M.esc(c.intervals) + "</div>";
       }
       if (state.show.semitones && c.semitones) {
-        html += '<div class="stradella-detail stradella-semitones">' + M.esc(c.semitones) + '</div>';
+        html += '<div class="stradella-detail stradella-semitones">' + M.esc(c.semitones) + "</div>";
       }
       if (state.show.inversions) {
         var invs = S.computeInversions(c, key);
         if (invs.length > 0) {
           html += '<div class="stradella-inversions">';
           for (var k = 0; k < invs.length; k++) {
-            html += '<span class="stradella-inv-item">' + M.esc(invs[k].label) + '</span>';
+            html += '<span class="stradella-inv-item">' + M.esc(invs[k].label) + "</span>";
           }
-          html += '</div>';
+          html += "</div>";
         }
       }
-      html += '</div>';
+      html += "</div>";
     });
     el.innerHTML = html;
   }
 
   function renderCatalog() {
-    var el = document.getElementById('stradella-catalog');
+    var el = document.getElementById("stradella-catalog");
     if (!el) return;
 
     var families = [];
@@ -153,19 +166,19 @@
     });
 
     var key = state.catalogKey;
-    var html = '';
+    var html = "";
     families.forEach(function (fam) {
       html += '<div class="stradella-catalog-family">';
-      html += '<h4 class="stradella-catalog-family__title">' + M.esc(fam) + '</h4>';
+      html += '<h4 class="stradella-catalog-family__title">' + M.esc(fam) + "</h4>";
       var desc = S.FAMILY_DESC[fam];
       if (desc) {
-        html += '<p class="stradella-catalog-family__desc">' + M.esc(desc) + '</p>';
+        html += '<p class="stradella-catalog-family__desc">' + M.esc(desc) + "</p>";
       }
       html += '<div class="stradella-catalog-grid">';
       familyMap[fam].forEach(function (c) {
         html += renderChordButton(c, key);
       });
-      html += '</div></div>';
+      html += "</div></div>";
     });
     el.innerHTML = html;
   }
@@ -175,57 +188,56 @@
     var sel = isSelectedAtKey(c.id, key);
     var d7disabled = !state.hasDim7 && S.usesD7(c);
     var noFallback = d7disabled && !c.fallback;
-    var cls = 'stradella-catalog-item';
-    if (sel) cls += ' is-selected';
+    var cls = "stradella-catalog-item";
+    if (sel) cls += " is-selected";
     if (noFallback) {
-      cls += ' is-disabled';
+      cls += " is-disabled";
     } else if (d7disabled && c.fallbackApprox) {
-      cls += ' is-approx';
+      cls += " is-approx";
     } else if (d7disabled && c.fallbackUncertain) {
-      cls += ' is-uncertain';
+      cls += " is-uncertain";
     } else if (c.bug) {
-      cls += ' is-bug';
+      cls += " is-bug";
     } else if (c.approx) {
-      cls += ' is-approx';
+      cls += " is-approx";
     } else if (c.uncertain) {
-      cls += ' is-uncertain';
+      cls += " is-uncertain";
     }
     var html = '<button class="' + cls + '" data-id="' + c.id + '">';
-    html += '<span class="stradella-catalog-item__name">' + M.esc(c.suffix || 'maj') + '</span>';
+    html += '<span class="stradella-catalog-item__name">' + M.esc(c.suffix || "maj") + "</span>";
     if (state.show.recipe) {
-      html += '<span class="stradella-catalog-item__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7)) + '</span>';
+      html += '<span class="stradella-catalog-item__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7)) + "</span>";
     }
     var info = M.chordInfo(key, c.suffix);
     if (info && state.show.notes) {
-      html += '<span class="stradella-detail stradella-notes">' + M.esc(info.notes.join(' ')) + '</span>';
+      html += '<span class="stradella-detail stradella-notes">' + M.esc(info.notes.join(" ")) + "</span>";
     }
     if (state.show.intervals && c.intervals) {
-      html += '<span class="stradella-detail stradella-intervals">' + M.esc(c.intervals) + '</span>';
+      html += '<span class="stradella-detail stradella-intervals">' + M.esc(c.intervals) + "</span>";
     }
     if (state.show.semitones && c.semitones) {
-      html += '<span class="stradella-detail stradella-semitones">' + M.esc(c.semitones) + '</span>';
+      html += '<span class="stradella-detail stradella-semitones">' + M.esc(c.semitones) + "</span>";
     }
     if (state.show.inversions) {
       var invs = S.computeInversions(c, key);
       if (invs.length > 0) {
         html += '<span class="stradella-inversions">';
         for (var k = 0; k < invs.length; k++) {
-          html += '<span class="stradella-inv-item">' + M.esc(invs[k].label) + '</span>';
+          html += '<span class="stradella-inv-item">' + M.esc(invs[k].label) + "</span>";
         }
-        html += '</span>';
+        html += "</span>";
       }
     }
-    var warnNote = (d7disabled && c.fallbackNote) ? c.fallbackNote
-      : (c.bugNote || c.approxNote || c.uncertainNote);
+    var warnNote = d7disabled && c.fallbackNote ? c.fallbackNote : c.bugNote || c.approxNote || c.uncertainNote;
     if (warnNote) {
-      html += '<span class="stradella-catalog-item__warn">' + M.esc(warnNote) + '</span>';
+      html += '<span class="stradella-catalog-item__warn">' + M.esc(warnNote) + "</span>";
     }
-    html += '</button>';
+    html += "</button>";
     return html;
   }
 
   function renderCatalogGrid() {
-    var el = document.getElementById('stradella-catalog');
+    var el = document.getElementById("stradella-catalog");
     if (!el) return;
 
     var key = state.catalogKey;
@@ -234,7 +246,9 @@
     var grid = {};
     S.GRID_ROWS.forEach(function (r) {
       grid[r] = {};
-      S.GRID_COLS.forEach(function (c) { grid[r][c] = []; });
+      S.GRID_COLS.forEach(function (c) {
+        grid[r][c] = [];
+      });
     });
     S.CHORDS.forEach(function (c) {
       if (c.quality && c.extension && grid[c.extension] && grid[c.extension][c.quality]) {
@@ -244,19 +258,21 @@
 
     var html = '<table class="stradella-grid-table"><thead><tr><th></th>';
     S.GRID_COLS.forEach(function (col) {
-      html += '<th>' + M.esc(col) + '</th>';
+      html += "<th>" + M.esc(col) + "</th>";
     });
-    html += '</tr></thead><tbody>';
+    html += "</tr></thead><tbody>";
 
     S.GRID_ROWS.forEach(function (row) {
       // Skip empty rows
-      var hasContent = S.GRID_COLS.some(function (col) { return grid[row][col].length > 0; });
+      var hasContent = S.GRID_COLS.some(function (col) {
+        return grid[row][col].length > 0;
+      });
       if (!hasContent) return;
 
-      html += '<tr><th>' + M.esc(row) + '</th>';
+      html += "<tr><th>" + M.esc(row) + "</th>";
       S.GRID_COLS.forEach(function (col) {
         var chords = grid[row][col];
-        html += '<td>';
+        html += "<td>";
         if (chords.length === 0) {
           html += '<span class="stradella-grid-empty">\u2014</span>';
         } else {
@@ -264,31 +280,31 @@
           chords.forEach(function (c) {
             html += renderChordButton(c, key);
           });
-          html += '</div>';
+          html += "</div>";
         }
-        html += '</td>';
+        html += "</td>";
       });
-      html += '</tr>';
+      html += "</tr>";
     });
 
-    html += '</tbody></table>';
+    html += "</tbody></table>";
     el.innerHTML = html;
   }
 
   function renderKeyBar() {
-    var bar = document.getElementById('stradella-key-bar');
+    var bar = document.getElementById("stradella-key-bar");
     if (!bar) return;
-    var html = '';
+    var html = "";
     M.NOTES.forEach(function (n, i) {
-      var cls = 'music-key-btn';
-      if (i === state.catalogKey) cls += ' is-active';
-      html += '<button class="' + cls + '" data-key="' + i + '">' + M.esc(n) + '</button>';
+      var cls = "music-key-btn";
+      if (i === state.catalogKey) cls += " is-active";
+      html += '<button class="' + cls + '" data-key="' + i + '">' + M.esc(n) + "</button>";
     });
     bar.innerHTML = html;
   }
 
   function renderShareBox() {
-    var el = document.getElementById('stradella-share-text');
+    var el = document.getElementById("stradella-share-text");
     if (!el) return;
     el.value = exportString();
   }
@@ -306,15 +322,39 @@
 
   // ── Events ──
 
+  function loadFromHash() {
+    var hash = window.location.hash || "";
+    var match = hash.match(/^#load=(.+)$/);
+    if (!match) return false;
+    var decoded;
+    try {
+      decoded = decodeURIComponent(match[1]);
+    } catch (e) {
+      return false;
+    }
+    // Combined exercise share strings append ";rh=..." for the RH pattern;
+    // strip it before decoding the Stradella chord list.
+    var rhIdx = decoded.indexOf(";rh=");
+    if (rhIdx !== -1) decoded = decoded.substring(0, rhIdx);
+    if (!importString(decoded)) return false;
+    try {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    } catch (e) {
+      /* ignore */
+    }
+    return true;
+  }
+
   function init() {
     loadState();
+    loadFromHash();
     renderAll();
 
     // dim7 toggle checkbox
-    var dim7Check = document.getElementById('stradella-dim7-check');
+    var dim7Check = document.getElementById("stradella-dim7-check");
     if (dim7Check) {
       dim7Check.checked = state.hasDim7;
-      dim7Check.addEventListener('change', function () {
+      dim7Check.addEventListener("change", function () {
         state.hasDim7 = dim7Check.checked;
         saveState();
         renderAll();
@@ -322,98 +362,107 @@
     }
 
     // Grid/Family view toggle
-    var viewToggle = document.getElementById('stradella-view-toggle');
+    var viewToggle = document.getElementById("stradella-view-toggle");
     if (viewToggle) {
-      viewToggle.addEventListener('click', function () {
+      viewToggle.addEventListener("click", function () {
         state.gridView = !state.gridView;
-        viewToggle.textContent = state.gridView ? 'Family view' : 'Grid view';
+        viewToggle.textContent = state.gridView ? "Family view" : "Grid view";
         renderAll();
       });
     }
 
     // Key bar — delegated click on note buttons
-    var keyBar = document.getElementById('stradella-key-bar');
+    var keyBar = document.getElementById("stradella-key-bar");
     if (keyBar) {
-      keyBar.addEventListener('click', function (e) {
-        var btn = e.target.closest('.music-key-btn');
+      keyBar.addEventListener("click", function (e) {
+        var btn = e.target.closest(".music-key-btn");
         if (!btn) return;
-        state.catalogKey = parseInt(btn.getAttribute('data-key'), 10);
+        state.catalogKey = parseInt(btn.getAttribute("data-key"), 10);
         saveState();
         renderAll();
       });
     }
 
     // Toggle buttons (multi-select)
-    var toggleGroup = document.getElementById('stradella-toggle-group');
+    var toggleGroup = document.getElementById("stradella-toggle-group");
     if (toggleGroup) {
-      toggleGroup.addEventListener('click', function (e) {
-        var btn = e.target.closest('.music-toggle-btn');
+      toggleGroup.addEventListener("click", function (e) {
+        var btn = e.target.closest(".music-toggle-btn");
         if (!btn) return;
         var layer = btn.dataset.layer;
         if (!state.show.hasOwnProperty(layer)) return;
         state.show[layer] = !state.show[layer];
-        btn.classList.toggle('is-active', state.show[layer]);
+        btn.classList.toggle("is-active", state.show[layer]);
         renderAll();
       });
     }
 
     // Set list remove (delegated)
-    var setListEl = document.getElementById('stradella-setlist');
+    var setListEl = document.getElementById("stradella-setlist");
     if (setListEl) {
-      setListEl.addEventListener('click', function (e) {
+      setListEl.addEventListener("click", function (e) {
         var btn = e.target.closest('[data-action="remove"]');
         if (!btn) return;
-        removeEntry(parseInt(btn.getAttribute('data-idx'), 10));
+        removeEntry(parseInt(btn.getAttribute("data-idx"), 10));
         renderAll();
       });
     }
 
     // Catalog click — add chord at current catalog key
-    var catalogEl = document.getElementById('stradella-catalog');
+    var catalogEl = document.getElementById("stradella-catalog");
     if (catalogEl) {
-      catalogEl.addEventListener('click', function (e) {
-        var item = e.target.closest('.stradella-catalog-item');
-        if (!item || item.classList.contains('is-disabled')) return;
-        var id = item.getAttribute('data-id');
+      catalogEl.addEventListener("click", function (e) {
+        var item = e.target.closest(".stradella-catalog-item");
+        if (!item || item.classList.contains("is-disabled")) return;
+        var id = item.getAttribute("data-id");
         addEntry(id, state.catalogKey);
         renderAll();
       });
     }
 
     // Share: copy button
-    var copyBtn = document.getElementById('stradella-share-copy');
+    var copyBtn = document.getElementById("stradella-share-copy");
     if (copyBtn) {
-      copyBtn.addEventListener('click', function () {
-        var el = document.getElementById('stradella-share-text');
+      copyBtn.addEventListener("click", function () {
+        var el = document.getElementById("stradella-share-text");
         if (!el) return;
         el.select();
         navigator.clipboard.writeText(el.value).then(function () {
-          copyBtn.textContent = 'Copied!';
-          setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1500);
+          copyBtn.textContent = "Copied!";
+          setTimeout(function () {
+            copyBtn.textContent = "Copy";
+          }, 1500);
         });
       });
     }
 
     // Share: load button
-    var loadBtn = document.getElementById('stradella-share-load');
+    var loadBtn = document.getElementById("stradella-share-load");
     if (loadBtn) {
-      loadBtn.addEventListener('click', function () {
-        var el = document.getElementById('stradella-share-text');
+      loadBtn.addEventListener("click", function () {
+        var el = document.getElementById("stradella-share-text");
         if (!el) return;
         if (importString(el.value)) {
           renderAll();
-          loadBtn.textContent = 'Loaded!';
-          setTimeout(function () { loadBtn.textContent = 'Load'; }, 1500);
+          loadBtn.textContent = "Loaded!";
+          setTimeout(function () {
+            loadBtn.textContent = "Load";
+          }, 1500);
         } else {
-          loadBtn.textContent = 'Invalid';
-          setTimeout(function () { loadBtn.textContent = 'Load'; }, 1500);
+          loadBtn.textContent = "Invalid";
+          setTimeout(function () {
+            loadBtn.textContent = "Load";
+          }, 1500);
         }
       });
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { init(); S.verify(); });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      init();
+      S.verify();
+    });
   } else {
     init();
     S.verify();

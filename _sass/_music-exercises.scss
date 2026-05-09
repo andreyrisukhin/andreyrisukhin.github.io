@@ -1,0 +1,540 @@
+/* ===== Music exercises ===== */
+
+.exercises-root {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.exercises-card {
+  border: 1px solid var(--global-divider-color);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  background: var(--global-card-bg-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.exercises-card__header {
+  margin-bottom: 0.75rem;
+}
+
+.exercises-card__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--global-text-color);
+}
+
+.exercises-attribution {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  font-style: italic;
+}
+
+.exercises-key-bar {
+  position: static;
+  margin-bottom: 1rem;
+}
+
+/* ── Progression row ── */
+
+.exercises-progression {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.exercises-chord {
+  border: 1px solid var(--global-divider-color);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  background: var(--global-bg-color);
+}
+
+.exercises-chord__roman {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--global-theme-color);
+  opacity: 0.85;
+}
+
+.exercises-chord__name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--global-text-color);
+}
+
+.exercises-chord__recipe {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.75rem;
+  color: var(--global-text-color);
+  opacity: 0.75;
+  margin-top: 0.15rem;
+}
+
+.exercises-chord__rh {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--global-text-color);
+  opacity: 0.55;
+  margin-top: 0.2rem;
+  padding-top: 0.2rem;
+  border-top: 1px dashed var(--global-divider-color);
+}
+
+/* ── Right-hand pill row ── */
+
+.exercises-rh-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.exercises-rh-pills__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--global-text-color);
+  opacity: 0.85;
+}
+
+.exercises-rh-pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: var(--global-theme-color);
+  color: #fff;
+}
+
+.exercises-rh-desc {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  color: var(--global-text-color);
+}
+
+/* ── Actions ── */
+
+.exercises-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.exercises-share-code {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+  overflow-x: auto;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* ── Theory ── */
+
+.exercises-theory {
+  border-top: 1px solid var(--global-divider-color);
+  padding-top: 0.6rem;
+  margin-top: 0.25rem;
+
+  summary {
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--global-text-color);
+    opacity: 0.9;
+
+    &:hover {
+      color: var(--global-theme-color);
+    }
+  }
+}
+
+.exercises-theory__body {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+
+  h4 {
+    margin: 1.25rem 0 0.4rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  ul {
+    margin-left: 1.25rem;
+  }
+
+  code {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 0.85em;
+    padding: 0.05em 0.3em;
+    background: var(--global-bg-color);
+    border-radius: 3px;
+  }
+}
+
+/* ── Circle of fifths visual ── */
+
+.exercises-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.5rem 0 1.2rem;
+}
+
+.exercises-circle__legend {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  max-width: 36rem;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.exercises-circle__wrap {
+  width: min(100%, 22rem);
+  color: var(--global-theme-color);
+}
+
+.exercises-circle-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.exercises-circle__node-bg {
+  fill: var(--global-bg-color);
+  stroke: var(--global-divider-color);
+  stroke-width: 1;
+  transition:
+    fill 0.15s,
+    stroke 0.15s;
+}
+
+.exercises-circle__note-label {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--global-text-color);
+  opacity: 0.55;
+  transition:
+    fill 0.15s,
+    opacity 0.15s;
+}
+
+.exercises-circle__node.is-active {
+  .exercises-circle__node-bg {
+    fill: color-mix(in srgb, var(--global-theme-color) 20%, var(--global-bg-color));
+    stroke: var(--global-theme-color);
+    stroke-width: 1.5;
+  }
+  .exercises-circle__note-label {
+    fill: var(--global-text-color);
+    opacity: 1;
+  }
+}
+
+.exercises-circle__node.is-current {
+  .exercises-circle__node-bg {
+    fill: var(--global-theme-color);
+    stroke: var(--global-theme-color);
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--global-theme-color) 70%, transparent));
+  }
+  .exercises-circle__note-label {
+    fill: #fff;
+    opacity: 1;
+  }
+}
+
+.exercises-circle__arrow {
+  stroke: var(--global-theme-color);
+  stroke-width: 1.6;
+  fill: none;
+  opacity: 0.55;
+  transition:
+    opacity 0.15s,
+    stroke-width 0.15s;
+
+  &.is-wide {
+    stroke-dasharray: 4 3;
+    opacity: 0.4;
+  }
+
+  &.is-current {
+    opacity: 1;
+    stroke-width: 2.6;
+  }
+}
+
+/* Shaded 180° arc marking the diatonic half of the current key */
+.exercises-circle__diatonic-arc {
+  fill: none;
+  stroke: color-mix(in srgb, var(--global-theme-color) 12%, transparent);
+  stroke-width: 38;
+  stroke-linecap: butt;
+  pointer-events: none;
+}
+
+/* Tritone (IV ↔ VII) diameter — visible only behind the F→B arrow */
+.exercises-circle__tritone {
+  stroke: var(--global-divider-color);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Origin marker — slowly rotating dashed ring around prog[0]'s node */
+.exercises-circle__origin-ring {
+  fill: none;
+  stroke: var(--global-theme-color);
+  stroke-width: 1.4;
+  stroke-dasharray: 5 4;
+  opacity: 0.55;
+  animation: exercises-origin-spin 8s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes exercises-origin-spin {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -60;
+  }
+}
+
+/* Traveling playhead — glides from node to node during playback */
+.exercises-circle__playhead {
+  fill: var(--global-theme-color);
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--global-theme-color) 80%, transparent));
+  transition:
+    cx 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    cy 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease;
+}
+
+.exercises-circle__playhead.is-visible {
+  opacity: 1;
+  animation: exercises-playhead-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes exercises-playhead-pulse {
+  0%,
+  100% {
+    r: 7;
+  }
+  50% {
+    r: 9;
+  }
+}
+
+/* ── Sheet-music editor (one bar, two staff lines) ── */
+
+.exercises-sheet {
+  margin-bottom: 1rem;
+}
+
+.exercises-sheet__legend {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-bottom: 0.4rem;
+}
+
+.exercises-sheet__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  min-width: 0;
+}
+
+.exercises-sheet__label {
+  width: 2rem;
+  flex: 0 0 2rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: right;
+  color: var(--global-text-color);
+}
+
+.exercises-sheet__label--head {
+  visibility: hidden;
+}
+
+.exercises-sheet__staff {
+  position: relative;
+  flex: 1 1 auto;
+  height: 2.2rem;
+  min-width: 0;
+  padding: 0 0.25rem;
+}
+
+.exercises-sheet__staff--head {
+  height: 1.1rem;
+}
+
+.exercises-sheet__line {
+  position: absolute;
+  left: 0.25rem;
+  right: 0.25rem;
+  top: 50%;
+  height: 1px;
+  background: var(--global-divider-color);
+}
+
+.exercises-sheet__beatsep {
+  position: absolute;
+  top: 0.1rem;
+  bottom: 0.1rem;
+  width: 1px;
+  background: var(--global-divider-color);
+  opacity: 0.7;
+  left: calc(var(--slot) / var(--slots) * (100% - 0.5rem) + 0.25rem);
+}
+
+.exercises-slot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc((100% - 0.5rem) / var(--slots));
+  max-width: 1.6rem;
+  min-width: 0.85rem;
+  height: 1.6rem;
+  left: calc((var(--slot) + 0.5) / var(--slots) * (100% - 0.5rem) + 0.25rem);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--global-text-color);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition:
+    background 0.1s,
+    color 0.1s,
+    transform 0.05s;
+
+  &:hover {
+    background: color-mix(in srgb, var(--global-theme-color) 15%, transparent);
+  }
+
+  &.is-on {
+    color: var(--global-theme-color);
+    font-size: 1.15rem;
+  }
+
+  &.is-beatstart:not(.is-on) {
+    color: var(--global-text-color);
+    opacity: 0.45;
+    font-size: 0.95rem;
+  }
+
+  &.is-current {
+    background: color-mix(in srgb, var(--global-theme-color) 25%, var(--global-bg-color));
+  }
+}
+
+.exercises-sheet__beatlabel {
+  position: absolute;
+  top: 0.1rem;
+  transform: translateX(-50%);
+  left: calc((var(--slot) + 0.5) / var(--slots, 16) * (100% - 0.5rem) + 0.25rem);
+  font-size: 0.65rem;
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: var(--global-text-color);
+  opacity: 0.45;
+
+  &.is-beat {
+    opacity: 0.85;
+    font-weight: 700;
+    color: var(--global-theme-color);
+  }
+}
+
+/* Highlight the active chord card during playback */
+.exercises-chord.is-current {
+  border-color: var(--global-theme-color);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--global-theme-color) 40%, transparent);
+}
+
+/* ── Transport ── */
+
+.exercises-transport {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.exercises-play.is-playing {
+  background: var(--global-theme-color);
+  color: #fff;
+  border-color: var(--global-theme-color);
+}
+
+.exercises-play.is-loading {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.exercises-bpm-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--global-text-color);
+}
+
+.exercises-bpm-slider {
+  width: 7rem;
+}
+
+.exercises-bpm-number {
+  width: 3.5rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  font-size: 0.85rem;
+}
+
+.exercises-rh-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 1rem;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--global-divider-color);
+    text-align: left;
+  }
+
+  th {
+    background: var(--global-bg-color);
+    font-weight: 600;
+  }
+}
