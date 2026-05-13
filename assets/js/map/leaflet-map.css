@@ -1,0 +1,185 @@
+/* Trail map: container + pin popovers + dev edit panel.
+ *
+ * Mobile-first; the map container is full-width up to a sensible
+ * desktop max so a phone tap area maps directly to a real-world
+ * coordinate without horizontal scrolling.
+ */
+
+.trail-map {
+  width: 100%;
+  max-width: 960px;
+  height: 70vh;
+  min-height: 360px;
+  margin: 0 auto;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #f3f3f3;
+}
+
+.trail-map.is-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.trail-status {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0.4rem auto 0;
+  max-width: 960px;
+}
+
+/* Pin popover -- compact card, large enough tap target on mobile. */
+.trail-pin-popover {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  max-width: 240px;
+  min-width: 160px;
+}
+.trail-pin-popover__kind {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: #4f4f4f;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-bottom: 0.35rem;
+}
+.trail-pin-popover__kind.is-parking { background: #1f6feb; }
+.trail-pin-popover__kind.is-viewpoint { background: #2da44e; }
+.trail-pin-popover__kind.is-decision { background: #d29922; }
+.trail-pin-popover__kind.is-warning { background: #cf222e; }
+.trail-pin-popover__kind.is-end { background: #6e40c9; }
+.trail-pin-popover__note {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Segment polyline popover (same skin as pin). */
+.trail-segment-popover { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.92rem; max-width: 240px; }
+.trail-segment-popover__kind {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: #57606a;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-bottom: 0.35rem;
+}
+
+/* ── Dev editor panel ───────────────────────────────────────────────
+ * Only mounted when leaflet-editor.js loads (?dev=1). Compact
+ * floating panel pinned to the top-right of the map, with mode
+ * toggle, save status, and dirty indicator.
+ */
+.trail-editor {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 500;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  padding: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 170px;
+  max-width: 220px;
+}
+.trail-editor__row { display: flex; gap: 4px; flex-wrap: wrap; }
+.trail-editor__btn {
+  background: #f6f8fa;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font: inherit;
+  cursor: pointer;
+  flex: 1 1 auto;
+}
+.trail-editor__btn:hover { background: #eef0f3; }
+.trail-editor__btn.is-active {
+  background: #1f6feb;
+  color: #fff;
+  border-color: #1f6feb;
+}
+.trail-editor__btn.is-save {
+  background: #2da44e;
+  color: #fff;
+  border-color: #2da44e;
+}
+.trail-editor__btn.is-save:hover { background: #25893f; }
+.trail-editor__btn.is-save.is-dirty {
+  background: #d29922;
+  border-color: #d29922;
+}
+.trail-editor__status {
+  font-size: 0.7rem;
+  color: #57606a;
+  text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 4px;
+}
+
+/* Pin / segment edit form inside Leaflet popup */
+.trail-edit-form {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+.trail-edit-form select,
+.trail-edit-form textarea {
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+  background: #fff;
+}
+.trail-edit-form textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+.trail-edit-form__actions { display: flex; gap: 6px; justify-content: flex-end; }
+.trail-edit-form__actions button {
+  font: inherit;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.trail-edit-form__btn-save { background: #2da44e; color: #fff; border: 1px solid #2da44e; }
+.trail-edit-form__btn-delete { background: #cf222e; color: #fff; border: 1px solid #cf222e; }
+
+/* Wrap the map div so the editor panel can position-absolute over it. */
+.trail-map-wrap { position: relative; }
+
+/* Dark theme: the OSM tiles themselves stay light, but the chrome
+ * around them adapts so it doesn't glare on a dark page. */
+html[data-theme="dark"] .trail-map {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+html[data-theme="dark"] .trail-status { color: #aaa; }
+html[data-theme="dark"] .trail-editor {
+  background: rgba(40, 42, 54, 0.96);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f5f5f7;
+}
+html[data-theme="dark"] .trail-editor__btn {
+  background: #2a2d36;
+  color: #f5f5f7;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+html[data-theme="dark"] .trail-editor__btn:hover { background: #353844; }
+html[data-theme="dark"] .trail-editor__status { color: #b0b3bb; border-color: rgba(255, 255, 255, 0.08); }
