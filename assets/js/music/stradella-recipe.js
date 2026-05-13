@@ -13,20 +13,18 @@ window.StradellaRecipe = (function () {
   function render(chordName) {
     var M = window.Music;
     var S = window.StradellaData;
-    if (!M || !S || !chordName) return '';
+    var CN = window.ChordName;
+    if (!M || !S || !CN || !chordName) return '';
 
-    // Slash chords: drop bass for lookup, e.g. "Dm7/F" -> "Dm7"
-    var name = chordName.split('/')[0];
-    var rootMatch = name.match(/^([A-G][#b]?)(.*)/);
-    if (!rootMatch) return '';
-    var rootName = rootMatch[1];
-    var suffix = rootMatch[2];
-    // Tonal returns "CM" / "GM" / "EbM" for plain major triads; the
-    // Stradella data records the basic Major Triad as suffix "" so
-    // a literal "M" lookup returns nothing. Normalize first so the
-    // overlay paints the same Cm-style "C / C" recipe for majors as
-    // for minors.
-    if (suffix === 'M') suffix = '';
+    // Single source of truth: parse + Tonal->Stradella suffix
+    // normalization (M -> "" for major triads, etc.) lives in
+    // assets/js/music/chord-name.js. Add new aliases there, never
+    // here, so every consumer (overlay, inspector, recognizer)
+    // benefits from the fix.
+    var parsed = CN.parseForStradella(chordName);
+    if (!parsed) return '';
+    var rootName = parsed.root;
+    var suffix = parsed.suffix;
 
     var rootSemitone = -1;
     for (var i = 0; i < M.NOTES.length; i++) {
@@ -37,11 +35,23 @@ window.StradellaRecipe = (function () {
     var entries = S.findBySuffix(suffix);
     if (!entries.length) return '';
 
+    // If the chord name carries an explicit /bass that disagrees
+    // with the chord's root (i.e., score voiced this in inversion),
+    // honor it in the recipe so the player presses the bass that's
+    // actually written.
+    var bassOverride = null;
+    if (parsed.bass) {
+      var bassSemi = CN.pcToSemi(parsed.bass);
+      if (bassSemi != null && bassSemi !== rootSemitone) {
+        bassOverride = bassSemi;
+      }
+    }
+
     var html = '<div class="stradella-recipe">';
     html += '<strong>Stradella:</strong>';
     for (var j = 0; j < entries.length; j++) {
       var c = entries[j];
-      var recipe = S.renderRecipe(c, rootSemitone, true);
+      var recipe = S.renderRecipe(c, rootSemitone, true, bassOverride);
       var cls = 'stradella-recipe__item';
       if (c.bug) cls += ' is-bug';
       else if (c.approx) cls += ' is-approx';

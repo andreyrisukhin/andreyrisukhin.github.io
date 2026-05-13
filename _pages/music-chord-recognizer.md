@@ -30,5 +30,6 @@ Enter notes to identify the chord. The first note is treated as the bass — reo
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/chord-recognizer/main.js' | relative_url }}"></script>

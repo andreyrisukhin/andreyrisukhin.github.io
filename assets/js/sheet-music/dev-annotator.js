@@ -112,7 +112,8 @@
     }
     for (const text of svg.querySelectorAll('.vf-text text')) {
       const content = (text.textContent || '').trim();
-      if (!/^[A-G][#b]?(maj|min|m|M|dim|aug|sus|add)?\d*(\/[A-G][#b]?)?$/.test(content)) continue;
+      // Shape check shared via window.ChordName (single source of truth).
+      if (!window.ChordName || !window.ChordName.looksValid(content)) continue;
       const r = text.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0) continue;
       document.body.appendChild(makeMark('chord-symbol', padRect(rectToPage(r), 2)));
@@ -371,7 +372,7 @@
     if (!text.closest('.vf-text')) return null;
     const content = (text.textContent || '').trim();
     if (!content) return null;
-    if (/^[A-G][#b]?(maj|min|m|M|dim|aug|sus|add)?\d*(\/[A-G][#b]?)?$/.test(content)) {
+    if (window.ChordName && window.ChordName.looksValid(content)) {
       return content;
     }
     return null;

@@ -60,13 +60,12 @@
     return v ? v.textContent : null;
   }
 
-  // Sanity filter for chord names we'll surface as recipes. Tonal
-  // returns labels like "CM" / "Cm" / "G7" / "Eb7" / "Gm/D" — make
-  // sure capital "M" (its short form for major) is accepted, not
-  // just lowercase "m" / "maj" / etc., which is the bug that made
-  // every plain major triad in the score (GM, EbM, ...) skip its
-  // overlay even though the click inspector resolved them fine.
-  const ACCEPT_RE = /^[A-G][#b\u266F\u266D]?(?:M|m|maj|min|dim|aug|sus|add|m6|m7|maj7|7|9|11|13|\u00b0|\u00f8|d7)?(?:\/[A-G][#b\u266F\u266D]?)?$/;
+  // Single source of truth: window.ChordName.looksValid (in
+  // assets/js/music/chord-name.js). The overlay used to carry its
+  // own ACCEPT_RE that disagreed with the page's hideStaticChordText
+  // regex on edge cases like capital M (Tonal's short form for
+  // major); five different copies of nearly-the-same regex hid the
+  // GM-not-overlaid bug. Add new chord shapes there, never here.
 
   function redraw() {
     clearOverlays();
@@ -107,7 +106,7 @@
       const cy = r.top + r.height / 2 + window.scrollY;
       const hit = bridge.resolveNoteAt(cx, cy, 80, sn);
       if (!hit || !hit.chordName) continue;
-      if (!ACCEPT_RE.test(hit.chordName)) continue;
+      if (!window.ChordName || !window.ChordName.looksValid(hit.chordName)) continue;
       if (!hit.pitches || hit.pitches.length < 2) continue;
 
       const staffKey = hit.staffIndex ?? '?';

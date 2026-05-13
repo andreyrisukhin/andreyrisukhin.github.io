@@ -701,6 +701,62 @@ async function main() {
       { count: sp.offAgainCount });
   }
 
+  section('Scenario O — chord name reflects actual bass when voiced in inversion');
+  // Resolves every stack of >=3 noteheads in the score and looks for
+  // at least one whose lowest MIDI pitch class differs from the
+  // chord's root. Asserts that the bridge surfaces this as
+  // "Chord/Bass" notation, and that the rendered Stradella recipe
+  // string carries that bass note rather than the root. Catches the
+  // class of bug where pitch-class detection threw away inversion
+  // information (m2 in Cogwork Dancers showed "GM / G" instead of
+  // "GM / B" for a B-D-G voicing).
+  const inversionProbe = evalJs(`
+    (async () => {
+      const svg = document.querySelector('#osmd-container svg');
+      const stavenotes = [...svg.querySelectorAll('.vf-stavenote')];
+      const findings = [];
+      for (const sn of stavenotes) {
+        const heads = sn.querySelectorAll('.vf-notehead');
+        if (heads.length < 3) continue;
+        const head = heads[0];
+        const r = head.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0) continue;
+        const px = r.left + r.width/2 + window.scrollX;
+        const py = r.top + r.height/2 + window.scrollY;
+        const hit = window.__sheetMusic.resolveNoteAt(px, py, 80, head);
+        if (!hit || !hit.chordName) continue;
+        if (hit.chordName.indexOf('/') < 0) continue;
+        const recipe = window.StradellaRecipe ? window.StradellaRecipe.render(hit.chordName) : '';
+        findings.push({
+          id: sn.id,
+          chordName: hit.chordName,
+          pitches: hit.pitches,
+          recipeIncludesBass: (function(){
+            const bass = hit.chordName.split('/')[1];
+            if (!bass) return false;
+            const tmp = document.createElement('div');
+            tmp.innerHTML = recipe;
+            const txt = tmp.textContent || '';
+            return txt.indexOf(' / ' + bass) >= 0 || txt.indexOf(' / ' + bass.replace('b','\u266D').replace('#','\u266F')) >= 0;
+          })(),
+        });
+        if (findings.length >= 3) break;
+      }
+      return JSON.stringify({ findings });
+    })();
+  `);
+  const inv = JSON.parse(inversionProbe);
+  assert(inv.findings.length > 0,
+    'score contains at least one chord stack voiced in inversion (lowest pitch != root)',
+    inv);
+  if (inv.findings.length > 0) {
+    assert(inv.findings.every((f) => /^[A-G][#b\u266F\u266D]?[^/]*\/[A-G][#b\u266F\u266D]?$/.test(f.chordName)),
+      'every inverted chord name has shape "Chord/Bass"', inv.findings);
+    assert(inv.findings.every((f) => f.recipeIncludesBass),
+      'rendered Stradella recipe shows the actual bass, not the chord root',
+      inv.findings);
+  }
+
   section('Scenario L — dev mode is opt-in and toggle persists');
   const devModeProbe = evalJs(`
     (() => {

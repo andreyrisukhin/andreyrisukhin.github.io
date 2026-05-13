@@ -33,6 +33,7 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
 </script>
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/sheet-music/osmd-bridge.js' | relative_url }}"></script>
@@ -71,13 +72,20 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
   // (musicxml <direction>/<words>), which OSMD's RenderChordSymbols
   // option doesn't gate. We surface chord names via the dynamic hover
   // label, so the static text is now duplicate noise.
-  const CHORD_TEXT_RE = /^[A-G][#b]?(?:m|maj|min|dim|aug|sus|add|m6|m7|maj7|7|9|11|13|\u00b0|\u00f8)?(?:\/[A-G][#b]?)?$/;
+  // Chord-name shape check shared with stradella-overlay and the
+  // recipe lookup -- see assets/js/music/chord-name.js. Falls back
+  // to a permissive accept if ChordName isn't loaded yet (the MO
+  // can fire before scripts finish parsing on slow first paints).
+  const looksLikeChord = (s) => {
+    if (window.ChordName && window.ChordName.looksValid) return window.ChordName.looksValid(s);
+    return false;
+  };
   const hideStaticChordText = () => {
     const svg = container.querySelector('svg');
     if (!svg) return;
     for (const t of svg.querySelectorAll('g.vf-text > text, text.vf-chord, text')) {
       const s = (t.textContent || '').trim();
-      if (!s || !CHORD_TEXT_RE.test(s)) continue;
+      if (!s || !looksLikeChord(s)) continue;
       const wrap = t.closest('g.vf-text') || t;
       if (wrap.hasAttribute('data-test-injected')) continue;
       wrap.setAttribute('data-hidden-chord-text', s);

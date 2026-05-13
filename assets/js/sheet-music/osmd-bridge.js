@@ -275,17 +275,50 @@
     0: 'C', 2: 'D', 4: 'E', 5: 'F', 7: 'G', 9: 'A', 11: 'B',
   };
 
+  function pitchToMidi(pitch) {
+    const m = String(pitch).match(/^([A-Ga-g])([#b]{0,2})(-?\d+)$/);
+    if (!m) return 0;
+    const letter = m[1].toUpperCase();
+    const acc = m[2];
+    const octave = parseInt(m[3], 10);
+    let semi = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[letter];
+    if (acc === '#') semi += 1;
+    else if (acc === 'b') semi -= 1;
+    else if (acc === '##') semi += 2;
+    else if (acc === 'bb') semi -= 2;
+    return (octave + 1) * 12 + semi;
+  }
+
   function detectChordName(pitches) {
     if (!window.Tonal || !window.Tonal.Chord || typeof window.Tonal.Chord.detect !== 'function') return null;
-    const pcs = pitches.map((p) => String(p).replace(/-?\d+$/, ''));
-    try {
-      const detected = window.Tonal.Chord.detect(pcs) || [];
-      if (!detected.length) return null;
-      // Tonal returns e.g. ["Cm", "EbM/C", ...]; pick the shortest as primary.
-      return detected.slice().sort((a, b) => a.length - b.length)[0];
-    } catch (_) {
-      return null;
-    }
+    // Sort by actual MIDI value so the FIRST entry is the lowest
+    // sounding pitch -- this is what we'll use as the bass when it
+    // doesn't agree with the chord's root (i.e., the chord is in
+    // inversion). Using octave-stripped pitch classes alone, as the
+    // previous version did, throws away the bass information so
+    // first-inversion voicings like B-D-G silently came out as
+    // root-position "GM" instead of "GM/B".
+    const sorted = pitches.slice().sort((a, b) => pitchToMidi(a) - pitchToMidi(b));
+    const pcs = sorted.map((p) => String(p).replace(/-?\d+$/, ''));
+    let detected;
+    try { detected = window.Tonal.Chord.detect(pcs) || []; } catch (_) { detected = []; }
+    if (!detected.length) return null;
+    // Tonal sometimes appends its own /bass guess. Strip it; we have
+    // the actual lowest pitch from the score and will append the
+    // correct slash ourselves.
+    const sansSlash = detected.map((d) => d.split('/')[0]);
+    const primary = sansSlash.slice().sort((a, b) => a.length - b.length)[0];
+    if (!window.Tonal.Chord.get) return primary;
+    let chord;
+    try { chord = window.Tonal.Chord.get(primary); } catch (_) { chord = null; }
+    if (!chord || !chord.tonic) return primary;
+    const lowestPC = pcs[0];
+    if (!window.ChordName) return primary;
+    if (window.ChordName.samePitchClass(lowestPC, chord.tonic)) return primary;
+    // The bass is genuinely a different pitch class than the root --
+    // surface the inversion so the Stradella recipe shows the bass
+    // the player actually has to press in this voicing.
+    return primary + '/' + lowestPC;
   }
 
   function pitchName(gn) {

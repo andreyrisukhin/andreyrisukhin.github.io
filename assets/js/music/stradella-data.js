@@ -275,13 +275,18 @@ window.StradellaData = (function () {
     return c.recipe;
   }
 
-  function renderRecipe(c, key, hasDim7) {
+  // bassOverride (optional): an absolute semitone (0-11) to display
+  // as the bass, ignoring the data-recommended r.bass offset. Use
+  // when the score voices the chord in inversion and the player
+  // needs to honor a bass that isn't the root.
+  function renderRecipe(c, key, hasDim7, bassOverride) {
     var r = getRecipe(c, hasDim7);
     if (!r) return '\u2014';
     var parts = r.parts.map(function (p) {
       return M.noteName(key + p.note) + QUAL[p.qual];
     });
-    var bass = M.noteName(key + r.bass);
+    var bassSemi = (bassOverride != null) ? bassOverride : (key + r.bass);
+    var bass = M.noteName(((bassSemi % 12) + 12) % 12);
     var str = parts.join(' + ') + ' / ' + bass;
     if (r.rh != null) {
       str += ' + ' + M.noteName(key + r.rh) + ' (RH)';
