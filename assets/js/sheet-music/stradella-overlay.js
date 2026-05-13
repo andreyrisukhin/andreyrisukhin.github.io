@@ -106,12 +106,13 @@
       const cy = r.top + r.height / 2 + window.scrollY;
       const hit = bridge.resolveNoteAt(cx, cy, 80, sn);
       if (!hit || !hit.chordName) continue;
-      // Prefer the measure-aware harmony reading (e.g. "GM/B" for an
-      // oom-pah pattern) over the literal stack chord ("GM"); the
-      // overlay is the player-facing recipe, so it should reflect
-      // the bass that's actually pressed in this measure. Fall back
-      // to the stack reading when no contextual bass was promoted.
-      const display = hit.harmony || hit.chordName;
+      // In-score overlay shows the LITERAL stack reading (what the
+      // noteheads spell). The richer measure-aware harmony reading
+      // ("GM/B" for an oom-pah where B was the previous bass press)
+      // lives only inside the click-inspector under "Sounds as", so
+      // the overlay stays compact and matches what a reader sees in
+      // the staves.
+      const display = hit.chordName;
       if (!window.ChordName || !window.ChordName.looksValid(display)) continue;
       if (!hit.pitches || hit.pitches.length < 2) continue;
 
@@ -127,6 +128,8 @@
       const overlay = document.createElement('div');
       overlay.className = 'stradella-overlay';
       overlay.setAttribute(OVERLAY_ATTR, '');
+      if (hit.measureNumber != null) overlay.dataset.measure = hit.measureNumber;
+      if (hit.staffIndex != null) overlay.dataset.staff = hit.staffIndex;
       overlay.textContent = recipe;
       overlay.title = display + ': ' + recipe;
       // Position below the stavenote's bounding box, anchored within

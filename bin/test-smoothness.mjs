@@ -820,6 +820,56 @@ async function main() {
     'measure 2 harmony reading is "GM/B" (promotes the earlier B2 to the bass)',
     m2);
 
+  section('Scenario P — overlay paints stack reading; recipe drops "/root" for root-position');
+  // Two coupled rules for the in-score overlay:
+  //   1. The overlay text uses the literal stack chord (hit.chordName),
+  //      NOT the measure-aware harmony reading -- so m2 reads "GM",
+  //      not "GM / B". The harmony reading lives only in the
+  //      click-inspector "Sounds as" section.
+  //   2. StradellaRecipe.render drops the redundant "/ root" suffix
+  //      when the bass equals the chord root, so root-position
+  //      voicings paint as "Cm" / "GM" instead of "Cm / C" / "GM / G".
+  const overlayProbe = evalJs(`
+    (async () => {
+      window.StradellaOverlay.setEnabled(false);
+      await new Promise(r => setTimeout(r, 80));
+      window.StradellaOverlay.setEnabled(true);
+      await new Promise(r => setTimeout(r, 250));
+      const overlays = [...document.querySelectorAll('[data-stradella-overlay]')];
+      const labels = overlays.map((o) => (o.textContent || '').trim()).filter(Boolean);
+      // Overlays carry data-measure / data-staff so we can filter
+      // reliably (m2 by x-coordinate is fragile across wrapped rows).
+      const m2Labels = overlays
+        .filter((o) => o.dataset.measure === '2')
+        .map((o) => (o.textContent || '').trim());
+      const sampleRoots = ['Cm', 'GM', 'Fm', 'EbM'];
+      const rootlessSamples = sampleRoots.map((name) => {
+        const html = window.StradellaRecipe.render(name);
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return { name, text: (tmp.textContent || '').trim() };
+      });
+      window.StradellaOverlay.setEnabled(false);
+      await new Promise(r => setTimeout(r, 80));
+      return JSON.stringify({ labels, m2Labels, rootlessSamples });
+    })();
+  `);
+  const ov = JSON.parse(overlayProbe);
+  assert(ov.m2Labels.length > 0, 'measure 2 has at least one overlay label', ov);
+  assert(ov.m2Labels.every((l) => l === 'GM'),
+    'measure 2 overlay paints plain "GM" (stack reading, no /B from harmony)',
+    ov.m2Labels);
+  assert(ov.labels.includes('Cm'),
+    'overlay paints plain "Cm" somewhere (no redundant /C)', ov.labels);
+  assert(!ov.labels.some((l) => /^Cm\s*\/\s*C\b/.test(l)),
+    'overlay does not paint "Cm / C" anywhere (root bass is implicit)',
+    ov.labels.filter((l) => /^Cm/.test(l)));
+  for (const s of ov.rootlessSamples) {
+    assert(!/\s\/\s/.test(s.text),
+      'StradellaRecipe.render("' + s.name + '") drops the / root suffix',
+      s);
+  }
+
   section('Scenario L — dev mode is opt-in and toggle persists');
   const devModeProbe = evalJs(`
     (() => {

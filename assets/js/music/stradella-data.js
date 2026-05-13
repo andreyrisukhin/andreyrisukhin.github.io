@@ -286,8 +286,16 @@ window.StradellaData = (function () {
       return M.noteName(key + p.note) + QUAL[p.qual];
     });
     var bassSemi = (bassOverride != null) ? bassOverride : (key + r.bass);
-    var bass = M.noteName(((bassSemi % 12) + 12) % 12);
-    var str = parts.join(' + ') + ' / ' + bass;
+    var bassPC = ((bassSemi % 12) + 12) % 12;
+    var rootPC = ((key % 12) + 12) % 12;
+    var str = parts.join(' + ');
+    // Drop the redundant "/ root" suffix for root-position
+    // voicings -- the chord name itself implies the root bass.
+    // Only surface the slash when the bass is something other than
+    // the chord root (genuine inversion or a non-default voicing).
+    if (bassPC !== rootPC) {
+      str += ' / ' + M.noteName(bassPC);
+    }
     if (r.rh != null) {
       str += ' + ' + M.noteName(key + r.rh) + ' (RH)';
     }
