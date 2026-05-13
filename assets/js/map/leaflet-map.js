@@ -74,6 +74,11 @@ window.TrailMap = (function () {
     // Layer groups so the editor can clear/redraw without touching tiles.
     const pinLayer = L.layerGroup().addTo(map);
     const segmentLayer = L.layerGroup().addTo(map);
+    // Always-on speech-bubble labels for each pin + the thin leader
+    // line back to the pin. Separate layers so render() can wipe and
+    // redraw them in isolation.
+    const labelLayer = L.layerGroup().addTo(map);
+    const leaderLayer = L.layerGroup().addTo(map);
 
     // Local mutable state. The editor mutates this and calls render()
     // to repaint; reader-mode never mutates after the initial render.
@@ -86,47 +91,69 @@ window.TrailMap = (function () {
       segments: Array.isArray(initialData.segments) ? initialData.segments.slice() : [],
     };
 
-    // Detected once: on hover-capable pointers (desktop / trackpad)
-    // tooltips open on hover and self-close on mouseout. On touch
-    // devices we toggle on tap.
-    const isHoverDevice = typeof window.matchMedia === 'function' &&
-      window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    // Editor flips this to true so its inline edit popups don't
-    // fight with the reader's hover tooltips.
-    const hoverCfg = { suppress: false };
+    // Editor sets this to a function (pin) => mark dirty. Reader
+    // leaves it null, so viewer drags don't try to persist.
+    const onLabelDrag = { fn: null };
 
-    function bindReaderTooltip(layer, html) {
-      layer.bindTooltip(html, {
-        direction: 'top',
-        offset: [0, -8],
-        opacity: 1,
-        className: 'trail-tip',
-        interactive: false,
-      });
-      // Touch devices don't open hover tooltips automatically; let
-      // the user tap to peek and tap-elsewhere to dismiss.
-      if (!isHoverDevice) {
-        layer.on('click', function (e) {
-          if (hoverCfg.suppress) return;
-          const tt = layer.getTooltip && layer.getTooltip();
-          if (tt && tt.isOpen && tt.isOpen()) layer.closeTooltip();
-          else layer.openTooltip();
-          L.DomEvent.stopPropagation(e);
-        });
-      }
+    // Drop the label this many pixels above-and-right of the pin
+    // when the data has no saved labelLatLng yet. Geographic so it's
+    // zoom-stable once it lands.
+    function defaultLabelLatLng(pinLatLng) {
+      const px = map.latLngToContainerPoint(pinLatLng);
+      return map.containerPointToLatLng([px.x + 28, px.y - 36]);
     }
 
-    // Editor mode opt-out: when the editor mounts, it sets
-    // hoverCfg.suppress and we hide every open tooltip + skip future
-    // hovers. The editor calls layer.unbindTooltip() on each layer
-    // before attaching its popup forms.
-    map.on('mousedown', function () {
-      if (!hoverCfg.suppress) return;
-      // Defensive: close any stale tooltip if the suppress flag flipped
-      // while one was visible.
-      pinLayer.eachLayer(function (l) { l.closeTooltip && l.closeTooltip(); });
-      segmentLayer.eachLayer(function (l) { l.closeTooltip && l.closeTooltip(); });
-    });
+    function pinLabel(pin) {
+      // First render with no labelLatLng -> compute a default, stash
+      // it on the pin object in memory so subsequent renders (e.g.
+      // editor re-render after a drag elsewhere) don't re-place at
+      // a different zoom.
+      if (!pin.labelLatLng) {
+        const ll = defaultLabelLatLng([pin.lat, pin.lng]);
+        pin.labelLatLng = { lat: ll.lat, lng: ll.lng };
+      }
+      const labelLL = L.latLng(pin.labelLatLng.lat, pin.labelLatLng.lng);
+
+      const kind = pin.kind || 'waypoint';
+      const note = pin.note || '';
+      const html = '<div class="trail-label is-' + escapeAttr(kind) + '" title="drag to move">' +
+        '<span class="trail-label__kind is-' + escapeAttr(kind) + '">' + escapeHtml(kind) + '</span>' +
+        (note ? '<span class="trail-label__note">' + escapeHtml(note) + '</span>' : '') +
+        '</div>';
+
+      // iconSize [0,0] + the !important auto-size CSS below lets the
+      // wrapper hug the actual content. Otherwise Leaflet hands us a
+      // fixed box whose transparent area would either swallow map
+      // clicks or leave the drag handle larger than the visible label.
+      const icon = L.divIcon({
+        className: 'trail-label-wrap',
+        html,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      });
+      const m = L.marker(labelLL, { icon, draggable: true, autoPan: false });
+      m._trailPinLabel = pin;
+
+      const leader = L.polyline([labelLL, [pin.lat, pin.lng]], {
+        color: 'rgba(13, 17, 23, 0.55)',
+        weight: 1.5,
+        dashArray: '3 4',
+        interactive: false,
+      });
+      leader.addTo(leaderLayer);
+
+      m.on('drag', function () {
+        const ll = m.getLatLng();
+        leader.setLatLngs([ll, [pin.lat, pin.lng]]);
+      });
+      m.on('dragend', function () {
+        const ll = m.getLatLng();
+        pin.labelLatLng = { lat: ll.lat, lng: ll.lng };
+        if (typeof onLabelDrag.fn === 'function') onLabelDrag.fn(pin);
+      });
+
+      return m;
+    }
 
     function pinMarker(pin) {
       const color = PIN_COLORS[pin.kind] || PIN_COLORS.waypoint;
@@ -140,16 +167,8 @@ window.TrailMap = (function () {
         iconAnchor: [7, 7],
       });
       const m = L.marker([pin.lat, pin.lng], { icon, draggable: false });
-      bindReaderTooltip(m, pinTipHtml(pin));
       m._trailPin = pin;
       return m;
-    }
-
-    function pinTipHtml(pin) {
-      const kind = (pin.kind || 'waypoint');
-      const note = pin.note || '';
-      return '<span class="trail-tip__kind is-' + escapeAttr(kind) + '">' + escapeHtml(kind) + '</span>' +
-        (note ? '<span class="trail-tip__note">' + escapeHtml(note) + '</span>' : '');
     }
 
     function segmentLine(seg) {
@@ -163,25 +182,21 @@ window.TrailMap = (function () {
         dashArray: seg.kind === 'scramble' ? '6 6' : null,
       });
       // Reader never tooltips segments. The line's colour already
-      // conveys the kind, and any prose belongs on the pins. Editor
-      // still wires its own edit popup via leaflet-editor.js.
+      // conveys the kind. Editor wires its own edit popup via
+      // leaflet-editor.js.
       line._trailSegment = seg;
       return line;
-    }
-
-    function segmentTipHtml(seg) {
-      const kind = seg.kind || 'walk';
-      const note = seg.note || '';
-      return '<span class="trail-tip__kind is-segment">' + escapeHtml(kind) + '</span>' +
-        (note ? '<span class="trail-tip__note">' + escapeHtml(note) + '</span>' : '');
     }
 
     function render() {
       pinLayer.clearLayers();
       segmentLayer.clearLayers();
+      labelLayer.clearLayers();
+      leaderLayer.clearLayers();
       for (const pin of state.pins) {
         if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') continue;
         pinMarker(pin).addTo(pinLayer);
+        pinLabel(pin).addTo(labelLayer);
       }
       for (const seg of state.segments) {
         const line = segmentLine(seg);
@@ -202,9 +217,11 @@ window.TrailMap = (function () {
       render,
       pinLayer,
       segmentLayer,
+      labelLayer,
+      leaderLayer,
+      onLabelDrag,
       PIN_COLORS,
       SEGMENT_COLORS,
-      hoverCfg,
     };
   }
 

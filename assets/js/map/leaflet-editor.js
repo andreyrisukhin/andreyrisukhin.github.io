@@ -49,10 +49,12 @@
     if (!controller) return;
     const map = controller.map;
     const state = controller.state;
-    // While the editor is mounted, suppress the reader's hover-to-open
-    // behaviour -- the edit forms are too noisy to pop up on every
-    // cursor pass.
-    if (controller.hoverCfg) controller.hoverCfg.suppress = true;
+    // Persist label drags. Reader installs the marker + drag wiring;
+    // we just supply a callback that marks the editor dirty so Save
+    // writes the new labelLatLng to disk.
+    if (controller.onLabelDrag) {
+      controller.onLabelDrag.fn = function () { setDirty(true); };
+    }
 
     let mode = 'none';
     let dirty = false;
@@ -293,9 +295,6 @@
             layer.closePopup && layer.closePopup();
           }
         });
-        // Strip the reader's hover-tooltip so it doesn't shadow the
-        // editor's click-to-edit popup.
-        layer.unbindTooltip && layer.unbindTooltip();
         layer.unbindPopup();
         layer.bindPopup(buildPinForm(pin));
       });
@@ -305,7 +304,6 @@
         // Same: clicking a segment in pin/segment mode shouldn't also
         // drop a pin or extend the active segment.
         layer.on('click', (ev) => { L.DomEvent.stopPropagation(ev); });
-        layer.unbindTooltip && layer.unbindTooltip();
         layer.unbindPopup();
         layer.bindPopup(buildSegmentForm(seg));
       });
