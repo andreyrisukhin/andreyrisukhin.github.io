@@ -46,6 +46,49 @@
 }
 .leaflet-popup-tip { background: #ffffff !important; }
 
+/* Fade in on open, fade out when JS adds .is-closing right before
+ * Leaflet removes the popup from the DOM. We animate opacity on the
+ * outer .leaflet-popup (Leaflet uses translate3d there for position,
+ * so transform is off-limits) and add a tiny lift via transform on
+ * the inner wrapper, which Leaflet leaves untouched. */
+.leaflet-popup {
+  animation: trail-popup-fade-in 0.18s ease-out;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  animation: trail-popup-lift-in 0.18s ease-out;
+}
+.leaflet-popup.is-closing {
+  animation: trail-popup-fade-out 0.18s ease-in forwards;
+  pointer-events: none;
+}
+.leaflet-popup.is-closing .leaflet-popup-content-wrapper,
+.leaflet-popup.is-closing .leaflet-popup-tip {
+  animation: trail-popup-lift-out 0.18s ease-in forwards;
+}
+@keyframes trail-popup-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes trail-popup-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes trail-popup-lift-in {
+  from { transform: translate3d(0, 4px, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+@keyframes trail-popup-lift-out {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, 4px, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-popup,
+  .leaflet-popup.is-closing,
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-tip { animation: none; }
+}
+
 /* Pin popover -- compact card, large enough tap target on mobile. */
 .trail-pin-popover,
 .trail-segment-popover {

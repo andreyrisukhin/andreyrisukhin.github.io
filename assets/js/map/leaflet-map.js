@@ -95,13 +95,56 @@ window.TrailMap = (function () {
     // re-opening when the cursor brushes a pin.
     const hoverCfg = { suppress: false };
 
+    // Hover-popup close timing. Short enough that the popup feels
+    // responsive when the cursor leaves; long enough that the user
+    // has time to move from the pin into the popup itself to read
+    // long notes or copy text.
+    const HOVER_CLOSE_MS = 220;
+    const FADE_OUT_MS = 180;
+    let hoverCloseTimer = null;
+    function clearHoverClose() {
+      if (hoverCloseTimer) { clearTimeout(hoverCloseTimer); hoverCloseTimer = null; }
+    }
+    function scheduleHoverClose(popup) {
+      clearHoverClose();
+      hoverCloseTimer = setTimeout(function () {
+        hoverCloseTimer = null;
+        const el = popup.getElement && popup.getElement();
+        if (el) {
+          el.classList.add('is-closing');
+          setTimeout(function () { map.closePopup(popup); }, FADE_OUT_MS);
+        } else {
+          map.closePopup(popup);
+        }
+      }, HOVER_CLOSE_MS);
+    }
+
     function attachHoverOpen(layer) {
       if (!isHoverDevice) return;
       layer.on('mouseover', function () {
         if (hoverCfg.suppress) return;
+        clearHoverClose();
         if (!layer.isPopupOpen || !layer.isPopupOpen()) layer.openPopup();
       });
+      layer.on('mouseout', function () {
+        if (hoverCfg.suppress) return;
+        const popup = layer.getPopup && layer.getPopup();
+        if (popup && popup.isOpen && popup.isOpen()) scheduleHoverClose(popup);
+      });
     }
+
+    // Once a popup opens, watch the popup DOM itself: cursor moving
+    // into it cancels the close timer, leaving it restarts the timer.
+    // Also strip any stale "is-closing" class so a re-opened popup
+    // isn't visibly fading.
+    map.on('popupopen', function (e) {
+      const el = e.popup.getElement && e.popup.getElement();
+      if (!el) return;
+      el.classList.remove('is-closing');
+      if (!isHoverDevice || hoverCfg.suppress) return;
+      el.addEventListener('mouseenter', clearHoverClose);
+      el.addEventListener('mouseleave', function () { scheduleHoverClose(e.popup); });
+    });
 
     function pinMarker(pin) {
       const color = PIN_COLORS[pin.kind] || PIN_COLORS.waypoint;
