@@ -49,6 +49,7 @@
   let lastHoverEvent = null;
   let hoverTimer = null;
   let hoverStavenote = null;
+  let hoverNotehead = null;
 
   // ── DOM ────────────────────────────────────────────────────────────
   const tag = buildTag();
@@ -70,13 +71,26 @@
     if (e.shiftKey) return; // dev preview owns shift+hover
     if (!(e.target instanceof Element)) return;
     const sn = e.target.closest('.vf-stavenote');
+    const nh = e.target.closest('.vf-notehead');
+
     if (sn === hoverStavenote) {
-      // Same stavenote: just keep latest position for the pending fire.
+      // Same stavenote: keep latest position for the pending fire,
+      // and if the cursor crossed into a different notehead within
+      // the same chord stack, refresh the visible tag immediately so
+      // the displayed pitch follows the cursor (chord name stays the
+      // same; clicked-pitch flips between e.g. Eb3 / G3 / Bb3 / Db4).
       if (sn) lastHoverEvent = e;
+      if (nh !== hoverNotehead) {
+        hoverNotehead = nh;
+        if (nh && tag.isVisible() && !isSticky && !isInspectorOpen) {
+          fireHoverTag();
+        }
+      }
       return;
     }
     // Stavenote changed (or cursor left the score).
     hoverStavenote = sn;
+    hoverNotehead = nh;
     clearTimeout(hoverTimer);
     if (!isSticky) tag.hide();
     if (!sn) return;

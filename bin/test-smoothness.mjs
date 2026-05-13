@@ -598,6 +598,50 @@ async function main() {
       hov.afterLeave);
   }
 
+  section('Scenario M — hover tag updates as cursor moves between noteheads');
+  const moveProbe = evalJs(`
+    (async () => {
+      const svg = document.querySelector('#osmd-container svg');
+      const chord = [...svg.querySelectorAll('.vf-stavenote')]
+        .find(sn => sn.querySelectorAll('.vf-notehead').length >= 3);
+      if (!chord) return JSON.stringify({skip: true, reason: 'no chord stack'});
+      chord.scrollIntoView({block: 'center'});
+      await new Promise(r => setTimeout(r, 200));
+      const heads = [...chord.querySelectorAll('.vf-notehead')];
+      const tag = document.querySelector('.chord-tag');
+      tag.classList.remove('is-visible', 'is-sticky');
+      const samples = [];
+      for (const h of heads) {
+        const r = h.getBoundingClientRect();
+        h.dispatchEvent(new MouseEvent('mousemove', {
+          bubbles: true, cancelable: true, view: window,
+          clientX: r.left + r.width / 2, clientY: r.top + r.height / 2,
+        }));
+        await new Promise(r => setTimeout(r, 320));
+        samples.push({
+          pitch: tag.querySelector('.chord-tag__pitch')?.textContent || null,
+          chord: tag.querySelector('.chord-tag__chord')?.textContent || null,
+          visible: tag.classList.contains('is-visible'),
+        });
+      }
+      return JSON.stringify({samples});
+    })();
+  `);
+  const mv = JSON.parse(moveProbe);
+  if (mv.skip) {
+    console.log('  (skipped: ' + mv.reason + ')');
+  } else {
+    const visibleAll = mv.samples.every(s => s.visible);
+    const pitches = mv.samples.map(s => s.pitch).filter(Boolean);
+    const distinctPitches = new Set(pitches);
+    assert(visibleAll === true,
+      'tag stays visible while sweeping noteheads in the same stack',
+      mv.samples);
+    assert(distinctPitches.size === pitches.length && distinctPitches.size >= 2,
+      'tag pitch updates with each notehead under the cursor',
+      mv.samples);
+  }
+
   section('Scenario L — dev mode is opt-in and toggle persists');
   const devModeProbe = evalJs(`
     (() => {
