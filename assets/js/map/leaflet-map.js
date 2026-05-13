@@ -86,64 +86,46 @@ window.TrailMap = (function () {
       segments: Array.isArray(initialData.segments) ? initialData.segments.slice() : [],
     };
 
-    // Detected once: on hover-capable pointers (desktop / trackpad),
-    // popups should open on hover too. On touch devices, Leaflet's
-    // default tap-to-open behaviour is what we want.
+    // Detected once: on hover-capable pointers (desktop / trackpad)
+    // tooltips open on hover and self-close on mouseout. On touch
+    // devices we toggle on tap.
     const isHoverDevice = typeof window.matchMedia === 'function' &&
       window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    // Editor flips this to true so its inline edit forms don't keep
-    // re-opening when the cursor brushes a pin.
+    // Editor flips this to true so its inline edit popups don't
+    // fight with the reader's hover tooltips.
     const hoverCfg = { suppress: false };
 
-    // Hover-popup close timing. Short enough that the popup feels
-    // responsive when the cursor leaves; long enough that the user
-    // has time to move from the pin into the popup itself to read
-    // long notes or copy text.
-    const HOVER_CLOSE_MS = 220;
-    const FADE_OUT_MS = 180;
-    let hoverCloseTimer = null;
-    function clearHoverClose() {
-      if (hoverCloseTimer) { clearTimeout(hoverCloseTimer); hoverCloseTimer = null; }
-    }
-    function scheduleHoverClose(popup) {
-      clearHoverClose();
-      hoverCloseTimer = setTimeout(function () {
-        hoverCloseTimer = null;
-        const el = popup.getElement && popup.getElement();
-        if (el) {
-          el.classList.add('is-closing');
-          setTimeout(function () { map.closePopup(popup); }, FADE_OUT_MS);
-        } else {
-          map.closePopup(popup);
-        }
-      }, HOVER_CLOSE_MS);
+    function bindReaderTooltip(layer, html) {
+      layer.bindTooltip(html, {
+        direction: 'top',
+        offset: [0, -8],
+        opacity: 1,
+        className: 'trail-tip',
+        interactive: false,
+      });
+      // Touch devices don't open hover tooltips automatically; let
+      // the user tap to peek and tap-elsewhere to dismiss.
+      if (!isHoverDevice) {
+        layer.on('click', function (e) {
+          if (hoverCfg.suppress) return;
+          const tt = layer.getTooltip && layer.getTooltip();
+          if (tt && tt.isOpen && tt.isOpen()) layer.closeTooltip();
+          else layer.openTooltip();
+          L.DomEvent.stopPropagation(e);
+        });
+      }
     }
 
-    function attachHoverOpen(layer) {
-      if (!isHoverDevice) return;
-      layer.on('mouseover', function () {
-        if (hoverCfg.suppress) return;
-        clearHoverClose();
-        if (!layer.isPopupOpen || !layer.isPopupOpen()) layer.openPopup();
-      });
-      layer.on('mouseout', function () {
-        if (hoverCfg.suppress) return;
-        const popup = layer.getPopup && layer.getPopup();
-        if (popup && popup.isOpen && popup.isOpen()) scheduleHoverClose(popup);
-      });
-    }
-
-    // Once a popup opens, watch the popup DOM itself: cursor moving
-    // into it cancels the close timer, leaving it restarts the timer.
-    // Also strip any stale "is-closing" class so a re-opened popup
-    // isn't visibly fading.
-    map.on('popupopen', function (e) {
-      const el = e.popup.getElement && e.popup.getElement();
-      if (!el) return;
-      el.classList.remove('is-closing');
-      if (!isHoverDevice || hoverCfg.suppress) return;
-      el.addEventListener('mouseenter', clearHoverClose);
-      el.addEventListener('mouseleave', function () { scheduleHoverClose(e.popup); });
+    // Editor mode opt-out: when the editor mounts, it sets
+    // hoverCfg.suppress and we hide every open tooltip + skip future
+    // hovers. The editor calls layer.unbindTooltip() on each layer
+    // before attaching its popup forms.
+    map.on('mousedown', function () {
+      if (!hoverCfg.suppress) return;
+      // Defensive: close any stale tooltip if the suppress flag flipped
+      // while one was visible.
+      pinLayer.eachLayer(function (l) { l.closeTooltip && l.closeTooltip(); });
+      segmentLayer.eachLayer(function (l) { l.closeTooltip && l.closeTooltip(); });
     });
 
     function pinMarker(pin) {
@@ -158,19 +140,16 @@ window.TrailMap = (function () {
         iconAnchor: [7, 7],
       });
       const m = L.marker([pin.lat, pin.lng], { icon, draggable: false });
-      m.bindPopup(pinPopupHtml(pin));
+      bindReaderTooltip(m, pinTipHtml(pin));
       m._trailPin = pin;
-      attachHoverOpen(m);
       return m;
     }
 
-    function pinPopupHtml(pin) {
+    function pinTipHtml(pin) {
       const kind = (pin.kind || 'waypoint');
       const note = pin.note || '';
-      return '<div class="trail-pin-popover">' +
-        '<span class="trail-pin-popover__kind is-' + escapeAttr(kind) + '">' + escapeHtml(kind) + '</span>' +
-        (note ? '<div class="trail-pin-popover__note">' + escapeHtml(note) + '</div>' : '') +
-        '</div>';
+      return '<span class="trail-tip__kind is-' + escapeAttr(kind) + '">' + escapeHtml(kind) + '</span>' +
+        (note ? '<span class="trail-tip__note">' + escapeHtml(note) + '</span>' : '');
     }
 
     function segmentLine(seg) {
@@ -183,19 +162,16 @@ window.TrailMap = (function () {
         opacity: 0.85,
         dashArray: seg.kind === 'scramble' ? '6 6' : null,
       });
-      line.bindPopup(segmentPopupHtml(seg));
+      bindReaderTooltip(line, segmentTipHtml(seg));
       line._trailSegment = seg;
-      attachHoverOpen(line);
       return line;
     }
 
-    function segmentPopupHtml(seg) {
+    function segmentTipHtml(seg) {
       const kind = seg.kind || 'walk';
       const note = seg.note || '';
-      return '<div class="trail-segment-popover">' +
-        '<span class="trail-segment-popover__kind">' + escapeHtml(kind) + '</span>' +
-        (note ? '<div>' + escapeHtml(note) + '</div>' : '') +
-        '</div>';
+      return '<span class="trail-tip__kind is-segment">' + escapeHtml(kind) + '</span>' +
+        (note ? '<span class="trail-tip__note">' + escapeHtml(note) + '</span>' : '');
     }
 
     function render() {

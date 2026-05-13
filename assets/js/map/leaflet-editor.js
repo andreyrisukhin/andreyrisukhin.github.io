@@ -293,6 +293,9 @@
             layer.closePopup && layer.closePopup();
           }
         });
+        // Strip the reader's hover-tooltip so it doesn't shadow the
+        // editor's click-to-edit popup.
+        layer.unbindTooltip && layer.unbindTooltip();
         layer.unbindPopup();
         layer.bindPopup(buildPinForm(pin));
       });
@@ -302,6 +305,7 @@
         // Same: clicking a segment in pin/segment mode shouldn't also
         // drop a pin or extend the active segment.
         layer.on('click', (ev) => { L.DomEvent.stopPropagation(ev); });
+        layer.unbindTooltip && layer.unbindTooltip();
         layer.unbindPopup();
         layer.bindPopup(buildSegmentForm(seg));
       });

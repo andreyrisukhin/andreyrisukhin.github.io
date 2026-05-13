@@ -31,8 +31,71 @@
   max-width: 960px;
 }
 
-/* Force the Leaflet popup chrome itself (al-folio's dark theme
- * otherwise leaks a near-white text colour into here). */
+/* ── Reader tooltip ──────────────────────────────────────────────
+ * Minimal dark pill that appears on hover (or tap on touch). No
+ * close button, no big white card -- when the cursor leaves the
+ * pin, Leaflet hides the tooltip and the CSS transition fades it
+ * out. The editor still uses the heavier popup form (see below).
+ */
+.leaflet-tooltip.trail-tip {
+  background: rgba(13, 17, 23, 0.94) !important;
+  color: #f0f6fc !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  padding: 6px 10px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.85rem !important;
+  line-height: 1.4;
+  font-weight: 500;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45) !important;
+  white-space: normal;
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+  transition: opacity 0.18s ease-out;
+}
+.leaflet-tooltip.trail-tip::before {
+  border-top-color: rgba(13, 17, 23, 0.94) !important;
+}
+.leaflet-tooltip-bottom.trail-tip::before {
+  border-bottom-color: rgba(13, 17, 23, 0.94) !important;
+}
+.leaflet-tooltip-left.trail-tip::before {
+  border-left-color: rgba(13, 17, 23, 0.94) !important;
+}
+.leaflet-tooltip-right.trail-tip::before {
+  border-right-color: rgba(13, 17, 23, 0.94) !important;
+}
+
+.trail-tip__kind {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: #4f4f4f;
+  padding: 1px 6px;
+  border-radius: 3px;
+  align-self: flex-start;
+}
+.trail-tip__kind.is-parking { background: #1f6feb; }
+.trail-tip__kind.is-viewpoint { background: #2da44e; }
+.trail-tip__kind.is-decision { background: #b07000; }
+.trail-tip__kind.is-warning { background: #cf222e; }
+.trail-tip__kind.is-end { background: #6e40c9; }
+.trail-tip__kind.is-waypoint { background: #4f4f4f; }
+.trail-tip__kind.is-segment { background: #57606a; }
+.trail-tip__note {
+  color: #f0f6fc;
+  word-break: break-word;
+}
+
+/* Editor popup chrome (the form lives here; reader does not use
+ * popups any more). al-folio's dark theme would otherwise bleed a
+ * near-white colour onto the white wrapper. */
 .leaflet-popup-content-wrapper {
   background: #ffffff !important;
   color: #0d1117 !important;
@@ -45,93 +108,6 @@
   font-weight: 500;
 }
 .leaflet-popup-tip { background: #ffffff !important; }
-
-/* Fade in on open, fade out when JS adds .is-closing right before
- * Leaflet removes the popup from the DOM. We animate opacity on the
- * outer .leaflet-popup (Leaflet uses translate3d there for position,
- * so transform is off-limits) and add a tiny lift via transform on
- * the inner wrapper, which Leaflet leaves untouched. */
-.leaflet-popup {
-  animation: trail-popup-fade-in 0.18s ease-out;
-}
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-  animation: trail-popup-lift-in 0.18s ease-out;
-}
-.leaflet-popup.is-closing {
-  animation: trail-popup-fade-out 0.18s ease-in forwards;
-  pointer-events: none;
-}
-.leaflet-popup.is-closing .leaflet-popup-content-wrapper,
-.leaflet-popup.is-closing .leaflet-popup-tip {
-  animation: trail-popup-lift-out 0.18s ease-in forwards;
-}
-@keyframes trail-popup-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes trail-popup-fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-@keyframes trail-popup-lift-in {
-  from { transform: translate3d(0, 4px, 0); }
-  to   { transform: translate3d(0, 0, 0); }
-}
-@keyframes trail-popup-lift-out {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(0, 4px, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .leaflet-popup,
-  .leaflet-popup.is-closing,
-  .leaflet-popup-content-wrapper,
-  .leaflet-popup-tip { animation: none; }
-}
-
-/* Pin popover -- compact card, large enough tap target on mobile. */
-.trail-pin-popover,
-.trail-segment-popover {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 1rem;
-  line-height: 1.45;
-  max-width: 280px;
-  min-width: 160px;
-  color: #0d1117;
-}
-.trail-pin-popover__kind,
-.trail-segment-popover__kind {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #fff;
-  background: #4f4f4f;
-  padding: 2px 8px;
-  border-radius: 3px;
-  margin-bottom: 0.4rem;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  text-shadow:
-    0 0 2px rgba(0, 0, 0, 0.55),
-    0 1px 0 rgba(0, 0, 0, 0.5);
-}
-.trail-pin-popover__kind.is-parking { background: #1f6feb; }
-.trail-pin-popover__kind.is-viewpoint { background: #2da44e; }
-.trail-pin-popover__kind.is-decision { background: #b07000; }
-.trail-pin-popover__kind.is-warning { background: #cf222e; }
-.trail-pin-popover__kind.is-end { background: #6e40c9; }
-.trail-pin-popover__kind.is-waypoint { background: #4f4f4f; }
-.trail-segment-popover__kind { background: #57606a; }
-.trail-pin-popover__note,
-.trail-segment-popover > div {
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: #0d1117;
-  font-size: 1rem;
-  line-height: 1.5;
-  font-weight: 500;
-}
 
 /* ── Pin marker affordance ────────────────────────────────────────
  * The dot itself is an inline-styled <span> inside the divIcon
