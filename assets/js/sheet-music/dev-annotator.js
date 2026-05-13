@@ -76,6 +76,7 @@
       thumbnail: null,
     };
     const bridge = window.__sheetMusic;
+    let resolvedRect = null;
     if (bridge && bridge.ready) {
       const hit = bridge.resolveNoteAt(ev.pageX, ev.pageY);
       if (hit) {
@@ -84,9 +85,27 @@
         out.pitches = hit.pitches || [];
         out.clickedPitch = hit.clickedPitch || null;
         out.context = semanticContext(hit);
+        resolvedRect = hit.noteRect || null;
+      }
+      if (!resolvedRect && ev.target instanceof Element) {
+        const r = ev.target.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+          resolvedRect = {
+            x: r.left + window.scrollX,
+            y: r.top + window.scrollY,
+            w: r.width,
+            h: r.height,
+          };
+        }
       }
       try {
-        out.thumbnail = await bridge.snapshotAround(ev.pageX, ev.pageY);
+        out.thumbnail = await bridge.snapshotAround(
+          ev.pageX, ev.pageY, 220, 140,
+          {
+            bboxPage: resolvedRect,
+            clickPage: { x: ev.pageX, y: ev.pageY },
+          }
+        );
       } catch (_) { /* ignore */ }
     }
     if (out.context === 'page') {

@@ -67,6 +67,7 @@
           osmdPoint,
           graphicalNote: gn,
           voiceEntry,
+          noteRect: rectFor(gn),
         };
       } catch (err) {
         console.warn('[osmd-bridge] resolveNoteAt failed', err);
@@ -94,9 +95,12 @@
 
     /**
      * Crop a PNG thumbnail around a page coordinate from the rendered SVG.
-     * Returns a data: URL, or null on failure. Safe to call infrequently.
+     * When `overlay` is provided, draws a red bbox (bboxPage: {x,y,w,h} in
+     * page coords) and a crosshair at clickPoint on top of the crop so the
+     * user can visually confirm what was identified as clicked.
+     * Returns a data: URL, or null on failure.
      */
-    async snapshotAround(pageX, pageY, w = 220, h = 140) {
+    async snapshotAround(pageX, pageY, w = 220, h = 140, overlay = null) {
       const svg = api.svg();
       if (!svg) return null;
       try {
@@ -116,7 +120,9 @@
         const cy = (pageY - absTop) * scaleY + vbY;
         const cropW = w * scaleX;
         const cropH = h * scaleY;
-        clone.setAttribute('viewBox', `${cx - cropW / 2} ${cy - cropH / 2} ${cropW} ${cropH}`);
+        const vbLeft = cx - cropW / 2;
+        const vbTop = cy - cropH / 2;
+        clone.setAttribute('viewBox', `${vbLeft} ${vbTop} ${cropW} ${cropH}`);
         clone.setAttribute('width', String(w));
         clone.setAttribute('height', String(h));
 
@@ -124,7 +130,30 @@
         const blob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         try {
-          const dataUrl = await rasterize(url, w, h);
+          const toCanvasX = (pagePx) => ((pagePx - absLeft) * scaleX + vbX - vbLeft) * (w / cropW);
+          const toCanvasY = (pagePx) => ((pagePx - absTop) * scaleY + vbY - vbTop) * (h / cropH);
+          const dataUrl = await rasterize(url, w, h, (ctx) => {
+            if (!overlay) return;
+            if (overlay.bboxPage) {
+              const bx = toCanvasX(overlay.bboxPage.x);
+              const by = toCanvasY(overlay.bboxPage.y);
+              const bw = overlay.bboxPage.w * scaleX * (w / cropW);
+              const bh = overlay.bboxPage.h * scaleY * (h / cropH);
+              ctx.strokeStyle = 'rgba(255, 45, 60, 0.95)';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(bx, by, bw, bh);
+            }
+            if (overlay.clickPage) {
+              const x = toCanvasX(overlay.clickPage.x);
+              const y = toCanvasY(overlay.clickPage.y);
+              ctx.strokeStyle = 'rgba(0, 120, 255, 0.9)';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y);
+              ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6);
+              ctx.stroke();
+            }
+          });
           return dataUrl;
         } finally {
           URL.revokeObjectURL(url);
@@ -138,6 +167,32 @@
 
   api.readyPromise = new Promise((resolve) => { api._readyResolve = resolve; });
   window.__sheetMusic = api;
+
+  function rectFor(gn) {
+    if (!gn) return null;
+    const vf = gn.vfnote || (Array.isArray(gn.vfnote) ? gn.vfnote[0] : null);
+    try {
+      const candidates = [
+        vf && typeof vf.getSVGElement === 'function' && vf.getSVGElement(),
+        vf && vf.attrs && vf.attrs.el,
+        gn.getSVGGElement && gn.getSVGGElement(),
+      ].filter(Boolean);
+      for (const el of candidates) {
+        if (el && typeof el.getBoundingClientRect === 'function') {
+          const r = el.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) {
+            return {
+              x: r.left + window.scrollX,
+              y: r.top + window.scrollY,
+              w: r.width,
+              h: r.height,
+            };
+          }
+        }
+      }
+    } catch (_) { /* ignore */ }
+    return null;
+  }
 
   function pitchName(gn) {
     if (!gn) return null;
@@ -163,7 +218,7 @@
     return letter + suffix + octave;
   }
 
-  function rasterize(svgUrl, w, h) {
+  function rasterize(svgUrl, w, h, drawOverlay) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -176,6 +231,10 @@
           ctx.fillStyle = '#fff';
           ctx.fillRect(0, 0, w, h);
           ctx.drawImage(img, 0, 0, w, h);
+          if (typeof drawOverlay === 'function') {
+            ctx.save();
+            try { drawOverlay(ctx); } finally { ctx.restore(); }
+          }
           resolve(canvas.toDataURL('image/png'));
         } catch (err) { reject(err); }
       };
