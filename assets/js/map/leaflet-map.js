@@ -102,7 +102,20 @@ window.TrailMap = (function () {
       labelLayer.eachLayer(function (l) {
         if (l._syncLeader) l._syncLeader();
       });
+      applyZoomScale();
     });
+
+    // Reference zoom for label scaling: whatever the data file says
+    // is the "base" view. One step out shrinks labels, two or more
+    // hides them entirely so the pin dots can carry the regional
+    // context without visual clutter.
+    const BASE_ZOOM = (typeof initialData.zoom === 'number') ? initialData.zoom : ZION_ZOOM;
+    function applyZoomScale() {
+      const delta = BASE_ZOOM - map.getZoom();
+      const c = map.getContainer();
+      c.classList.toggle('trail-zoom-shrink', delta === 1);
+      c.classList.toggle('trail-zoom-hide-labels', delta >= 2);
+    }
 
     // Drop the label this many pixels above-and-right of the pin
     // when the data has no saved labelLatLng yet. Geographic so it's
@@ -158,6 +171,7 @@ window.TrailMap = (function () {
         weight: 1.5,
         dashArray: '3 4',
         interactive: false,
+        className: 'trail-leader',
       });
       leader.addTo(leaderLayer);
       m._leader = leader;
@@ -252,6 +266,7 @@ window.TrailMap = (function () {
     }
 
     render();
+    applyZoomScale();
 
     return {
       map,
