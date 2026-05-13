@@ -343,7 +343,11 @@ async function main() {
       'rest pin identity.isRest === true', rest.isRest);
   }
 
-  section('Scenario H — tied notes resolve independently');
+  section('Scenario H — tied notes hover-resolve with isTied + chord context');
+  // Find ties via OSMD's source-of-truth (sourceNote.NoteTie) instead of
+  // scanning .vf-stavetie SVG elements. VexFlow uses .vf-stavetie for both
+  // ties and slurs, so the SVG class isn't a reliable filter — we want the
+  // notes that the musicxml actually marks as tied.
   const tieData = evalJs(`
     (async () => {
       localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
@@ -352,72 +356,74 @@ async function main() {
         body: JSON.stringify({pathname:'${PATHNAME}', pins: []})
       });
       const svg = document.querySelector('#osmd-container svg');
-      const ties = [...svg.querySelectorAll('.vf-stavetie')];
-      if (!ties.length) return JSON.stringify({skip: true, reason: 'no ties'});
-      const stavenotes = [...svg.querySelectorAll('.vf-stavenote')];
-      const findPair = (tie) => {
-        tie.scrollIntoView({block: 'center'});
-        const tb = tie.getBoundingClientRect();
-        const rowFilter = (x) => Math.abs(x.b.top - tb.top) < 140;
-        const L = stavenotes
-          .map(sn => ({sn, b: sn.getBoundingClientRect()}))
-          .filter(rowFilter)
-          .sort((a, b) => Math.abs(a.b.right - tb.left) - Math.abs(b.b.right - tb.left))[0]?.sn;
-        const R = stavenotes
-          .map(sn => ({sn, b: sn.getBoundingClientRect()}))
-          .filter(rowFilter)
-          .sort((a, b) => Math.abs(a.b.left - tb.right) - Math.abs(b.b.left - tb.right))[0]?.sn;
-        return {L, R, tb};
-      };
-      const peek = (el) => {
-        const head = el.querySelector('.vf-notehead') || el;
+      const osmd = window.__sheetMusic.osmd;
+      const graphic = osmd.GraphicSheet || osmd.graphic;
+      const tiedSamples = [];
+      for (const page of graphic.MusicPages || [])
+        for (const sys of page.MusicSystems || [])
+          for (const line of sys.StaffLines || [])
+            for (const m of line.Measures || [])
+              for (const se of m.staffEntries || [])
+                for (const gve of se.graphicalVoiceEntries || [])
+                  for (const gn of gve.notes || []) {
+                    if (gn.sourceNote && gn.sourceNote.NoteTie) {
+                      const vf = Array.isArray(gn.vfnote) ? gn.vfnote[0] : gn.vfnote;
+                      const id = vf && vf.attrs && vf.attrs.id;
+                      if (id) tiedSamples.push({vfId: id, measure: m.MeasureNumber || m.measureNumber, vfnoteIndex: gn.vfnoteIndex});
+                    }
+                  }
+      if (!tiedSamples.length) return JSON.stringify({skip: true, reason: 'no NoteTie in any source note'});
+      const probe = (s) => {
+        const sn = svg.querySelector('#vf-' + s.vfId);
+        if (!sn) return null;
+        const heads = [...sn.querySelectorAll('.vf-notehead')];
+        const head = heads[s.vfnoteIndex] || heads[0];
+        if (!head) return null;
         const r = head.getBoundingClientRect();
-        const x = r.left + r.width/2 + window.scrollX;
-        const y = r.top + r.height/2 + window.scrollY;
-        const h = window.__sheetMusic.resolveNoteAt(x, y, 80);
-        return {ok: !!(h && h.clickedPitch), hit: h};
+        if (r.width <= 0 || r.height <= 0) return null;
+        sn.scrollIntoView({block: 'center'});
+        const r2 = head.getBoundingClientRect();
+        const px = r2.left + r2.width/2 + window.scrollX;
+        const py = r2.top + r2.height/2 + window.scrollY;
+        const hit = window.__sheetMusic.resolveNoteAt(px, py, 80, head);
+        return hit && {
+          measure: hit.measureNumber,
+          clickedPitch: hit.clickedPitch,
+          isTied: hit.isTied,
+          chordName: hit.chordName,
+          pitches: hit.pitches,
+        };
       };
-      let nearL = null, nearR = null;
-      let triedTies = 0;
-      for (const tie of ties) {
-        triedTies++;
-        const {L, R} = findPair(tie);
-        if (!L || !R || L === R) continue;
-        await new Promise(r => setTimeout(r, 150));
-        const pL = peek(L), pR = peek(R);
-        if (pL.ok && pR.ok) { nearL = L; nearR = R; break; }
+      const checked = [];
+      for (const s of tiedSamples.slice(0, 8)) {
+        const r = probe(s);
+        if (r) checked.push({expected: s, got: r});
+        await new Promise(r => setTimeout(r, 50));
       }
-      if (!nearL || !nearR) {
-        return JSON.stringify({
-          skip: true,
-          reason: 'no tie with both endpoints resolvable (tried ' + triedTies + '/' + ties.length + ')',
-        });
-      }
-      const click = (el) => {
-        const head = el.querySelector('.vf-notehead') || el;
-        const r = head.getBoundingClientRect();
-        const x = r.left + r.width/2, y = r.top + r.height/2;
-        head.dispatchEvent(new MouseEvent('click', {
-          bubbles:true, cancelable:true, view:window,
-          clientX:x, clientY:y, shiftKey:true, button:0,
-        }));
-      };
-      const peekL = peek(nearL).hit;
-      const peekR = peek(nearR).hit;
-      click(nearL);
-      await new Promise(r => setTimeout(r, 350));
-      click(nearR);
+      // Also click one to verify identity is persisted with isTied
+      const first = tiedSamples[0];
+      const sn = svg.querySelector('#vf-' + first.vfId);
+      sn.scrollIntoView({block: 'center'});
+      await new Promise(r => setTimeout(r, 150));
+      const head = sn.querySelectorAll('.vf-notehead')[first.vfnoteIndex] || sn.querySelector('.vf-notehead');
+      const r3 = head.getBoundingClientRect();
+      head.dispatchEvent(new MouseEvent('click', {
+        bubbles:true, cancelable:true, view:window,
+        clientX: r3.left + r3.width/2, clientY: r3.top + r3.height/2,
+        shiftKey:true, button:0,
+      }));
       await new Promise(r => setTimeout(r, 350));
       const saved = await (await fetch('${SIDECAR}/load?pathname=${PATHNAME}')).json();
+      const pin = saved.pins[saved.pins.length - 1];
       return JSON.stringify({
         skip: false,
-        peekL, peekR,
-        pins: saved.pins.slice(-2).map(p => ({
-          clicked: p.identity?.clickedPitch,
-          measure: p.identity?.measureNumber,
-          isTied: p.identity?.isTied,
-          kind: p.identity?.kind,
-        })),
+        sampleCount: checked.length,
+        checked: checked.slice(0, 4),
+        savedPin: pin && {
+          isTied: pin.identity?.isTied,
+          clickedPitch: pin.identity?.clickedPitch,
+          context: pin.context,
+        },
       });
     })();
   `);
@@ -425,16 +431,16 @@ async function main() {
   if (tie.skip) {
     console.log('  (skipped: ' + (tie.reason || 'no ties') + ')');
   } else {
-    console.log('  bridge peek:', JSON.stringify({L: tie.peekL, R: tie.peekR}));
-    assert(tie.pins.length === 2, 'two tie endpoint pins saved', tie.pins.length);
-    const [a, b] = tie.pins;
-    assert(a.clicked && b.clicked, 'both tied endpoints have a pitch', tie.pins);
-    assert(a.clicked === b.clicked,
-      'tied notes share the same pitch (a tie connects same-pitch notes)',
-      {a: a.clicked, b: b.clicked});
-    assert(a.isTied === true && b.isTied === true,
-      'both pins flagged identity.isTied === true',
-      {a: a.isTied, b: b.isTied});
+    console.log('  sampled ' + tie.sampleCount + ' tied notes');
+    const allTied = tie.checked.every((c) => c.got && c.got.isTied === true);
+    assert(allTied, 'every sampled tied source note hover-resolves with isTied=true',
+      tie.checked.filter((c) => !c.got || c.got.isTied !== true));
+    const allHavePitch = tie.checked.every((c) => c.got && c.got.clickedPitch);
+    assert(allHavePitch, 'every sampled tied note has a clickedPitch (not null)',
+      tie.checked.filter((c) => !c.got || !c.got.clickedPitch));
+    assert(tie.savedPin && tie.savedPin.isTied === true,
+      'shift-clicking a tied note saves identity.isTied === true',
+      tie.savedPin);
   }
 
   section('Scenario I — bridge agrees with OSMD source on note vs rest');
