@@ -198,11 +198,22 @@
     const intervals = pitches.map(toMidi)
       .map((m, i, arr) => (i === 0 ? 0 : m - arr[i - 1])).slice(1);
     const semitonesFromRoot = pitches.map((p) => ((toMidi(p) - lowestMidi) % 12 + 12) % 12);
+    // Two readings (see osmd-bridge.js for the split):
+    //   chordName -- pure stack reading ("GM" for a G-B-D stack).
+    //                Used for the tag and as the inspector's "Notes
+    //                spell" header.
+    //   harmony   -- measure-aware reading that promotes a lower
+    //                chord-tone to the bass ("GM/B" for an oom-pah
+    //                in m2). Drives the Stradella recipe section so
+    //                the player presses the bass that's actually
+    //                written. null when it agrees with chordName.
     const chordName = hit.chordName
       || detectChord(uniquePcs)
       || (pitches.length === 1 ? pitches[0] : '—');
-    const stradellaHtml = (window.StradellaRecipe && chordName)
-      ? window.StradellaRecipe.render(chordName) : '';
+    const harmony = hit.harmony || null;
+    const recipeFor = harmony || chordName;
+    const stradellaHtml = (window.StradellaRecipe && recipeFor)
+      ? window.StradellaRecipe.render(recipeFor) : '';
     return {
       measureLabel: hit.measureNumber != null ? 'measure ' + hit.measureNumber : null,
       staffLabel: hit.staffIndex != null ? 'staff ' + (hit.staffIndex + 1) : null,
@@ -211,6 +222,7 @@
       intervals,
       semitonesFromRoot,
       chordName,
+      harmony,
       clickedPitch: hit.clickedPitch || pitches[0],
       stradellaHtml,
     };
@@ -316,17 +328,40 @@
     const intervals = d.intervals.length
       ? d.intervals.map((s) => INTERVAL_NAMES[s] || (s + 'st')).join(' + ') : '—';
     const metaParts = [d.measureLabel, d.staffLabel].filter(Boolean).join(' · ');
+    // "Notes spell" section -- pure stack analysis, no recipe.
+    const stackSection = `
+      <div class="chord-inspector__section">
+        <div class="chord-inspector__section-label">Notes spell</div>
+        <div class="chord-inspector__section-name">${escapeHtml(d.chordName)}</div>
+        <div class="chord-inspector__row"><span>Notes</span><span>${pitches}</span></div>
+        <div class="chord-inspector__row"><span>Semitones from bass</span><span>${escapeHtml(semis)}</span></div>
+        <div class="chord-inspector__row"><span>Intervals</span><span>${escapeHtml(intervals)}</span></div>
+      </div>
+    `;
+    // "Sounds as" section -- measure-aware harmony + Stradella recipe.
+    // Only rendered when we have something to add (a different bass
+    // reading and/or a recipe).
+    const harmonyName = d.harmony || d.chordName;
+    const showHarmonySection = !!d.stradellaHtml || (d.harmony && d.harmony !== d.chordName);
+    const harmonySection = showHarmonySection ? `
+      <div class="chord-inspector__section">
+        <div class="chord-inspector__section-label">Sounds as</div>
+        <div class="chord-inspector__section-name">${escapeHtml(harmonyName)}</div>
+        ${d.harmony && d.harmony !== d.chordName
+          ? `<div class="chord-inspector__row chord-inspector__row--note"><span></span><span>bass promoted from measure context</span></div>`
+          : ''}
+        ${d.stradellaHtml
+          ? `<div class="chord-inspector__stradella">${d.stradellaHtml}</div>` : ''}
+      </div>
+    ` : '';
     return `
       <div class="chord-inspector__head">
         <span class="chord-inspector__title">${escapeHtml(d.chordName)}</span>
         <button type="button" class="chord-inspector__close" data-chord-action="close" aria-label="Close">×</button>
       </div>
       ${metaParts ? `<div class="chord-inspector__meta">${escapeHtml(metaParts)}</div>` : ''}
-      <div class="chord-inspector__row"><span>Notes</span><span>${pitches}</span></div>
-      <div class="chord-inspector__row"><span>Semitones from bass</span><span>${escapeHtml(semis)}</span></div>
-      <div class="chord-inspector__row"><span>Intervals</span><span>${escapeHtml(intervals)}</span></div>
-      ${d.stradellaHtml
-        ? `<div class="chord-inspector__stradella">${d.stradellaHtml}</div>` : ''}
+      ${stackSection}
+      ${harmonySection}
     `;
   }
 

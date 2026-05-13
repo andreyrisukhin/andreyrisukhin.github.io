@@ -74,21 +74,31 @@
           (typeof sn.isRest === 'function' && sn.isRest())
         ));
         const isTied = !!(sn && (sn.NoteTie || sn.noteTie || sn.Tie || sn.tie));
-        // Gather every other pitch in the same measure (across staves
-        // and voices) so detectChordName can promote a lower chord-tone
-        // to the bass when the stack is voiced above it. Without this
-        // an "oom-pah" Stradella pattern (e.g. B2 eighth, then a G-B-D
-        // chord on the next eighth) detects as root-position GM
-        // because B2 has already ended by the time the chord sounds,
-        // even though musically B IS the bass for that beat.
-        const measurePitches = staffEntry ? gatherMeasurePitches(staffEntry, gn) : [];
-        const chordName = (pitches.length >= 2)
-          ? detectChordName(pitches, measurePitches)
-          : null;
+        // Two distinct readings:
+        //   chordName -- pure stack analysis: what the noteheads
+        //                themselves spell. "GM" for a G-B-D stack,
+        //                regardless of what else is happening in the
+        //                measure. Drives the small floating tag.
+        //   harmony   -- measure-aware reading that promotes a lower
+        //                chord-tone in the same measure to the bass
+        //                (the typical Stradella oom-pah pattern: a
+        //                B2 eighth followed by a G-B-D chord stack
+        //                reads as "GM/B" even though the stack is
+        //                root-position by itself). Drives the
+        //                Stradella overlay and the inspector's
+        //                "Sounds as" line.
+        const chordName = (pitches.length >= 2) ? detectChordName(pitches) : null;
+        let harmony = null;
+        if (chordName) {
+          const measurePitches = staffEntry ? gatherMeasurePitches(staffEntry, gn) : [];
+          const promoted = analyzeHarmony(chordName, pitches, measurePitches);
+          if (promoted && promoted !== chordName) harmony = promoted;
+        }
 
         return {
           pitches,
           chordName,
+          harmony,
           clickedPitch: pitchName(gn),
           isRest,
           isTied,
@@ -349,23 +359,20 @@
     return SHARP[((halfTone % 12) + 12) % 12];
   }
 
-  function detectChordName(pitches, measureContext) {
+  // Pure stack analysis. Looks ONLY at the noteheads in the clicked
+  // chord stack and asks Tonal what that pitch set spells. Output is
+  // a literal label like "GM" / "Cm" / "B-D-G is also GM"; if the
+  // stack itself happens to be voiced in inversion (e.g. B2-D3-G3
+  // with B in the bass) we surface "GM/B" because that's what the
+  // notes themselves say. Does NOT look at other measure pitches --
+  // that lives in analyzeHarmony.
+  function detectChordName(pitches) {
     if (!window.Tonal || !window.Tonal.Chord || typeof window.Tonal.Chord.detect !== 'function') return null;
-    // Sort by actual MIDI value so the FIRST entry is the lowest
-    // sounding pitch -- this is what we'll use as the bass when it
-    // doesn't agree with the chord's root (i.e., the chord is in
-    // inversion). Using octave-stripped pitch classes alone, as the
-    // previous version did, threw away the bass information so
-    // first-inversion voicings like B-D-G silently came out as
-    // root-position "GM" instead of "GM/B".
     const sortedPitches = pitches.slice().sort((a, b) => pitchToMidi(a) - pitchToMidi(b));
     const pcs = sortedPitches.map((p) => String(p).replace(/-?\d+$/, ''));
     let detected;
     try { detected = window.Tonal.Chord.detect(pcs) || []; } catch (_) { detected = []; }
     if (!detected.length) return null;
-    // Tonal sometimes appends its own /bass guess. Strip it; we have
-    // the actual lowest pitch from the score and will append the
-    // correct slash ourselves.
     const sansSlash = detected.map((d) => d.split('/')[0]);
     const primary = sansSlash.slice().sort((a, b) => a.length - b.length)[0];
     if (!window.Tonal.Chord.get) return primary;
@@ -373,23 +380,43 @@
     try { chord = window.Tonal.Chord.get(primary); } catch (_) { chord = null; }
     if (!chord || !chord.tonic) return primary;
     if (!window.ChordName) return primary;
-    const CN = window.ChordName;
+    const lowestPC = pcs[0];
+    if (window.ChordName.samePitchClass(lowestPC, chord.tonic)) return primary;
+    return primary + '/' + lowestPC;
+  }
 
-    let bassPC = pcs[0];
-    // Walk other pitches in the same measure: if any chord-tone lives
-    // BELOW the clicked stack (typical Stradella oom-pah voicing),
-    // promote it to the bass so the recipe shows the bass the player
-    // actually presses.
-    if (Array.isArray(measureContext) && measureContext.length && Array.isArray(chord.notes)) {
-      const stackLowestMidi = pitchToMidi(sortedPitches[0]);
-      for (const cp of measureContext) {
-        if (cp.midi >= stackLowestMidi) break;
-        const isChordTone = chord.notes.some((n) => CN.samePitchClass(cp.pc, n));
-        if (isChordTone) { bassPC = cp.pc; break; }
-      }
+  // Measure-aware reading. Given the stack chord (already detected)
+  // plus every other pitch in the same source measure, promote the
+  // lowest CHORD-TONE that sits below the stack to the bass. This is
+  // the Stradella-oriented "what is actually being played in this
+  // measure" reading: an oom-pah pattern of B2 eighth + G-B-D chord
+  // becomes "GM/B" because B IS the bass press for that beat, even
+  // though the chord stack alone reads as root-position GM.
+  // Returns the (possibly enriched) chord name; returns the input
+  // unchanged when the measure context doesn't suggest a different
+  // bass than the stack's lowest note.
+  function analyzeHarmony(stackChord, stackPitches, measurePitches) {
+    if (!stackChord || !window.Tonal || !window.Tonal.Chord || !window.Tonal.Chord.get) return stackChord;
+    if (!window.ChordName) return stackChord;
+    if (!Array.isArray(measurePitches) || measurePitches.length === 0) return stackChord;
+    const CN = window.ChordName;
+    const baseName = stackChord.split('/')[0];
+    let chord;
+    try { chord = window.Tonal.Chord.get(baseName); } catch (_) { chord = null; }
+    if (!chord || !chord.tonic || !Array.isArray(chord.notes)) return stackChord;
+
+    const sortedStack = stackPitches.slice().sort((a, b) => pitchToMidi(a) - pitchToMidi(b));
+    const stackLowestMidi = pitchToMidi(sortedStack[0]);
+
+    let promotedBassPC = null;
+    for (const cp of measurePitches) {
+      if (cp.midi >= stackLowestMidi) break;
+      const isChordTone = chord.notes.some((n) => CN.samePitchClass(cp.pc, n));
+      if (isChordTone) { promotedBassPC = cp.pc; break; }
     }
-    if (CN.samePitchClass(bassPC, chord.tonic)) return primary;
-    return primary + '/' + bassPC;
+    if (!promotedBassPC) return stackChord;
+    if (CN.samePitchClass(promotedBassPC, chord.tonic)) return baseName;
+    return baseName + '/' + promotedBassPC;
   }
 
   function pitchName(gn) {

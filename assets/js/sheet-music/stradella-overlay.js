@@ -106,23 +106,29 @@
       const cy = r.top + r.height / 2 + window.scrollY;
       const hit = bridge.resolveNoteAt(cx, cy, 80, sn);
       if (!hit || !hit.chordName) continue;
-      if (!window.ChordName || !window.ChordName.looksValid(hit.chordName)) continue;
+      // Prefer the measure-aware harmony reading (e.g. "GM/B" for an
+      // oom-pah pattern) over the literal stack chord ("GM"); the
+      // overlay is the player-facing recipe, so it should reflect
+      // the bass that's actually pressed in this measure. Fall back
+      // to the stack reading when no contextual bass was promoted.
+      const display = hit.harmony || hit.chordName;
+      if (!window.ChordName || !window.ChordName.looksValid(display)) continue;
       if (!hit.pitches || hit.pitches.length < 2) continue;
 
       const staffKey = hit.staffIndex ?? '?';
       const prev = lastByStaff.get(staffKey);
       const sameRow = prev && Math.abs(prev.top - r.top) < ROW_BREAK_PX;
-      if (sameRow && prev.chord === hit.chordName) continue;
-      lastByStaff.set(staffKey, { chord: hit.chordName, top: r.top });
+      if (sameRow && prev.chord === display) continue;
+      lastByStaff.set(staffKey, { chord: display, top: r.top });
 
-      const recipe = extractFirstVoicing(window.StradellaRecipe.render(hit.chordName));
+      const recipe = extractFirstVoicing(window.StradellaRecipe.render(display));
       if (!recipe) continue;
 
       const overlay = document.createElement('div');
       overlay.className = 'stradella-overlay';
       overlay.setAttribute(OVERLAY_ATTR, '');
       overlay.textContent = recipe;
-      overlay.title = hit.chordName + ': ' + recipe;
+      overlay.title = display + ': ' + recipe;
       // Position below the stavenote's bounding box, anchored within
       // the score container so we move with autoscroll/zoom redraws.
       overlay.style.left = (r.left + r.width / 2 + window.scrollX - containerLeft) + 'px';

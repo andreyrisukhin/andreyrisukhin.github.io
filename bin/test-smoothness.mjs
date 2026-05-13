@@ -701,20 +701,26 @@ async function main() {
       { count: sp.offAgainCount });
   }
 
-  section('Scenario O — chord name reflects actual bass when voiced in inversion');
-  // Resolves every stack of >=3 noteheads in the score and looks for
-  // at least one whose lowest MIDI pitch class differs from the
-  // chord's root. Asserts that the bridge surfaces this as
-  // "Chord/Bass" notation, and that the rendered Stradella recipe
-  // string carries that bass note rather than the root. Catches the
-  // class of bug where pitch-class detection threw away inversion
-  // information (m2 in Cogwork Dancers showed "GM / G" instead of
-  // "GM / B" for a B-D-G voicing).
+  section('Scenario O — two distinct chord readings (stack vs measure-aware harmony)');
+  // The bridge exposes two readings on every chord-stack hit:
+  //   chordName -- pure stack analysis ("GM" for a G-B-D stack)
+  //   harmony   -- measure-aware promotion of a lower chord-tone to
+  //                the bass when the stack sits above it ("GM/B" for
+  //                an oom-pah where B is the bass press for the beat)
+  // The stack reading drives the small floating tag (literal "what
+  // the noteheads spell"); the harmony reading drives the Stradella
+  // overlay/recipe (what the player actually presses).
   const inversionProbe = evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
       const stavenotes = [...svg.querySelectorAll('.vf-stavenote')];
-      const findings = [];
+      // Stack-only inversions: the noteheads themselves are voiced
+      // with a non-root bass (e.g. B-D-G stack -> "GM/B").
+      const stackInversions = [];
+      // Harmony-only inversions: the stack itself reads as root
+      // position, but the measure context promotes a lower chord
+      // tone to the bass for the harmony reading (oom-pah pattern).
+      const harmonyOnlyInversions = [];
       for (const sn of stavenotes) {
         const heads = sn.querySelectorAll('.vf-notehead');
         if (heads.length < 3) continue;
@@ -725,43 +731,67 @@ async function main() {
         const py = r.top + r.height/2 + window.scrollY;
         const hit = window.__sheetMusic.resolveNoteAt(px, py, 80, head);
         if (!hit || !hit.chordName) continue;
-        if (hit.chordName.indexOf('/') < 0) continue;
-        const recipe = window.StradellaRecipe ? window.StradellaRecipe.render(hit.chordName) : '';
-        findings.push({
-          id: sn.id,
-          chordName: hit.chordName,
-          pitches: hit.pitches,
-          recipeIncludesBass: (function(){
-            const bass = hit.chordName.split('/')[1];
-            if (!bass) return false;
-            const tmp = document.createElement('div');
-            tmp.innerHTML = recipe;
-            const txt = tmp.textContent || '';
-            return txt.indexOf(' / ' + bass) >= 0 || txt.indexOf(' / ' + bass.replace('b','\u266D').replace('#','\u266F')) >= 0;
-          })(),
-        });
-        if (findings.length >= 3) break;
+        const harmony = hit.harmony || hit.chordName;
+        const stradellaTarget = harmony;
+        const recipe = window.StradellaRecipe ? window.StradellaRecipe.render(stradellaTarget) : '';
+        const tmp = document.createElement('div');
+        tmp.innerHTML = recipe;
+        const recipeText = tmp.textContent || '';
+        const bass = stradellaTarget.indexOf('/') >= 0 ? stradellaTarget.split('/')[1] : null;
+        // Enharmonic-aware: the score may spell the bass as A# while
+        // the recipe canonicalizes to Bb (same pitch class). Pull the
+        // bass that the recipe actually printed and compare by
+        // semitone via window.ChordName.pcToSemi.
+        const recipeBassMatch = recipeText.match(/\\/\\s*([A-G](?:[#b\u266F\u266D]|##|bb)?)/);
+        const recipeBassPC = recipeBassMatch ? recipeBassMatch[1].replace('\u266F','#').replace('\u266D','b') : null;
+        const expectedSemi = bass ? window.ChordName.pcToSemi(bass) : null;
+        const actualSemi = recipeBassPC ? window.ChordName.pcToSemi(recipeBassPC) : null;
+        const recipeIncludesBass = bass
+          ? (expectedSemi != null && expectedSemi === actualSemi)
+          : false;
+        const entry = { id: sn.id, chordName: hit.chordName, harmony: hit.harmony, pitches: hit.pitches, recipeIncludesBass };
+        if (hit.chordName.indexOf('/') >= 0) {
+          stackInversions.push(entry);
+        } else if (hit.harmony && hit.harmony !== hit.chordName) {
+          harmonyOnlyInversions.push(entry);
+        }
+        if (stackInversions.length >= 3 && harmonyOnlyInversions.length >= 3) break;
       }
-      return JSON.stringify({ findings });
+      return JSON.stringify({ stackInversions, harmonyOnlyInversions });
     })();
   `);
   const inv = JSON.parse(inversionProbe);
-  assert(inv.findings.length > 0,
-    'score contains at least one chord stack voiced in inversion (lowest pitch != root)',
-    inv);
-  if (inv.findings.length > 0) {
-    assert(inv.findings.every((f) => /^[A-G][#b\u266F\u266D]?[^/]*\/[A-G][#b\u266F\u266D]?$/.test(f.chordName)),
-      'every inverted chord name has shape "Chord/Bass"', inv.findings);
-    assert(inv.findings.every((f) => f.recipeIncludesBass),
-      'rendered Stradella recipe shows the actual bass, not the chord root',
-      inv.findings);
+
+  // Stack reading: when the noteheads themselves are voiced in
+  // inversion, hit.chordName carries the slash bass.
+  if (inv.stackInversions.length > 0) {
+    assert(inv.stackInversions.every((f) => /^[A-G][#b\u266F\u266D]?[^/]*\/[A-G][#b\u266F\u266D]?$/.test(f.chordName)),
+      'stack-inverted hit.chordName has shape "Chord/Bass"', inv.stackInversions);
+    assert(inv.stackInversions.every((f) => f.recipeIncludesBass),
+      'stack-inverted recipe shows the bass that the stack voices',
+      inv.stackInversions);
   }
 
-  // Sub-assertion: m2 of Cogwork Dancers is voiced as B2 (eighth) +
-  // G3-B3-D4 chord (oom-pah). The chord stack alone is root-position
-  // GM, so naive inversion detection misses it. The bridge has to
-  // walk the measure context and promote the lower chord-tone B2 to
-  // the bass for the recipe to read "GM / B".
+  // Harmony reading: stack reads as root position, but measure
+  // context promotes a lower chord-tone bass.
+  assert(inv.harmonyOnlyInversions.length > 0,
+    'score contains at least one chord whose stack is root-position but harmony promotes a contextual bass',
+    inv);
+  if (inv.harmonyOnlyInversions.length > 0) {
+    assert(inv.harmonyOnlyInversions.every((f) => f.chordName.indexOf('/') < 0),
+      'harmony-only-inverted hit.chordName (stack reading) has NO slash',
+      inv.harmonyOnlyInversions);
+    assert(inv.harmonyOnlyInversions.every((f) => f.harmony && f.harmony.indexOf('/') >= 0),
+      'harmony-only-inverted hit.harmony carries the promoted bass slash',
+      inv.harmonyOnlyInversions);
+    assert(inv.harmonyOnlyInversions.every((f) => f.recipeIncludesBass),
+      'harmony-driven recipe shows the promoted bass',
+      inv.harmonyOnlyInversions);
+  }
+
+  // Sub-assertion: m2 of Cogwork Dancers is the canonical oom-pah
+  // case. Stack reading must be plain "GM"; harmony reading must be
+  // "GM/B" with B promoted from the measure's earlier bass note.
   const m2Probe = evalJs(`
     (() => {
       const stavenotes = [...document.querySelectorAll('#osmd-container svg .vf-stavenote')];
@@ -776,15 +806,18 @@ async function main() {
         const py = r.top + r.height/2 + window.scrollY;
         const hit = window.__sheetMusic.resolveNoteAt(px, py, 80, head);
         if (!hit || hit.measureNumber !== 2) continue;
-        m2Chords.push({ chord: hit.chordName, pitches: hit.pitches });
+        m2Chords.push({ chord: hit.chordName, harmony: hit.harmony, pitches: hit.pitches });
       }
       return JSON.stringify({ m2Chords });
     })();
   `);
   const m2 = JSON.parse(m2Probe);
   assert(m2.m2Chords.length > 0, 'measure 2 contains at least one chord stack', m2);
-  assert(m2.m2Chords.every((c) => c.chord === 'GM/B'),
-    'measure 2 oom-pah pattern surfaces as "GM/B" (uses sustained/contextual bass, not stack-root)',
+  assert(m2.m2Chords.every((c) => c.chord === 'GM'),
+    'measure 2 stack reading is plain "GM" (the noteheads spell root-position GM)',
+    m2);
+  assert(m2.m2Chords.every((c) => c.harmony === 'GM/B'),
+    'measure 2 harmony reading is "GM/B" (promotes the earlier B2 to the bass)',
     m2);
 
   section('Scenario L — dev mode is opt-in and toggle persists');

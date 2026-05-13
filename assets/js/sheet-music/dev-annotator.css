@@ -447,6 +447,29 @@ html[data-theme="dark"] .sheet-dev-toggle.is-on {
   margin-bottom: 0.45rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+.chord-inspector__section {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.chord-inspector__section:first-of-type {
+  margin-top: 0.4rem;
+  padding-top: 0;
+  border-top: none;
+}
+.chord-inspector__section-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin-bottom: 0.15rem;
+}
+.chord-inspector__section-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
 .chord-inspector__row {
   display: flex;
   justify-content: space-between;
@@ -456,6 +479,14 @@ html[data-theme="dark"] .sheet-dev-toggle.is-on {
   font-size: 0.8rem;
 }
 .chord-inspector__row:first-of-type { border-top: none; }
+.chord-inspector__row--note {
+  border-top: none;
+  font-style: italic;
+  opacity: 0.7;
+  font-size: 0.72rem;
+  padding: 0;
+  margin-bottom: 0.25rem;
+}
 .chord-inspector__row > span:first-child {
   opacity: 0.6;
   text-transform: uppercase;
