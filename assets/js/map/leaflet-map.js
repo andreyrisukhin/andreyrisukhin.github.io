@@ -95,6 +95,15 @@ window.TrailMap = (function () {
     // leaves it null, so viewer drags don't try to persist.
     const onLabelDrag = { fn: null };
 
+    // Re-anchor every leader line to its label's center after a zoom:
+    // the label width stays constant in container px but its geo
+    // center moves, so the leader endpoint drifts unless we recompute.
+    map.on('zoomend', function () {
+      labelLayer.eachLayer(function (l) {
+        if (l._syncLeader) l._syncLeader();
+      });
+    });
+
     // Drop the label this many pixels above-and-right of the pin
     // when the data has no saved labelLatLng yet. Geographic so it's
     // zoom-stable once it lands.
@@ -104,13 +113,16 @@ window.TrailMap = (function () {
     }
 
     function pinLabel(pin) {
-      // First render with no labelLatLng -> compute a default, stash
-      // it on the pin object in memory so subsequent renders (e.g.
-      // editor re-render after a drag elsewhere) don't re-place at
-      // a different zoom.
+      // Track who placed the label: true = we defaulted it this
+      // session and the auto-layout pass is allowed to move it;
+      // false = came from saved JSON or was hand-dragged this session,
+      // so layout leaves it alone.
       if (!pin.labelLatLng) {
         const ll = defaultLabelLatLng([pin.lat, pin.lng]);
         pin.labelLatLng = { lat: ll.lat, lng: ll.lng };
+        pin._labelAuto = true;
+      } else if (typeof pin._labelAuto !== 'boolean') {
+        pin._labelAuto = false;
       }
       const labelLL = L.latLng(pin.labelLatLng.lat, pin.labelLatLng.lng);
 
@@ -133,22 +145,44 @@ window.TrailMap = (function () {
       });
       const m = L.marker(labelLL, { icon, draggable: true, autoPan: false });
       m._trailPinLabel = pin;
+      const pinLL = L.latLng(pin.lat, pin.lng);
 
-      const leader = L.polyline([labelLL, [pin.lat, pin.lng]], {
+      const leader = L.polyline([labelLL, pinLL], {
         color: 'rgba(13, 17, 23, 0.55)',
         weight: 1.5,
         dashArray: '3 4',
         interactive: false,
       });
       leader.addTo(leaderLayer);
+      m._leader = leader;
 
-      m.on('drag', function () {
-        const ll = m.getLatLng();
-        leader.setLatLngs([ll, [pin.lat, pin.lng]]);
-      });
+      // The marker's lat/lng anchors at the top-left of the visible
+      // label (iconAnchor [0,0]). For the leader to come out of the
+      // bubble's center we need to translate top-left -> center using
+      // the rendered element's actual width/height. Re-measured each
+      // time the label could have moved or resized.
+      function syncLeader() {
+        const el = m.getElement();
+        const inner = el && el.querySelector('.trail-label');
+        if (!inner) {
+          leader.setLatLngs([m.getLatLng(), pinLL]);
+          return;
+        }
+        const r = inner.getBoundingClientRect();
+        const tl = map.latLngToContainerPoint(m.getLatLng());
+        const center = L.point(tl.x + r.width / 2, tl.y + r.height / 2);
+        leader.setLatLngs([map.containerPointToLatLng(center), pinLL]);
+      }
+      m._syncLeader = syncLeader;
+      // Wait for the label DOM to actually exist before measuring.
+      m.once('add', function () { requestAnimationFrame(syncLeader); });
+
+      m.on('drag', syncLeader);
       m.on('dragend', function () {
         const ll = m.getLatLng();
         pin.labelLatLng = { lat: ll.lat, lng: ll.lng };
+        pin._labelAuto = false;
+        syncLeader();
         if (typeof onLabelDrag.fn === 'function') onLabelDrag.fn(pin);
       });
 
