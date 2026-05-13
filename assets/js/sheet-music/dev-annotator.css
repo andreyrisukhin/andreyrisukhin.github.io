@@ -1,0 +1,165 @@
+.sheet-annotator-root {
+  position: relative;
+  z-index: 10000;
+}
+
+.sheet-annotator-hud {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(20, 20, 24, 0.94);
+  color: #f5f5f7;
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.85rem;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  min-width: 240px;
+  z-index: 10001;
+}
+
+.sheet-annotator-hud__title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.sheet-annotator-hud__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff5a5f;
+  box-shadow: 0 0 8px rgba(255, 90, 95, 0.6);
+}
+
+.sheet-annotator-hud__count {
+  margin-left: auto;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.sheet-annotator-hud__hint {
+  margin: 0.35rem 0 0.55rem;
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.sheet-annotator-hud__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.sheet-annotator-hud__actions button {
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.3rem 0.55rem;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.sheet-annotator-hud__actions button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.sheet-annotator-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.sheet-annotator-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.sheet-annotator-pin__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff5a5f;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  border: 2px solid #fff;
+  user-select: none;
+}
+
+.sheet-annotator-pin__card {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #222;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  padding: 0.55rem;
+  min-width: 240px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 0.85rem;
+}
+
+.sheet-annotator-pin__ctx {
+  font-size: 0.72rem;
+  opacity: 0.7;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sheet-annotator-pin__card textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 0.35rem 0.45rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.sheet-annotator-pin__card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.sheet-annotator-pin__card-actions button {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #f5f5f5;
+  border-radius: 4px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.sheet-annotator-pin__card-actions button:hover {
+  background: #ececec;
+}
+
+.sheet-annotator-toast {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 24, 0.94);
+  color: #fff;
+  padding: 0.55rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  z-index: 10002;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
