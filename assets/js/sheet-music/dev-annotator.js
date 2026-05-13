@@ -67,51 +67,94 @@
 
   async function captureIdentity(ev) {
     const out = {
+      kind: 'region',
       context: 'page',
       measureNumber: null,
       staffIndex: null,
       pitches: [],
       clickedPitch: null,
+      chordSymbol: null,
       selector: cssPath(ev.target),
       thumbnail: null,
     };
     const bridge = window.__sheetMusic;
     let resolvedRect = null;
-    if (bridge && bridge.ready) {
+
+    const chordText = detectChordSymbol(ev.target);
+    if (chordText) {
+      out.kind = 'chord-symbol';
+      out.chordSymbol = chordText;
+      const r = ev.target.getBoundingClientRect();
+      resolvedRect = {
+        x: r.left + window.scrollX,
+        y: r.top + window.scrollY,
+        w: r.width, h: r.height,
+      };
+      if (bridge && bridge.ready) {
+        const hit = bridge.resolveNoteAt(ev.pageX, ev.pageY, 72);
+        if (hit) {
+          out.measureNumber = hit.measureNumber;
+          out.staffIndex = hit.staffIndex;
+        }
+      }
+      const where = out.measureNumber != null ? ' · m' + out.measureNumber : '';
+      out.context = 'chord: ' + chordText + where;
+    } else if (bridge && bridge.ready) {
       const hit = bridge.resolveNoteAt(ev.pageX, ev.pageY);
-      if (hit) {
+      if (hit && pointInRect(ev.pageX, ev.pageY, hit.noteRect, 6)) {
+        out.kind = 'notehead';
         out.measureNumber = hit.measureNumber;
         out.staffIndex = hit.staffIndex;
         out.pitches = hit.pitches || [];
         out.clickedPitch = hit.clickedPitch || null;
         out.context = semanticContext(hit);
-        resolvedRect = hit.noteRect || null;
+        resolvedRect = hit.noteRect;
       }
-      if (!resolvedRect && ev.target instanceof Element) {
-        const r = ev.target.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0) {
-          resolvedRect = {
-            x: r.left + window.scrollX,
-            y: r.top + window.scrollY,
-            w: r.width,
-            h: r.height,
-          };
-        }
+    }
+
+    if (!resolvedRect && ev.target instanceof Element) {
+      const r = ev.target.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        resolvedRect = {
+          x: r.left + window.scrollX,
+          y: r.top + window.scrollY,
+          w: r.width, h: r.height,
+        };
       }
+    }
+
+    if (bridge && bridge.ready) {
       try {
         out.thumbnail = await bridge.snapshotAround(
           ev.pageX, ev.pageY, 220, 140,
-          {
-            bboxPage: resolvedRect,
-            clickPage: { x: ev.pageX, y: ev.pageY },
-          }
+          { bboxPage: resolvedRect, clickPage: { x: ev.pageX, y: ev.pageY } }
         );
       } catch (_) { /* ignore */ }
     }
+
     if (out.context === 'page') {
-      out.context = domFallbackContext(ev.target);
+      out.context = 'region · ' + domFallbackContext(ev.target);
     }
     return out;
+  }
+
+  function detectChordSymbol(target) {
+    if (!(target instanceof Element)) return null;
+    const text = target.closest('text');
+    if (!text) return null;
+    if (!text.closest('.vf-text')) return null;
+    const content = (text.textContent || '').trim();
+    if (!content) return null;
+    if (/^[A-G][#b]?(maj|min|m|M|dim|aug|sus|add)?\d*(\/[A-G][#b]?)?$/.test(content)) {
+      return content;
+    }
+    return null;
+  }
+
+  function pointInRect(px, py, rect, pad = 0) {
+    if (!rect) return false;
+    return px >= rect.x - pad && px <= rect.x + rect.w + pad &&
+           py >= rect.y - pad && py <= rect.y + rect.h + pad;
   }
 
   function semanticContext(hit) {
