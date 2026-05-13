@@ -162,11 +162,9 @@ window.TrailMap = (function () {
         opacity: 0.85,
         dashArray: seg.kind === 'scramble' ? '6 6' : null,
       });
-      // Segments only earn a tooltip if they carry a non-empty note;
-      // a bare "walk" badge over a green line is noise.
-      if (seg.note && seg.note.trim()) {
-        bindReaderTooltip(line, segmentTipHtml(seg));
-      }
+      // Reader never tooltips segments. The line's colour already
+      // conveys the kind, and any prose belongs on the pins. Editor
+      // still wires its own edit popup via leaflet-editor.js.
       line._trailSegment = seg;
       return line;
     }
