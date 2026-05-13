@@ -137,12 +137,29 @@ async function main() {
     `click \u2192 sidebar open < ${THRESHOLDS.clickToSidebarMs}ms (got ${aTimings.clickToSidebarMs})`, aTimings);
 
   section('Scenario B — chord symbol shift-click');
+  // Static chord symbols are now hidden in the rendered score, so we
+  // inject a synthetic .vf-text > text reading 'Cm' inside the SVG just
+  // for this click. The classifier doesn't care how the text got there,
+  // only that detectChordSymbol matches its content.
   evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
-      const cs = [...svg.querySelectorAll('text')].find(t => /^Cm$/.test(t.textContent.trim()));
-      const r = cs.getBoundingClientRect();
-      cs.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window,
+      const ns = 'http://www.w3.org/2000/svg';
+      const wrap = document.createElementNS(ns, 'g');
+      wrap.setAttribute('class', 'vf-text');
+      wrap.setAttribute('data-test-injected', 'chord-symbol');
+      const t = document.createElementNS(ns, 'text');
+      const box = svg.getBoundingClientRect();
+      const svgRect = svg.viewBox.baseVal;
+      const tx = svgRect.x + 80, ty = svgRect.y + 60;
+      t.setAttribute('x', tx);
+      t.setAttribute('y', ty);
+      t.setAttribute('font-size', '16');
+      t.textContent = 'Cm';
+      wrap.appendChild(t);
+      svg.appendChild(wrap);
+      const r = t.getBoundingClientRect();
+      t.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window,
         clientX: r.left + r.width/2, clientY: r.top + r.height/2, shiftKey:true, button:0}));
       await new Promise(r => setTimeout(r, 400));
       return 'ok';

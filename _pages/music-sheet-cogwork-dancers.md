@@ -51,16 +51,51 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
     backend: 'svg',
     drawTitle: true,
     drawComposer: true,
+    drawChordSymbols: false,
     autoResize: true,
   });
 
+  // Belt-and-braces: drawChordSymbols isn't honored on every OSMD release;
+  // EngravingRules.RenderChordSymbols is the canonical knob.
+  if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = false;
+
   let zoom = 1.0;
-  const applyZoom = () => { osmd.Zoom = zoom; osmd.render(); };
+  const applyZoom = () => { osmd.Zoom = zoom; osmd.render(); watchAndHide(); };
+
+  // Hide stray chord-symbol-shaped text rendered as score directions
+  // (musicxml <direction>/<words>), which OSMD's RenderChordSymbols
+  // option doesn't gate. We surface chord names via the dynamic hover
+  // label, so the static text is now duplicate noise.
+  const CHORD_TEXT_RE = /^[A-G][#b]?(?:m|maj|min|dim|aug|sus|add|m6|m7|maj7|7|9|11|13|\u00b0|\u00f8)?(?:\/[A-G][#b]?)?$/;
+  const hideStaticChordText = () => {
+    const svg = container.querySelector('svg');
+    if (!svg) return;
+    for (const t of svg.querySelectorAll('g.vf-text > text, text.vf-chord, text')) {
+      const s = (t.textContent || '').trim();
+      if (!s || !CHORD_TEXT_RE.test(s)) continue;
+      const wrap = t.closest('g.vf-text') || t;
+      if (wrap.hasAttribute('data-test-injected')) continue;
+      wrap.setAttribute('data-hidden-chord-text', s);
+      wrap.style.display = 'none';
+    }
+  };
+
+  // OSMD adds elements after the .then() resolves (autoResize, layout
+  // reflows). MutationObserver catches the late additions cheaply.
+  let chordHideObs = null;
+  const watchAndHide = () => {
+    if (chordHideObs) chordHideObs.disconnect();
+    hideStaticChordText();
+    chordHideObs = new MutationObserver(hideStaticChordText);
+    chordHideObs.observe(container, {childList: true, subtree: true});
+  };
 
   osmd.load(url)
     .then(() => {
       status.textContent = '';
+      if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = false;
       osmd.render();
+      watchAndHide();
       if (window.__sheetMusic) window.__sheetMusic.register(osmd, container);
     })
     .catch((err) => {
