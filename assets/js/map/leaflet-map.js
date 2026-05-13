@@ -107,18 +107,24 @@ window.TrailMap = (function () {
     // Drop the label this many pixels above-and-right of the pin
     // when the data has no saved labelLatLng yet. Geographic so it's
     // zoom-stable once it lands.
-    function defaultLabelLatLng(pinLatLng) {
+    // Spoke out at varying angles so a cluster of nearby pins doesn't
+    // pile every default label on top of each other. Once the user
+    // drags a label its position is persisted on the pin record and
+    // this default is no longer used.
+    const DEFAULT_LABEL_ANGLES = [-45, -135, 45, 135, -90, 90, 0, 180];
+    const DEFAULT_LABEL_DIST = 60; // px from pin center
+    function defaultLabelLatLng(pinLatLng, idx) {
+      const deg = DEFAULT_LABEL_ANGLES[idx % DEFAULT_LABEL_ANGLES.length];
+      const rad = (deg * Math.PI) / 180;
+      const dx = Math.cos(rad) * DEFAULT_LABEL_DIST;
+      const dy = Math.sin(rad) * DEFAULT_LABEL_DIST; // y grows downward in container px
       const px = map.latLngToContainerPoint(pinLatLng);
-      return map.containerPointToLatLng([px.x + 28, px.y - 36]);
+      return map.containerPointToLatLng([px.x + dx, px.y + dy]);
     }
 
-    function pinLabel(pin) {
-      // Track who placed the label: true = we defaulted it this
-      // session and the auto-layout pass is allowed to move it;
-      // false = came from saved JSON or was hand-dragged this session,
-      // so layout leaves it alone.
+    function pinLabel(pin, idx) {
       if (!pin.labelLatLng) {
-        const ll = defaultLabelLatLng([pin.lat, pin.lng]);
+        const ll = defaultLabelLatLng([pin.lat, pin.lng], idx);
         pin.labelLatLng = { lat: ll.lat, lng: ll.lng };
         pin._labelAuto = true;
       } else if (typeof pin._labelAuto !== 'boolean') {
@@ -227,10 +233,12 @@ window.TrailMap = (function () {
       segmentLayer.clearLayers();
       labelLayer.clearLayers();
       leaderLayer.clearLayers();
+      let pinIdx = 0;
       for (const pin of state.pins) {
         if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') continue;
         pinMarker(pin).addTo(pinLayer);
-        pinLabel(pin).addTo(labelLayer);
+        pinLabel(pin, pinIdx).addTo(labelLayer);
+        pinIdx++;
       }
       for (const seg of state.segments) {
         const line = segmentLine(seg);

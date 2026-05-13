@@ -53,7 +53,10 @@
     // we just supply a callback that marks the editor dirty so Save
     // writes the new labelLatLng to disk.
     if (controller.onLabelDrag) {
-      controller.onLabelDrag.fn = function () { setDirty(true); };
+      controller.onLabelDrag.fn = function (pin) {
+        setDirty(true);
+        setStatus('label moved (' + pin.id + ') — click Save to persist');
+      };
     }
 
     let mode = 'none';
@@ -417,6 +420,16 @@
       return div;
     }
 
+    function stripPrivateFields(obj) {
+      // Drop session-only flags (any key beginning with "_") so the
+      // committed JSON stays a clean public schema.
+      const out = {};
+      for (const k of Object.keys(obj)) {
+        if (!k.startsWith('_')) out[k] = obj[k];
+      }
+      return out;
+    }
+
     async function save() {
       // Snapshot current viewport so the saved file remembers where
       // the path "starts" visually.
@@ -433,7 +446,7 @@
             name: state.name,
             center: state.center,
             zoom: state.zoom,
-            pins: state.pins,
+            pins: state.pins.map(stripPrivateFields),
             segments: state.segments,
           }),
         });
