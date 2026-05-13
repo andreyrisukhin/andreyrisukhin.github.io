@@ -21,6 +21,9 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
 
 <noscript><p>This page renders sheet music client-side with JavaScript. Download the MusicXML or `.mscz` above to view it in another application.</p></noscript>
 
+<link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css' | relative_url }}">
+<script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.9.0/build/opensheetmusicdisplay.min.js"></script>
 <script>
 (function () {

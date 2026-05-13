@@ -41,6 +41,32 @@ Result: responsive SVG sheet music inline. OSMD also accepts the XML as a string
 - Interactive/responsive sheet music (e.g. exercises, playback cursor): MuseScore → MusicXML → OSMD at runtime.
 - Static figure in a post: MuseScore → SVG at build time, embedded via the standard `figure.liquid` block (see `DESIGN.md`).
 
+## Dev-mode annotation overlay
+
+On the Cogwork Dancers page, a feedback overlay activates when the site is
+served from `localhost` / `127.0.0.1` or the URL carries `?dev`. Inspired by
+[kunchenguid/lavish-axi](https://github.com/kunchenguid/lavish-axi), minus
+the polling sidecar (we're a static Jekyll site).
+
+Workflow:
+
+1. `bundle exec jekyll serve` and open the sheet-music page.
+2. Shift-click anywhere on the score (or a control) to drop a numbered pin;
+   a `window.prompt` captures the comment. Pins render on a fixed overlay
+   and persist in `localStorage` keyed by pathname.
+3. Click a pin to reopen it for edits or deletion.
+4. Use the floating HUD (bottom-right) to:
+   - **Copy as Markdown** — formatted list ready to paste into a chat.
+   - **Download JSON** — full structured dump with pathname, ids,
+     coordinates, anchor-relative coordinates, inferred element context,
+     note, and timestamp.
+   - **Clear all** — wipes the pins for this page.
+
+Implementation lives in
+`assets/js/sheet-music/dev-annotator.{js,css}` and is included from the
+page markdown; the `isDev` guard at the top of the JS ensures the overlay
+is inert when the site is served from production.
+
 ## References
 
 - OSMD homepage: https://opensheetmusicdisplay.org/
