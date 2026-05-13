@@ -49,11 +49,10 @@
       u.searchParams.delete('dev');
       location.replace(u.toString());
     });
-    const host = document.getElementById('osmd-container') || document.body;
-    if (host && host.style && getComputedStyle(host).position === 'static') {
-      host.style.position = 'relative';
-    }
-    host.appendChild(btn);
+    // Append to <body>: the toggle is position:fixed so the host
+    // doesn't matter, and it stays out of the score container's
+    // layout where MutationObservers might churn over it.
+    document.body.appendChild(btn);
   }
 
   const isDev = readDevMode();
