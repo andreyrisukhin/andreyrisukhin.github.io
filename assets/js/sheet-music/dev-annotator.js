@@ -46,6 +46,57 @@
   let shiftHeld = false;
   let lastMouse = { x: 0, y: 0, target: null };
 
+  if (new URLSearchParams(location.search).has('highlight')) {
+    const ready = window.__sheetMusic && window.__sheetMusic.readyPromise;
+    (ready || Promise.resolve()).then(() => setTimeout(paintAllTargets, 100));
+    window.addEventListener('resize', () => {
+      clearAllTargets();
+      setTimeout(paintAllTargets, 200);
+    });
+  }
+
+  function paintAllTargets() {
+    clearAllTargets();
+    const svg = document.querySelector('#osmd-container svg');
+    if (!svg) return;
+    let noteCount = 0, chordCount = 0;
+
+    for (const g of svg.querySelectorAll('.vf-stavenote')) {
+      const glyph = g.querySelector('.vf-note') || g;
+      const r = glyph.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) continue;
+      document.body.appendChild(makeMark('notehead', padRect(rectToPage(r), 3)));
+      noteCount++;
+    }
+    for (const text of svg.querySelectorAll('.vf-text text')) {
+      const content = (text.textContent || '').trim();
+      if (!/^[A-G][#b]?(maj|min|m|M|dim|aug|sus|add)?\d*(\/[A-G][#b]?)?$/.test(content)) continue;
+      const r = text.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) continue;
+      document.body.appendChild(makeMark('chord-symbol', padRect(rectToPage(r), 2)));
+      chordCount++;
+    }
+    console.log('[annotator] highlighted', noteCount, 'noteheads and', chordCount, 'chord symbols');
+  }
+
+  function clearAllTargets() {
+    for (const el of document.querySelectorAll('[data-sheet-highlight]')) el.remove();
+  }
+
+  function makeMark(kind, rect) {
+    const el = document.createElement('div');
+    el.className = 'sheet-annotator-preview';
+    el.setAttribute('data-kind', kind);
+    el.setAttribute('data-sheet-highlight', '1');
+    el.setAttribute('data-sheet-annotator', 'highlight');
+    el.style.left = rect.x + 'px';
+    el.style.top = rect.y + 'px';
+    el.style.width = rect.w + 'px';
+    el.style.height = rect.h + 'px';
+    el.style.pointerEvents = 'none';
+    return el;
+  }
+
   function onKeyDown(e) {
     if (e.key === 'Escape') sidebar.close();
     if (e.key === 'Shift' && !shiftHeld) {
@@ -96,19 +147,19 @@
         rect: rectToPage(r),
       };
     }
-    const bridge = window.__sheetMusic;
-    if (bridge && bridge.ready) {
-      const resolved = bridge.resolveNoteAt(pageX, pageY);
-      if (resolved && pointInRect(pageX, pageY, resolved.noteRect, 6)) {
-        const pitch = (resolved.pitches && resolved.pitches[0]) || resolved.clickedPitch || 'note';
-        const glyph = target.closest('.vf-note, path') || target;
-        const gr = glyph.getBoundingClientRect();
-        const useGlyph = gr.width > 0 && gr.height > 0 && gr.width <= resolved.noteRect.w + 4;
-        const base = useGlyph ? rectToPage(gr) : resolved.noteRect;
+    const staveNote = target.closest && target.closest('.vf-stavenote');
+    if (staveNote) {
+      const glyph = target.closest('.vf-note') || staveNote.querySelector('.vf-note') || staveNote;
+      const gr = glyph.getBoundingClientRect();
+      if (gr.width > 0 && gr.height > 0) {
+        const bridge = window.__sheetMusic;
+        const resolved = (bridge && bridge.ready) ? bridge.resolveNoteAt(pageX, pageY, 80) : null;
+        const pitch = (resolved && resolved.pitches && resolved.pitches[0]) || (resolved && resolved.clickedPitch) || 'note';
+        const measure = resolved && resolved.measureNumber;
         return {
           kind: 'notehead',
-          label: pitch + (resolved.measureNumber != null ? ' · m' + resolved.measureNumber : ''),
-          rect: padRect(base, 4),
+          label: pitch + (measure != null ? ' · m' + measure : ''),
+          rect: padRect(rectToPage(gr), 4),
         };
       }
     }
@@ -204,16 +255,30 @@
       }
       const where = out.measureNumber != null ? ' · m' + out.measureNumber : '';
       out.context = 'chord: ' + chordText + where;
-    } else if (bridge && bridge.ready) {
-      const hit = bridge.resolveNoteAt(ev.pageX, ev.pageY);
-      if (hit && pointInRect(ev.pageX, ev.pageY, hit.noteRect, 6)) {
+    } else {
+      const staveNote = ev.target instanceof Element ? ev.target.closest('.vf-stavenote') : null;
+      if (staveNote) {
+        const glyph = ev.target.closest('.vf-note') || staveNote.querySelector('.vf-note') || staveNote;
+        const gr = glyph.getBoundingClientRect();
+        resolvedRect = {
+          x: gr.left + window.scrollX,
+          y: gr.top + window.scrollY,
+          w: gr.width, h: gr.height,
+        };
         out.kind = 'notehead';
-        out.measureNumber = hit.measureNumber;
-        out.staffIndex = hit.staffIndex;
-        out.pitches = hit.pitches || [];
-        out.clickedPitch = hit.clickedPitch || null;
-        out.context = semanticContext(hit);
-        resolvedRect = hit.noteRect;
+        if (bridge && bridge.ready) {
+          const hit = bridge.resolveNoteAt(ev.pageX, ev.pageY, 80);
+          if (hit) {
+            out.measureNumber = hit.measureNumber;
+            out.staffIndex = hit.staffIndex;
+            out.pitches = hit.pitches || [];
+            out.clickedPitch = hit.clickedPitch || null;
+            out.context = semanticContext(hit);
+          }
+        }
+        if (out.context === 'page') {
+          out.context = 'note · unresolved';
+        }
       }
     }
 
