@@ -193,6 +193,7 @@ exclude:
   - _projects/?_project.md
   - AGENTS.md
   - DESIGN.md
+  - NOTES-sheet-music-rendering.md
   - bin/
   - CONTRIBUTING.md
   - CUSTOMIZE.md
