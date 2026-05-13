@@ -86,6 +86,23 @@ window.TrailMap = (function () {
       segments: Array.isArray(initialData.segments) ? initialData.segments.slice() : [],
     };
 
+    // Detected once: on hover-capable pointers (desktop / trackpad),
+    // popups should open on hover too. On touch devices, Leaflet's
+    // default tap-to-open behaviour is what we want.
+    const isHoverDevice = typeof window.matchMedia === 'function' &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    // Editor flips this to true so its inline edit forms don't keep
+    // re-opening when the cursor brushes a pin.
+    const hoverCfg = { suppress: false };
+
+    function attachHoverOpen(layer) {
+      if (!isHoverDevice) return;
+      layer.on('mouseover', function () {
+        if (hoverCfg.suppress) return;
+        if (!layer.isPopupOpen || !layer.isPopupOpen()) layer.openPopup();
+      });
+    }
+
     function pinMarker(pin) {
       const color = PIN_COLORS[pin.kind] || PIN_COLORS.waypoint;
       // Leaflet's default marker is a sprite; for tiny custom-coloured
@@ -100,6 +117,7 @@ window.TrailMap = (function () {
       const m = L.marker([pin.lat, pin.lng], { icon, draggable: false });
       m.bindPopup(pinPopupHtml(pin));
       m._trailPin = pin;
+      attachHoverOpen(m);
       return m;
     }
 
@@ -124,6 +142,7 @@ window.TrailMap = (function () {
       });
       line.bindPopup(segmentPopupHtml(seg));
       line._trailSegment = seg;
+      attachHoverOpen(line);
       return line;
     }
 
@@ -164,6 +183,7 @@ window.TrailMap = (function () {
       segmentLayer,
       PIN_COLORS,
       SEGMENT_COLORS,
+      hoverCfg,
     };
   }
 

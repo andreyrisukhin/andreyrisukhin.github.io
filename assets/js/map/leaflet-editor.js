@@ -49,6 +49,10 @@
     if (!controller) return;
     const map = controller.map;
     const state = controller.state;
+    // While the editor is mounted, suppress the reader's hover-to-open
+    // behaviour -- the edit forms are too noisy to pop up on every
+    // cursor pass.
+    if (controller.hoverCfg) controller.hoverCfg.suppress = true;
 
     let mode = 'none';
     let dirty = false;
