@@ -127,46 +127,19 @@
 
   // ── Stradella recipe display ──
 
+  // Shared renderer lives in assets/js/music/stradella-recipe.js, but the
+  // recognizer's existing CSS targets .recognizer-stradella* class names,
+  // so we wrap and rewrite class hooks rather than restyle.
   function renderStradellaInfo(chordName) {
-    var S = window.StradellaData;
-    if (!S || !chordName) return '';
-    // Parse root and suffix from chord name (e.g. "Dm7" → root "D", suffix "m7")
-    // Handle slash chords: "Dm7/F" → use root chord "Dm7"
-    var name = chordName.split('/')[0];
-    var rootMatch = name.match(/^([A-G][#b]?)(.*)/);
-    if (!rootMatch) return '';
-    var rootName = rootMatch[1];
-    var suffix = rootMatch[2];
-    // Find root semitone
-    var rootSemitone = -1;
-    for (var i = 0; i < M.NOTES.length; i++) {
-      if (M.toAscii(M.NOTES[i]) === rootName) { rootSemitone = i; break; }
-    }
-    if (rootSemitone === -1) return '';
-    // Look up recipes by suffix
-    var entries = S.findBySuffix(suffix);
-    if (entries.length === 0) return '';
-    var html = '<div class="recognizer-stradella">';
-    html += '<strong>Stradella:</strong>';
-    for (var j = 0; j < entries.length; j++) {
-      var c = entries[j];
-      var recipe = S.renderRecipe(c, rootSemitone, true);
-      var cls = 'recognizer-stradella-item';
-      if (c.bug) cls += ' is-bug';
-      else if (c.approx) cls += ' is-approx';
-      html += '<div class="' + cls + '">';
-      html += '<span class="recognizer-stradella-recipe">' + M.esc(recipe) + '</span>';
-      if (c.notes) {
-        html += '<span class="recognizer-stradella-note">' + M.esc(c.notes) + '</span>';
-      }
-      var warn = c.bugNote || c.approxNote || c.uncertainNote;
-      if (warn) {
-        html += '<span class="recognizer-stradella-warn">' + M.esc(warn) + '</span>';
-      }
-      html += '</div>';
-    }
-    html += '</div>';
-    return html;
+    if (!window.StradellaRecipe) return '';
+    var html = window.StradellaRecipe.render(chordName);
+    if (!html) return '';
+    return html
+      .replace(/class="stradella-recipe"/g, 'class="recognizer-stradella"')
+      .replace(/class="stradella-recipe__item/g, 'class="recognizer-stradella-item')
+      .replace(/class="stradella-recipe__voicing"/g, 'class="recognizer-stradella-recipe"')
+      .replace(/class="stradella-recipe__note"/g, 'class="recognizer-stradella-note"')
+      .replace(/class="stradella-recipe__warn"/g, 'class="recognizer-stradella-warn"');
   }
 
   // ── Rendering ──

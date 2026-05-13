@@ -317,8 +317,16 @@
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   font-size: 0.85rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease-out, transform 160ms ease-out;
 }
-.chord-inspector[hidden] { display: none; }
+.chord-inspector.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
 .chord-inspector__head {
   display: flex;
   align-items: center;
@@ -374,4 +382,48 @@
 }
 .chord-inspector__row--hi {
   color: #ffcb6b;
+}
+.chord-inspector__stradella {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.chord-inspector__stradella .stradella-recipe > strong {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  margin-bottom: 0.3rem;
+}
+.chord-inspector__stradella .stradella-recipe__item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.chord-inspector__stradella .stradella-recipe__item:first-of-type {
+  border-top: none;
+}
+.chord-inspector__stradella .stradella-recipe__voicing {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  color: #ffcb6b;
+}
+.chord-inspector__stradella .stradella-recipe__note {
+  font-size: 0.72rem;
+  opacity: 0.75;
+  margin-top: 0.1rem;
+}
+.chord-inspector__stradella .stradella-recipe__warn {
+  font-size: 0.7rem;
+  color: #f48fb1;
+  margin-top: 0.1rem;
+}
+.chord-inspector__stradella .stradella-recipe__item.is-approx .stradella-recipe__voicing {
+  color: #ffd180;
+  opacity: 0.85;
+}
+.chord-inspector__stradella .stradella-recipe__item.is-bug .stradella-recipe__voicing {
+  color: #ef9a9a;
 }

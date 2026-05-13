@@ -1,14 +1,17 @@
 /*
  * Chord inspector popover for sheet-music pages.
  *
- * Click a note (without Shift) and a popover shows the chord name,
- * note list, intervals/semitones, and a Stradella bass recipe if
- * the chord matches one of the standard voicings.
+ * Plain-click a note and a popover fades in showing the chord name,
+ * notes, intervals, and every Stradella voicing that matches via the
+ * shared StradellaRecipe.render() lookup. Click the same chord again
+ * (or press Escape) and the popover fades out.
  *
  * Dependencies loaded by the host page:
  *   - window.__sheetMusic (osmd-bridge.js)
  *   - window.Tonal        (assets/js/vendor/tonal.min.js)
- *   - window.StradellaButtons (from Liquid-rendered site.data)
+ *   - window.StradellaRecipe (assets/js/music/stradella-recipe.js)
+ *     plus its own deps: window.Music, window.StradellaData,
+ *     window.StradellaButtons
  */
 
 (function () {
@@ -24,27 +27,45 @@
 
   document.addEventListener('click', onClick, true);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') pop.hide();
+    if (e.key === 'Escape') { pop.hide(); lastChordKey = null; }
   });
-  window.addEventListener('scroll', pop.hide, { passive: true });
-  window.addEventListener('resize', pop.hide);
+  window.addEventListener('scroll', () => { pop.hide(); lastChordKey = null; }, { passive: true });
+  window.addEventListener('resize', () => { pop.hide(); lastChordKey = null; });
+
+  let lastChordKey = null;
 
   function onClick(e) {
     if (e.shiftKey) return;
     if (!(e.target instanceof Element)) return;
     if (e.target.closest('[data-sheet-annotator]')) return;
-    if (e.target.closest('[data-chord-inspector]')) return;
-    const container = document.getElementById('osmd-container');
-    if (!container || !container.contains(e.target)) return;
-
-    const bridge = window.__sheetMusic;
-    if (!bridge || !bridge.ready) return;
-    const hit = bridge.resolveNoteAt(e.pageX, e.pageY);
-    if (!hit || !hit.pitches || !hit.pitches.length) {
-      pop.hide();
+    if (e.target.closest('[data-chord-inspector]')) {
+      // Click inside the popover: don't toggle off unless it's the close button.
       return;
     }
-    pop.showAt(e.pageX, e.pageY, analyze(hit));
+    const container = document.getElementById('osmd-container');
+    if (!container || !container.contains(e.target)) {
+      pop.hide();
+      lastChordKey = null;
+      return;
+    }
+    const bridge = window.__sheetMusic;
+    if (!bridge || !bridge.ready) return;
+    const hit = bridge.resolveNoteAt(e.pageX, e.pageY, 80, e.target);
+    if (!hit || !hit.pitches || !hit.pitches.length) {
+      pop.hide();
+      lastChordKey = null;
+      return;
+    }
+    const data = analyze(hit);
+    const key = (hit.measureNumber || '?') + '/' + (hit.staffIndex || '?') + '/' + (data.chordName || '?');
+    // Toggle: clicking the same chord again fades it out.
+    if (key === lastChordKey && pop.isVisible()) {
+      pop.hide();
+      lastChordKey = null;
+      return;
+    }
+    lastChordKey = key;
+    pop.showAt(e.pageX, e.pageY, data);
   }
 
   function analyze(hit) {
@@ -60,8 +81,10 @@
     const semitonesFromRoot = pitches
       .map((p) => ((toMidi(p) - lowestMidi) % 12 + 12) % 12);
 
-    const chordName = detectChord(uniquePcs) || (pitches.length === 1 ? pitches[0] : '—');
-    const stradella = suggestStradella(rootPc, semitonesFromRoot);
+    const chordName = hit.chordName || detectChord(uniquePcs) || (pitches.length === 1 ? pitches[0] : '—');
+    const stradellaHtml = (window.StradellaRecipe && chordName)
+      ? window.StradellaRecipe.render(chordName)
+      : '';
     return {
       measureLabel: hit.measureNumber != null ? 'measure ' + hit.measureNumber : null,
       staffLabel: hit.staffIndex != null ? 'staff ' + (hit.staffIndex + 1) : null,
@@ -70,7 +93,7 @@
       intervals,
       semitonesFromRoot,
       chordName,
-      stradella,
+      stradellaHtml,
     };
   }
 
@@ -83,24 +106,6 @@
       if (detected && detected.length) return detected[0];
     } catch (_) { /* ignore */ }
     return null;
-  }
-
-  function suggestStradella(rootPc, semitonesFromRoot) {
-    const table = window.StradellaButtons;
-    if (!table) return null;
-    const want = Array.from(new Set(semitonesFromRoot)).sort((a, b) => a - b);
-    for (const id of Object.keys(table)) {
-      const offsets = Array.from(new Set(table[id])).sort((a, b) => a - b);
-      if (offsets.length === want.length && offsets.every((o, i) => o === want[i])) {
-        return { id, offsets, recipe: rootPc + ' bass + ' + buttonLabel(id) };
-      }
-    }
-    return null;
-  }
-
-  function buttonLabel(id) {
-    const labels = { M: 'Major', m: 'Minor', '7': 'Dom 7th', d7: 'Dim 7th' };
-    return labels[id] || id + ' button';
   }
 
   function pitchClass(pitch) {
@@ -128,22 +133,30 @@
     root.className = 'chord-inspector';
     root.setAttribute('data-chord-inspector', '');
     root.setAttribute('role', 'tooltip');
-    root.hidden = true;
+    // Don't use hidden attr; we want the element in the layout for the
+    // CSS opacity transition to apply. is-visible toggles opacity.
 
     function showAt(pageX, pageY, data) {
       root.innerHTML = render(data);
-      root.hidden = false;
       root.style.left = Math.min(pageX + 12, document.documentElement.clientWidth + window.scrollX - 320) + 'px';
       root.style.top = (pageY + 12) + 'px';
+      // Force a reflow so the transition runs even on the very first show.
+      root.classList.remove('is-visible');
+      void root.offsetWidth;
+      root.classList.add('is-visible');
     }
-    function hide() { root.hidden = true; }
+    function hide() { root.classList.remove('is-visible'); }
+    function isVisible() { return root.classList.contains('is-visible'); }
 
     root.addEventListener('click', (e) => {
       const t = e.target instanceof Element ? e.target : null;
-      if (t && t.getAttribute('data-chord-action') === 'close') hide();
+      if (t && t.getAttribute('data-chord-action') === 'close') {
+        hide();
+        lastChordKey = null;
+      }
     });
 
-    return { root, showAt, hide };
+    return { root, showAt, hide, isVisible };
   }
 
   function render(d) {
@@ -162,8 +175,8 @@
       <div class="chord-inspector__row"><span>Notes</span><span>${pitches}</span></div>
       <div class="chord-inspector__row"><span>Semitones from bass</span><span>${escapeHtml(semis)}</span></div>
       <div class="chord-inspector__row"><span>Intervals</span><span>${escapeHtml(intervals)}</span></div>
-      ${d.stradella
-        ? `<div class="chord-inspector__row chord-inspector__row--hi"><span>Stradella</span><span>${escapeHtml(d.stradella.recipe)}</span></div>`
+      ${d.stradellaHtml
+        ? `<div class="chord-inspector__stradella">${d.stradellaHtml}</div>`
         : ''}
     `;
   }

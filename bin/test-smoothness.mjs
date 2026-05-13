@@ -460,6 +460,65 @@ async function main() {
       tie.savedPin);
   }
 
+  section('Scenario J — chord inspector fades in with deep Stradella lookup');
+  const inspector = evalJs(`
+    (async () => {
+      const svg = document.querySelector('#osmd-container svg');
+      const chord = [...svg.querySelectorAll('.vf-stavenote')]
+        .find(sn => sn.querySelectorAll('.vf-notehead').length >= 3);
+      if (!chord) return JSON.stringify({skip: true, reason: 'no chord stack'});
+      chord.scrollIntoView({block: 'center'});
+      await new Promise(r => setTimeout(r, 150));
+      const head = chord.querySelector('.vf-notehead');
+      const r = head.getBoundingClientRect();
+      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const click = () => head.dispatchEvent(new MouseEvent('click', {
+        bubbles:true, cancelable:true, view:window,
+        clientX:cx, clientY:cy, button:0,
+      }));
+      // Make sure inspector starts hidden.
+      const pop = document.querySelector('.chord-inspector');
+      pop.classList.remove('is-visible');
+      await new Promise(r => setTimeout(r, 50));
+      click();
+      await new Promise(r => setTimeout(r, 250));
+      const open = {
+        visible: pop.classList.contains('is-visible'),
+        opacity: getComputedStyle(pop).opacity,
+        title: pop.querySelector('.chord-inspector__title')?.textContent,
+        hasStradellaSection: !!pop.querySelector('.chord-inspector__stradella'),
+        stradellaItems: pop.querySelectorAll('.stradella-recipe__item').length,
+        firstVoicing: pop.querySelector('.stradella-recipe__voicing')?.textContent || null,
+      };
+      // Click again on the same chord -> should toggle off.
+      click();
+      await new Promise(r => setTimeout(r, 250));
+      const closed = {
+        visible: pop.classList.contains('is-visible'),
+        opacity: getComputedStyle(pop).opacity,
+      };
+      return JSON.stringify({open, closed});
+    })();
+  `);
+  const insp = JSON.parse(inspector);
+  if (insp.skip) {
+    console.log('  (skipped: ' + insp.reason + ')');
+  } else {
+    assert(insp.open.visible === true,
+      'inspector becomes visible after click on chord stack', insp.open);
+    assert(parseFloat(insp.open.opacity) > 0.5,
+      'inspector opacity transitions toward 1 (fade-in)', insp.open.opacity);
+    assert((insp.open.title || '').length > 0,
+      'inspector shows a chord title', insp.open.title);
+    assert(insp.open.hasStradellaSection === true,
+      'inspector has the Stradella section', insp.open);
+    assert(insp.open.stradellaItems >= 1,
+      'inspector lists at least one Stradella voicing from findBySuffix',
+      insp.open);
+    assert(insp.closed.visible === false,
+      'second click on same chord toggles inspector off', insp.closed);
+  }
+
   section('Scenario I — bridge agrees with OSMD source on note vs rest');
   // Regression: previously the bridge used GetNearestNote at click coordinates,
   // which snapped to a nearby rest when the clicked notehead lived in a voice

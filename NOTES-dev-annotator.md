@@ -110,8 +110,7 @@ from there.
     16 stave-ties are all slurs)
   - source-of-truth agreement (sample 60+ stavenotes; for each, the
     bridge's `isRest` must equal `sourceNote.isRestFlag`)
-  Latest count: 36 passed, 0 failed before the in-progress preview-label
-  refactor.
+  Latest count: 45 passed, 0 failed.
 
 ## How we got here
 
@@ -160,32 +159,41 @@ Numbers in parentheses are commit shorthashes from `git log`.
     by their detected chord name. Wired Tonal into the bridge as
     `detectChordName(pitches)`. Hover label became `GM · G3`, saved
     context became `GM · ⟨G3⟩ in [G3 B3 D4]`.
+14. **`9377abf`** — preview label refactor. Drop the trailing
+    `· mN` measure tag (the saved pin context still records it) and
+    switch chord-stack labels to `Chord⟨Note⟩` syntax (`Cm⟨C4⟩`) so
+    the chord identity and the cursor's specific tone are visually
+    distinct without crowding. NOTES-dev-annotator.md added.
+15. **`2c83a5d`** — pin #7. Scenario H rewritten to walk OSMD's
+    graphic tree for `sourceNote.NoteTie` instead of the
+    `.vf-stavetie` SVG class (which lumps ties + slurs and was
+    skipping every run). Asserts `isTied=true` and a non-null
+    `clickedPitch` on 8 actual ties from m54-77. m20 chord
+    recognition (`Cm`) was already shipped in `293d4b2`.
+16. **`717c33d`** — pin #6 part 1. Hide static chord-symbol text in
+    the score: OSMD's `RenderChordSymbols=false` kills 20 of 22
+    symbols, a small MutationObserver tags and hides the 2 remaining
+    `g.vf-text > text` direction labels matching the chord-symbol
+    regex. Scenario B injects its own `g.vf-text` with
+    `data-test-injected` so the hider skips it.
+17. **(this commit)** — pin #6 part 2. Lifted
+    `renderStradellaInfo` out of `chord-recognizer/main.js` into a
+    shared `assets/js/music/stradella-recipe.js` (`StradellaRecipe.render(name)`).
+    Chord recognizer now wraps it and rewrites class hooks for its
+    existing CSS. Sheet-music page loads it alongside `Music`/`StradellaData`.
+    `chord-inspector.js` now: (a) calls
+    `bridge.resolveNoteAt(..., element)` so it gets the same
+    DOM-anchored pitch resolution + Tonal `chordName` as the hover
+    preview; (b) renders the deeper Stradella section via the shared
+    helper instead of the old hard-coded 4-voicing `suggestStradella`;
+    (c) toggles by class instead of `hidden` attribute, with a 160 ms
+    opacity + transform transition (the fade requested in pin #6).
+    Same-chord re-click hides; Escape, scroll, resize all hide and
+    reset the toggle key. Scenario J asserts visibility, opacity,
+    Stradella section presence, and the toggle behavior.
 
 ## Pending (not in `main` yet)
 
-- **Preview label format.** Removing measure (`· m12`) from the hover
-  label and using `Chord⟨Note⟩` syntax (`Cm⟨C4⟩`) so the chord and the
-  note within it are visually distinct without losing either. The
-  current commit on disk has the label change but breaks 26 of 36 test
-  assertions because they grep the old format; tests need to be
-  updated alongside.
-- **Tied-chord hover (pin #7, m20).** OSMD splits some tied chords
-  across multiple `staffEntries`, so a single notehead's voice entry
-  has only one pitch and Tonal returns no chord. The fix is to walk
-  forward/backward from the clicked staff entry on the same X position
-  to gather all tied tones, then call Tonal on the union.
-- **Hide rendered chord-symbol text in the score.** The static `Cm`,
-  `Fm/D` annotations were useful before hover did the work; now they
-  duplicate the hover label and clutter the staff. Either set
-  `osmd.EngravingRules.RenderChordSymbols = false` or strip them at
-  the musicxml conversion step.
-- **Click on a triad → fade in Stradella recipe beneath it.** The
-  chord inspector popover already shows a single Stradella suggestion
-  via `suggestStradella` (4 hard-coded button voicings). The richer
-  lookup lives in `assets/js/music/stradella-data.js` as
-  `findBySuffix(suffix)` + `renderRecipe(...)`, used by the
-  chord-recognizer page. Lift that into a shared helper, swap the
-  inspector to use it, and add a CSS opacity transition for the fade.
 - **Lavish gaps still deferred.** Shadow-DOM isolation for the sidebar,
   draft/cancel card flow, text-range annotations, opt-out sentinels for
   the zoom controls. None of these are blocking; the current annotator

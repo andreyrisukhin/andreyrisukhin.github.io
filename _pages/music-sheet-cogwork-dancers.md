@@ -31,6 +31,9 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
   };
 </script>
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/sheet-music/osmd-bridge.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/chord-inspector.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}"></script>
