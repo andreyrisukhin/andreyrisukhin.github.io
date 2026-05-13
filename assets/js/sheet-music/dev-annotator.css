@@ -1,3 +1,37 @@
+.sheet-annotator-preview {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 3px;
+  border: 2px solid rgba(244, 201, 93, 0.95);
+  background: rgba(244, 201, 93, 0.12);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+  z-index: 9998;
+  transition: opacity 80ms linear;
+}
+.sheet-annotator-preview[data-kind="chord-symbol"] {
+  border-color: rgba(120, 180, 255, 0.95);
+  background: rgba(120, 180, 255, 0.14);
+}
+.sheet-annotator-preview[data-kind="region"] {
+  border-color: rgba(180, 180, 180, 0.85);
+  background: rgba(180, 180, 180, 0.08);
+  border-style: dashed;
+}
+.sheet-annotator-preview__label {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 3px;
+  background: rgba(20, 20, 24, 0.94);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font: 600 10px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .sheet-annotator-pin {
   position: absolute;
   transform: translate(-50%, -50%);

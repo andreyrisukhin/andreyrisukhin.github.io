@@ -34,18 +34,115 @@
   probeSidecar().then(() => hydrateFromSidecar());
 
   document.addEventListener('click', onClick, true);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') sidebar.close();
-  });
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('keyup', onKeyUp);
+  document.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('blur', hidePreview);
   window.addEventListener('resize', rerender);
 
   rerender();
+
+  const preview = buildPreview();
+  let shiftHeld = false;
+  let lastMouse = { x: 0, y: 0, target: null };
+
+  function onKeyDown(e) {
+    if (e.key === 'Escape') sidebar.close();
+    if (e.key === 'Shift' && !shiftHeld) {
+      shiftHeld = true;
+      updatePreview();
+    }
+  }
+  function onKeyUp(e) {
+    if (e.key === 'Shift') {
+      shiftHeld = false;
+      hidePreview();
+    }
+  }
+  function onMouseMove(e) {
+    lastMouse = { x: e.pageX, y: e.pageY, target: e.target };
+    if (shiftHeld) updatePreview();
+  }
+
+  function updatePreview() {
+    if (!lastMouse.target) { hidePreview(); return; }
+    if (lastMouse.target.closest && lastMouse.target.closest('[data-sheet-annotator]')) {
+      hidePreview();
+      return;
+    }
+    const hit = classifyTarget(lastMouse.target, lastMouse.x, lastMouse.y);
+    if (!hit || !hit.rect) { hidePreview(); return; }
+    preview.root.style.display = 'block';
+    preview.root.setAttribute('data-kind', hit.kind);
+    preview.root.style.left = hit.rect.x + 'px';
+    preview.root.style.top = hit.rect.y + 'px';
+    preview.root.style.width = hit.rect.w + 'px';
+    preview.root.style.height = hit.rect.h + 'px';
+    preview.label.textContent = hit.label;
+  }
+  function hidePreview() {
+    preview.root.style.display = 'none';
+  }
+
+  function classifyTarget(target, pageX, pageY) {
+    if (!(target instanceof Element)) return null;
+    const chordText = detectChordSymbol(target);
+    if (chordText) {
+      const r = target.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) return null;
+      return {
+        kind: 'chord-symbol',
+        label: 'chord: ' + chordText,
+        rect: rectToPage(r),
+      };
+    }
+    const bridge = window.__sheetMusic;
+    if (bridge && bridge.ready) {
+      const resolved = bridge.resolveNoteAt(pageX, pageY);
+      if (resolved && pointInRect(pageX, pageY, resolved.noteRect, 6)) {
+        const pitch = (resolved.pitches && resolved.pitches[0]) || resolved.clickedPitch || 'note';
+        return {
+          kind: 'notehead',
+          label: pitch + (resolved.measureNumber != null ? ' · m' + resolved.measureNumber : ''),
+          rect: resolved.noteRect,
+        };
+      }
+    }
+    const r = target.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return null;
+    return {
+      kind: 'region',
+      label: 'region · ' + (target.tagName || '').toLowerCase(),
+      rect: rectToPage(r),
+    };
+  }
+
+  function rectToPage(r) {
+    return {
+      x: r.left + window.scrollX,
+      y: r.top + window.scrollY,
+      w: r.width, h: r.height,
+    };
+  }
+
+  function buildPreview() {
+    const root = document.createElement('div');
+    root.className = 'sheet-annotator-preview';
+    root.setAttribute('data-sheet-annotator', 'preview');
+    root.style.display = 'none';
+    const label = document.createElement('span');
+    label.className = 'sheet-annotator-preview__label';
+    root.appendChild(label);
+    document.body.appendChild(root);
+    return { root, label };
+  }
 
   async function onClick(e) {
     if (e.target instanceof Element && e.target.closest('[data-sheet-annotator]')) return;
     if (!e[PIN_MODIFIER]) return;
     e.preventDefault();
     e.stopPropagation();
+    hidePreview();
 
     const identity = await captureIdentity(e);
     const pin = {
