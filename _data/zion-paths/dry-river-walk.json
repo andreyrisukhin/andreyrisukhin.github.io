@@ -1,9 +1,60 @@
 {
   "slug": "dry-river-walk",
   "name": "Dry River Walk",
-  "updatedAt": null,
-  "center": { "lat": 37.2982, "lng": -113.0263 },
-  "zoom": 13,
-  "pins": [],
-  "segments": []
+  "updatedAt": "2026-05-13T00:00:00.000Z",
+  "center": { "lat": 37.2148, "lng": -112.9350 },
+  "zoom": 15,
+  "pins": [
+    {
+      "id": "tunnel-long-west",
+      "lat": 37.21270,
+      "lng": -112.94800,
+      "kind": "warning",
+      "note": "Zion-Mt. Carmel Tunnel, west portal. 1.1 mi / 5,613 ft long, completed 1930. Vehicles >11'4\" tall or >7'10\" wide need an escort to drive down the centerline (no two-way traffic). Bicycles and pedestrians prohibited."
+    },
+    {
+      "id": "tunnel-long-east",
+      "lat": 37.21620,
+      "lng": -112.92850,
+      "kind": "warning",
+      "note": "Zion-Mt. Carmel Tunnel, east portal — opens directly onto the Pine Creek Bridge."
+    },
+    {
+      "id": "tunnel-short-west",
+      "lat": 37.21680,
+      "lng": -112.92510,
+      "kind": "decision",
+      "note": "Short Tunnel (rock-spur tunnel), west portal. ~150 ft through a sandstone fin just east of the main tunnel."
+    },
+    {
+      "id": "tunnel-short-east",
+      "lat": 37.21680,
+      "lng": -112.92410,
+      "kind": "decision",
+      "note": "Short Tunnel, east portal."
+    }
+  ],
+  "segments": [
+    {
+      "id": "tunnel-long",
+      "kind": "drive",
+      "note": "Zion-Mt. Carmel Tunnel (long). Approximate alignment between portals; the actual bore curves along the Pine Creek canyon wall.",
+      "waypoints": [
+        [37.21270, -112.94800],
+        [37.21430, -112.94100],
+        [37.21520, -112.93550],
+        [37.21580, -112.93150],
+        [37.21620, -112.92850]
+      ]
+    },
+    {
+      "id": "tunnel-short",
+      "kind": "drive",
+      "note": "Short rock-spur tunnel (Zion-Mt. Carmel Highway, just east of the main tunnel).",
+      "waypoints": [
+        [37.21680, -112.92510],
+        [37.21680, -112.92410]
+      ]
+    }
+  ]
 }
