@@ -67,6 +67,10 @@
         <button type="button" class="trail-editor__btn is-save" data-action="save">Save</button>
       </div>
       <div class="trail-editor__status" data-status>ready</div>
+      <details class="trail-editor__items" data-items>
+        <summary>Items <span data-items-count></span></summary>
+        <div class="trail-editor__items-body" data-items-body></div>
+      </details>
     `;
     mapWrap.appendChild(panel);
 
@@ -122,7 +126,75 @@
       if (t.getAttribute('data-action') === 'save') {
         save();
       }
+      const itemAct = t.getAttribute('data-item-act');
+      if (itemAct) {
+        const id = t.getAttribute('data-item-id');
+        const kind = t.getAttribute('data-item-kind');
+        if (itemAct === 'del' && id && kind) {
+          if (kind === 'pin') state.pins = state.pins.filter((p) => p.id !== id);
+          if (kind === 'segment') state.segments = state.segments.filter((s) => s.id !== id);
+          setDirty(true);
+          controller.render();
+        } else if (itemAct === 'focus' && id && kind) {
+          focusItem(kind, id);
+        }
+      }
     });
+
+    function focusItem(kind, id) {
+      if (kind === 'pin') {
+        const p = state.pins.find((x) => x.id === id);
+        if (p) { map.setView([p.lat, p.lng], Math.max(map.getZoom(), 16)); openPinPopup(id); }
+      } else if (kind === 'segment') {
+        const s = state.segments.find((x) => x.id === id);
+        if (s && s.waypoints && s.waypoints.length) {
+          const bounds = L.latLngBounds(s.waypoints);
+          map.fitBounds(bounds.pad(0.4));
+          openSegmentPopup(id);
+        }
+      }
+    }
+    function openPinPopup(id) {
+      controller.pinLayer.eachLayer((layer) => {
+        if (layer._trailPin && layer._trailPin.id === id) layer.openPopup();
+      });
+    }
+    function openSegmentPopup(id) {
+      controller.segmentLayer.eachLayer((layer) => {
+        if (layer._trailSegment && layer._trailSegment.id === id) layer.openPopup();
+      });
+    }
+
+    function renderItemsList() {
+      const body = panel.querySelector('[data-items-body]');
+      const count = panel.querySelector('[data-items-count]');
+      if (!body) return;
+      const total = state.pins.length + state.segments.length;
+      if (count) count.textContent = '(' + total + ')';
+      const rows = [];
+      for (const p of state.pins) {
+        rows.push(itemRowHtml('pin', p.id, p.kind || 'waypoint', p.note));
+      }
+      for (const s of state.segments) {
+        const len = (s.waypoints || []).length;
+        const label = (s.kind || 'walk') + ' · ' + len + 'pt';
+        rows.push(itemRowHtml('segment', s.id, label, s.note));
+      }
+      body.innerHTML = rows.join('') || '<div class="trail-editor__items-empty">no items yet</div>';
+    }
+    function itemRowHtml(kind, id, label, note) {
+      const snippet = note ? ' — ' + escapeHtml(note.slice(0, 40)) + (note.length > 40 ? '…' : '') : '';
+      return '<div class="trail-editor__item">' +
+        '<button type="button" class="trail-editor__item-focus" data-item-act="focus" data-item-id="' + escapeAttr(id) + '" data-item-kind="' + kind + '" title="Zoom to & open">' +
+          '<span class="trail-editor__item-kind">' + escapeHtml(label) + '</span>' +
+          '<span class="trail-editor__item-id">' + escapeHtml(id) + '</span>' +
+          snippet +
+        '</button>' +
+        '<button type="button" class="trail-editor__item-del" data-item-act="del" data-item-id="' + escapeAttr(id) + '" data-item-kind="' + kind + '" title="Delete">×</button>' +
+      '</div>';
+    }
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && mode === 'segment') {
@@ -162,16 +234,22 @@
           pin.lng = ll.lng;
           setDirty(true);
         });
-        // Replace the read-only popup with the editor form.
+        // Stop pin clicks from also bubbling to map-click (otherwise a
+        // pin-mode click on an existing pin would drop a NEW pin on top).
+        layer.on('click', (ev) => { L.DomEvent.stopPropagation(ev); });
         layer.unbindPopup();
         layer.bindPopup(buildPinForm(pin));
       });
       controller.segmentLayer.eachLayer((layer) => {
         const seg = layer._trailSegment;
         if (!seg) return;
+        // Same: clicking a segment in pin/segment mode shouldn't also
+        // drop a pin or extend the active segment.
+        layer.on('click', (ev) => { L.DomEvent.stopPropagation(ev); });
         layer.unbindPopup();
         layer.bindPopup(buildSegmentForm(seg));
       });
+      renderItemsList();
     };
     // Initial editor-flavoured render so dragging + edit forms attach.
     controller.render();
