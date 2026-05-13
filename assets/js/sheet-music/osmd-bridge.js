@@ -74,7 +74,17 @@
           (typeof sn.isRest === 'function' && sn.isRest())
         ));
         const isTied = !!(sn && (sn.NoteTie || sn.noteTie || sn.Tie || sn.tie));
-        const chordName = (pitches.length >= 2) ? detectChordName(pitches) : null;
+        // Gather every other pitch in the same measure (across staves
+        // and voices) so detectChordName can promote a lower chord-tone
+        // to the bass when the stack is voiced above it. Without this
+        // an "oom-pah" Stradella pattern (e.g. B2 eighth, then a G-B-D
+        // chord on the next eighth) detects as root-position GM
+        // because B2 has already ended by the time the chord sounds,
+        // even though musically B IS the bass for that beat.
+        const measurePitches = staffEntry ? gatherMeasurePitches(staffEntry, gn) : [];
+        const chordName = (pitches.length >= 2)
+          ? detectChordName(pitches, measurePitches)
+          : null;
 
         return {
           pitches,
@@ -289,17 +299,67 @@
     return (octave + 1) * 12 + semi;
   }
 
-  function detectChordName(pitches) {
+  // Collect every pitch in the source measure that is NOT one of the
+  // notes belonging to the clicked chord stack. Returned MIDI-sorted
+  // ascending. Used by detectChordName to promote a lower bass when
+  // the score uses an oom-pah pattern (separate bass note + chord
+  // stack) so the recipe reflects the bass press, not just the
+  // chord stack's own lowest note.
+  function gatherMeasurePitches(staffEntry, ownGn) {
+    const out = [];
+    try {
+      const psm = staffEntry.parentMeasure && staffEntry.parentMeasure.parentSourceMeasure;
+      if (!psm) return out;
+      const containers = psm.verticalSourceStaffEntryContainers || [];
+      for (const c of containers) {
+        for (const sse of c.staffEntries || []) {
+          if (!sse) continue;
+          for (const sve of sse.voiceEntries || []) {
+            for (const note of sve.notes || []) {
+              if (!note || note.isRestFlag === true) continue;
+              if (note === (ownGn && (ownGn.sourceNote || ownGn.SourceNote))) continue;
+              const p = note.pitch;
+              if (!p) continue;
+              const ht = (typeof p.getHalfTone === 'function') ? p.getHalfTone() : null;
+              if (ht == null) continue;
+              const pc = halfToneToPC(ht, p);
+              if (!pc) continue;
+              out.push({ midi: ht, pc });
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    out.sort((a, b) => a.midi - b.midi);
+    return out;
+  }
+
+  function halfToneToPC(halfTone, pitch) {
+    // Prefer the spelling OSMD reports so flats stay flats (Bb not A#).
+    if (pitch && typeof pitch.fundamentalNoteAsString === 'string') {
+      const acc = pitch.AccidentalHalfTones;
+      let s = pitch.fundamentalNoteAsString.toUpperCase();
+      if (acc === -1) s += 'b';
+      else if (acc === 1) s += '#';
+      else if (acc === -2) s += 'bb';
+      else if (acc === 2) s += '##';
+      return s;
+    }
+    const SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    return SHARP[((halfTone % 12) + 12) % 12];
+  }
+
+  function detectChordName(pitches, measureContext) {
     if (!window.Tonal || !window.Tonal.Chord || typeof window.Tonal.Chord.detect !== 'function') return null;
     // Sort by actual MIDI value so the FIRST entry is the lowest
     // sounding pitch -- this is what we'll use as the bass when it
     // doesn't agree with the chord's root (i.e., the chord is in
     // inversion). Using octave-stripped pitch classes alone, as the
-    // previous version did, throws away the bass information so
+    // previous version did, threw away the bass information so
     // first-inversion voicings like B-D-G silently came out as
     // root-position "GM" instead of "GM/B".
-    const sorted = pitches.slice().sort((a, b) => pitchToMidi(a) - pitchToMidi(b));
-    const pcs = sorted.map((p) => String(p).replace(/-?\d+$/, ''));
+    const sortedPitches = pitches.slice().sort((a, b) => pitchToMidi(a) - pitchToMidi(b));
+    const pcs = sortedPitches.map((p) => String(p).replace(/-?\d+$/, ''));
     let detected;
     try { detected = window.Tonal.Chord.detect(pcs) || []; } catch (_) { detected = []; }
     if (!detected.length) return null;
@@ -312,13 +372,24 @@
     let chord;
     try { chord = window.Tonal.Chord.get(primary); } catch (_) { chord = null; }
     if (!chord || !chord.tonic) return primary;
-    const lowestPC = pcs[0];
     if (!window.ChordName) return primary;
-    if (window.ChordName.samePitchClass(lowestPC, chord.tonic)) return primary;
-    // The bass is genuinely a different pitch class than the root --
-    // surface the inversion so the Stradella recipe shows the bass
-    // the player actually has to press in this voicing.
-    return primary + '/' + lowestPC;
+    const CN = window.ChordName;
+
+    let bassPC = pcs[0];
+    // Walk other pitches in the same measure: if any chord-tone lives
+    // BELOW the clicked stack (typical Stradella oom-pah voicing),
+    // promote it to the bass so the recipe shows the bass the player
+    // actually presses.
+    if (Array.isArray(measureContext) && measureContext.length && Array.isArray(chord.notes)) {
+      const stackLowestMidi = pitchToMidi(sortedPitches[0]);
+      for (const cp of measureContext) {
+        if (cp.midi >= stackLowestMidi) break;
+        const isChordTone = chord.notes.some((n) => CN.samePitchClass(cp.pc, n));
+        if (isChordTone) { bassPC = cp.pc; break; }
+      }
+    }
+    if (CN.samePitchClass(bassPC, chord.tonic)) return primary;
+    return primary + '/' + bassPC;
   }
 
   function pitchName(gn) {

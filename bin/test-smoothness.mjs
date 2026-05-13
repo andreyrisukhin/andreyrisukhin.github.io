@@ -757,6 +757,36 @@ async function main() {
       inv.findings);
   }
 
+  // Sub-assertion: m2 of Cogwork Dancers is voiced as B2 (eighth) +
+  // G3-B3-D4 chord (oom-pah). The chord stack alone is root-position
+  // GM, so naive inversion detection misses it. The bridge has to
+  // walk the measure context and promote the lower chord-tone B2 to
+  // the bass for the recipe to read "GM / B".
+  const m2Probe = evalJs(`
+    (() => {
+      const stavenotes = [...document.querySelectorAll('#osmd-container svg .vf-stavenote')];
+      const m2Chords = [];
+      for (const sn of stavenotes) {
+        const heads = sn.querySelectorAll('.vf-notehead');
+        if (heads.length < 3) continue;
+        const head = heads[0];
+        const r = head.getBoundingClientRect();
+        if (r.width <= 0) continue;
+        const px = r.left + r.width/2 + window.scrollX;
+        const py = r.top + r.height/2 + window.scrollY;
+        const hit = window.__sheetMusic.resolveNoteAt(px, py, 80, head);
+        if (!hit || hit.measureNumber !== 2) continue;
+        m2Chords.push({ chord: hit.chordName, pitches: hit.pitches });
+      }
+      return JSON.stringify({ m2Chords });
+    })();
+  `);
+  const m2 = JSON.parse(m2Probe);
+  assert(m2.m2Chords.length > 0, 'measure 2 contains at least one chord stack', m2);
+  assert(m2.m2Chords.every((c) => c.chord === 'GM/B'),
+    'measure 2 oom-pah pattern surfaces as "GM/B" (uses sustained/contextual bass, not stack-root)',
+    m2);
+
   section('Scenario L — dev mode is opt-in and toggle persists');
   const devModeProbe = evalJs(`
     (() => {
