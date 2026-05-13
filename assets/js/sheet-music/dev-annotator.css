@@ -1,85 +1,181 @@
-.sheet-annotator-root {
-  position: relative;
-  z-index: 10000;
+.sheet-annotator-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #ff5a5f;
+  color: #fff;
+  font: 700 11px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  padding: 0;
+  z-index: 9999;
+  transition: transform 120ms ease;
+}
+.sheet-annotator-pin:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+.sheet-annotator-pin.is-flashing {
+  animation: sheet-annotator-flash 900ms ease-out;
+}
+@keyframes sheet-annotator-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 90, 95, 0.7); transform: translate(-50%, -50%) scale(0.7); }
+  40%  { box-shadow: 0 0 0 22px rgba(255, 90, 95, 0); transform: translate(-50%, -50%) scale(1.3); }
+  100% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);   transform: translate(-50%, -50%) scale(1); }
 }
 
-.sheet-annotator-hud {
+.sheet-annotator-sidebar {
   position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  background: rgba(20, 20, 24, 0.94);
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 340px;
+  background: rgba(20, 20, 24, 0.97);
   color: #f5f5f7;
-  border-radius: 8px;
-  padding: 0.75rem 0.9rem;
-  font-size: 0.85rem;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  min-width: 240px;
-  z-index: 10001;
+  font-size: 0.88rem;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.35);
+  transform: translateX(0);
+  transition: transform 220ms ease;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-annotator-sidebar.is-collapsed {
+  transform: translateX(calc(100% - 40px));
 }
 
-.sheet-annotator-hud__title {
+.sheet-annotator-sidebar__toggle {
+  position: absolute;
+  left: -40px;
+  top: 12px;
+  width: 40px;
+  height: 64px;
+  background: rgba(20, 20, 24, 0.97);
+  color: #fff;
+  border: none;
+  border-radius: 8px 0 0 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+}
+.sheet-annotator-sidebar__toggle-badge {
+  background: #ff5a5f;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 14px;
+  text-align: center;
+}
+.sheet-annotator-sidebar__toggle-label {
+  font-size: 0.7rem;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.sheet-annotator-sidebar__inner {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0.9rem 1rem 1rem;
+  overflow: hidden;
+}
+
+.sheet-annotator-sidebar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.sheet-annotator-sidebar__title {
   display: flex;
   align-items: center;
   gap: 0.45rem;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-
-.sheet-annotator-hud__dot {
+.sheet-annotator-sidebar__dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #ff5a5f;
   box-shadow: 0 0 8px rgba(255, 90, 95, 0.6);
 }
-
-.sheet-annotator-hud__count {
-  margin-left: auto;
-  font-weight: 400;
+.sheet-annotator-sidebar__close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
   opacity: 0.7;
+  padding: 0 0.25rem;
+}
+.sheet-annotator-sidebar__close:hover {
+  opacity: 1;
 }
 
-.sheet-annotator-hud__hint {
-  margin: 0.35rem 0 0.55rem;
-  font-size: 0.78rem;
-  opacity: 0.75;
+.sheet-annotator-sidebar__hint {
+  font-size: 0.76rem;
+  opacity: 0.65;
+  margin: 0 0 0.65rem;
 }
 
-.sheet-annotator-hud__actions {
+.sheet-annotator-sidebar__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  margin-bottom: 0.8rem;
 }
-
-.sheet-annotator-hud__actions button {
+.sheet-annotator-sidebar__actions button {
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
   border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 0.3rem 0.55rem;
   border-radius: 5px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   cursor: pointer;
-  transition: background 120ms ease;
 }
-.sheet-annotator-hud__actions button:hover {
+.sheet-annotator-sidebar__actions button:hover {
   background: rgba(255, 255, 255, 0.16);
 }
 
-.sheet-annotator-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
+.sheet-annotator-sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.sheet-annotator-sidebar__empty {
+  font-size: 0.82rem;
+  opacity: 0.6;
+  font-style: italic;
+  margin: 0;
 }
 
-.sheet-annotator-pin {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  pointer-events: auto;
+.sheet-annotator-entry {
+  padding: 0.55rem 0 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-
-.sheet-annotator-pin__num {
+.sheet-annotator-entry__head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.3rem;
+}
+.sheet-annotator-entry__id {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -88,66 +184,50 @@
   border-radius: 50%;
   background: #ff5a5f;
   color: #fff;
-  font-size: 0.75rem;
   font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  border: 2px solid #fff;
-  user-select: none;
-}
-
-.sheet-annotator-pin__card {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: #fff;
-  color: #222;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 6px;
-  padding: 0.55rem;
-  min-width: 240px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-  font-size: 0.85rem;
-}
-
-.sheet-annotator-pin__ctx {
   font-size: 0.72rem;
-  opacity: 0.7;
-  margin-bottom: 0.35rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-
-.sheet-annotator-pin__card textarea {
+.sheet-annotator-entry__ctx {
+  flex: 1 1 auto;
+  font-size: 0.74rem;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.sheet-annotator-entry__delete {
+  background: transparent;
+  color: inherit;
+  border: none;
+  opacity: 0.5;
+  cursor: pointer;
+  padding: 0 0.3rem;
+  font-size: 1rem;
+}
+.sheet-annotator-entry__delete:hover {
+  opacity: 1;
+}
+.sheet-annotator-entry__note {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
   padding: 0.35rem 0.45rem;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   resize: vertical;
+  min-height: 52px;
 }
-
-.sheet-annotator-pin__card-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.35rem;
-  margin-top: 0.4rem;
-}
-
-.sheet-annotator-pin__card-actions button {
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  background: #f5f5f5;
-  border-radius: 4px;
-  padding: 0.25rem 0.55rem;
-  font-size: 0.78rem;
-  cursor: pointer;
-}
-.sheet-annotator-pin__card-actions button:hover {
-  background: #ececec;
+.sheet-annotator-entry__note:focus {
+  outline: 2px solid #ff5a5f;
+  outline-offset: -2px;
+  border-color: transparent;
 }
 
 .sheet-annotator-toast {
@@ -162,4 +242,8 @@
   font-size: 0.85rem;
   z-index: 10002;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 640px) {
+  .sheet-annotator-sidebar { width: 85vw; }
 }

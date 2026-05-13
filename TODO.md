@@ -1,3 +1,5 @@
+2026-05-12 - On /music/sheet/cogwork-dancers/, add a chord inspector: hover or click a chord stack and surface bass-button combos, notes, semitones, and interval names using the existing music tools (stradella-data.js, tonal.min.js). Integrate with OSMD graphical-note model.
+
 2026-01-05 - Add PT to Kata section
 
 Add library
