@@ -31,6 +31,11 @@ References, cheat sheets, and tools for music theory and accordion playing.
     <span class="music-landing-card__title">Exercises</span>
     <span class="music-landing-card__desc">Practice loops with right-hand patterns and theory notes</span>
   </a>
+  <a href="/music/sheet/cogwork-dancers/" class="music-landing-card">
+    <i class="fa-solid fa-music music-landing-card__icon"></i>
+    <span class="music-landing-card__title">Sheet: Cogwork Dancers</span>
+    <span class="music-landing-card__desc">Christopher Larkin organ arrangement, rendered via OSMD</span>
+  </a>
 </div>
 
 ## References
