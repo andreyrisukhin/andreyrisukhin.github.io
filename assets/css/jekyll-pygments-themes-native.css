@@ -5,7 +5,11 @@
 .highlight .c {
   color: #999999;
   font-style: italic;
-} /* Comment */ /* Error */
+} /* Comment */
+.highlight .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+} /* Error */
 .highlight .g {
   color: #d0d0d0;
 } /* Generic */
