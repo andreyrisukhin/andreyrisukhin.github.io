@@ -28,16 +28,26 @@
     /**
      * Resolve a page coordinate to a {note, chord, measure, staff, pitches,
      * svgPoint, osmdPoint} bundle, or null when the click is far from any note.
+     * When `element` (the clicked DOM node) is supplied, prefer a DOM-anchored
+     * lookup over OSMD's coordinate-based GetNearestNote, which otherwise
+     * snaps to the nearest visible glyph — often a rest in an adjacent voice.
      */
-    resolveNoteAt(pageX, pageY, maxPxDistance = 36) {
+    resolveNoteAt(pageX, pageY, maxPxDistance = 36, element = null) {
       if (!api.ready || !api.osmd) return null;
       const gs = api.osmd.GraphicSheet || api.osmd.graphic;
       if (!gs || typeof gs.domToSvg !== 'function') return null;
       try {
         const svgPoint = gs.domToSvg({ x: pageX, y: pageY });
         const osmdPoint = gs.svgToOsmd(svgPoint);
-        const maxClick = { x: maxPxDistance / 10, y: maxPxDistance / 10 };
-        const gn = gs.GetNearestNote(osmdPoint, maxClick);
+
+        let gn = null;
+        if (element instanceof Element) {
+          gn = graphicalNoteFromElement(api.osmd, element, pageY);
+        }
+        if (!gn) {
+          const maxClick = { x: maxPxDistance / 10, y: maxPxDistance / 10 };
+          gn = gs.GetNearestNote(osmdPoint, maxClick);
+        }
         if (!gn) return null;
 
         const voiceEntry = gn.parentVoiceEntry || gn.ParentVoiceEntry || null;
@@ -59,7 +69,10 @@
           .filter(Boolean);
 
         const sn = gn.sourceNote || gn.SourceNote;
-        const isRest = !!(sn && (sn.isRest === true || (typeof sn.isRest === 'function' && sn.isRest())));
+        const isRest = !!(sn && (
+          sn.isRestFlag === true ||
+          (typeof sn.isRest === 'function' && sn.isRest())
+        ));
         const isTied = !!(sn && (sn.NoteTie || sn.noteTie || sn.Tie || sn.tie));
 
         return {
@@ -173,6 +186,62 @@
 
   api.readyPromise = new Promise((resolve) => { api._readyResolve = resolve; });
   window.__sheetMusic = api;
+
+  function graphicalNoteFromElement(osmd, element, pageY) {
+    const stavenoteEl = element.closest && element.closest('.vf-stavenote');
+    if (!stavenoteEl) return null;
+    const stavenoteId = stavenoteEl.id;
+    if (!stavenoteId) return null;
+    const vfId = stavenoteId.replace(/^vf-/, '');
+
+    const graphic = osmd.GraphicSheet || osmd.graphic;
+    const candidates = [];
+    for (const page of (graphic && graphic.MusicPages) || []) {
+      for (const system of (page.MusicSystems || [])) {
+        for (const line of (system.StaffLines || [])) {
+          for (const measure of (line.Measures || [])) {
+            for (const sentry of (measure.staffEntries || [])) {
+              for (const gve of (sentry.graphicalVoiceEntries || [])) {
+                for (const gn of (gve.notes || [])) {
+                  const vf = Array.isArray(gn.vfnote) ? gn.vfnote[0] : gn.vfnote;
+                  const id = vf && vf.attrs && vf.attrs.id;
+                  if (id === vfId || id === stavenoteId) candidates.push(gn);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (!candidates.length) return null;
+    if (candidates.length === 1) return candidates[0];
+
+    const noteheadEl = element.closest && element.closest('.vf-notehead');
+    if (noteheadEl && noteheadEl.parentElement) {
+      const siblings = [...noteheadEl.parentElement.querySelectorAll(':scope > .vf-notehead')];
+      const idx = siblings.indexOf(noteheadEl);
+      if (idx >= 0) {
+        const byIndex = candidates.find((c) => c.vfnoteIndex === idx);
+        if (byIndex) return byIndex;
+      }
+    }
+
+    if (typeof pageY === 'number') {
+      const heads = [...stavenoteEl.querySelectorAll('.vf-notehead')];
+      if (heads.length === candidates.length) {
+        let bestIdx = 0, bestDist = Infinity;
+        heads.forEach((h, i) => {
+          const r = h.getBoundingClientRect();
+          const cy = r.top + r.height / 2 + window.scrollY;
+          const d = Math.abs(cy - pageY);
+          if (d < bestDist) { bestDist = d; bestIdx = i; }
+        });
+        const byY = candidates.find((c) => c.vfnoteIndex === bestIdx);
+        if (byY) return byY;
+      }
+    }
+    return candidates[0];
+  }
 
   function rectFor(gn) {
     if (!gn) return null;

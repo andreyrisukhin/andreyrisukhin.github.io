@@ -154,7 +154,7 @@
       const gr = glyph.getBoundingClientRect();
       if (gr.width > 0 && gr.height > 0) {
         const bridge = window.__sheetMusic;
-        const resolved = (bridge && bridge.ready) ? bridge.resolveNoteAt(pageX, pageY, 80) : null;
+        const resolved = (bridge && bridge.ready) ? bridge.resolveNoteAt(pageX, pageY, 80, target) : null;
         const isRest = !!(resolved && resolved.isRest);
         const isTied = !!(resolved && resolved.isTied);
         const clicked = resolved && resolved.clickedPitch;
@@ -276,7 +276,7 @@
         };
         out.kind = 'notehead';
         if (bridge && bridge.ready) {
-          const hit = bridge.resolveNoteAt(ev.pageX, ev.pageY, 80);
+          const hit = bridge.resolveNoteAt(ev.pageX, ev.pageY, 80, ev.target);
           if (hit) {
             out.measureNumber = hit.measureNumber;
             out.staffIndex = hit.staffIndex;

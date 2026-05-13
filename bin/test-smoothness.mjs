@@ -430,6 +430,67 @@ async function main() {
       {a: a.isTied, b: b.isTied});
   }
 
+  section('Scenario I — bridge agrees with OSMD source on note vs rest');
+  // Regression: previously the bridge used GetNearestNote at click coordinates,
+  // which snapped to a nearby rest when the clicked notehead lived in a voice
+  // sharing the same x/y range. Now the bridge anchors to the clicked DOM
+  // element and walks OSMD's graphical tree to find the matching note. This
+  // test asserts the bridge's isRest flag matches the source XML for every
+  // stavenote in the score (using the rest glyph's centroid as the click).
+  const restRegression = evalJs(`
+    (async () => {
+      const svg = document.querySelector('#osmd-container svg');
+      const stavenotes = [...svg.querySelectorAll('.vf-stavenote')];
+      const osmd = window.__sheetMusic.osmd;
+      const graphic = osmd.GraphicSheet || osmd.graphic;
+      // Build id -> first-source-note map for ground truth.
+      const truth = new Map();
+      for (const page of graphic.MusicPages || [])
+        for (const system of page.MusicSystems || [])
+          for (const line of system.StaffLines || [])
+            for (const m of line.Measures || [])
+              for (const se of m.staffEntries || [])
+                for (const gve of se.graphicalVoiceEntries || [])
+                  for (const gn of gve.notes || []) {
+                    const vf = Array.isArray(gn.vfnote) ? gn.vfnote[0] : gn.vfnote;
+                    const id = vf && vf.attrs && vf.attrs.id;
+                    if (id && !truth.has(id)) {
+                      truth.set(id, gn.sourceNote && gn.sourceNote.isRestFlag === true);
+                    }
+                  }
+      const mismatches = [];
+      let sampled = 0;
+      const step = Math.max(1, Math.floor(stavenotes.length / 60));
+      for (let i = 0; i < stavenotes.length; i += step) {
+        const sn = stavenotes[i];
+        const head = sn.querySelector('.vf-notehead');
+        if (!head) continue;
+        const r = head.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0) continue;
+        const vfId = sn.id.replace(/^vf-/, '');
+        if (!truth.has(vfId)) continue;
+        const expectedRest = truth.get(vfId);
+        const px = r.left + r.width/2 + window.scrollX;
+        const py = r.top + r.height/2 + window.scrollY;
+        const hit = window.__sheetMusic.resolveNoteAt(px, py, 80, head);
+        sampled++;
+        if (!hit) {
+          mismatches.push({id: sn.id, expectedRest, actual: 'null'});
+          continue;
+        }
+        if (hit.isRest !== expectedRest) {
+          mismatches.push({id: sn.id, expectedRest, actualRest: hit.isRest, pitch: hit.clickedPitch});
+        }
+      }
+      return JSON.stringify({sampled, mismatches: mismatches.slice(0, 8)});
+    })();
+  `);
+  const restReg = JSON.parse(restRegression);
+  console.log('  sampled ' + restReg.sampled + ' stavenotes against source-XML truth');
+  assert(restReg.mismatches.length === 0,
+    'bridge isRest matches source for every sampled stavenote',
+    restReg.mismatches);
+
   section('Cleanup');
   evalJs(`
     (async () => {
