@@ -123,6 +123,10 @@
   background: #d29922;
   border-color: #d29922;
 }
+.trail-editor__btn[data-mode="segment"].is-active {
+  background: #d29922;
+  border-color: #d29922;
+}
 .trail-editor__status {
   font-size: 0.7rem;
   color: #57606a;

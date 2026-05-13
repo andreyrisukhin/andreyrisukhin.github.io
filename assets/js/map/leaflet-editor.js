@@ -53,6 +53,20 @@
     let mode = 'none';
     let dirty = false;
     let activeSegment = null; // when in segment mode
+    const SNAP_PX = 24;       // snap waypoint to pin within this many screen px
+
+    // Visible feedback while building a segment.
+    const wpPreviewLayer = L.layerGroup().addTo(map);
+    function clearWpPreview() { wpPreviewLayer.clearLayers(); }
+    function pushWpPreview(latlng, isSnap) {
+      L.circleMarker(latlng, {
+        radius: 6,
+        color: isSnap ? '#1f6feb' : '#cf222e',
+        weight: 2,
+        fillColor: '#fff',
+        fillOpacity: 1,
+      }).addTo(wpPreviewLayer);
+    }
 
     // ── Editor panel ─────────────────────────────────────────────
     const panel = document.createElement('div');
@@ -86,8 +100,9 @@
       for (const b of panel.querySelectorAll('[data-mode]')) {
         b.classList.toggle('is-active', b.getAttribute('data-mode') === next);
       }
+      const segBtn = panel.querySelector('[data-mode="segment"]');
+      if (segBtn) segBtn.textContent = (next === 'segment') ? 'Finish segment' : 'New segment';
       if (next !== 'segment' && activeSegment) {
-        // Finish the current segment when leaving segment mode.
         finishSegment();
       }
       if (next === 'segment') {
@@ -99,7 +114,7 @@
         };
         state.segments.push(activeSegment);
         setDirty(true);
-        setStatus('click waypoints; "End segment" or Esc to finish');
+        setStatus('click pins or map to add waypoints');
       } else if (next === 'pin') {
         setStatus('click on map to drop pin');
       } else {
@@ -107,12 +122,43 @@
       }
     }
     function finishSegment() {
+      clearWpPreview();
       if (activeSegment && activeSegment.waypoints.length < 2) {
-        // Discard segments with fewer than 2 points.
         state.segments = state.segments.filter((s) => s.id !== activeSegment.id);
+        setStatus('segment discarded (need 2+ waypoints)');
+      } else if (activeSegment) {
+        setStatus('segment saved with ' + activeSegment.waypoints.length + ' waypoints');
       }
       activeSegment = null;
       controller.render();
+    }
+
+    // Find an existing pin within SNAP_PX of the given map click; returns
+    // the pin or null. Lets the user "connect the dots" by clicking
+    // anywhere near a pin instead of having to hit it precisely.
+    function findSnapPin(latlng) {
+      const target = map.latLngToContainerPoint(latlng);
+      let best = null;
+      let bestDist = SNAP_PX;
+      for (const p of state.pins) {
+        const px = map.latLngToContainerPoint([p.lat, p.lng]);
+        const d = Math.hypot(px.x - target.x, px.y - target.y);
+        if (d < bestDist) { best = p; bestDist = d; }
+      }
+      return best;
+    }
+    function addWaypointFrom(latlng) {
+      if (!activeSegment) return;
+      const snap = findSnapPin(latlng);
+      const lat = snap ? snap.lat : latlng.lat;
+      const lng = snap ? snap.lng : latlng.lng;
+      activeSegment.waypoints.push([lat, lng]);
+      pushWpPreview([lat, lng], !!snap);
+      setDirty(true);
+      controller.render();
+      const n = activeSegment.waypoints.length;
+      const where = snap ? ('snapped to ' + snap.id) : 'free point';
+      setStatus(n + ' waypoint' + (n === 1 ? '' : 's') + ' (' + where + ') · click Finish or Esc');
     }
 
     panel.addEventListener('click', (e) => {
@@ -120,7 +166,11 @@
       if (!(t instanceof Element)) return;
       const m = t.getAttribute('data-mode');
       if (m) {
-        setMode(m);
+        if (m === 'segment' && mode === 'segment') {
+          setMode('none');
+        } else {
+          setMode(m);
+        }
         return;
       }
       if (t.getAttribute('data-action') === 'save') {
@@ -207,13 +257,7 @@
       if (mode === 'pin') {
         addPin(e.latlng.lat, e.latlng.lng);
       } else if (mode === 'segment' && activeSegment) {
-        activeSegment.waypoints.push([e.latlng.lat, e.latlng.lng]);
-        setDirty(true);
-        controller.render();
-        // Re-attach segment-end action since render replaced it.
-        if (activeSegment.waypoints.length >= 2) {
-          setStatus(activeSegment.waypoints.length + ' waypoints; click "End segment" / Esc');
-        }
+        addWaypointFrom(e.latlng);
       }
     });
 
@@ -234,9 +278,17 @@
           pin.lng = ll.lng;
           setDirty(true);
         });
-        // Stop pin clicks from also bubbling to map-click (otherwise a
-        // pin-mode click on an existing pin would drop a NEW pin on top).
-        layer.on('click', (ev) => { L.DomEvent.stopPropagation(ev); });
+        layer.on('click', (ev) => {
+          L.DomEvent.stopPropagation(ev);
+          if (mode === 'segment' && activeSegment) {
+            // In segment mode, clicking an existing pin extends the
+            // current segment to that pin's exact lat/lng instead of
+            // opening its popup. This is the primary "connect the dots"
+            // affordance.
+            addWaypointFrom(L.latLng(pin.lat, pin.lng));
+            layer.closePopup && layer.closePopup();
+          }
+        });
         layer.unbindPopup();
         layer.bindPopup(buildPinForm(pin));
       });

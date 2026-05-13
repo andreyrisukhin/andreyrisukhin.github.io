@@ -1,10 +1,10 @@
 {
   "slug": "dry-river-walk",
   "name": "Dry River Walk",
-  "updatedAt": "2026-05-13T21:25:37.882Z",
+  "updatedAt": "2026-05-13T21:28:32.125Z",
   "center": {
-    "lat": 37.2167749107018,
-    "lng": -112.92607963085176
+    "lat": 37.21827409522875,
+    "lng": -112.92533397659166
   },
   "zoom": 17,
   "pins": [
@@ -14,6 +14,20 @@
       "lat": 37.21733842190015,
       "lng": -112.92377293109895,
       "note": "Park here"
+    },
+    {
+      "id": "p2",
+      "kind": "waypoint",
+      "lat": 37.21710001391832,
+      "lng": -112.92420208438739,
+      "note": "walk down the gravel slope"
+    },
+    {
+      "id": "p3",
+      "kind": "waypoint",
+      "lat": 37.21756116573171,
+      "lng": -112.92436301692828,
+      "note": "walk under road through tunnel and keep walking, enjoy the view!"
     }
   ],
   "segments": []
