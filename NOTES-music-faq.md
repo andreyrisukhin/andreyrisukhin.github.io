@@ -58,3 +58,56 @@ Sources:
   111–117 (the "7" entry with `5d7 = 5–♭7–3` note and the m fallback).
 - `assets/js/music/stradella-recipe.js` (`render(chordName)`).
 - `assets/js/sheet-music/chord-inspector.js` (deep-lookup display).
+
+---
+
+### Does the 5d7 voicing sound noticeably lower than just pressing the 7 button?
+
+**Short answer.** No. Stradella chord buttons sound in a fixed
+register regardless of which chord you press, so swapping the E♭-7
+button for the B♭-d7 button doesn't move pitch down — it just trades
+which three notes light up inside that fixed register. The 5d7 is
+*fuller*, not lower.
+
+**Long answer.**
+
+A Stradella chord button has three reeds tuned in close position,
+roughly the F3–E♭4 octave on most instruments. Every chord button on
+every root sounds in that same register; the "name" tells you which
+three pitches, not where. (Bass row is the part that's actually low
+— typically E♭2 with octave coupling adding E♭3.)
+
+For E♭7 with E♭ bass:
+
+| Voicing | Bass press | Chord button sounds (approx) | Combined |
+|---|---|---|---|
+| Bare 7 | E♭2 + E♭3 | E♭3 + G3 + D♭4 | E♭2, E♭3 *doubled*, G3, D♭4 |
+| 5d7 trick | E♭2 + E♭3 | B♭3 + D♭4 + G3 | E♭2, E♭3, G3, **B♭3**, D♭4 |
+
+Same E♭ bass. Same G3, same D♭4. The 5d7 swap *removes* the
+redundant E♭3 doubling that the bass already covers and *adds* the
+missing 5th (B♭3). Strictly an upgrade in chord completeness, no
+register change.
+
+**What is worth testing on your specific instrument.**
+
+- **Articulation at tempo.** LH finger travel from E♭ bass to B♭
+  chord button (a 5th up the chord side) vs. staying under the E♭
+  chord button. Faster passages may favor the bare 7 just for the
+  reduced jump.
+- **Reed balance.** Chord-button reeds on some accordions are reedier
+  or quieter than bass reeds; the added B♭ might or might not poke
+  through your instrument's voicing.
+- **Genre fit.** Jazz / serious arrangement → 5d7 usually wins.
+  Folk / oompah / fast comp → bare 7 is often acceptable, the missing
+  5th is implied by context. For a syncopated piece like Cogwork
+  Dancers, try both back-to-back at tempo.
+
+Pitch-wise, no test needed: it will not drop.
+
+Sources:
+- Stradella reed layout convention (chord-button close-position
+  voicing in a fixed octave, bass-row octave coupling): general
+  accordion reference, e.g. Bartolomeo Bortolazzi or any 120-bass
+  Stradella manual.
+- `assets/js/music/stradella-data.js` (chord-button interval sets).
