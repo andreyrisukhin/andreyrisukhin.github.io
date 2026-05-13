@@ -1,3 +1,38 @@
+.sheet-annotator-preview {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 4px;
+  border: 3px solid #f4c95d;
+  background: rgba(244, 201, 93, 0.28);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 12px rgba(244, 201, 93, 0.55);
+  z-index: 2147483646;
+}
+.sheet-annotator-preview[data-kind="chord-symbol"] {
+  border-color: #3ea6ff;
+  background: rgba(62, 166, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 12px rgba(62, 166, 255, 0.55);
+}
+.sheet-annotator-preview[data-kind="region"] {
+  border-color: rgba(180, 180, 180, 0.9);
+  background: rgba(180, 180, 180, 0.18);
+  border-style: dashed;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.sheet-annotator-preview__label {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 3px;
+  background: rgba(20, 20, 24, 0.94);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font: 600 10px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .sheet-annotator-pin {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -269,6 +304,99 @@
   background: #fff;
 }
 
+/* Dev-mode toggle button. Fixed to the viewport so it's always
+   reachable -- the score container is many screens tall and an
+   absolute-positioned toggle would scroll off with it. */
+.sheet-dev-toggle {
+  position: fixed;
+  bottom: 4rem;
+  right: 1rem;
+  z-index: 9996;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.7);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
+}
+.sheet-dev-toggle:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.sheet-dev-toggle.is-on {
+  background: #1f7a8c;
+  color: #fff;
+  border-color: #1f7a8c;
+  opacity: 0.95;
+  box-shadow: 0 2px 8px rgba(31, 122, 140, 0.4);
+}
+.sheet-dev-toggle.is-on:hover {
+  opacity: 1;
+}
+html[data-theme="dark"] .sheet-dev-toggle {
+  background: rgba(40, 42, 54, 0.95);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.75);
+}
+html[data-theme="dark"] .sheet-dev-toggle.is-on {
+  background: #4fc3d7;
+  color: #1a1a1a;
+  border-color: #4fc3d7;
+}
+
+/* Chord-name tag (hover/click stage 1) */
+.chord-tag {
+  position: absolute;
+  z-index: 9997;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color: #222;
+  border-radius: 4px;
+  padding: 0.2rem 0.45rem;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
+}
+.chord-tag.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.chord-tag.is-sticky {
+  pointer-events: auto;
+  cursor: pointer;
+  border-color: rgba(31, 122, 140, 0.6);
+  box-shadow: 0 4px 14px rgba(31, 122, 140, 0.25);
+}
+.chord-tag__chord {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+.chord-tag__pitch {
+  opacity: 0.65;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+}
+.chord-tag__hint {
+  display: block;
+  font-size: 0.62rem;
+  opacity: 0.5;
+  margin-top: 0.1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 /* Chord inspector popover */
 .chord-inspector {
   position: absolute;
@@ -282,8 +410,16 @@
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   font-size: 0.85rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease-out, transform 160ms ease-out;
 }
-.chord-inspector[hidden] { display: none; }
+.chord-inspector.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
 .chord-inspector__head {
   display: flex;
   align-items: center;
@@ -311,6 +447,29 @@
   margin-bottom: 0.45rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+.chord-inspector__section {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.chord-inspector__section:first-of-type {
+  margin-top: 0.4rem;
+  padding-top: 0;
+  border-top: none;
+}
+.chord-inspector__section-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin-bottom: 0.15rem;
+}
+.chord-inspector__section-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
 .chord-inspector__row {
   display: flex;
   justify-content: space-between;
@@ -320,6 +479,14 @@
   font-size: 0.8rem;
 }
 .chord-inspector__row:first-of-type { border-top: none; }
+.chord-inspector__row--note {
+  border-top: none;
+  font-style: italic;
+  opacity: 0.7;
+  font-size: 0.72rem;
+  padding: 0;
+  margin-bottom: 0.25rem;
+}
 .chord-inspector__row > span:first-child {
   opacity: 0.6;
   text-transform: uppercase;
@@ -339,4 +506,124 @@
 }
 .chord-inspector__row--hi {
   color: #ffcb6b;
+}
+.chord-inspector__stradella {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.chord-inspector__stradella .stradella-recipe > strong {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  margin-bottom: 0.3rem;
+}
+.chord-inspector__stradella .stradella-recipe__item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.chord-inspector__stradella .stradella-recipe__item:first-of-type {
+  border-top: none;
+}
+.chord-inspector__stradella .stradella-recipe__voicing {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  color: #ffcb6b;
+}
+.chord-inspector__stradella .stradella-recipe__note {
+  font-size: 0.72rem;
+  opacity: 0.75;
+  margin-top: 0.1rem;
+}
+.chord-inspector__stradella .stradella-recipe__warn {
+  font-size: 0.7rem;
+  color: #f48fb1;
+  margin-top: 0.1rem;
+}
+.chord-inspector__stradella .stradella-recipe__item.is-approx .stradella-recipe__voicing {
+  color: #ffd180;
+  opacity: 0.85;
+}
+.chord-inspector__stradella .stradella-recipe__item.is-bug .stradella-recipe__voicing {
+  color: #ef9a9a;
+}
+
+/* ── Dark mode ──────────────────────────────────────────────────
+   OSMD writes inline fill="#000000" / stroke="#000000" on every
+   notehead, stem, beam, ledger line, accidental, clef, time/key
+   signature, slur, tie, and staff line. Black on a near-black
+   background is unreadable, so promote the dark hits to a light
+   ink in dark mode. CSS overrides SVG presentation attributes,
+   and we leave fill="none" / stroke="none" alone so we don't
+   accidentally repaint hollow noteheads or filled regions. */
+html[data-theme="dark"] #osmd-container svg [fill="#000000"] {
+  fill: #d8d8d8;
+}
+html[data-theme="dark"] #osmd-container svg [stroke="#000000"] {
+  stroke: #d8d8d8;
+}
+
+/* Hover/click chord tag: invert to a dark pill in dark mode so it
+   stops floating like a UI bug over the score. */
+html[data-theme="dark"] .chord-tag {
+  background: rgba(40, 42, 54, 0.97);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f5f5f7;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+html[data-theme="dark"] .chord-tag.is-sticky {
+  border-color: rgba(79, 195, 215, 0.7);
+  box-shadow: 0 4px 16px rgba(79, 195, 215, 0.35);
+}
+html[data-theme="dark"] .chord-tag__pitch {
+  opacity: 0.7;
+}
+
+/* Chord inspector popover already uses a dark background, but its
+   hairline borders inside the Stradella section need to lift on
+   the now-darker page background. */
+html[data-theme="dark"] .chord-inspector {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+}
+
+/* In-score Stradella overlay (anchored inside #osmd-container so it
+   moves with zoom/autoresize redraws). Pointer-events none so it
+   never blocks click resolution into the underlying notehead. */
+.stradella-overlay {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: rgba(120, 90, 0, 0.85);
+  background: rgba(255, 246, 220, 0.85);
+  border: 1px solid rgba(180, 140, 0, 0.25);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  z-index: 5;
+}
+html[data-theme="dark"] .stradella-overlay {
+  color: #ffd180;
+  background: rgba(40, 30, 10, 0.7);
+  border-color: rgba(255, 209, 128, 0.3);
+}
+
+/* Toggle button pressed state (matches the existing music-share-btn
+   look, just with a teal accent so it's obvious when it's on). */
+#osmd-stradella-toggle.is-pressed {
+  background: #1f7a8c;
+  border-color: #1f7a8c;
+  color: #fff;
+}
+html[data-theme="dark"] #osmd-stradella-toggle.is-pressed {
+  background: #4fc3d7;
+  border-color: #4fc3d7;
+  color: #1a1a1a;
 }
