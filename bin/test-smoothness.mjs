@@ -183,7 +183,7 @@ async function main() {
   }
 
   section('Scenario D — keystroke \u2192 sidecar save latency');
-  const d = evalJs(`
+  const dEarly = evalJs(`
     (async () => {
       const ta = document.querySelector('.sheet-annotator-entry__note');
       if (!ta) return JSON.stringify({err: 'no textarea'});
@@ -205,16 +205,15 @@ async function main() {
       return JSON.stringify({saveMs: (t0 != null && t1 != null) ? +(t1 - t0).toFixed(1) : null});
     })();
   `);
-  const dTiming = JSON.parse(d);
-  assert(dTiming.saveMs != null && dTiming.saveMs < THRESHOLDS.keystrokeToSaveMs,
-    `keystroke \u2192 sidecar save < ${THRESHOLDS.keystrokeToSaveMs}ms (got ${dTiming.saveMs})`, dTiming);
+  const dTimingEarly = JSON.parse(dEarly);
+  assert(dTimingEarly.saveMs != null && dTimingEarly.saveMs < THRESHOLDS.keystrokeToSaveMs,
+    `keystroke \u2192 sidecar save < ${THRESHOLDS.keystrokeToSaveMs}ms (got ${dTimingEarly.saveMs})`, dTimingEarly);
 
   section('Scenario E — reload persistence');
   ab(['reload']);
   ab(['wait', '--fn', 'window.__sheetMusic && window.__sheetMusic.ready']);
-  const after = evalJs(`
+  const afterEarly = evalJs(`
     (async () => {
-      // Wait up to 1s for hydrate
       const deadline = performance.now() + 1000;
       while (performance.now() < deadline && document.querySelectorAll('[data-sheet-pin]').length < 3) {
         await new Promise(r => setTimeout(r, 50));
@@ -225,9 +224,211 @@ async function main() {
       });
     })();
   `);
-  const afterObj = JSON.parse(after);
-  assert(afterObj.pinCount === 3, `3 pins restored on reload`, afterObj);
-  assert(afterObj.entryCount === 3, `3 sidebar entries restored`, afterObj);
+  const afterEarlyObj = JSON.parse(afterEarly);
+  assert(afterEarlyObj.pinCount === 3, `3 pins restored on reload`, afterEarlyObj);
+  assert(afterEarlyObj.entryCount === 3, `3 sidebar entries restored`, afterEarlyObj);
+
+  section('Scenario F — chord / stacked notes disambiguate by Y');
+  evalJs(`
+    (async () => {
+      localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
+      await fetch('${SIDECAR}/save', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({pathname:'${PATHNAME}', pins: []})
+      });
+      return 'ok';
+    })();
+  `);
+  ab(['reload']);
+  ab(['wait', '--fn', 'window.__sheetMusic && window.__sheetMusic.ready']);
+  const chordData = evalJs(`
+    (async () => {
+      const svg = document.querySelector('#osmd-container svg');
+      const chords = [...svg.querySelectorAll('.vf-stavenote')]
+        .filter(sn => sn.querySelectorAll('.vf-notehead').length >= 2);
+      if (!chords.length) return JSON.stringify({skip: true});
+      const c = chords[0];
+      const heads = [...c.querySelectorAll('.vf-notehead')];
+      for (const h of heads) {
+        const b = h.getBoundingClientRect();
+        const cx = b.left + b.width/2, cy = b.top + b.height/2;
+        h.dispatchEvent(new MouseEvent('click', {
+          bubbles:true, cancelable:true, view:window,
+          clientX:cx, clientY:cy, shiftKey:true, button:0,
+        }));
+        await new Promise(r => setTimeout(r, 350));
+      }
+      const saved = await (await fetch('${SIDECAR}/load?pathname=${PATHNAME}')).json();
+      return JSON.stringify({
+        expectedCount: heads.length,
+        pins: saved.pins.map(p => ({
+          id: p.id,
+          kind: p.identity?.kind,
+          clicked: p.identity?.clickedPitch,
+          pitches: p.identity?.pitches,
+          context: p.context,
+        })),
+      });
+    })();
+  `);
+  const chord = JSON.parse(chordData);
+  if (chord.skip) {
+    console.log('  (skipped: no chord stacks in score)');
+  } else {
+    assert(chord.pins.length === chord.expectedCount,
+      'one pin per chord note', chord.pins.length);
+    const uniqClicked = new Set(chord.pins.map(p => p.clicked));
+    assert(uniqClicked.size === chord.expectedCount,
+      'clicked pitches are distinct per notehead Y',
+      [...uniqClicked]);
+    for (const p of chord.pins) {
+      assert(/^[A-G][#b]?\d$/.test(p.clicked || ''),
+        'pin ' + p.id + ' clickedPitch is SPN', p.clicked);
+      assert(p.pitches && p.pitches.includes(p.clicked),
+        'pin ' + p.id + ' pitches array contains clicked pitch',
+        {clicked: p.clicked, pitches: p.pitches});
+      assert((p.context || '').includes(p.clicked || 'xx'),
+        'pin ' + p.id + ' context label shows the clicked pitch, not another chord tone',
+        {clicked: p.clicked, context: p.context});
+    }
+  }
+
+  section('Scenario G — rests get a rest label');
+  const restData = evalJs(`
+    (async () => {
+      localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
+      await fetch('${SIDECAR}/save', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({pathname:'${PATHNAME}', pins: []})
+      });
+      const svg = document.querySelector('#osmd-container svg');
+      // OSMD wraps rests differently; check both classes and isRest via bridge
+      const restEls = [...svg.querySelectorAll('[class*="rest" i]')];
+      if (!restEls.length) return JSON.stringify({skip: true, reason: 'no rest elements'});
+      const el = restEls[0];
+      el.scrollIntoView({block: 'center'});
+      await new Promise(r => setTimeout(r, 200));
+      const b = el.getBoundingClientRect();
+      const cx = b.left + b.width/2, cy = b.top + b.height/2;
+      const hit = document.elementFromPoint(cx, cy) || el;
+      hit.dispatchEvent(new MouseEvent('click', {
+        bubbles:true, cancelable:true, view:window,
+        clientX:cx, clientY:cy, shiftKey:true, button:0,
+      }));
+      await new Promise(r => setTimeout(r, 400));
+      const saved = await (await fetch('${SIDECAR}/load?pathname=${PATHNAME}')).json();
+      const pin = saved.pins[saved.pins.length - 1];
+      return JSON.stringify({
+        skip: false,
+        context: pin?.context,
+        kind: pin?.identity?.kind,
+        isRest: pin?.identity?.isRest,
+      });
+    })();
+  `);
+  const rest = JSON.parse(restData);
+  if (rest.skip) {
+    console.log('  (skipped: ' + (rest.reason || 'no rests') + ')');
+  } else {
+    assert(/rest/i.test(rest.context || ''),
+      'rest pin context label says "rest"', rest.context);
+    assert(rest.isRest === true,
+      'rest pin identity.isRest === true', rest.isRest);
+  }
+
+  section('Scenario H — tied notes resolve independently');
+  const tieData = evalJs(`
+    (async () => {
+      localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
+      await fetch('${SIDECAR}/save', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({pathname:'${PATHNAME}', pins: []})
+      });
+      const svg = document.querySelector('#osmd-container svg');
+      const ties = [...svg.querySelectorAll('.vf-stavetie')];
+      if (!ties.length) return JSON.stringify({skip: true, reason: 'no ties'});
+      const stavenotes = [...svg.querySelectorAll('.vf-stavenote')];
+      const findPair = (tie) => {
+        tie.scrollIntoView({block: 'center'});
+        const tb = tie.getBoundingClientRect();
+        const rowFilter = (x) => Math.abs(x.b.top - tb.top) < 140;
+        const L = stavenotes
+          .map(sn => ({sn, b: sn.getBoundingClientRect()}))
+          .filter(rowFilter)
+          .sort((a, b) => Math.abs(a.b.right - tb.left) - Math.abs(b.b.right - tb.left))[0]?.sn;
+        const R = stavenotes
+          .map(sn => ({sn, b: sn.getBoundingClientRect()}))
+          .filter(rowFilter)
+          .sort((a, b) => Math.abs(a.b.left - tb.right) - Math.abs(b.b.left - tb.right))[0]?.sn;
+        return {L, R, tb};
+      };
+      const peek = (el) => {
+        const head = el.querySelector('.vf-notehead') || el;
+        const r = head.getBoundingClientRect();
+        const x = r.left + r.width/2 + window.scrollX;
+        const y = r.top + r.height/2 + window.scrollY;
+        const h = window.__sheetMusic.resolveNoteAt(x, y, 80);
+        return {ok: !!(h && h.clickedPitch), hit: h};
+      };
+      let nearL = null, nearR = null;
+      let triedTies = 0;
+      for (const tie of ties) {
+        triedTies++;
+        const {L, R} = findPair(tie);
+        if (!L || !R || L === R) continue;
+        await new Promise(r => setTimeout(r, 150));
+        const pL = peek(L), pR = peek(R);
+        if (pL.ok && pR.ok) { nearL = L; nearR = R; break; }
+      }
+      if (!nearL || !nearR) {
+        return JSON.stringify({
+          skip: true,
+          reason: 'no tie with both endpoints resolvable (tried ' + triedTies + '/' + ties.length + ')',
+        });
+      }
+      const click = (el) => {
+        const head = el.querySelector('.vf-notehead') || el;
+        const r = head.getBoundingClientRect();
+        const x = r.left + r.width/2, y = r.top + r.height/2;
+        head.dispatchEvent(new MouseEvent('click', {
+          bubbles:true, cancelable:true, view:window,
+          clientX:x, clientY:y, shiftKey:true, button:0,
+        }));
+      };
+      const peekL = peek(nearL).hit;
+      const peekR = peek(nearR).hit;
+      click(nearL);
+      await new Promise(r => setTimeout(r, 350));
+      click(nearR);
+      await new Promise(r => setTimeout(r, 350));
+      const saved = await (await fetch('${SIDECAR}/load?pathname=${PATHNAME}')).json();
+      return JSON.stringify({
+        skip: false,
+        peekL, peekR,
+        pins: saved.pins.slice(-2).map(p => ({
+          clicked: p.identity?.clickedPitch,
+          measure: p.identity?.measureNumber,
+          isTied: p.identity?.isTied,
+          kind: p.identity?.kind,
+        })),
+      });
+    })();
+  `);
+  const tie = JSON.parse(tieData);
+  if (tie.skip) {
+    console.log('  (skipped: ' + (tie.reason || 'no ties') + ')');
+  } else {
+    console.log('  bridge peek:', JSON.stringify({L: tie.peekL, R: tie.peekR}));
+    assert(tie.pins.length === 2, 'two tie endpoint pins saved', tie.pins.length);
+    const [a, b] = tie.pins;
+    assert(a.clicked && b.clicked, 'both tied endpoints have a pitch', tie.pins);
+    assert(a.clicked === b.clicked,
+      'tied notes share the same pitch (a tie connects same-pitch notes)',
+      {a: a.clicked, b: b.clicked});
+    assert(a.isTied === true && b.isTied === true,
+      'both pins flagged identity.isTied === true',
+      {a: a.isTied, b: b.isTied});
+  }
 
   section('Cleanup');
   evalJs(`

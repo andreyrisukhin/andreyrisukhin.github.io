@@ -58,9 +58,15 @@
           .map((n) => pitchName(n))
           .filter(Boolean);
 
+        const sn = gn.sourceNote || gn.SourceNote;
+        const isRest = !!(sn && (sn.isRest === true || (typeof sn.isRest === 'function' && sn.isRest())));
+        const isTied = !!(sn && (sn.NoteTie || sn.noteTie || sn.Tie || sn.tie));
+
         return {
           pitches,
           clickedPitch: pitchName(gn),
+          isRest,
+          isTied,
           measureNumber,
           staffIndex,
           svgPoint,

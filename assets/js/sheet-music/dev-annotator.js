@@ -149,16 +149,22 @@
     }
     const staveNote = target.closest && target.closest('.vf-stavenote');
     if (staveNote) {
-      const glyph = target.closest('.vf-note') || staveNote.querySelector('.vf-note') || staveNote;
+      const glyph = target.closest('.vf-notehead, .vf-note')
+        || staveNote.querySelector('.vf-note') || staveNote;
       const gr = glyph.getBoundingClientRect();
       if (gr.width > 0 && gr.height > 0) {
         const bridge = window.__sheetMusic;
         const resolved = (bridge && bridge.ready) ? bridge.resolveNoteAt(pageX, pageY, 80) : null;
-        const pitch = (resolved && resolved.pitches && resolved.pitches[0]) || (resolved && resolved.clickedPitch) || 'note';
+        const isRest = !!(resolved && resolved.isRest);
+        const isTied = !!(resolved && resolved.isTied);
+        const clicked = resolved && resolved.clickedPitch;
+        const pitch = isRest ? 'rest' : (clicked || (resolved && resolved.pitches && resolved.pitches[0]) || 'note');
         const measure = resolved && resolved.measureNumber;
+        const lead = (isTied && !isRest) ? '\u2040 ' : '';
+        const label = lead + pitch + (measure != null ? ' · m' + measure : '');
         return {
           kind: 'notehead',
-          label: pitch + (measure != null ? ' · m' + measure : ''),
+          label,
           rect: padRect(rectToPage(gr), 4),
         };
       }
@@ -230,6 +236,8 @@
       pitches: [],
       clickedPitch: null,
       chordSymbol: null,
+      isRest: false,
+      isTied: false,
       selector: cssPath(ev.target),
       thumbnail: null,
     };
@@ -258,7 +266,8 @@
     } else {
       const staveNote = ev.target instanceof Element ? ev.target.closest('.vf-stavenote') : null;
       if (staveNote) {
-        const glyph = ev.target.closest('.vf-note') || staveNote.querySelector('.vf-note') || staveNote;
+        const glyph = ev.target.closest('.vf-notehead, .vf-note')
+          || staveNote.querySelector('.vf-note') || staveNote;
         const gr = glyph.getBoundingClientRect();
         resolvedRect = {
           x: gr.left + window.scrollX,
@@ -273,6 +282,8 @@
             out.staffIndex = hit.staffIndex;
             out.pitches = hit.pitches || [];
             out.clickedPitch = hit.clickedPitch || null;
+            out.isRest = !!hit.isRest;
+            out.isTied = !!hit.isTied;
             out.context = semanticContext(hit);
           }
         }
@@ -331,10 +342,18 @@
     const parts = [];
     if (hit.measureNumber != null) parts.push('m' + hit.measureNumber);
     if (hit.staffIndex != null) parts.push('staff ' + (hit.staffIndex + 1));
-    if (hit.pitches && hit.pitches.length) {
-      parts.push(hit.pitches.length > 1 ? '[' + hit.pitches.join(' ') + ']' : hit.pitches[0]);
-    } else if (hit.clickedPitch) {
-      parts.push(hit.clickedPitch);
+    if (hit.isRest) {
+      parts.push('rest');
+    } else {
+      const clicked = hit.clickedPitch;
+      if (clicked && hit.pitches && hit.pitches.length > 1) {
+        parts.push('\u27e8' + clicked + '\u27e9 in [' + hit.pitches.join(' ') + ']');
+      } else if (clicked) {
+        parts.push(clicked);
+      } else if (hit.pitches && hit.pitches.length) {
+        parts.push(hit.pitches.length > 1 ? '[' + hit.pitches.join(' ') + ']' : hit.pitches[0]);
+      }
+      if (hit.isTied) parts.push('tied');
     }
     return parts.join(' · ') || 'score';
   }
