@@ -194,28 +194,27 @@
     return null;
   }
 
+  const NOTE_ENUM_TO_LETTER = {
+    0: 'C', 2: 'D', 4: 'E', 5: 'F', 7: 'G', 9: 'A', 11: 'B',
+  };
+
   function pitchName(gn) {
     if (!gn) return null;
     const sn = gn.sourceNote || gn.SourceNote;
     if (!sn) return null;
     const p = sn.Pitch || sn.pitch;
     if (!p) return null;
-    if (typeof p.ToString === 'function') {
-      try {
-        return p.ToString();
-      } catch (_) { /* fall through */ }
-    }
-    const nameIdx = p.FundamentalNote;
-    const octave = p.Octave != null ? p.Octave + 3 : 4;
-    const NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const fund = p.FundamentalNote;
+    const letter = NOTE_ENUM_TO_LETTER[fund];
+    if (!letter) return null;
     const acc = p.AccidentalHalfTones;
     let suffix = '';
     if (acc === 1) suffix = '#';
     else if (acc === -1) suffix = 'b';
     else if (acc === 2) suffix = '##';
     else if (acc === -2) suffix = 'bb';
-    const letter = (typeof nameIdx === 'number' && NAMES[nameIdx]) ? NAMES[nameIdx] : '?';
-    return letter + suffix + octave;
+    const octave = (typeof p.Octave === 'number') ? p.Octave + 3 : '';
+    return `${letter}${suffix}${octave}`;
   }
 
   function rasterize(svgUrl, w, h, drawOverlay) {
