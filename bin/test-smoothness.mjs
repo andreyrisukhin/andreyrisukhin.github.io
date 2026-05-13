@@ -642,6 +642,65 @@ async function main() {
       mv.samples);
   }
 
+  section('Scenario N — Stradella overlay toggles, paints, and dedupes');
+  const stradProbe = evalJs(`
+    (async () => {
+      if (!window.StradellaOverlay) return JSON.stringify({skip: true, reason: 'overlay module not loaded'});
+      // Start clean.
+      window.StradellaOverlay.setEnabled(false);
+      await new Promise(r => setTimeout(r, 100));
+      const offCount = document.querySelectorAll('[data-stradella-overlay]').length;
+      // Turn on.
+      window.StradellaOverlay.setEnabled(true);
+      await new Promise(r => setTimeout(r, 250));
+      const overlays = [...document.querySelectorAll('[data-stradella-overlay]')];
+      // Sample first few labels and verify dedupe within row+chord.
+      const labels = overlays.slice(0, 30).map(o => o.title || o.textContent);
+      // Verify no two ADJACENT overlays in DOM order share both
+      // chord-name and tightly-clustered y position (dedupe working).
+      let adjacentDupes = 0;
+      for (let i = 1; i < overlays.length; i++) {
+        const a = overlays[i-1];
+        const b = overlays[i];
+        const ay = a.getBoundingClientRect().top;
+        const by = b.getBoundingClientRect().top;
+        if (a.textContent === b.textContent && Math.abs(ay - by) < 3) adjacentDupes++;
+      }
+      const btn = document.getElementById('osmd-stradella-toggle');
+      // Toggle off again to leave state clean for subsequent runs.
+      const wasPressed = btn.classList.contains('is-pressed');
+      window.StradellaOverlay.setEnabled(false);
+      await new Promise(r => setTimeout(r, 100));
+      const offAgainCount = document.querySelectorAll('[data-stradella-overlay]').length;
+      return JSON.stringify({
+        offCount,
+        onCount: overlays.length,
+        sampleLabels: labels,
+        adjacentDupes,
+        toggleHasPressed: wasPressed,
+        offAgainCount,
+      });
+    })();
+  `);
+  const sp = JSON.parse(stradProbe);
+  if (sp.skip) {
+    console.log('  (skipped: ' + sp.reason + ')');
+  } else {
+    assert(sp.offCount === 0,
+      'overlay starts off with no painted recipes', sp);
+    assert(sp.onCount > 5,
+      'enabling the overlay paints multiple recipes across the score',
+      { count: sp.onCount });
+    assert(sp.toggleHasPressed === true,
+      'toggle button gains is-pressed when overlay is on', sp);
+    assert(sp.adjacentDupes === 0,
+      'consecutive identical chords on the same row are deduped',
+      { dupes: sp.adjacentDupes, sample: sp.sampleLabels });
+    assert(sp.offAgainCount === 0,
+      'turning the overlay off removes every painted recipe',
+      { count: sp.offAgainCount });
+  }
+
   section('Scenario L — dev mode is opt-in and toggle persists');
   const devModeProbe = evalJs(`
     (() => {

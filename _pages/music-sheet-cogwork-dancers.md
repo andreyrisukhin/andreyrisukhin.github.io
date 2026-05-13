@@ -12,6 +12,7 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
   <button id="osmd-zoom-out" class="music-share-btn" type="button">−</button>
   <button id="osmd-zoom-reset" class="music-share-btn" type="button">Reset zoom</button>
   <button id="osmd-zoom-in" class="music-share-btn" type="button">+</button>
+  <button id="osmd-stradella-toggle" class="music-share-btn" type="button" data-pressed="false">Show Stradella</button>
   <a class="music-share-btn" href="{{ '/assets/music/sheet-music/cogwork-dancers/cogwork-dancers.mscz' | relative_url }}" download>Download .mscz</a>
   <a class="music-share-btn" href="{{ '/assets/music/sheet-music/cogwork-dancers/cogwork-dancers.musicxml' | relative_url }}" download>Download MusicXML</a>
 </div>
@@ -36,6 +37,7 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/sheet-music/osmd-bridge.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/chord-inspector.js' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.9.0/build/opensheetmusicdisplay.min.js"></script>

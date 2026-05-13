@@ -559,3 +559,40 @@ html[data-theme="dark"] .chord-inspector {
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
 }
+
+/* In-score Stradella overlay (anchored inside #osmd-container so it
+   moves with zoom/autoresize redraws). Pointer-events none so it
+   never blocks click resolution into the underlying notehead. */
+.stradella-overlay {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: rgba(120, 90, 0, 0.85);
+  background: rgba(255, 246, 220, 0.85);
+  border: 1px solid rgba(180, 140, 0, 0.25);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  z-index: 5;
+}
+html[data-theme="dark"] .stradella-overlay {
+  color: #ffd180;
+  background: rgba(40, 30, 10, 0.7);
+  border-color: rgba(255, 209, 128, 0.3);
+}
+
+/* Toggle button pressed state (matches the existing music-share-btn
+   look, just with a teal accent so it's obvious when it's on). */
+#osmd-stradella-toggle.is-pressed {
+  background: #1f7a8c;
+  border-color: #1f7a8c;
+  color: #fff;
+}
+html[data-theme="dark"] #osmd-stradella-toggle.is-pressed {
+  background: #4fc3d7;
+  border-color: #4fc3d7;
+  color: #1a1a1a;
+}
