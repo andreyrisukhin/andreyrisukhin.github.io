@@ -160,10 +160,9 @@
         const clicked = resolved && resolved.clickedPitch;
         const chordName = resolved && resolved.chordName;
         const pitch = isRest ? 'rest' : (clicked || (resolved && resolved.pitches && resolved.pitches[0]) || 'note');
-        const measure = resolved && resolved.measureNumber;
         const lead = (isTied && !isRest) ? '\u2040 ' : '';
-        const head = chordName && !isRest ? chordName + ' \u00b7 ' + pitch : pitch;
-        const label = lead + head + (measure != null ? ' \u00b7 m' + measure : '');
+        const head = chordName && !isRest ? chordName + '\u27e8' + pitch + '\u27e9' : pitch;
+        const label = lead + head;
         return {
           kind: 'notehead',
           label,
