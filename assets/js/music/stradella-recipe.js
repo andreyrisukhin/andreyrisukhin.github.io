@@ -21,6 +21,12 @@ window.StradellaRecipe = (function () {
     if (!rootMatch) return '';
     var rootName = rootMatch[1];
     var suffix = rootMatch[2];
+    // Tonal returns "CM" / "GM" / "EbM" for plain major triads; the
+    // Stradella data records the basic Major Triad as suffix "" so
+    // a literal "M" lookup returns nothing. Normalize first so the
+    // overlay paints the same Cm-style "C / C" recipe for majors as
+    // for minors.
+    if (suffix === 'M') suffix = '';
 
     var rootSemitone = -1;
     for (var i = 0; i < M.NOTES.length; i++) {

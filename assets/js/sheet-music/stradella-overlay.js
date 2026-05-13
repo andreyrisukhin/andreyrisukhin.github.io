@@ -60,9 +60,13 @@
     return v ? v.textContent : null;
   }
 
-  // Same chord-shape regex used to scrub static chord text. Rejects
-  // non-chord labels we might encounter accidentally.
-  const ACCEPT_RE = /^[A-G][#b\u266F\u266D]?(?:m|maj|min|dim|aug|sus|add|m6|m7|maj7|7|9|11|13|\u00b0|\u00f8|d7)?(?:\/[A-G][#b\u266F\u266D]?)?$/;
+  // Sanity filter for chord names we'll surface as recipes. Tonal
+  // returns labels like "CM" / "Cm" / "G7" / "Eb7" / "Gm/D" — make
+  // sure capital "M" (its short form for major) is accepted, not
+  // just lowercase "m" / "maj" / etc., which is the bug that made
+  // every plain major triad in the score (GM, EbM, ...) skip its
+  // overlay even though the click inspector resolved them fine.
+  const ACCEPT_RE = /^[A-G][#b\u266F\u266D]?(?:M|m|maj|min|dim|aug|sus|add|m6|m7|maj7|7|9|11|13|\u00b0|\u00f8|d7)?(?:\/[A-G][#b\u266F\u266D]?)?$/;
 
   function redraw() {
     clearOverlays();
