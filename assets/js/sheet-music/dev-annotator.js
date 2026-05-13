@@ -158,10 +158,12 @@
         const isRest = !!(resolved && resolved.isRest);
         const isTied = !!(resolved && resolved.isTied);
         const clicked = resolved && resolved.clickedPitch;
+        const chordName = resolved && resolved.chordName;
         const pitch = isRest ? 'rest' : (clicked || (resolved && resolved.pitches && resolved.pitches[0]) || 'note');
         const measure = resolved && resolved.measureNumber;
         const lead = (isTied && !isRest) ? '\u2040 ' : '';
-        const label = lead + pitch + (measure != null ? ' · m' + measure : '');
+        const head = chordName && !isRest ? chordName + ' \u00b7 ' + pitch : pitch;
+        const label = lead + head + (measure != null ? ' \u00b7 m' + measure : '');
         return {
           kind: 'notehead',
           label,
@@ -235,6 +237,7 @@
       staffIndex: null,
       pitches: [],
       clickedPitch: null,
+      chordName: null,
       chordSymbol: null,
       isRest: false,
       isTied: false,
@@ -282,6 +285,7 @@
             out.staffIndex = hit.staffIndex;
             out.pitches = hit.pitches || [];
             out.clickedPitch = hit.clickedPitch || null;
+            out.chordName = hit.chordName || null;
             out.isRest = !!hit.isRest;
             out.isTied = !!hit.isTied;
             out.context = semanticContext(hit);
@@ -346,7 +350,10 @@
       parts.push('rest');
     } else {
       const clicked = hit.clickedPitch;
-      if (clicked && hit.pitches && hit.pitches.length > 1) {
+      if (hit.chordName && hit.pitches && hit.pitches.length > 1) {
+        const pickedNote = clicked || hit.pitches[0];
+        parts.push(hit.chordName + ' \u00b7 \u27e8' + pickedNote + '\u27e9 in [' + hit.pitches.join(' ') + ']');
+      } else if (clicked && hit.pitches && hit.pitches.length > 1) {
         parts.push('\u27e8' + clicked + '\u27e9 in [' + hit.pitches.join(' ') + ']');
       } else if (clicked) {
         parts.push(clicked);

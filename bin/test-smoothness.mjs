@@ -266,6 +266,7 @@ async function main() {
           kind: p.identity?.kind,
           clicked: p.identity?.clickedPitch,
           pitches: p.identity?.pitches,
+          chordName: p.identity?.chordName,
           context: p.context,
         })),
       });
@@ -290,6 +291,12 @@ async function main() {
       assert((p.context || '').includes(p.clicked || 'xx'),
         'pin ' + p.id + ' context label shows the clicked pitch, not another chord tone',
         {clicked: p.clicked, context: p.context});
+      assert(typeof p.chordName === 'string' && p.chordName.length > 0,
+        'pin ' + p.id + ' has Tonal-detected chordName for the stack',
+        {chordName: p.chordName, pitches: p.pitches});
+      assert((p.context || '').includes(p.chordName || 'xx'),
+        'pin ' + p.id + ' context label leads with the chord name',
+        {chordName: p.chordName, context: p.context});
     }
   }
 

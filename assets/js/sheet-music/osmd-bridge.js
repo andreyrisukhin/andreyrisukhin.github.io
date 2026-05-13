@@ -74,9 +74,11 @@
           (typeof sn.isRest === 'function' && sn.isRest())
         ));
         const isTied = !!(sn && (sn.NoteTie || sn.noteTie || sn.Tie || sn.tie));
+        const chordName = (pitches.length >= 2) ? detectChordName(pitches) : null;
 
         return {
           pitches,
+          chordName,
           clickedPitch: pitchName(gn),
           isRest,
           isTied,
@@ -272,6 +274,19 @@
   const NOTE_ENUM_TO_LETTER = {
     0: 'C', 2: 'D', 4: 'E', 5: 'F', 7: 'G', 9: 'A', 11: 'B',
   };
+
+  function detectChordName(pitches) {
+    if (!window.Tonal || !window.Tonal.Chord || typeof window.Tonal.Chord.detect !== 'function') return null;
+    const pcs = pitches.map((p) => String(p).replace(/-?\d+$/, ''));
+    try {
+      const detected = window.Tonal.Chord.detect(pcs) || [];
+      if (!detected.length) return null;
+      // Tonal returns e.g. ["Cm", "EbM/C", ...]; pick the shortest as primary.
+      return detected.slice().sort((a, b) => a.length - b.length)[0];
+    } catch (_) {
+      return null;
+    }
+  }
 
   function pitchName(gn) {
     if (!gn) return null;
