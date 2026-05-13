@@ -162,7 +162,11 @@ window.TrailMap = (function () {
         opacity: 0.85,
         dashArray: seg.kind === 'scramble' ? '6 6' : null,
       });
-      bindReaderTooltip(line, segmentTipHtml(seg));
+      // Segments only earn a tooltip if they carry a non-empty note;
+      // a bare "walk" badge over a green line is noise.
+      if (seg.note && seg.note.trim()) {
+        bindReaderTooltip(line, segmentTipHtml(seg));
+      }
       line._trailSegment = seg;
       return line;
     }
