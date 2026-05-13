@@ -41,31 +41,78 @@ Result: responsive SVG sheet music inline. OSMD also accepts the XML as a string
 - Interactive/responsive sheet music (e.g. exercises, playback cursor): MuseScore → MusicXML → OSMD at runtime.
 - Static figure in a post: MuseScore → SVG at build time, embedded via the standard `figure.liquid` block (see `DESIGN.md`).
 
-## Dev-mode annotation overlay
+## Dev-mode annotation overlay + chord inspector
 
-On the Cogwork Dancers page, a feedback overlay activates when the site is
-served from `localhost` / `127.0.0.1` or the URL carries `?dev`. Inspired by
-[kunchenguid/lavish-axi](https://github.com/kunchenguid/lavish-axi), minus
-the polling sidecar (we're a static Jekyll site).
+Two dev-only interactive features live on the Cogwork Dancers page. Both
+activate when the site is served from `localhost` / `127.0.0.1` or the URL
+carries `?dev`. Inspired by
+[kunchenguid/lavish-axi](https://github.com/kunchenguid/lavish-axi), adapted
+for a static Jekyll site by adding a tiny Node sidecar instead of a full CLI.
 
-Workflow:
+### Start the dev environment
 
-1. `bundle exec jekyll serve` and open the sheet-music page.
-2. Shift-click anywhere on the score (or a control) to drop a numbered pin;
-   a `window.prompt` captures the comment. Pins render on a fixed overlay
-   and persist in `localStorage` keyed by pathname.
-3. Click a pin to reopen it for edits or deletion.
-4. Use the floating HUD (bottom-right) to:
-   - **Copy as Markdown** — formatted list ready to paste into a chat.
-   - **Download JSON** — full structured dump with pathname, ids,
-     coordinates, anchor-relative coordinates, inferred element context,
-     note, and timestamp.
-   - **Clear all** — wipes the pins for this page.
+```
+bin/dev-serve.sh
+```
 
-Implementation lives in
-`assets/js/sheet-music/dev-annotator.{js,css}` and is included from the
-page markdown; the `isDev` guard at the top of the JS ensures the overlay
-is inert when the site is served from production.
+Starts Jekyll on `:4000` and the annotator sidecar on `:4001`. Ctrl-C stops
+both.
+
+### Annotator
+
+- **Shift-click** anywhere on the score to drop a pin. A red numbered
+  marker lands at the click with a flash animation; the right-edge sidebar
+  opens focused on that pin's textarea.
+- Each pin captures semantic identity from OSMD's graphical model:
+  `{ measureNumber, staffIndex, pitches[], clickedPitch }`, plus a
+  PNG thumbnail cropped from the rendered SVG around the click, plus a
+  CSS-selector fallback. The context label shown in the sidebar and
+  export looks like `m12 · staff 1 · [C4 E4 G4]`.
+- Persistence is dual: every change writes to `localStorage` (keyed by
+  pathname) and to the sidecar via `POST /save`, which writes
+  `.dev-annotations/<slug>.json` inside the repo (git-ignored). The
+  sidebar shows live status: `sidecar online` / `local only`.
+- On load, the annotator probes the sidecar health and hydrates from the
+  on-disk JSON, unless local has more pins (last-write-wins favouring the
+  richer set).
+- Sidebar actions: **Copy Markdown** (clipboard), **Download JSON**, and
+  **Clear all**. When you're working with me, you don't need any of these
+  — I read the `.dev-annotations/<slug>.json` directly.
+
+### Chord inspector
+
+Click a note (without Shift) and a popover appears near the click showing:
+
+- Detected chord name via `Tonal.Chord.detect`.
+- Notes in the chord at that beat, with their pitch names.
+- Semitones from the bass note.
+- Interval list (e.g. `M3 + m3`).
+- A Stradella bass recipe (`C bass + Major button`) if the chord matches
+  one of the standard voicings in `_data/music/stradella_buttons.yml`.
+
+### Sidecar API
+
+Minimal Node HTTP server, no dependencies, Node 18+ built-ins only:
+
+- `GET  /health` → `{ok, root}`
+- `POST /save`   body `{pathname, pins}` → writes `.dev-annotations/<slug>.json`
+- `GET  /load?pathname=...` → returns `{pathname, updatedAt, pinCount, pins}`
+
+CORS is allowed for `http://localhost:4000` and `http://127.0.0.1:4000`.
+
+### File map
+
+```
+bin/
+  dev-annotator-server.mjs   Node sidecar
+  dev-serve.sh               starts Jekyll + sidecar
+  mscz-to-musicxml.sh        one-shot conversion wrapper
+assets/js/sheet-music/
+  osmd-bridge.js             exposes window.__sheetMusic (OSMD helpers)
+  dev-annotator.{js,css}     shift-click pins, sidebar, sidecar sync
+  chord-inspector.js         click-note popover
+.dev-annotations/            git-ignored; <slug>.json per page
+```
 
 ## References
 

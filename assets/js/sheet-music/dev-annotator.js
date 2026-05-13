@@ -1,14 +1,13 @@
 /*
  * Dev-mode annotation overlay for sheet music pages.
  *
- * Activates only on localhost or when ?dev is present in the URL.
- * Shift-click anywhere drops a numbered pin at document coordinates and
- * opens a right-side sidebar focused on that pin's editable note.
+ * Activates only on localhost or when ?dev is in the URL. Shift-click
+ * drops a pin with semantic OSMD identity (measure, staff, pitches),
+ * a thumbnail crop of the score around the click, and a persistent
+ * note. Pins sync to a Node sidecar (bin/dev-annotator-server.mjs) at
+ * http://localhost:4001 and fall back to localStorage when it is down.
  *
- * Storage: localStorage keyed by pathname. Export: copy-as-markdown or
- * download-JSON.
- *
- * Inspiration: kunchenguid/lavish-axi, minus the polling sidecar.
+ * Inspiration: kunchenguid/lavish-axi.
  */
 
 (function () {
@@ -19,70 +18,128 @@
   if (!isDev) return;
 
   const STORAGE_KEY = 'sheet-annotator:' + location.pathname;
+  const SIDECAR = 'http://127.0.0.1:4001';
   const PIN_MODIFIER = 'shiftKey';
 
-  /** @type {Array<{id:number,x:number,y:number,context:string,note:string,createdAt:string}>} */
-  let pins = loadPins();
-  let nextId = pins.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+  const state = {
+    pins: loadLocalPins(),
+    nextId: 1,
+    sidecarStatus: 'unknown',
+  };
+  state.nextId = state.pins.reduce((m, p) => Math.max(m, p.id), 0) + 1;
 
   const sidebar = buildSidebar();
   document.body.appendChild(sidebar.root);
+
+  probeSidecar().then(() => hydrateFromSidecar());
 
   document.addEventListener('click', onClick, true);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') sidebar.close();
   });
+  window.addEventListener('resize', rerender);
 
   rerender();
 
-  function onClick(e) {
+  async function onClick(e) {
     if (e.target instanceof Element && e.target.closest('[data-sheet-annotator]')) return;
     if (!e[PIN_MODIFIER]) return;
     e.preventDefault();
     e.stopPropagation();
 
-    const context = describeTarget(e.target);
+    const identity = await captureIdentity(e);
     const pin = {
-      id: nextId++,
+      id: state.nextId++,
       x: e.pageX,
       y: e.pageY,
-      context,
+      context: identity.context,
+      identity,
       note: '',
       createdAt: new Date().toISOString(),
     };
-    pins.push(pin);
-    persist();
+    state.pins.push(pin);
+    await persist();
     rerender();
     sidebar.open();
     sidebar.focusPin(pin.id);
     flashPin(pin.id);
   }
 
-  function describeTarget(target) {
+  async function captureIdentity(ev) {
+    const out = {
+      context: 'page',
+      measureNumber: null,
+      staffIndex: null,
+      pitches: [],
+      clickedPitch: null,
+      selector: cssPath(ev.target),
+      thumbnail: null,
+    };
+    const bridge = window.__sheetMusic;
+    if (bridge && bridge.ready) {
+      const hit = bridge.resolveNoteAt(ev.pageX, ev.pageY);
+      if (hit) {
+        out.measureNumber = hit.measureNumber;
+        out.staffIndex = hit.staffIndex;
+        out.pitches = hit.pitches || [];
+        out.clickedPitch = hit.clickedPitch || null;
+        out.context = semanticContext(hit);
+      }
+      try {
+        out.thumbnail = await bridge.snapshotAround(ev.pageX, ev.pageY);
+      } catch (_) { /* ignore */ }
+    }
+    if (out.context === 'page') {
+      out.context = domFallbackContext(ev.target);
+    }
+    return out;
+  }
+
+  function semanticContext(hit) {
+    const parts = [];
+    if (hit.measureNumber != null) parts.push('m' + hit.measureNumber);
+    if (hit.staffIndex != null) parts.push('staff ' + (hit.staffIndex + 1));
+    if (hit.pitches && hit.pitches.length) {
+      parts.push(hit.pitches.length > 1 ? '[' + hit.pitches.join(' ') + ']' : hit.pitches[0]);
+    } else if (hit.clickedPitch) {
+      parts.push(hit.clickedPitch);
+    }
+    return parts.join(' · ') || 'score';
+  }
+
+  function domFallbackContext(target) {
     if (!(target instanceof Element)) return 'page';
-    const measure =
-      target.closest('[id^="measureNumber"]') ||
-      target.closest('.vf-measure') ||
-      target.closest('[data-measure]');
-    if (measure) {
-      const n = measure.id || measure.getAttribute('data-measure') || measure.className;
-      return 'measure ' + n;
+    const control = target.closest('button, a');
+    if (control) {
+      const label = (control.textContent || '').trim().slice(0, 30);
+      return (control.tagName || 'el').toLowerCase() + (label ? ' "' + label + '"' : '');
     }
     const withId = target.closest('[id]');
     if (withId && withId.id && !withId.id.startsWith('osmd-container')) {
       return '#' + withId.id;
     }
-    const control = target.closest('button, a');
-    if (control) {
-      const label = (control.textContent || '').trim().slice(0, 40);
-      return (control.tagName || 'el').toLowerCase() + (label ? ' "' + label + '"' : '');
+    return (target.tagName || 'page').toLowerCase();
+  }
+
+  function cssPath(target) {
+    if (!(target instanceof Element)) return null;
+    const path = [];
+    let el = target;
+    while (el && el.nodeType === 1 && path.length < 6) {
+      let sel = el.tagName.toLowerCase();
+      if (el.id) { sel += '#' + el.id; path.unshift(sel); break; }
+      if (el.classList.length) sel += '.' + [...el.classList].slice(0, 2).join('.');
+      const siblings = el.parentElement ? [...el.parentElement.children].filter((c) => c.tagName === el.tagName) : [];
+      if (siblings.length > 1) sel += ':nth-of-type(' + (siblings.indexOf(el) + 1) + ')';
+      path.unshift(sel);
+      el = el.parentElement;
     }
-    return target.tagName ? target.tagName.toLowerCase() : 'page';
+    return path.join(' > ');
   }
 
   function rerender() {
     document.querySelectorAll('[data-sheet-pin]').forEach((el) => el.remove());
-    pins.forEach((p) => document.body.appendChild(renderPinMarker(p)));
+    state.pins.forEach((p) => document.body.appendChild(renderPinMarker(p)));
     sidebar.rerenderList();
   }
 
@@ -95,7 +152,7 @@
     el.style.left = p.x + 'px';
     el.style.top = p.y + 'px';
     el.textContent = String(p.id);
-    el.title = p.note || p.context;
+    el.title = (p.note ? p.note + ' — ' : '') + p.context;
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       sidebar.open();
@@ -111,16 +168,69 @@
     setTimeout(() => el.classList.remove('is-flashing'), 900);
   }
 
-  function loadPins() {
+  function loadLocalPins() {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    } catch (_) {
-      return [];
+    } catch (_) { return []; }
+  }
+
+  function saveLocal() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.pins));
+    } catch (err) {
+      console.warn('[annotator] localStorage save failed', err);
     }
   }
 
-  function persist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
+  async function persist() {
+    saveLocal();
+    if (state.sidecarStatus !== 'up') return;
+    try {
+      const res = await fetch(SIDECAR + '/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pathname: location.pathname, pins: state.pins }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      sidebar.setStatus('saved → ' + data.path);
+    } catch (err) {
+      console.warn('[annotator] sidecar save failed', err);
+      state.sidecarStatus = 'down';
+      sidebar.setStatus('local only (sidecar offline)', true);
+    }
+  }
+
+  async function probeSidecar() {
+    try {
+      const res = await fetch(SIDECAR + '/health', { cache: 'no-store' });
+      state.sidecarStatus = res.ok ? 'up' : 'down';
+    } catch (_) {
+      state.sidecarStatus = 'down';
+    }
+    sidebar.setStatus(
+      state.sidecarStatus === 'up' ? 'sidecar online' : 'local only (sidecar offline)',
+      state.sidecarStatus !== 'up'
+    );
+  }
+
+  async function hydrateFromSidecar() {
+    if (state.sidecarStatus !== 'up') return;
+    try {
+      const res = await fetch(SIDECAR + '/load?pathname=' + encodeURIComponent(location.pathname));
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || !Array.isArray(data.pins)) return;
+      if (!data.pins.length) return;
+      const localNewer = state.pins.length > data.pins.length;
+      if (localNewer) { await persist(); return; }
+      state.pins = data.pins;
+      state.nextId = state.pins.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+      saveLocal();
+      rerender();
+    } catch (err) {
+      console.warn('[annotator] hydrate failed', err);
+    }
   }
 
   function pinsAsMarkdown(list) {
@@ -129,7 +239,11 @@
     const body = list
       .slice()
       .sort((a, b) => a.id - b.id)
-      .map((p) => `${p.id}. **${p.context}** — ${p.note || '_(no note)_'}`)
+      .map((p) => {
+        const ctx = p.context || (p.identity && p.identity.context) || '?';
+        const note = p.note || '_(no note)_';
+        return `${p.id}. **${ctx}** — ${note}`;
+      })
       .join('\n');
     return header + body + '\n';
   }
@@ -161,6 +275,7 @@
           <button type="button" class="sheet-annotator-sidebar__close" data-action="close" aria-label="Collapse panel">×</button>
         </header>
         <p class="sheet-annotator-sidebar__hint">Shift-click anywhere on the page to drop a pin.</p>
+        <p class="sheet-annotator-sidebar__status" data-status></p>
         <div class="sheet-annotator-sidebar__actions">
           <button type="button" data-action="copy">Copy Markdown</button>
           <button type="button" data-action="download">Download JSON</button>
@@ -176,38 +291,29 @@
     const emptyMsg = root.querySelector('[data-empty]');
     const countEl = root.querySelector('[data-count]');
     const toast = root.querySelector('[data-toast]');
+    const statusEl = root.querySelector('[data-status]');
 
     root.addEventListener('click', (e) => {
       const target = e.target instanceof Element ? e.target : null;
       if (!target) return;
       const action = target.getAttribute('data-action');
-      if (action === 'toggle') toggle();
-      else if (action === 'close') close();
+      if (action === 'toggle') root.classList.toggle('is-collapsed');
+      else if (action === 'close') root.classList.add('is-collapsed');
       else if (action === 'copy') copyMarkdown();
       else if (action === 'download') downloadJson();
       else if (action === 'clear') clearAll();
     });
 
-    function toggle() {
-      root.classList.toggle('is-collapsed');
-    }
-    function open() {
-      root.classList.remove('is-collapsed');
-    }
-    function close() {
-      root.classList.add('is-collapsed');
-    }
-
     function copyMarkdown() {
-      const md = pinsAsMarkdown(pins);
+      const md = pinsAsMarkdown(state.pins);
       navigator.clipboard.writeText(md).then(
-        () => showToast('Copied ' + pins.length + ' pin' + (pins.length === 1 ? '' : 's') + ' as Markdown'),
+        () => showToast('Copied ' + state.pins.length + ' pin' + (state.pins.length === 1 ? '' : 's') + ' as Markdown'),
         () => showToast('Clipboard blocked — use Download JSON')
       );
     }
     function downloadJson() {
       const blob = new Blob(
-        [JSON.stringify({ pathname: location.pathname, pins }, null, 2)],
+        [JSON.stringify({ pathname: location.pathname, pins: state.pins }, null, 2)],
         { type: 'application/json' }
       );
       const a = document.createElement('a');
@@ -216,40 +322,45 @@
       a.click();
       URL.revokeObjectURL(a.href);
     }
-    function clearAll() {
-      if (!pins.length) return;
-      if (!confirm('Delete all ' + pins.length + ' pins for this page?')) return;
-      pins = [];
-      persist();
+    async function clearAll() {
+      if (!state.pins.length) return;
+      if (!confirm('Delete all ' + state.pins.length + ' pins for this page?')) return;
+      state.pins = [];
+      await persist();
       rerender();
     }
 
     function rerenderList() {
-      countEl.textContent = String(pins.length);
+      countEl.textContent = String(state.pins.length);
       list.innerHTML = '';
-      pins
+      state.pins
         .slice()
         .sort((a, b) => a.id - b.id)
         .forEach((p) => list.appendChild(renderEntry(p)));
-      emptyMsg.hidden = pins.length > 0;
+      emptyMsg.hidden = state.pins.length > 0;
     }
 
     function renderEntry(p) {
       const li = document.createElement('li');
       li.className = 'sheet-annotator-entry';
       li.setAttribute('data-entry-id', String(p.id));
+      const hasThumb = p.identity && p.identity.thumbnail;
       li.innerHTML = `
         <header class="sheet-annotator-entry__head">
           <button type="button" class="sheet-annotator-entry__id" data-entry-action="jump" aria-label="Jump to pin ${p.id}">${p.id}</button>
-          <span class="sheet-annotator-entry__ctx">${escapeHtml(p.context)}</span>
+          <span class="sheet-annotator-entry__ctx">${escapeHtml(p.context || '')}</span>
           <button type="button" class="sheet-annotator-entry__delete" data-entry-action="delete" aria-label="Delete pin ${p.id}">×</button>
         </header>
+        ${hasThumb ? `<img class="sheet-annotator-entry__thumb" src="${p.identity.thumbnail}" alt="score crop">` : ''}
         <textarea class="sheet-annotator-entry__note" rows="3" placeholder="Describe the issue or change…">${escapeHtml(p.note)}</textarea>
       `;
       const ta = li.querySelector('textarea');
+      let debounce;
       ta.addEventListener('input', () => {
         p.note = ta.value;
-        persist();
+        saveLocal();
+        clearTimeout(debounce);
+        debounce = setTimeout(persist, 400);
         const marker = document.querySelector('[data-sheet-pin="' + p.id + '"]');
         if (marker) marker.title = p.note || p.context;
       });
@@ -257,9 +368,9 @@
         window.scrollTo({ top: Math.max(0, p.y - window.innerHeight / 3), behavior: 'smooth' });
         flashPin(p.id);
       });
-      li.querySelector('[data-entry-action="delete"]').addEventListener('click', () => {
-        pins = pins.filter((x) => x.id !== p.id);
-        persist();
+      li.querySelector('[data-entry-action="delete"]').addEventListener('click', async () => {
+        state.pins = state.pins.filter((x) => x.id !== p.id);
+        await persist();
         rerender();
       });
       return li;
@@ -281,6 +392,14 @@
       showToast._t = setTimeout(() => { toast.hidden = true; }, 2200);
     }
 
-    return { root, open, close, rerenderList, focusPin };
+    function setStatus(text, warn) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle('is-warn', !!warn);
+    }
+
+    function open() { root.classList.remove('is-collapsed'); }
+    function close() { root.classList.add('is-collapsed'); }
+
+    return { root, open, close, rerenderList, focusPin, setStatus };
   }
 })();

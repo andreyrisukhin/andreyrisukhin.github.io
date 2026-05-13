@@ -247,3 +247,96 @@
 @media (max-width: 640px) {
   .sheet-annotator-sidebar { width: 85vw; }
 }
+
+.sheet-annotator-sidebar__status {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  opacity: 0.7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.sheet-annotator-sidebar__status.is-warn {
+  color: #ffb44f;
+  opacity: 0.95;
+}
+
+.sheet-annotator-entry__thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0.35rem 0;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #fff;
+}
+
+/* Chord inspector popover */
+.chord-inspector {
+  position: absolute;
+  z-index: 9998;
+  background: rgba(20, 20, 24, 0.97);
+  color: #f5f5f7;
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  min-width: 240px;
+  max-width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 0.85rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+.chord-inspector[hidden] { display: none; }
+.chord-inspector__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.chord-inspector__title {
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+.chord-inspector__close {
+  background: transparent;
+  color: inherit;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 0 0.25rem;
+}
+.chord-inspector__close:hover { opacity: 1; }
+.chord-inspector__meta {
+  font-size: 0.72rem;
+  opacity: 0.7;
+  margin-bottom: 0.45rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.chord-inspector__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.18rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+}
+.chord-inspector__row:first-of-type { border-top: none; }
+.chord-inspector__row > span:first-child {
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+}
+.chord-inspector__row > span:last-child {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: right;
+}
+.chord-inspector__row code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.78rem;
+  margin-right: 2px;
+}
+.chord-inspector__row--hi {
+  color: #ffcb6b;
+}

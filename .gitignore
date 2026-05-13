@@ -12,4 +12,5 @@ node_modules/
 vendor
 !assets/js/vendor/
 .idea
+.dev-annotations/
 games/golem-demo/target/

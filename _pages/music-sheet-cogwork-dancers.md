@@ -22,6 +22,17 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
 <noscript><p>This page renders sheet music client-side with JavaScript. Download the MusicXML or `.mscz` above to view it in another application.</p></noscript>
 
 <link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css' | relative_url }}">
+
+<script>
+  window.StradellaButtons = {
+    {% for btn in site.data.music.stradella_buttons.buttons %}
+    {{ btn.id | jsonify }}: {{ btn.offsets | jsonify }}{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  };
+</script>
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/sheet-music/osmd-bridge.js' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/chord-inspector.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.9.0/build/opensheetmusicdisplay.min.js"></script>
@@ -47,7 +58,11 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
   const applyZoom = () => { osmd.Zoom = zoom; osmd.render(); };
 
   osmd.load(url)
-    .then(() => { status.textContent = ''; osmd.render(); })
+    .then(() => {
+      status.textContent = '';
+      osmd.render();
+      if (window.__sheetMusic) window.__sheetMusic.register(osmd, container);
+    })
     .catch((err) => {
       console.error(err);
       status.textContent = 'Could not load score: ' + err;
