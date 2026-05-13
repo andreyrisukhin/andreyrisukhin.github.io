@@ -101,6 +101,35 @@
   word-break: break-word;
 }
 
+/* Zoom-tier scaling (class set on .trail-map by leaflet-map.js).
+ * Base zoom = full size. One step out = compact. Two or more steps
+ * out = labels and leaders disappear so the pin dots can carry the
+ * regional context. Pin pulse animation stays so they remain
+ * visibly interactive. */
+.trail-label,
+.trail-label-wrap,
+.trail-leader {
+  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+}
+.trail-zoom-shrink .trail-label {
+  font-size: 0.66rem;
+  padding: 3px 6px;
+  gap: 2px;
+  max-width: 140px;
+  border-left-width: 2px;
+}
+.trail-zoom-shrink .trail-label__kind {
+  font-size: 0.55rem;
+  padding: 0 4px;
+}
+.trail-zoom-hide-labels .trail-label-wrap {
+  opacity: 0;
+  pointer-events: none;
+}
+.trail-zoom-hide-labels .trail-leader {
+  opacity: 0;
+}
+
 /* Editor popup chrome (the form lives here; reader does not use
  * popups any more). al-folio's dark theme would otherwise bleed a
  * near-white colour onto the white wrapper. */
