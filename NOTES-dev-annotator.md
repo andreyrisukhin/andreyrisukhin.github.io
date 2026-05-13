@@ -110,7 +110,7 @@ from there.
     16 stave-ties are all slurs)
   - source-of-truth agreement (sample 60+ stavenotes; for each, the
     bridge's `isRest` must equal `sourceNote.isRestFlag`)
-  Latest count: 45 passed, 0 failed.
+  Latest count: 58 passed, 0 failed.
 
 ## How we got here
 
@@ -176,7 +176,7 @@ Numbers in parentheses are commit shorthashes from `git log`.
     `g.vf-text > text` direction labels matching the chord-symbol
     regex. Scenario B injects its own `g.vf-text` with
     `data-test-injected` so the hider skips it.
-17. **(this commit)** — pin #6 part 2. Lifted
+17. **`97455bd`** — pin #6 part 2. Lifted
     `renderStradellaInfo` out of `chord-recognizer/main.js` into a
     shared `assets/js/music/stradella-recipe.js` (`StradellaRecipe.render(name)`).
     Chord recognizer now wraps it and rewrites class hooks for its
@@ -191,6 +191,40 @@ Numbers in parentheses are commit shorthashes from `git log`.
     Same-chord re-click hides; Escape, scroll, resize all hide and
     reset the toggle key. Scenario J asserts visibility, opacity,
     Stradella section presence, and the toggle behavior.
+
+18. **(this commit)** — unified interaction model. Rewrote
+    `chord-inspector.js` into a 3-stage progressive-disclosure
+    machine:
+    - hover ≥ 250 ms → quiet `.chord-tag` (chord name + clicked
+      pitch) at cursor; fades when the cursor leaves the
+      stavenote;
+    - click 1 → tag becomes sticky at the click point (caches
+      `pinnedData` + `pinnedAnchor` so escalation keeps the same
+      chord identity);
+    - click 2 (anywhere on the same chord, including the sticky
+      tag) → expands into the existing chord inspector popover;
+    - click 3, click outside the score, scroll, resize, or
+      Escape → `hideAll()` resets state.
+
+    `dev-annotator.js` is now opt-in. The IIFE reads
+    `?dev=0|1` first (mirroring to localStorage) and falls back
+    to the existing `sheet-dev-mode` localStorage key. On any
+    state, it renders a small `[data-sheet-dev-toggle]` pill
+    inside the score container (bottom-right). Click flips the
+    flag, drops the `?dev` param, and `location.replace`s so the
+    next init sees the new state. When dev mode is OFF: no
+    annotator listeners, no sidebar, no shift-preview, no pins;
+    visitors get a clean page with hover-tag + click-inspector
+    only.
+
+    Tests: scenario J rewritten for the two-click escalation
+    (click 1 = sticky tag, click 2 = inspector, click 3 = hide);
+    scenarios K (hover delay surfaces tag, leave hides it) and
+    L (dev-mode flag in localStorage, sidebar mounted, toggle
+    button rendered with `is-on`) added. Test setup now writes
+    `localStorage['sheet-dev-mode'] = '1'` before reload so
+    annotator scenarios A-I still see dev mode active.
+    58 passed, 0 failed.
 
 ## Pending (not in `main` yet)
 

@@ -1,20 +1,63 @@
 /*
  * Dev-mode annotation overlay for sheet music pages.
  *
- * Activates only on localhost or when ?dev is in the URL. Shift-click
- * drops a pin with semantic OSMD identity (measure, staff, pitches),
- * a thumbnail crop of the score around the click, and a persistent
- * note. Pins sync to a Node sidecar (bin/dev-annotator-server.mjs) at
+ * Opt-in via ?dev=1 URL param (also writes to localStorage so the choice
+ * survives reloads) or via the small "Dev" toggle button rendered in the
+ * bottom-right corner of the score container. Shift-click drops a pin
+ * with semantic OSMD identity (measure, staff, pitches), a thumbnail
+ * crop of the score around the click, and a persistent note. Pins sync
+ * to a Node sidecar (bin/dev-annotator-server.mjs) at
  * http://localhost:4001 and fall back to localStorage when it is down.
  *
  * Inspiration: kunchenguid/lavish-axi.
  */
 
 (function () {
-  const isDev =
-    location.hostname === 'localhost' ||
-    location.hostname === '127.0.0.1' ||
-    new URLSearchParams(location.search).has('dev');
+  const DEV_MODE_KEY = 'sheet-dev-mode';
+
+  function readDevMode() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('dev') === '1') {
+      try { localStorage.setItem(DEV_MODE_KEY, '1'); } catch (_) {}
+      return true;
+    }
+    if (params.get('dev') === '0') {
+      try { localStorage.removeItem(DEV_MODE_KEY); } catch (_) {}
+      return false;
+    }
+    try { return localStorage.getItem(DEV_MODE_KEY) === '1'; } catch (_) { return false; }
+  }
+
+  function renderDevToggle(devOn) {
+    if (document.querySelector('[data-sheet-dev-toggle]')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('data-sheet-dev-toggle', '');
+    btn.className = 'sheet-dev-toggle' + (devOn ? ' is-on' : '');
+    btn.textContent = devOn ? 'dev: on' : 'dev';
+    btn.title = devOn
+      ? 'Dev mode is on (annotator + sidebar). Click to turn off.'
+      : 'Click to enable dev mode (drop pins, sidebar). Or use ?dev=1.';
+    btn.addEventListener('click', () => {
+      try {
+        if (devOn) localStorage.removeItem(DEV_MODE_KEY);
+        else localStorage.setItem(DEV_MODE_KEY, '1');
+      } catch (_) {}
+      // Drop the dev query param when toggling off so the next reload
+      // doesn't re-enable.
+      const u = new URL(location.href);
+      u.searchParams.delete('dev');
+      location.replace(u.toString());
+    });
+    const host = document.getElementById('osmd-container') || document.body;
+    if (host && host.style && getComputedStyle(host).position === 'static') {
+      host.style.position = 'relative';
+    }
+    host.appendChild(btn);
+  }
+
+  const isDev = readDevMode();
+  renderDevToggle(isDev);
   if (!isDev) return;
 
   const STORAGE_KEY = 'sheet-annotator:' + location.pathname;

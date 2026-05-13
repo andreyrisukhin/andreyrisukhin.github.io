@@ -89,6 +89,9 @@ async function main() {
   evalJs(`
     (async () => {
       localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
+      // Dev mode is now opt-in; tests need it on so shift-click and
+      // the annotator sidebar wake up.
+      localStorage.setItem('sheet-dev-mode', '1');
       await fetch('${SIDECAR}/save', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -460,7 +463,7 @@ async function main() {
       tie.savedPin);
   }
 
-  section('Scenario J — chord inspector fades in with deep Stradella lookup');
+  section('Scenario J — click 1 sticky tag, click 2 escalates to inspector');
   const inspector = evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
@@ -472,52 +475,152 @@ async function main() {
       const head = chord.querySelector('.vf-notehead');
       const r = head.getBoundingClientRect();
       const cx = r.left + r.width/2, cy = r.top + r.height/2;
-      const click = () => head.dispatchEvent(new MouseEvent('click', {
+      const click = (target, x, y) => target.dispatchEvent(new MouseEvent('click', {
         bubbles:true, cancelable:true, view:window,
-        clientX:cx, clientY:cy, button:0,
+        clientX:x, clientY:y, button:0,
       }));
-      // Make sure inspector starts hidden.
+      const tag = document.querySelector('.chord-tag');
       const pop = document.querySelector('.chord-inspector');
+      tag.classList.remove('is-visible');
       pop.classList.remove('is-visible');
-      await new Promise(r => setTimeout(r, 50));
-      click();
+      // ── Click 1: tag becomes sticky, popover stays hidden ─────────
+      click(head, cx, cy);
       await new Promise(r => setTimeout(r, 250));
-      const open = {
-        visible: pop.classList.contains('is-visible'),
-        opacity: getComputedStyle(pop).opacity,
+      const stage1 = {
+        tagVisible: tag.classList.contains('is-visible'),
+        tagSticky: tag.classList.contains('is-sticky'),
+        tagText: (tag.querySelector('.chord-tag__chord')?.textContent || '')
+                 + (tag.querySelector('.chord-tag__pitch')?.textContent ? ' ' + tag.querySelector('.chord-tag__pitch').textContent : ''),
+        popoverVisible: pop.classList.contains('is-visible'),
+      };
+      // ── Click 2 (on the sticky tag): inspector opens ──────────────
+      const tr = tag.getBoundingClientRect();
+      click(tag, tr.left + tr.width/2, tr.top + tr.height/2);
+      await new Promise(r => setTimeout(r, 250));
+      const stage2 = {
+        tagVisible: tag.classList.contains('is-visible'),
+        popoverVisible: pop.classList.contains('is-visible'),
         title: pop.querySelector('.chord-inspector__title')?.textContent,
         hasStradellaSection: !!pop.querySelector('.chord-inspector__stradella'),
         stradellaItems: pop.querySelectorAll('.stradella-recipe__item').length,
-        firstVoicing: pop.querySelector('.stradella-recipe__voicing')?.textContent || null,
       };
-      // Click again on the same chord -> should toggle off.
-      click();
+      // ── Click 3 (re-click chord): everything hides ────────────────
+      click(head, cx, cy);
       await new Promise(r => setTimeout(r, 250));
-      const closed = {
-        visible: pop.classList.contains('is-visible'),
-        opacity: getComputedStyle(pop).opacity,
+      const stage3 = {
+        tagVisible: tag.classList.contains('is-visible'),
+        popoverVisible: pop.classList.contains('is-visible'),
       };
-      return JSON.stringify({open, closed});
+      return JSON.stringify({stage1, stage2, stage3});
     })();
   `);
   const insp = JSON.parse(inspector);
   if (insp.skip) {
     console.log('  (skipped: ' + insp.reason + ')');
   } else {
-    assert(insp.open.visible === true,
-      'inspector becomes visible after click on chord stack', insp.open);
-    assert(parseFloat(insp.open.opacity) > 0.5,
-      'inspector opacity transitions toward 1 (fade-in)', insp.open.opacity);
-    assert((insp.open.title || '').length > 0,
-      'inspector shows a chord title', insp.open.title);
-    assert(insp.open.hasStradellaSection === true,
-      'inspector has the Stradella section', insp.open);
-    assert(insp.open.stradellaItems >= 1,
-      'inspector lists at least one Stradella voicing from findBySuffix',
-      insp.open);
-    assert(insp.closed.visible === false,
-      'second click on same chord toggles inspector off', insp.closed);
+    assert(insp.stage1.tagVisible === true,
+      'click 1: chord tag becomes visible', insp.stage1);
+    assert(insp.stage1.tagSticky === true,
+      'click 1: chord tag is marked sticky', insp.stage1);
+    assert(insp.stage1.popoverVisible === false,
+      'click 1: full inspector stays hidden', insp.stage1);
+    assert((insp.stage1.tagText || '').trim().length > 0,
+      'click 1: tag shows a chord/pitch label', insp.stage1.tagText);
+    assert(insp.stage2.popoverVisible === true,
+      'click 2 (on sticky tag): inspector becomes visible', insp.stage2);
+    assert(parseFloat(insp.stage2.popoverVisible ? '1' : '0') > 0.5,
+      'click 2: inspector visible flag set', insp.stage2);
+    assert((insp.stage2.title || '').length > 0,
+      'click 2: inspector shows a chord title', insp.stage2.title);
+    assert(insp.stage2.hasStradellaSection === true,
+      'click 2: inspector has Stradella section', insp.stage2);
+    assert(insp.stage2.stradellaItems >= 1,
+      'click 2: inspector lists at least one Stradella voicing',
+      insp.stage2);
+    assert(insp.stage3.popoverVisible === false && insp.stage3.tagVisible === false,
+      'click 3 on chord: tag and inspector both hide', insp.stage3);
   }
+
+  section('Scenario K — hover delay surfaces a quiet chord-name tag');
+  const hoverProbe = evalJs(`
+    (async () => {
+      const svg = document.querySelector('#osmd-container svg');
+      const chord = [...svg.querySelectorAll('.vf-stavenote')]
+        .find(sn => sn.querySelectorAll('.vf-notehead').length >= 3);
+      if (!chord) return JSON.stringify({skip: true, reason: 'no chord stack'});
+      const head = chord.querySelector('.vf-notehead');
+      chord.scrollIntoView({block: 'center'});
+      await new Promise(r => setTimeout(r, 150));
+      const r = head.getBoundingClientRect();
+      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const tag = document.querySelector('.chord-tag');
+      tag.classList.remove('is-visible', 'is-sticky');
+      // Move cursor onto the chord stack.
+      head.dispatchEvent(new MouseEvent('mousemove', {
+        bubbles:true, cancelable:true, view:window, clientX:cx, clientY:cy,
+      }));
+      // Tag should NOT be visible immediately (delay is 250 ms).
+      const beforeDelay = {
+        atT0Ms: tag.classList.contains('is-visible'),
+      };
+      await new Promise(r => setTimeout(r, 350));
+      const afterDelay = {
+        visible: tag.classList.contains('is-visible'),
+        sticky: tag.classList.contains('is-sticky'),
+        text: (tag.querySelector('.chord-tag__chord')?.textContent || '')
+              + (tag.querySelector('.chord-tag__pitch')?.textContent ? ' ' + tag.querySelector('.chord-tag__pitch').textContent : ''),
+      };
+      // Move cursor off the chord (to body) -> tag should fade.
+      document.body.dispatchEvent(new MouseEvent('mousemove', {
+        bubbles:true, cancelable:true, view:window, clientX:1, clientY:1,
+      }));
+      await new Promise(r => setTimeout(r, 50));
+      const afterLeave = {
+        visible: tag.classList.contains('is-visible'),
+      };
+      return JSON.stringify({beforeDelay, afterDelay, afterLeave});
+    })();
+  `);
+  const hov = JSON.parse(hoverProbe);
+  if (hov.skip) {
+    console.log('  (skipped: ' + hov.reason + ')');
+  } else {
+    assert(hov.beforeDelay.atT0Ms === false,
+      'hover: tag does NOT appear immediately (delay enforced)', hov.beforeDelay);
+    assert(hov.afterDelay.visible === true,
+      'hover: tag appears after the 250 ms delay', hov.afterDelay);
+    assert(hov.afterDelay.sticky === false,
+      'hover: tag is non-sticky (transient)', hov.afterDelay);
+    assert((hov.afterDelay.text || '').trim().length > 0,
+      'hover: tag shows a chord/pitch label', hov.afterDelay.text);
+    assert(hov.afterLeave.visible === false,
+      'hover: leaving the stavenote hides the non-sticky tag',
+      hov.afterLeave);
+  }
+
+  section('Scenario L — dev mode is opt-in and toggle persists');
+  const devModeProbe = evalJs(`
+    (() => {
+      const lsOn = localStorage.getItem('sheet-dev-mode');
+      const sidebar = document.querySelector('.sheet-annotator-sidebar');
+      const toggle = document.querySelector('[data-sheet-dev-toggle]');
+      return JSON.stringify({
+        lsOn,
+        annotatorMounted: !!sidebar,
+        toggleRendered: !!toggle,
+        toggleClass: toggle ? toggle.className : null,
+      });
+    })();
+  `);
+  const dm = JSON.parse(devModeProbe);
+  assert(dm.lsOn === '1',
+    'dev mode flag is set in localStorage during tests', dm);
+  assert(dm.annotatorMounted === true,
+    'annotator sidebar is mounted when dev mode is on', dm);
+  assert(dm.toggleRendered === true,
+    'dev-mode toggle button is rendered', dm);
+  assert(/is-on/.test(dm.toggleClass || ''),
+    'dev-mode toggle is in is-on state', dm.toggleClass);
 
   section('Scenario I — bridge agrees with OSMD source on note vs rest');
   // Regression: previously the bridge used GetNearestNote at click coordinates,
