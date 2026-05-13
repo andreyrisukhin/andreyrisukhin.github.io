@@ -1,55 +1,20 @@
 {
   "slug": "dry-river-walk",
   "name": "Dry River Walk",
-  "updatedAt": "2026-05-13T21:17:00.752Z",
+  "updatedAt": "2026-05-13T21:25:37.882Z",
   "center": {
-    "lat": 37.21754736862448,
-    "lng": -112.93387413024904
+    "lat": 37.2167749107018,
+    "lng": -112.92607963085176
   },
-  "zoom": 15,
-  "pins": [],
-  "segments": [
+  "zoom": 17,
+  "pins": [
     {
-      "id": "tunnel-long",
-      "kind": "drive",
-      "note": "Zion-Mt. Carmel Tunnel (long). Approximate alignment between portals; the actual bore curves along the Pine Creek canyon wall.",
-      "waypoints": [
-        [
-          37.2127,
-          -112.948
-        ],
-        [
-          37.2143,
-          -112.941
-        ],
-        [
-          37.2152,
-          -112.9355
-        ],
-        [
-          37.2158,
-          -112.9315
-        ],
-        [
-          37.2162,
-          -112.9285
-        ]
-      ]
-    },
-    {
-      "id": "tunnel-short",
-      "kind": "drive",
-      "note": "Short rock-spur tunnel (Zion-Mt. Carmel Highway, just east of the main tunnel).",
-      "waypoints": [
-        [
-          37.2168,
-          -112.9251
-        ],
-        [
-          37.2168,
-          -112.9241
-        ]
-      ]
+      "id": "p1",
+      "kind": "parking",
+      "lat": 37.21733842190015,
+      "lng": -112.92377293109895,
+      "note": "Park here"
     }
-  ]
+  ],
+  "segments": []
 }

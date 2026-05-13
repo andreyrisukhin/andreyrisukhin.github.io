@@ -140,6 +140,7 @@
   gap: 6px;
   min-width: 200px;
 }
+.trail-edit-form { color: #1f2328; }
 .trail-edit-form select,
 .trail-edit-form textarea {
   font: inherit;
@@ -147,7 +148,9 @@
   border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: 4px;
   background: #fff;
+  color: #1f2328;
 }
+.trail-edit-form textarea::placeholder { color: #8c959f; }
 .trail-edit-form textarea {
   min-height: 60px;
   resize: vertical;
