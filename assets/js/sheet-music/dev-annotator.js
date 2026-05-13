@@ -101,10 +101,14 @@
       const resolved = bridge.resolveNoteAt(pageX, pageY);
       if (resolved && pointInRect(pageX, pageY, resolved.noteRect, 6)) {
         const pitch = (resolved.pitches && resolved.pitches[0]) || resolved.clickedPitch || 'note';
+        const glyph = target.closest('.vf-note, path') || target;
+        const gr = glyph.getBoundingClientRect();
+        const useGlyph = gr.width > 0 && gr.height > 0 && gr.width <= resolved.noteRect.w + 4;
+        const base = useGlyph ? rectToPage(gr) : resolved.noteRect;
         return {
           kind: 'notehead',
           label: pitch + (resolved.measureNumber != null ? ' · m' + resolved.measureNumber : ''),
-          rect: resolved.noteRect,
+          rect: padRect(base, 4),
         };
       }
     }
@@ -123,6 +127,10 @@
       y: r.top + window.scrollY,
       w: r.width, h: r.height,
     };
+  }
+
+  function padRect(r, pad) {
+    return { x: r.x - pad, y: r.y - pad, w: r.w + pad * 2, h: r.h + pad * 2 };
   }
 
   function buildPreview() {

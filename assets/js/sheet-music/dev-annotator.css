@@ -1,21 +1,22 @@
 .sheet-annotator-preview {
   position: absolute;
   pointer-events: none;
-  border-radius: 3px;
-  border: 2px solid rgba(244, 201, 93, 0.95);
-  background: rgba(244, 201, 93, 0.12);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
-  z-index: 9998;
-  transition: opacity 80ms linear;
+  border-radius: 4px;
+  border: 3px solid #f4c95d;
+  background: rgba(244, 201, 93, 0.28);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 12px rgba(244, 201, 93, 0.55);
+  z-index: 2147483646;
 }
 .sheet-annotator-preview[data-kind="chord-symbol"] {
-  border-color: rgba(120, 180, 255, 0.95);
-  background: rgba(120, 180, 255, 0.14);
+  border-color: #3ea6ff;
+  background: rgba(62, 166, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 12px rgba(62, 166, 255, 0.55);
 }
 .sheet-annotator-preview[data-kind="region"] {
-  border-color: rgba(180, 180, 180, 0.85);
-  background: rgba(180, 180, 180, 0.08);
+  border-color: rgba(180, 180, 180, 0.9);
+  background: rgba(180, 180, 180, 0.18);
   border-style: dashed;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 .sheet-annotator-preview__label {
   position: absolute;
