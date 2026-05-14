@@ -148,15 +148,23 @@ window.TrailMap = (function () {
       const kind = pin.kind || 'waypoint';
       const note = pin.note || '';
       const coords = formatCoords(pin.lat, pin.lng);
-      const coordsBtn = coords
-        ? '<button type="button" class="trail-label__coords" data-coords="' + escapeAttr(coords) +
-          '" title="click to copy"><span class="trail-label__coords-text">' + escapeHtml(coords) +
-          '</span><span class="trail-label__coords-feedback" aria-hidden="true">copied</span></button>'
+      const mapsHref = coords ? googleMapsUrl(pin.lat, pin.lng) : '';
+      const coordsBlock = coords
+        ? '<div class="trail-label__coords-row">' +
+            '<button type="button" class="trail-label__coords" data-coords="' + escapeAttr(coords) +
+              '" title="click to copy (paste into Google Maps)">' +
+              '<span class="trail-label__coords-text">' + escapeHtml(coords) + '</span>' +
+              '<span class="trail-label__coords-feedback" aria-hidden="true">copied</span>' +
+            '</button>' +
+            '<a class="trail-label__maps-link" href="' + escapeAttr(mapsHref) +
+              '" target="_blank" rel="noopener noreferrer"' +
+              ' title="open in Google Maps" aria-label="open in Google Maps"></a>' +
+          '</div>'
         : '';
       const html = '<div class="trail-label is-' + escapeAttr(kind) + '" title="drag to move">' +
         '<span class="trail-label__kind is-' + escapeAttr(kind) + '">' + escapeHtml(kind) + '</span>' +
         (note ? '<span class="trail-label__note">' + escapeHtml(note) + '</span>' : '') +
-        coordsBtn +
+        coordsBlock +
         '</div>';
 
       // iconSize [0,0] + the !important auto-size CSS below lets the
@@ -205,8 +213,11 @@ window.TrailMap = (function () {
       m.once('add', function () {
         requestAnimationFrame(syncLeader);
         const el = m.getElement();
-        const btn = el && el.querySelector('.trail-label__coords');
+        if (!el) return;
+        const btn = el.querySelector('.trail-label__coords');
         if (btn) wireCoordsCopy(btn);
+        const link = el.querySelector('.trail-label__maps-link');
+        if (link) wireDragSwallow(link);
       });
 
       m.on('drag', syncLeader);
@@ -300,13 +311,25 @@ window.TrailMap = (function () {
     if (typeof lat !== 'number' || typeof lng !== 'number') return '';
     return lat.toFixed(5) + ', ' + lng.toFixed(5);
   }
+  function googleMapsUrl(lat, lng) {
+    if (typeof lat !== 'number' || typeof lng !== 'number') return '';
+    // search/?api=1 is Google's documented universal entry point: it
+    // deep-links to the native Maps app on iOS/Android and falls back
+    // to the web map on desktop. The lat,lng query renders a pin
+    // exactly at the coordinate.
+    return 'https://www.google.com/maps/search/?api=1&query=' +
+      encodeURIComponent(lat.toFixed(6) + ',' + lng.toFixed(6));
+  }
+  function wireDragSwallow(el) {
+    const swallow = function (e) { e.stopPropagation(); };
+    ['mousedown', 'touchstart', 'pointerdown', 'dblclick'].forEach(function (evt) {
+      el.addEventListener(evt, swallow);
+    });
+  }
   function wireCoordsCopy(btn) {
     // Stop drag/zoom events at the button so the parent label marker
     // doesn't start a Leaflet drag when the user goes to copy.
-    const swallow = function (e) { e.stopPropagation(); };
-    ['mousedown', 'touchstart', 'pointerdown', 'dblclick'].forEach(function (evt) {
-      btn.addEventListener(evt, swallow);
-    });
+    wireDragSwallow(btn);
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();

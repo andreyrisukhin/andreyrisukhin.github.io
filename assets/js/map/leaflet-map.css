@@ -100,9 +100,14 @@
   color: #f0f6fc;
   word-break: break-word;
 }
+.trail-label__coords-row {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 3px;
+  align-self: stretch;
+}
 .trail-label__coords {
   position: relative;
-  align-self: stretch;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -164,6 +169,38 @@
 .trail-label__coords.is-copied .trail-label__coords-feedback,
 .trail-label__coords.is-failed .trail-label__coords-feedback { opacity: 1; }
 .trail-label__coords.is-failed .trail-label__coords-feedback { background: #cf222e; }
+.trail-label__maps-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  color: #b0b8c2;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.trail-label__maps-link::before {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 0a5.5 5.5 0 0 0-5.5 5.5c0 4.125 5.5 10.5 5.5 10.5s5.5-6.375 5.5-10.5A5.5 5.5 0 0 0 8 0zm0 7.75A2.25 2.25 0 1 1 8 3.25a2.25 2.25 0 0 1 0 4.5z'/></svg>") center / contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 0a5.5 5.5 0 0 0-5.5 5.5c0 4.125 5.5 10.5 5.5 10.5s5.5-6.375 5.5-10.5A5.5 5.5 0 0 0 8 0zm0 7.75A2.25 2.25 0 1 1 8 3.25a2.25 2.25 0 0 1 0 4.5z'/></svg>") center / contain no-repeat;
+}
+.trail-label__maps-link:hover {
+  color: #f0f6fc;
+  background: rgba(234, 67, 53, 0.85);
+  border-color: rgba(234, 67, 53, 0.95);
+}
+.trail-label__maps-link:focus-visible {
+  outline: 2px solid #58a6ff;
+  outline-offset: 1px;
+}
 
 /* Zoom-tier scaling (class set on .trail-map by leaflet-map.js).
  * Base zoom = full size. One step out = compact. Two or more steps
@@ -188,6 +225,13 @@
 }
 .trail-zoom-shrink .trail-label__coords {
   font-size: 0.55rem;
+}
+.trail-zoom-shrink .trail-label__maps-link {
+  width: 14px;
+}
+.trail-zoom-shrink .trail-label__maps-link::before {
+  width: 8px;
+  height: 8px;
 }
 .trail-zoom-hide-labels .trail-label-wrap {
   opacity: 0;
