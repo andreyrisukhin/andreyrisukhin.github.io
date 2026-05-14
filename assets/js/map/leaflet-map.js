@@ -148,10 +148,15 @@ window.TrailMap = (function () {
       const kind = pin.kind || 'waypoint';
       const note = pin.note || '';
       const coords = formatCoords(pin.lat, pin.lng);
+      const coordsBtn = coords
+        ? '<button type="button" class="trail-label__coords" data-coords="' + escapeAttr(coords) +
+          '" title="click to copy"><span class="trail-label__coords-text">' + escapeHtml(coords) +
+          '</span><span class="trail-label__coords-feedback" aria-hidden="true">copied</span></button>'
+        : '';
       const html = '<div class="trail-label is-' + escapeAttr(kind) + '" title="drag to move">' +
         '<span class="trail-label__kind is-' + escapeAttr(kind) + '">' + escapeHtml(kind) + '</span>' +
         (note ? '<span class="trail-label__note">' + escapeHtml(note) + '</span>' : '') +
-        '<span class="trail-label__coords">' + escapeHtml(coords) + '</span>' +
+        coordsBtn +
         '</div>';
 
       // iconSize [0,0] + the !important auto-size CSS below lets the
@@ -197,7 +202,12 @@ window.TrailMap = (function () {
       }
       m._syncLeader = syncLeader;
       // Wait for the label DOM to actually exist before measuring.
-      m.once('add', function () { requestAnimationFrame(syncLeader); });
+      m.once('add', function () {
+        requestAnimationFrame(syncLeader);
+        const el = m.getElement();
+        const btn = el && el.querySelector('.trail-label__coords');
+        if (btn) wireCoordsCopy(btn);
+      });
 
       m.on('drag', syncLeader);
       m.on('dragend', function () {
@@ -289,6 +299,53 @@ window.TrailMap = (function () {
   function formatCoords(lat, lng) {
     if (typeof lat !== 'number' || typeof lng !== 'number') return '';
     return lat.toFixed(5) + ', ' + lng.toFixed(5);
+  }
+  function wireCoordsCopy(btn) {
+    // Stop drag/zoom events at the button so the parent label marker
+    // doesn't start a Leaflet drag when the user goes to copy.
+    const swallow = function (e) { e.stopPropagation(); };
+    ['mousedown', 'touchstart', 'pointerdown', 'dblclick'].forEach(function (evt) {
+      btn.addEventListener(evt, swallow);
+    });
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const text = btn.getAttribute('data-coords') || btn.textContent || '';
+      const fb = btn.querySelector('.trail-label__coords-feedback');
+      copyText(text).then(function (ok) {
+        if (fb) fb.textContent = ok ? 'copied' : 'copy failed';
+        btn.classList.remove('is-copied', 'is-failed');
+        void btn.offsetWidth;
+        btn.classList.add(ok ? 'is-copied' : 'is-failed');
+        window.setTimeout(function () {
+          btn.classList.remove('is-copied', 'is-failed');
+        }, 1200);
+      });
+    });
+  }
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () {
+        return fallbackCopy(text);
+      });
+    }
+    return Promise.resolve(fallbackCopy(text));
+  }
+  function fallbackCopy(text) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'absolute';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand && document.execCommand('copy');
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (_) {
+      return false;
+    }
   }
 
   return { init };
