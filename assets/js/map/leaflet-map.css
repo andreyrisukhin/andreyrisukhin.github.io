@@ -100,6 +100,14 @@
   color: #f0f6fc;
   word-break: break-word;
 }
+.trail-label__coords {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.66rem;
+  font-weight: 400;
+  color: #b0b8c2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
 
 /* Zoom-tier scaling (class set on .trail-map by leaflet-map.js).
  * Base zoom = full size. One step out = compact. Two or more steps
@@ -121,6 +129,9 @@
 .trail-zoom-shrink .trail-label__kind {
   font-size: 0.55rem;
   padding: 0 4px;
+}
+.trail-zoom-shrink .trail-label__coords {
+  font-size: 0.55rem;
 }
 .trail-zoom-hide-labels .trail-label-wrap {
   opacity: 0;

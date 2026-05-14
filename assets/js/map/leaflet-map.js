@@ -147,9 +147,11 @@ window.TrailMap = (function () {
 
       const kind = pin.kind || 'waypoint';
       const note = pin.note || '';
+      const coords = formatCoords(pin.lat, pin.lng);
       const html = '<div class="trail-label is-' + escapeAttr(kind) + '" title="drag to move">' +
         '<span class="trail-label__kind is-' + escapeAttr(kind) + '">' + escapeHtml(kind) + '</span>' +
         (note ? '<span class="trail-label__note">' + escapeHtml(note) + '</span>' : '') +
+        '<span class="trail-label__coords">' + escapeHtml(coords) + '</span>' +
         '</div>';
 
       // iconSize [0,0] + the !important auto-size CSS below lets the
@@ -284,6 +286,10 @@ window.TrailMap = (function () {
 
   function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
+  function formatCoords(lat, lng) {
+    if (typeof lat !== 'number' || typeof lng !== 'number') return '';
+    return lat.toFixed(5) + ', ' + lng.toFixed(5);
+  }
 
   return { init };
 })();
