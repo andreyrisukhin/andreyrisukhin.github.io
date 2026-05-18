@@ -1,6 +1,6 @@
 ---
 layout: page
-title: 'Sheet Music: Cogwork Dancers'
+title: "Sheet Music: Cogwork Dancers"
 permalink: /music/sheet/cogwork-dancers/
 ---
 
@@ -41,7 +41,7 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
 <script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.9.0/build/opensheetmusicdisplay.min.js"></script>
+<script src="{{ '/assets/js/vendor/opensheetmusicdisplay.min.js' | relative_url }}"></script>
 <script>
 (function () {
   const container = document.getElementById('osmd-container');
