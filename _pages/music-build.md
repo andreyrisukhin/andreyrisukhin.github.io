@@ -1,20 +1,36 @@
 ---
 layout: page
-title: Build a Set List
+title: Build a Set List — Andrey Bayan
 permalink: /music/build/
+description: Andrey Bayan's accordion set-list builder. Type chord names like Am7 or A-7/G, identify chords from notes, or browse the full Stradella chord catalog.
+keywords: Andrey Bayan, bayandrey, set list builder, stradella, chord recognizer, accordion, jazz chord shorthand, andrey risukhin
 ---
 
-Three ways to add chords: type a name, pick notes, or browse the catalog. Everything lands in the set list below.
+Set-list builder by **Andrey Bayan** (@bayandrey). Three ways to add chords: type a name, pick notes, or browse the catalog. Everything lands in the set list below.
 
 ## Search by chord name
 
 Examples: `Am7`, `A-7/G` (jazz minus), `F#-6/A`, `Cmaj9`, `Cdim7`.
 
-<div class="music-share">
-  <input type="text" id="chord-search-input" class="music-share-text" placeholder="Type a chord name and press Enter (e.g. A-7/G)" spellcheck="false" autocomplete="off">
-  <button id="chord-search-add" class="music-share-btn">Add</button>
+<form id="chord-search-form" class="music-share" action="" onsubmit="return false;">
+  <input
+    type="text"
+    id="chord-search-input"
+    class="music-share-text"
+    placeholder="Type a chord (e.g. A-7/G) and press Enter"
+    inputmode="text"
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+    enterkeyhint="go">
+  <button id="chord-search-add" type="submit" class="music-share-btn">Add</button>
+</form>
+<div id="chord-search-result" class="chord-search-result">
+  <div id="chord-search-result-name" class="chord-search-result__name"></div>
+  <div id="chord-search-result-recipe" class="chord-search-result__recipe"></div>
+  <div id="chord-search-result-message" class="chord-search-result__message"></div>
 </div>
-<div id="chord-search-result" class="chord-search-result"></div>
 <div id="chord-search-status" class="chord-search-status"></div>
 
 ## Set list

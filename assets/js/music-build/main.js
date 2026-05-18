@@ -1,53 +1,55 @@
 // Chord-name search input for the /music/build/ workflow page.
 //
-// Listens on an input field and an add button, exposes typed chord
-// names (Am7, A-7/G, F#-6/A, Cmaj9, ...) as additions to the shared
-// Stradella set list. Parsing + suffix lookup happens through the
-// shared ChordName + StradellaData modules; this file is just the
-// UI shim.
+// Wires a <form> + <input> into window.StradellaTool.addEntryFromName so
+// typed chord names (Am7, A-7/G, F#-6/A, Cmaj9, ...) land in the shared
+// set list. Parsing + suffix lookup happens through ChordName +
+// StradellaData; this file is the UI shim only.
+//
+// Submit-via-form, not keydown intercept:
+//   Earlier versions hooked input.keydown and called preventDefault on
+//   Enter. On iOS Safari that handler interacted badly with the soft
+//   keyboard in ways that suppressed Backspace on some devices. The
+//   form-submit path is more native: the system "Go" / "Return" key
+//   fires submit, the browser handles every other key (including
+//   Backspace) natively, and the inputmode + autocorrect + autocapitalize
+//   attributes on the <input> tell iOS to skip the heuristics that fight
+//   chord-shorthand text.
 //
 // DOM contract (all optional -- module is a no-op when missing):
-//   #chord-search-input    : the text input
-//   #chord-search-add      : submit button (also fires on Enter)
-//   #chord-search-result   : live preview of what would be added
-//   #chord-search-status   : transient success/failure text
+//   #chord-search-form           : the wrapping form
+//   #chord-search-input          : the text input
+//   #chord-search-add            : submit button
+//   #chord-search-result-name    : preview chord-name (top row)
+//   #chord-search-result-recipe  : preview recipe (second row)
+//   #chord-search-result-message : preview message for not-a-chord cases
+//   #chord-search-status         : transient success/failure text
 //
-// Depends on window.StradellaTool.addEntryFromName, exposed by
-// assets/js/stradella/main.js. Listed AFTER stradella/main.js in
-// the page so StradellaTool is ready by init().
+// Depends on window.StradellaTool.addEntryFromName (exposed by
+// assets/js/stradella/main.js). The page lists this script AFTER
+// stradella/main.js so StradellaTool is ready by init().
 (function () {
   "use strict";
 
-  function findInput() {
-    return document.getElementById("chord-search-input");
-  }
-  function findAddBtn() {
-    return document.getElementById("chord-search-add");
-  }
-  function findResult() {
-    return document.getElementById("chord-search-result");
-  }
-  function findStatus() {
-    return document.getElementById("chord-search-status");
+  function $(id) {
+    return document.getElementById(id);
   }
 
-  // Build the inline preview shown beneath the input as the user types.
-  // Three states:
-  //   * empty input               -> blank
-  //   * parses + has recipe       -> "Will add: <name> in <key> -- recipe: <recipe>"
-  //   * parses, no Stradella row  -> "No recipe for suffix '<x>'"
-  //   * doesn't parse             -> "Not a chord name"
+  // Build the structured preview shown beneath the input as the user
+  // types. Returns one of:
+  //   * null                       -> empty input, preview hidden
+  //   * { message }                -> not-a-chord / no-recipe -- shown in message slot
+  //   * { name, recipe }           -> matched chord -- shown in two rows
   function previewFor(value) {
     var v = (value || "").trim();
-    if (!v) return "";
-    if (!window.ChordName || !window.StradellaData || !window.Music) return "";
+    if (!v) return null;
+    if (!window.ChordName || !window.StradellaData || !window.Music) return null;
     var parsed = window.ChordName.parseForStradella(v);
-    if (!parsed) return "Not a chord name";
+    if (!parsed) return { message: "Not a chord name" };
     var key = window.ChordName.pcToSemi(parsed.root);
-    if (key == null) return "Not a chord name (bad root)";
+    if (key == null) return { message: "Not a chord name (bad root)" };
     var matches = window.StradellaData.findBySuffix(parsed.suffix);
     if (!matches.length) {
-      return "No Stradella recipe for suffix " + JSON.stringify(parsed.suffix);
+      return { message: "No Stradella recipe for " + JSON.stringify(parsed.suffix) };
     }
     var c = matches[0];
     var bass = null;
@@ -55,21 +57,37 @@
       var b = window.ChordName.pcToSemi(parsed.bass);
       if (b != null && b !== key) bass = b;
     }
-    var displayName = window.Music.noteName(key) + c.suffix;
-    if (bass != null) displayName += " / " + window.Music.noteName(bass);
+    var name = window.Music.noteName(key) + c.suffix;
+    if (bass != null) name += " / " + window.Music.noteName(bass);
     var recipe = window.StradellaData.renderRecipe(c, key, true, bass);
-    return "Will add: " + displayName + "  -- recipe: " + recipe;
+    return { name: name, recipe: recipe };
+  }
+
+  function setPreview(preview) {
+    var nameEl = $("chord-search-result-name");
+    var recipeEl = $("chord-search-result-recipe");
+    var msgEl = $("chord-search-result-message");
+    if (nameEl) nameEl.textContent = "";
+    if (recipeEl) recipeEl.textContent = "";
+    if (msgEl) msgEl.textContent = "";
+    if (!preview) return;
+    if (preview.message) {
+      if (msgEl) msgEl.textContent = preview.message;
+      return;
+    }
+    if (nameEl) nameEl.textContent = preview.name;
+    if (recipeEl) recipeEl.textContent = preview.recipe;
   }
 
   function setStatus(text, kind) {
-    var el = findStatus();
+    var el = $("chord-search-status");
     if (!el) return;
     el.textContent = text;
     el.dataset.kind = kind || "";
     if (text) {
       clearTimeout(setStatus._t);
       setStatus._t = setTimeout(function () {
-        var live = findStatus();
+        var live = $("chord-search-status");
         if (live) {
           live.textContent = "";
           live.dataset.kind = "";
@@ -78,14 +96,8 @@
     }
   }
 
-  function setPreview(text) {
-    var el = findResult();
-    if (!el) return;
-    el.textContent = text;
-  }
-
   function attemptAdd() {
-    var input = findInput();
+    var input = $("chord-search-input");
     if (!input) return;
     var value = input.value.trim();
     if (!value) return;
@@ -100,29 +112,26 @@
     }
     setStatus("Added", "success");
     input.value = "";
-    setPreview("");
+    setPreview(null);
     input.focus();
   }
 
   function init() {
-    var input = findInput();
-    var addBtn = findAddBtn();
-    if (!input && !addBtn) return; // page doesn't host the search input
-    if (input) {
-      input.addEventListener("input", function () {
-        setPreview(previewFor(input.value));
-      });
-      input.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          attemptAdd();
-        }
-      });
-    }
-    if (addBtn) {
-      addBtn.addEventListener("click", function (e) {
+    var form = $("chord-search-form");
+    var input = $("chord-search-input");
+    if (!form && !input) return; // page doesn't host the search input
+    if (form) {
+      form.addEventListener("submit", function (e) {
         e.preventDefault();
         attemptAdd();
+      });
+    }
+    if (input) {
+      // Only an "input" listener -- never "keydown" -- so the browser
+      // handles every key (including Backspace, arrow keys, IME
+      // composition) natively. See the file-header comment for why.
+      input.addEventListener("input", function () {
+        setPreview(previewFor(input.value));
       });
     }
   }
