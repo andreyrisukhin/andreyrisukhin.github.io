@@ -11,6 +11,11 @@ References, cheat sheets, and tools for music theory and accordion playing.
 {: .music-landing-section}
 
 <div class="music-landing-grid">
+  <a href="/music/build/" class="music-landing-card">
+    <i class="fa-solid fa-list-music music-landing-card__icon"></i>
+    <span class="music-landing-card__title">Build a Set List</span>
+    <span class="music-landing-card__desc">Type a chord (Am7, A-7/G), pick notes, or browse the catalog</span>
+  </a>
   <a href="/music/stradella/" class="music-landing-card">
     <i class="fa-solid fa-grip music-landing-card__icon"></i>
     <span class="music-landing-card__title">Stradella Recipes</span>

@@ -70,9 +70,36 @@
     });
   }
 
-  function addEntry(id, key) {
-    state.selected.push({ id: id, key: key });
+  function addEntry(id, key, bass) {
+    var entry = { id: id, key: key };
+    if (typeof bass === "number" && bass >= 0 && bass < 12) entry.bass = bass;
+    state.selected.push(entry);
     saveState();
+  }
+
+  // Add a chord by typed chord name -- "Am7", "A-7/G", "F#-6/A", "Cmaj9".
+  // Returns the added entry on success, null if the name doesn't parse or
+  // no Stradella recipe matches the suffix. Caller is responsible for
+  // calling renderAll() after a successful add (or any UI feedback).
+  function addEntryFromName(name) {
+    if (!window.ChordName || !window.StradellaData) return null;
+    var parsed = window.ChordName.parseForStradella(name);
+    if (!parsed) return null;
+    var key = window.ChordName.pcToSemi(parsed.root);
+    if (key == null) return null;
+    var matches = window.StradellaData.findBySuffix(parsed.suffix);
+    if (!matches.length) return null;
+    // Pick the first match. Multiple recipes for the same suffix are
+    // rare (only maj7 has both root and inversion variants); the
+    // canonical first entry is the most general.
+    var match = matches[0];
+    var bass = null;
+    if (parsed.bass) {
+      var b = window.ChordName.pcToSemi(parsed.bass);
+      if (b != null && b !== key) bass = b;
+    }
+    addEntry(match.id, key, bass);
+    return state.selected[state.selected.length - 1];
   }
 
   function removeEntry(idx) {
@@ -101,8 +128,10 @@
 
   // ── Rendering ──
 
-  function renderChordName(entry, key) {
-    return M.noteName(key) + entry.suffix;
+  function renderChordName(entry, key, bass) {
+    var name = M.noteName(key) + entry.suffix;
+    if (typeof bass === "number") name += " / " + M.noteName(bass);
+    return name;
   }
 
   function renderSetList() {
@@ -119,12 +148,13 @@
       var c = S.chordById(entry.id);
       if (!c) return;
       var key = entry.key;
+      var bass = typeof entry.bass === "number" ? entry.bass : null;
       var disabled = !state.hasDim7 && S.usesD7(c) && !c.fallback;
       html += '<div class="stradella-card' + (disabled ? " is-disabled" : "") + '">';
       html += '<button class="stradella-card__remove" data-action="remove" data-idx="' + i + '" aria-label="Remove">&#10005;</button>';
-      html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key)) + "</div>";
+      html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key, bass)) + "</div>";
       if (state.show.recipe) {
-        html += '<div class="stradella-card__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7)) + "</div>";
+        html += '<div class="stradella-card__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7, bass)) + "</div>";
       }
       var info = M.chordInfo(key, c.suffix);
       if (info && state.show.notes) {
@@ -498,6 +528,20 @@
       saveState();
       renderAll();
       return true;
+    },
+    // Public hooks used by /music/build/'s chord-name search input and
+    // by the recognizer's "Add to set list" affordance. They go through
+    // the same code path as a catalog click, including saveState and
+    // a follow-up renderAll so the new entry is visible immediately.
+    addEntry: function (id, key, bass) {
+      addEntry(id, key, bass);
+      renderAll();
+      return state.selected[state.selected.length - 1];
+    },
+    addEntryFromName: function (name) {
+      var added = addEntryFromName(name);
+      if (added) renderAll();
+      return added;
     },
   };
 
