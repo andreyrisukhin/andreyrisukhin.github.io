@@ -14,3 +14,4 @@ vendor
 .idea
 .dev-annotations/
 games/golem-demo/target/
+data/songs-inbox/
