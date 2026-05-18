@@ -17,6 +17,11 @@ Example: `Em / C` = press C bass + E minor chord.
   <button id="stradella-share-load" class="music-share-btn">Load</button>
 </div>
 
+<div class="music-share">
+  <button id="stradella-save-song" class="music-share-btn">Save as song…</button>
+  <a id="stradella-songs-link" class="music-share-btn" href="{{ '/music/songs/' | relative_url }}">Manage songs</a>
+</div>
+
 <div class="stradella-options">
   <div class="music-toggle-group" id="stradella-toggle-group">
     <button class="music-toggle-btn is-active" data-layer="recipe">Recipe</button>
@@ -38,6 +43,7 @@ Example: `Em / C` = press C bass + E minor chord.
 <div id="stradella-catalog" class="stradella-catalog"></div>
 
 <noscript><p>This interactive tool requires JavaScript.</p></noscript>
+
 <script>
   window.StradellaButtons = {
     {% for btn in site.data.music.stradella_buttons.buttons %}
@@ -49,6 +55,8 @@ Example: `Em / C` = press C bass + E minor chord.
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>
 
 ## Notes
 

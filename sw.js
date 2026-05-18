@@ -22,6 +22,7 @@ const PRECACHE_URLS = [
   '/music/exercises/',
   '/music/chords/',
   '/music/intervals/',
+  '/music/songs/',
   '/music/sheet/cogwork-dancers/',
 
   '/manifest.webmanifest',
@@ -42,6 +43,8 @@ const PRECACHE_URLS = [
   '/assets/js/chord-recognizer/main.js',
   '/assets/js/stradella/main.js',
   '/assets/js/music-exercises/main.js',
+  '/assets/js/music-songs/main.js',
+  '/assets/js/music-songs/sync.js',
 
   '/assets/js/sheet-music/osmd-bridge.js',
   '/assets/js/sheet-music/chord-inspector.js',

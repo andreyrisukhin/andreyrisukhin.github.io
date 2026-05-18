@@ -456,7 +456,50 @@
         }
       });
     }
+
+    var saveSongBtn = document.getElementById("stradella-save-song");
+    if (saveSongBtn) {
+      saveSongBtn.addEventListener("click", function () {
+        if (!window.MusicSongs || typeof window.MusicSongs.saveCurrentStradellaAs !== "function") {
+          window.alert("Songs module not loaded.");
+          return;
+        }
+        if (state.selected.length === 0) {
+          window.alert("Add some chords first.");
+          return;
+        }
+        var name = window.prompt("Song name:");
+        if (!name) return;
+        var notes = window.prompt("Notes (optional):", "") || "";
+        var song = window.MusicSongs.saveCurrentStradellaAs(name, notes);
+        if (!song) {
+          window.alert("Could not save.");
+          return;
+        }
+        saveSongBtn.textContent = "Saved!";
+        setTimeout(function () {
+          saveSongBtn.textContent = "Save as song…";
+        }, 1500);
+      });
+    }
   }
+
+  window.StradellaTool = {
+    getSnapshot: function () {
+      return JSON.parse(JSON.stringify(state));
+    },
+    loadSnapshot: function (snap) {
+      if (!snap || typeof snap !== "object") return false;
+      if (typeof snap.catalogKey === "number") state.catalogKey = snap.catalogKey;
+      if (Array.isArray(snap.selected)) state.selected = snap.selected.slice();
+      if (snap.show && typeof snap.show === "object") state.show = Object.assign({}, state.show, snap.show);
+      if (typeof snap.hasDim7 === "boolean") state.hasDim7 = snap.hasDim7;
+      if (typeof snap.gridView === "boolean") state.gridView = snap.gridView;
+      saveState();
+      renderAll();
+      return true;
+    },
+  };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {

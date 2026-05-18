@@ -214,6 +214,7 @@ exclude:
   - readme_preview/
   - vendor
   - "**/target/"
+  - data/songs-inbox/
 keep_files:
   - CNAME
   - .nojekyll
