@@ -23,37 +23,50 @@ window.ChordName = (function () {
   // Components, in pieces, so the spec is readable.
   var ROOT = '[A-G][#b\u266F\u266D]?';
 
-  // Suffix alternation. Includes:
-  //   - "" (basic major triad)
-  //   - "M" (Tonal's short form for major)
-  //   - lowercase "m" / "maj" / "min" / "dim" / "aug" / "sus" / "add"
-  //   - "m6" / "m7" / "maj7" (specific common shapes some regex
-  //     callers expect to allow without the loose \d* shortcut)
-  //   - bare extensions "7" / "9" / "11" / "13"
-  //   - special chords "d7" / "°" / "ø"
-  //   - alterations "b5" / "b9" / "#5" / "#9" / "#11" / "b13" stacked
-  //     after a base suffix
-  var SUFFIX = '(?:M|m|maj|min|dim|aug|sus|add|m6|m7|maj7|7|9|11|13|d7|\u00b0|\u00f8)?';
-  var ALT = '(?:[b\u266D#\u266F](?:5|9|11|13))*';
+  // Suffix: permissive — anything between the root and an optional
+  // /bass. Validating "is this a known chord type" is the consumer's
+  // job (e.g. StradellaData.findBySuffix returns no matches for a
+  // garbage suffix). Locking down the suffix alternation here used to
+  // silently reject common chord types the alternation didn't
+  // enumerate ("Cm9", "Cm11", "Cdim7", "Cmaj9", "Cm(Maj7)", ...) even
+  // though the parser's downstream code handled them fine. The right
+  // contract for looksValid is "the string is chord-shaped (valid
+  // root, possibly-empty suffix, optional /bass)", not "every
+  // suffix is enumerated here". A suffix may not contain a slash --
+  // the first slash separates the chord body from the bass.
+  var SUFFIX = '[^/]*';
   var BASS = '(?:\\/' + ROOT + ')?';
 
   // Anchored: the entire string is a chord name.
-  var FULL_RE = new RegExp('^' + ROOT + SUFFIX + ALT + BASS + '$');
+  var FULL_RE = new RegExp('^' + ROOT + SUFFIX + BASS + '$');
   // Root-only matcher: peels root off the front, returns the tail.
   var ROOT_RE = new RegExp('^(' + ROOT + ')(.*)$');
 
+  // Jazz shorthand normalization: in lead-sheet / chord-chart writing,
+  // a "-" immediately after the root note means minor. So "A-7/G" is
+  // the same chord as "Am7/G", and "F#-6" is the same as "F#m6".
+  // Normalize before regex matching so the SUFFIX alternation above
+  // doesn't have to learn a second spelling of every minor variant.
+  // Strips "-" only when it sits between the root and a suffix; an
+  // accidental dash anywhere else in the string still fails to parse.
+  var SHORTHAND_RE = /^([A-G][#b\u266F\u266D]?)-/;
+  function normalizeShorthand(name) {
+    return typeof name === 'string' ? name.replace(SHORTHAND_RE, '$1m') : name;
+  }
+
   function looksValid(name) {
-    return typeof name === 'string' && FULL_RE.test(name);
+    return typeof name === 'string' && FULL_RE.test(normalizeShorthand(name));
   }
 
   function parse(name) {
     if (typeof name !== 'string') return null;
+    var n = normalizeShorthand(name);
     var bass = null;
-    var head = name;
-    var slash = name.indexOf('/');
+    var head = n;
+    var slash = n.indexOf('/');
     if (slash >= 0) {
-      bass = name.slice(slash + 1);
-      head = name.slice(0, slash);
+      bass = n.slice(slash + 1);
+      head = n.slice(0, slash);
     }
     var m = head.match(ROOT_RE);
     if (!m) return null;
