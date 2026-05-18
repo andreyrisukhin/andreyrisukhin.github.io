@@ -6,12 +6,13 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1779068225';
+const VERSION = '1779068663';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
 const PRECACHE_URLS = [
   '/music/',
+  '/music/build/',
   '/music/blues/',
   '/music/chord-recognizer/',
   '/music/stradella/',
@@ -38,6 +39,7 @@ const PRECACHE_URLS = [
   '/assets/js/blues/main.js',
   '/assets/js/chord-recognizer/main.js',
   '/assets/js/stradella/main.js',
+  '/assets/js/music-build/main.js',
   '/assets/js/music-exercises/main.js',
   '/assets/js/music-songs/main.js',
   '/assets/js/music-songs/sync.js',
@@ -118,6 +120,7 @@ function isMusicAsset(url) {
     url.pathname.startsWith('/assets/js/blues/') ||
     url.pathname.startsWith('/assets/js/chord-recognizer/') ||
     url.pathname.startsWith('/assets/js/stradella/') ||
+    url.pathname.startsWith('/assets/js/music-build/') ||
     url.pathname.startsWith('/assets/js/music-exercises/') ||
     url.pathname.startsWith('/assets/js/sheet-music/') ||
     url.pathname.startsWith('/assets/js/vendor/') ||
