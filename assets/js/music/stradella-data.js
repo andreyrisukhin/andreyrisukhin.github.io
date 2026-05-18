@@ -289,11 +289,26 @@ window.StradellaData = (function () {
     var bassPC = ((bassSemi % 12) + 12) % 12;
     var rootPC = ((key % 12) + 12) % 12;
     var str = parts.join(' + ');
-    // Drop the redundant "/ root" suffix for root-position
-    // voicings -- the chord name itself implies the root bass.
-    // Only surface the slash when the bass is something other than
-    // the chord root (genuine inversion or a non-default voicing).
-    if (bassPC !== rootPC) {
+    // Stradella accordion: pressing a chord-side button at the root
+    // column implicitly pairs with the matching root bass button. The
+    // "/ bass" suffix is therefore redundant ONLY for that single
+    // natural pairing -- one part, played at the root note (offset 0
+    // from root), with the bass also at the root.
+    //
+    // Any other shape needs the explicit slash because the bass press
+    // is no longer implied by where the chord button sits:
+    //   * non-root chord button -- e.g. Cmaj7's "Em / C" recipe is a
+    //     minor button pressed at E (offset 4); without "/C" you'd
+    //     hit E bass and lose the C root entirely.
+    //   * multi-button stack -- e.g. maj9's "CM + GM / C" mixes two
+    //     columns and there's no single implied bass column.
+    //   * non-root bass -- e.g. m6's "Cm / A" deliberately voices
+    //     the 6th in the bass.
+    var isNaturalPairing =
+      r.parts.length === 1 &&
+      r.parts[0].note === 0 &&
+      bassPC === rootPC;
+    if (!isNaturalPairing) {
       str += ' / ' + M.noteName(bassPC);
     }
     if (r.rh != null) {
