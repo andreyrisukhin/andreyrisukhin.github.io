@@ -53,20 +53,56 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
     return;
   }
 
+  // autoResize listens to window resize, which on mobile Safari fires on
+  // every URL-bar collapse/expand. Each fire calls render(), which rebuilds
+  // the SVG tree and loses the scroll anchor -- the page jumps to the top.
+  // We do width-only reflow ourselves below.
   const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
     backend: 'svg',
     drawTitle: true,
     drawComposer: true,
     drawChordSymbols: false,
-    autoResize: true,
+    autoResize: false,
   });
 
   // Belt-and-braces: drawChordSymbols isn't honored on every OSMD release;
   // EngravingRules.RenderChordSymbols is the canonical knob.
   if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = false;
 
-  let zoom = 1.0;
-  const applyZoom = () => { osmd.Zoom = zoom; osmd.render(); watchAndHide(); };
+  const renderPreservingScroll = () => {
+    const y = window.scrollY;
+    osmd.render();
+    if (window.scrollY !== y) window.scrollTo({ top: y, behavior: 'instant' in window ? 'instant' : 'auto' });
+    watchAndHide();
+  };
+
+  const mobileQ = window.matchMedia('(max-width: 768px)');
+  const fitZoom = () => (mobileQ.matches ? 0.4 : 1.0);
+  let userZoomed = false;
+  let zoom = fitZoom();
+  const applyZoom = () => { osmd.Zoom = zoom; renderPreservingScroll(); };
+  mobileQ.addEventListener('change', () => {
+    if (userZoomed) return;
+    zoom = fitZoom();
+    applyZoom();
+  });
+
+  // Width-only reflow: ignore pure-height changes (mobile URL bar), only
+  // re-render when the container's actual width changes meaningfully.
+  let lastWidth = container.clientWidth;
+  let resizeTimer = null;
+  const onWidthChange = () => {
+    const w = container.clientWidth;
+    if (Math.abs(w - lastWidth) < 4) return;
+    lastWidth = w;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderPreservingScroll, 120);
+  };
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(onWidthChange).observe(container);
+  } else {
+    window.addEventListener('resize', onWidthChange, { passive: true });
+  }
 
   // Hide stray chord-symbol-shaped text rendered as score directions
   // (musicxml <direction>/<words>), which OSMD's RenderChordSymbols
@@ -107,8 +143,9 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
     .then(() => {
       status.textContent = '';
       if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = false;
-      osmd.render();
-      watchAndHide();
+      osmd.Zoom = zoom;
+      renderPreservingScroll();
+      lastWidth = container.clientWidth;
       if (window.__sheetMusic) window.__sheetMusic.register(osmd, container);
     })
     .catch((err) => {
@@ -116,9 +153,9 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
       status.textContent = 'Could not load score: ' + err;
     });
 
-  document.getElementById('osmd-zoom-in').addEventListener('click', () => { zoom = Math.min(zoom + 0.1, 3); applyZoom(); });
-  document.getElementById('osmd-zoom-out').addEventListener('click', () => { zoom = Math.max(zoom - 0.1, 0.3); applyZoom(); });
-  document.getElementById('osmd-zoom-reset').addEventListener('click', () => { zoom = 1.0; applyZoom(); });
+  document.getElementById('osmd-zoom-in').addEventListener('click', () => { userZoomed = true; zoom = Math.min(zoom + 0.1, 3); applyZoom(); });
+  document.getElementById('osmd-zoom-out').addEventListener('click', () => { userZoomed = true; zoom = Math.max(zoom - 0.1, 0.3); applyZoom(); });
+  document.getElementById('osmd-zoom-reset').addEventListener('click', () => { userZoomed = false; zoom = fitZoom(); applyZoom(); });
 })();
 </script>
 
