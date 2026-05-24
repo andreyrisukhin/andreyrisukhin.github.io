@@ -26,9 +26,19 @@
 (function () {
   const HOVER_DELAY_MS = 250;
   const INTERVAL_NAMES = {
-    0: 'P1', 1: 'm2', 2: 'M2', 3: 'm3', 4: 'M3', 5: 'P4',
-    6: 'TT', 7: 'P5', 8: 'm6', 9: 'M6', 10: 'm7', 11: 'M7',
-    12: 'P8',
+    0: "P1",
+    1: "m2",
+    2: "M2",
+    3: "m3",
+    4: "M3",
+    5: "P4",
+    6: "TT",
+    7: "P5",
+    8: "m6",
+    9: "M6",
+    10: "m7",
+    11: "M7",
+    12: "P8",
   };
 
   // ── State ──────────────────────────────────────────────────────────
@@ -58,20 +68,41 @@
   document.body.appendChild(pop.root);
 
   // ── Listeners ─────────────────────────────────────────────────────
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('click', onClick, true);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') hideAll();
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("click", onClick, true);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hideAll();
   });
-  window.addEventListener('scroll', hideAll, { passive: true });
-  window.addEventListener('resize', hideAll);
+  // Mobile Safari fires scroll/resize on every URL-bar collapse and
+  // rubber-band, dismissing the popover before the user can tap
+  // again. Track baselines when something opens; only hide on
+  // genuinely large scroll movement or real width changes.
+  let openScrollY = 0;
+  let openWidth = window.innerWidth;
+  const setOpenBaselines = () => {
+    openScrollY = window.scrollY;
+    openWidth = window.innerWidth;
+  };
+  const SCROLL_DISMISS_PX = 160;
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!isSticky && !isInspectorOpen) return;
+      if (Math.abs(window.scrollY - openScrollY) > SCROLL_DISMISS_PX) hideAll();
+    },
+    { passive: true }
+  );
+  window.addEventListener("resize", () => {
+    if (!isSticky && !isInspectorOpen) return;
+    if (Math.abs(window.innerWidth - openWidth) > 20) hideAll();
+  });
 
   // ── Hover (stage 0) ───────────────────────────────────────────────
   function onMove(e) {
     if (e.shiftKey) return; // dev preview owns shift+hover
     if (!(e.target instanceof Element)) return;
-    const sn = e.target.closest('.vf-stavenote');
-    const nh = e.target.closest('.vf-notehead');
+    const sn = e.target.closest(".vf-stavenote");
+    const nh = e.target.closest(".vf-notehead");
 
     if (sn === hoverStavenote) {
       // Same stavenote: keep latest position for the pending fire,
@@ -116,10 +147,10 @@
   function onClick(e) {
     if (e.shiftKey) return; // shift+click = dev annotator
     if (!(e.target instanceof Element)) return;
-    if (e.target.closest('[data-sheet-annotator]')) return;
-    if (e.target.closest('[data-sheet-dev-toggle]')) return;
-    if (e.target.closest('[data-chord-inspector]')) return; // popover handles its own clicks
-    if (e.target.closest('[data-chord-tag]')) {
+    if (e.target.closest("[data-sheet-annotator]")) return;
+    if (e.target.closest("[data-sheet-dev-toggle]")) return;
+    if (e.target.closest("[data-chord-inspector]")) return; // popover handles its own clicks
+    if (e.target.closest("[data-chord-tag]")) {
       // Click on the sticky tag itself -> escalate to inspector if
       // we're at stage 1, collapse if we're at stage 2.
       if (isInspectorOpen) {
@@ -131,19 +162,31 @@
       return;
     }
 
-    const container = document.getElementById('osmd-container');
+    const container = document.getElementById("osmd-container");
     if (!container || !container.contains(e.target)) {
       hideAll();
       return;
     }
-    if (!e.target.closest('.vf-stavenote')) {
-      hideAll();
-      return;
+
+    // Forgiving anchor lookup: prefer the actual .vf-stavenote under the
+    // tap; otherwise fall back to the nearest one within a tolerance
+    // that scales with input precision (touch is coarser than mouse).
+    let anchorEl = e.target.closest(".vf-stavenote");
+    let anchorPx = 80;
+    if (!anchorEl) {
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      const tolerancePx = coarse ? 60 : 24;
+      anchorEl = nearestStavenote(container, e.pageX, e.pageY, tolerancePx);
+      if (!anchorEl) {
+        hideAll();
+        return;
+      }
+      anchorPx = Math.max(anchorPx, tolerancePx * 2);
     }
 
     const bridge = window.__sheetMusic;
     if (!bridge || !bridge.ready) return;
-    const hit = bridge.resolveNoteAt(e.pageX, e.pageY, 80, e.target);
+    const hit = bridge.resolveNoteAt(e.pageX, e.pageY, anchorPx, anchorEl);
     if (!hit || !hit.pitches || !hit.pitches.length) {
       hideAll();
       return;
@@ -168,6 +211,7 @@
     isSticky = true;
     pinnedData = data;
     pinnedAnchor = { x: e.pageX, y: e.pageY };
+    setOpenBaselines();
     tag.showAt(e.pageX, e.pageY, data, true);
   }
 
@@ -175,6 +219,7 @@
     pop.showAt(x, y, data);
     isInspectorOpen = true;
     isSticky = true;
+    setOpenBaselines();
     tag.hide(); // popover takes over
   }
 
@@ -195,9 +240,11 @@
     const pitches = hit.pitches.slice().sort((a, b) => toMidi(a) - toMidi(b));
     const uniquePcs = Array.from(new Set(pitches.map(pitchClass))).filter(Boolean);
     const lowestMidi = toMidi(pitches[0]);
-    const intervals = pitches.map(toMidi)
-      .map((m, i, arr) => (i === 0 ? 0 : m - arr[i - 1])).slice(1);
-    const semitonesFromRoot = pitches.map((p) => ((toMidi(p) - lowestMidi) % 12 + 12) % 12);
+    const intervals = pitches
+      .map(toMidi)
+      .map((m, i, arr) => (i === 0 ? 0 : m - arr[i - 1]))
+      .slice(1);
+    const semitonesFromRoot = pitches.map((p) => (((toMidi(p) - lowestMidi) % 12) + 12) % 12);
     // Two readings (see osmd-bridge.js for the split):
     //   chordName -- pure stack reading ("GM" for a G-B-D stack).
     //                Used for the tag and as the inspector's "Notes
@@ -207,16 +254,13 @@
     //                in m2). Drives the Stradella recipe section so
     //                the player presses the bass that's actually
     //                written. null when it agrees with chordName.
-    const chordName = hit.chordName
-      || detectChord(uniquePcs)
-      || (pitches.length === 1 ? pitches[0] : '—');
+    const chordName = hit.chordName || detectChord(uniquePcs) || (pitches.length === 1 ? pitches[0] : "—");
     const harmony = hit.harmony || null;
     const recipeFor = harmony || chordName;
-    const stradellaHtml = (window.StradellaRecipe && recipeFor)
-      ? window.StradellaRecipe.render(recipeFor) : '';
+    const stradellaHtml = window.StradellaRecipe && recipeFor ? window.StradellaRecipe.render(recipeFor) : "";
     return {
-      measureLabel: hit.measureNumber != null ? 'measure ' + hit.measureNumber : null,
-      staffLabel: hit.staffIndex != null ? 'staff ' + (hit.staffIndex + 1) : null,
+      measureLabel: hit.measureNumber != null ? "measure " + hit.measureNumber : null,
+      staffLabel: hit.staffIndex != null ? "staff " + (hit.staffIndex + 1) : null,
       pitches,
       uniquePcs,
       intervals,
@@ -230,10 +274,37 @@
 
   function chordKey(hit, data) {
     return [
-      hit.measureNumber == null ? '?' : hit.measureNumber,
-      hit.staffIndex == null ? '?' : hit.staffIndex,
-      data.chordName || data.clickedPitch || '?',
-    ].join('/');
+      hit.measureNumber == null ? "?" : hit.measureNumber,
+      hit.staffIndex == null ? "?" : hit.staffIndex,
+      data.chordName || data.clickedPitch || "?",
+    ].join("/");
+  }
+
+  // Nearest stavenote whose bounding rect lies within `maxPx` of the
+  // page-coord tap point. Distance is measured to the rect edge, so a
+  // tap inside the rect scores 0 and beats any external candidate.
+  // Used as a tap-forgiveness fallback when the user taps the white
+  // space next to a chord stack instead of dead-on the noteheads.
+  function nearestStavenote(container, pageX, pageY, maxPx) {
+    const nodes = container.querySelectorAll(".vf-stavenote");
+    let best = null;
+    let bestD = Infinity;
+    for (const sn of nodes) {
+      const r = sn.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      const left = r.left + window.scrollX;
+      const top = r.top + window.scrollY;
+      const right = left + r.width;
+      const bottom = top + r.height;
+      const dx = pageX < left ? left - pageX : pageX > right ? pageX - right : 0;
+      const dy = pageY < top ? top - pageY : pageY > bottom ? pageY - bottom : 0;
+      const d = Math.hypot(dx, dy);
+      if (d < bestD && d <= maxPx) {
+        bestD = d;
+        best = sn;
+      }
+    }
+    return best;
   }
 
   function detectChord(pcs) {
@@ -258,24 +329,24 @@
     const acc = m[2];
     const octave = parseInt(m[3], 10);
     let semi = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[letter];
-    if (acc === '#') semi += 1;
-    else if (acc === 'b') semi -= 1;
-    else if (acc === '##') semi += 2;
-    else if (acc === 'bb') semi -= 2;
+    if (acc === "#") semi += 1;
+    else if (acc === "b") semi -= 1;
+    else if (acc === "##") semi += 2;
+    else if (acc === "bb") semi -= 2;
     return (octave + 1) * 12 + semi;
   }
 
   // ── Tag (stage 0/1) ───────────────────────────────────────────────
   function buildTag() {
-    const root = document.createElement('div');
-    root.className = 'chord-tag';
-    root.setAttribute('data-chord-tag', '');
-    root.setAttribute('role', 'tooltip');
+    const root = document.createElement("div");
+    root.className = "chord-tag";
+    root.setAttribute("data-chord-tag", "");
+    root.setAttribute("role", "tooltip");
 
     function showAt(pageX, pageY, data, sticky) {
-      const chord = data.chordName && data.chordName !== '—' ? data.chordName : '';
-      const pitch = data.clickedPitch ? data.clickedPitch : '';
-      let html = '';
+      const chord = data.chordName && data.chordName !== "—" ? data.chordName : "";
+      const pitch = data.clickedPitch ? data.clickedPitch : "";
+      let html = "";
       if (chord) html += `<span class="chord-tag__chord">${escapeHtml(chord)}</span>`;
       if (pitch) html += `<span class="chord-tag__pitch">${escapeHtml(pitch)}</span>`;
       if (!html) html = '<span class="chord-tag__pitch">—</span>';
@@ -283,51 +354,58 @@
         html += '<span class="chord-tag__hint">click again for details</span>';
       }
       root.innerHTML = html;
-      root.style.left = Math.min(pageX + 14, document.documentElement.clientWidth + window.scrollX - 200) + 'px';
-      root.style.top = (pageY + 14) + 'px';
-      root.classList.toggle('is-sticky', !!sticky);
-      root.classList.remove('is-visible');
+      root.style.left = Math.min(pageX + 14, document.documentElement.clientWidth + window.scrollX - 200) + "px";
+      root.style.top = pageY + 14 + "px";
+      root.classList.toggle("is-sticky", !!sticky);
+      root.classList.remove("is-visible");
       void root.offsetWidth;
-      root.classList.add('is-visible');
+      root.classList.add("is-visible");
     }
-    function hide() { root.classList.remove('is-visible'); }
-    function isVisible() { return root.classList.contains('is-visible'); }
+    function hide() {
+      root.classList.remove("is-visible");
+    }
+    function isVisible() {
+      return root.classList.contains("is-visible");
+    }
 
     return { root, showAt, hide, isVisible };
   }
 
   // ── Popover (stage 2) ─────────────────────────────────────────────
   function buildPopover() {
-    const root = document.createElement('div');
-    root.className = 'chord-inspector';
-    root.setAttribute('data-chord-inspector', '');
-    root.setAttribute('role', 'tooltip');
+    const root = document.createElement("div");
+    root.className = "chord-inspector";
+    root.setAttribute("data-chord-inspector", "");
+    root.setAttribute("role", "tooltip");
 
     function showAt(pageX, pageY, data) {
       root.innerHTML = render(data);
-      root.style.left = Math.min(pageX + 12, document.documentElement.clientWidth + window.scrollX - 320) + 'px';
-      root.style.top = (pageY + 12) + 'px';
-      root.classList.remove('is-visible');
+      root.style.left = Math.min(pageX + 12, document.documentElement.clientWidth + window.scrollX - 320) + "px";
+      root.style.top = pageY + 12 + "px";
+      root.classList.remove("is-visible");
       void root.offsetWidth;
-      root.classList.add('is-visible');
+      root.classList.add("is-visible");
     }
-    function hide() { root.classList.remove('is-visible'); }
-    function isVisible() { return root.classList.contains('is-visible'); }
+    function hide() {
+      root.classList.remove("is-visible");
+    }
+    function isVisible() {
+      return root.classList.contains("is-visible");
+    }
 
-    root.addEventListener('click', (e) => {
+    root.addEventListener("click", (e) => {
       const t = e.target instanceof Element ? e.target : null;
-      if (t && t.getAttribute('data-chord-action') === 'close') hideAll();
+      if (t && t.getAttribute("data-chord-action") === "close") hideAll();
     });
 
     return { root, showAt, hide, isVisible };
   }
 
   function render(d) {
-    const pitches = d.pitches.map((p) => `<code>${escapeHtml(p)}</code>`).join(' ');
-    const semis = d.semitonesFromRoot.map((s) => `${s}`).join(', ');
-    const intervals = d.intervals.length
-      ? d.intervals.map((s) => INTERVAL_NAMES[s] || (s + 'st')).join(' + ') : '—';
-    const metaParts = [d.measureLabel, d.staffLabel].filter(Boolean).join(' · ');
+    const pitches = d.pitches.map((p) => `<code>${escapeHtml(p)}</code>`).join(" ");
+    const semis = d.semitonesFromRoot.map((s) => `${s}`).join(", ");
+    const intervals = d.intervals.length ? d.intervals.map((s) => INTERVAL_NAMES[s] || s + "st").join(" + ") : "—";
+    const metaParts = [d.measureLabel, d.staffLabel].filter(Boolean).join(" · ");
     // "Notes spell" section -- pure stack analysis, no recipe.
     const stackSection = `
       <div class="chord-inspector__section">
@@ -343,29 +421,32 @@
     // reading and/or a recipe).
     const harmonyName = d.harmony || d.chordName;
     const showHarmonySection = !!d.stradellaHtml || (d.harmony && d.harmony !== d.chordName);
-    const harmonySection = showHarmonySection ? `
+    const harmonySection = showHarmonySection
+      ? `
       <div class="chord-inspector__section">
         <div class="chord-inspector__section-label">Sounds as</div>
         <div class="chord-inspector__section-name">${escapeHtml(harmonyName)}</div>
-        ${d.harmony && d.harmony !== d.chordName
-          ? `<div class="chord-inspector__row chord-inspector__row--note"><span></span><span>bass promoted from measure context</span></div>`
-          : ''}
-        ${d.stradellaHtml
-          ? `<div class="chord-inspector__stradella">${d.stradellaHtml}</div>` : ''}
+        ${
+          d.harmony && d.harmony !== d.chordName
+            ? `<div class="chord-inspector__row chord-inspector__row--note"><span></span><span>bass promoted from measure context</span></div>`
+            : ""
+        }
+        ${d.stradellaHtml ? `<div class="chord-inspector__stradella">${d.stradellaHtml}</div>` : ""}
       </div>
-    ` : '';
+    `
+      : "";
     return `
       <div class="chord-inspector__head">
         <span class="chord-inspector__title">${escapeHtml(d.chordName)}</span>
         <button type="button" class="chord-inspector__close" data-chord-action="close" aria-label="Close">×</button>
       </div>
-      ${metaParts ? `<div class="chord-inspector__meta">${escapeHtml(metaParts)}</div>` : ''}
+      ${metaParts ? `<div class="chord-inspector__meta">${escapeHtml(metaParts)}</div>` : ""}
       ${stackSection}
       ${harmonySection}
     `;
   }
 
   function escapeHtml(s) {
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 })();
