@@ -334,3 +334,7 @@
 {% if site.newsletter.enabled %}
   <script defer src="{{ '/assets/js/newsletter.js' | relative_url | bust_file_cache }}"></script>
 {% endif %}
+
+{% if jekyll.environment == 'development' %}
+  <script defer src="{{ '/assets/js/site-dev-annotator.js' | relative_url | bust_file_cache }}"></script>
+{% endif %}

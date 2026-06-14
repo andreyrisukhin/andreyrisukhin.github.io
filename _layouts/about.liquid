@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-<div class="post">
+<div class="post homepage-post">
   <header class="post-header">
     <h1 class="post-title">
       {% if site.title == 'blank' %}
@@ -26,7 +26,10 @@ layout: default
         {% when 'intro' %}
           <section class="homepage-section" data-homepage-section="intro" data-homepage-section-label="intro">
             <div class="homepage-intro">
-              <div class="homepage-intro__content">
+              <div
+                class="homepage-intro__content"
+                style="--homepage-intro-content-offset: {{ page.home_layout.intro_content_offset | default: '0px' }};"
+              >
                 {% if page.home_layout.header_sketch and page.home_layout.header_sketch.enabled %}
                   <div
                     class="homepage-intro__sketch {% if page.home_layout.header_sketch.image %}has-image{% else %}is-placeholder{% endif %}"
@@ -128,7 +131,3 @@ layout: default
     {% endif %}
   </article>
 </div>
-
-{% if jekyll.environment == 'development' %}
-  <script defer src="{{ '/assets/js/homepage-layout-editor.js' | relative_url | bust_file_cache }}"></script>
-{% endif %}

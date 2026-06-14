@@ -37,6 +37,7 @@ latest_posts:
 
 home_layout:
   profile_width: 30
+  intro_content_offset: -59px
   header_sketch:
     enabled: true
     image: home-bayan-b-system.svg
