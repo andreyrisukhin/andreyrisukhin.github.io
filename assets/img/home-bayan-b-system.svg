@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410 72" role="img" aria-labelledby="title desc">
+  <title id="title">B-system bayan right-hand button sketch</title>
+  <desc id="desc">Five compact staggered horizontal rows of chromatic bayan buttons, with the second and fourth rows extended by one button on the left.</desc>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+
+    .natural {
+      fill: #f8f8f2;
+      stroke: #2d2d2d;
+      stroke-width: 1.1;
+    }
+
+    .accidental {
+      fill: #1f1f1f;
+      stroke: #d8d8d8;
+      stroke-width: 0.9;
+    }
+  </style>
+  <g>
+    <circle class="natural" data-bayan-row="1" data-bayan-col="1" cx="14.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="2" cx="31.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="3" cx="48.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="4" cx="65.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="5" cx="82.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="6" cx="99.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="7" cx="116.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="8" cx="133.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="9" cx="150.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="10" cx="167.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="11" cx="184.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="12" cx="201.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="13" cx="218.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="14" cx="235.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="15" cx="252.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="16" cx="269.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="17" cx="286.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="18" cx="303.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="19" cx="320.0" cy="12.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="1" data-bayan-col="20" cx="337.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="21" cx="354.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="1" data-bayan-col="22" cx="371.0" cy="12.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="0" cx="5.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="1" cx="22.5" cy="24.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="2" data-bayan-col="2" cx="39.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="3" cx="56.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="4" cx="73.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="5" cx="90.5" cy="24.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="2" data-bayan-col="6" cx="107.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="7" cx="124.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="8" cx="141.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="9" cx="158.5" cy="24.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="2" data-bayan-col="10" cx="175.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="11" cx="192.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="12" cx="209.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="13" cx="226.5" cy="24.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="2" data-bayan-col="14" cx="243.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="15" cx="260.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="16" cx="277.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="17" cx="294.5" cy="24.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="2" data-bayan-col="18" cx="311.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="19" cx="328.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="20" cx="345.5" cy="24.0" r="5.2" />
+    <circle class="natural" data-bayan-row="2" data-bayan-col="21" cx="362.5" cy="24.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="2" data-bayan-col="22" cx="379.5" cy="24.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="1" cx="14.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="2" cx="31.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="3" cx="48.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="4" cx="65.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="5" cx="82.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="6" cx="99.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="7" cx="116.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="8" cx="133.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="9" cx="150.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="10" cx="167.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="11" cx="184.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="12" cx="201.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="13" cx="218.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="14" cx="235.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="15" cx="252.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="16" cx="269.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="17" cx="286.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="18" cx="303.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="19" cx="320.0" cy="36.0" r="5.2" />
+    <circle class="natural" data-bayan-row="3" data-bayan-col="20" cx="337.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="21" cx="354.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="3" data-bayan-col="22" cx="371.0" cy="36.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="0" cx="5.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="1" cx="22.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="2" cx="39.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="3" cx="56.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="4" cx="73.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="5" cx="90.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="6" cx="107.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="7" cx="124.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="8" cx="141.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="9" cx="158.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="10" cx="175.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="11" cx="192.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="12" cx="209.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="13" cx="226.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="14" cx="243.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="15" cx="260.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="16" cx="277.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="17" cx="294.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="18" cx="311.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="19" cx="328.5" cy="48.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="4" data-bayan-col="20" cx="345.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="21" cx="362.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="4" data-bayan-col="22" cx="379.5" cy="48.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="1" cx="14.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="2" cx="31.0" cy="60.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="5" data-bayan-col="3" cx="48.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="4" cx="65.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="5" cx="82.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="6" cx="99.0" cy="60.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="5" data-bayan-col="7" cx="116.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="8" cx="133.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="9" cx="150.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="10" cx="167.0" cy="60.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="5" data-bayan-col="11" cx="184.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="12" cx="201.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="13" cx="218.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="14" cx="235.0" cy="60.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="5" data-bayan-col="15" cx="252.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="16" cx="269.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="17" cx="286.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="18" cx="303.0" cy="60.0" r="5.2" />
+    <circle class="accidental" data-bayan-row="5" data-bayan-col="19" cx="320.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="20" cx="337.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="21" cx="354.0" cy="60.0" r="5.2" />
+    <circle class="natural" data-bayan-row="5" data-bayan-col="22" cx="371.0" cy="60.0" r="5.2" />
+  </g>
+</svg>

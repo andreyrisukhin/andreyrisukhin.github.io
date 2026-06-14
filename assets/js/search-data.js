@@ -94,8 +94,8 @@ ninja.data = [{
           section: "News",},{id: "news-joined-perceptron-ai-full-time-deferred-phd-program-to-2026",
           title: 'Joined Perceptron AI full time! Deferred PhD program to 2026.',
           description: "",
-          section: "News",},{id: "news-joined-factory-ai-in-san-francisco-wrote-a-reflection-on-the-last-year",
-          title: 'Joined Factory AI 🏭 in San Francisco! Wrote a reflection on the last...',
+          section: "News",},{id: "news-joined-factory-in-san-francisco-wrote-a-reflection-on-the-last-year",
+          title: 'Joined Factory 🏭 in San Francisco! Wrote a reflection on the last year....',
           description: "",
           section: "News",},{
         id: 'social-email',
