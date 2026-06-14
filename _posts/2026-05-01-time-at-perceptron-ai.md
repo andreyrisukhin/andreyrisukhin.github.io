@@ -16,7 +16,7 @@ published: true
 
 I'm starting a new chapter: This weekend I left Bellevue and Perceptron, and arrived in SF for Factory.
 
-{% include figure.liquid path="assets/img/posts/2026-perceptron/goldengate.jpg" class="img-fluid rounded z-depth-1" caption="Evening after Day One at Factory." %}
+{% include figure.liquid path="assets/img/posts/2026-perceptron/goldengate.jpg" class="img-fluid rounded z-depth-1" figure_class="figure-spaced" caption="Evening after Day One at Factory." %}
 
 ## Perceptron
 
@@ -24,7 +24,7 @@ After less than 24 hours spanning an initial call, a three-round onsite, and an 
 
 Perceptron was the best year of my career so far. I designed production systems for terabyte-scale video data, made friends I’ll keep for life, and got to do it all close to home in Bellevue, WA.
 
-{% include figure.liquid path="assets/img/posts/2026-perceptron/navdesk.jpg" class="img-fluid rounded z-depth-1" caption="Halloween: “Are you Steve Jobs or Elizabeth Holmes?”" %}
+{% include figure.liquid path="assets/img/posts/2026-perceptron/navdesk.jpg" class="img-fluid rounded z-depth-1" figure_class="figure-spaced" caption="Halloween: “Are you Steve Jobs or Elizabeth Holmes?”" %}
 
 ## Reflections
 
@@ -44,7 +44,7 @@ Working with [Naveen](https://www.linkedin.com/in/naveensahi/) and Akshat taught
 - **Get faster feedback.** A dataloading bug doesn’t need a full training run to debug. Cutting iteration time from hours to seconds is the most leveraged thing you can do.
 - **Overcommunicate.** Getting faster feedback from humans starts with task visibility (Slack/Linear/logbooks).
 
-{% include figure.liquid path="assets/img/posts/2026-perceptron/newofficenight.jpg" class="img-fluid rounded z-depth-1" caption="The new office, after hours." %}
+{% include figure.liquid path="assets/img/posts/2026-perceptron/newofficenight.jpg" class="img-fluid rounded z-depth-1" figure_class="figure-spaced" caption="The new office, after hours." %}
 
 ## Factory
 
