@@ -45,6 +45,11 @@ By **Andrey Risukhin**, also known as **Andrey Bayan** (handle: **@bayandrey**).
     <span class="music-landing-card__title">Chord Recognizer</span>
     <span class="music-landing-card__desc">Enter notes to identify a chord and see inversions</span>
   </a>
+  <a href="/music/bayan-simulator/" class="music-landing-card">
+    <i class="fa-solid fa-keyboard music-landing-card__icon"></i>
+    <span class="music-landing-card__title">Bayan Simulator</span>
+    <span class="music-landing-card__desc">Play a B-system button keyboard with Minecraft note-block samples</span>
+  </a>
   <a href="/music/exercises/" class="music-landing-card">
     <i class="fa-solid fa-dumbbell music-landing-card__icon"></i>
     <span class="music-landing-card__title">Exercises</span>
