@@ -4,6 +4,9 @@
   if (!isLocalhost) {
     return;
   }
+  if (window.location.pathname.startsWith("/music/sheet/")) {
+    return;
+  }
 
   const DEV_MODE_KEY = "site-dev-mode";
   const STORAGE_KEY = `site-dev-annotations:${window.location.pathname}`;

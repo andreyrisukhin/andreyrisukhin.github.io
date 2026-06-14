@@ -9,7 +9,7 @@
  * - On coarse-pointer devices, double-tap any chord/measure seeks the
  *   playhead there.
  *
- * Depends on: window.opensheetmusicdisplay, window.Soundfont,
+ * Depends on: window.opensheetmusicdisplay, window.Soundfont, window.MusicAudio,
  *             window.__sheetMusic (assets/js/sheet-music/osmd-bridge.js).
  */
 
@@ -29,7 +29,17 @@
       return;
     }
 
-    const engine = new PlaybackEngine(osmd);
+    const sheetPage = container.closest(".sheet-music-page");
+    const renderedPlayback =
+      sheetPage && sheetPage.dataset.renderedAudioUrl && sheetPage.dataset.timingUrl
+        ? {
+            label: sheetPage.dataset.renderedLabel || "Strings file",
+            audioUrl: sheetPage.dataset.renderedAudioUrl,
+            timingUrl: sheetPage.dataset.timingUrl,
+          }
+        : null;
+
+    const engine = new PlaybackEngine(osmd, renderedPlayback);
     window.__playback = engine; // expose for DevTools poking
     console.log(
       "[playback] schedule built: events=%d, measures=%d, totalSec=%.2f, bpm=%d",
@@ -97,21 +107,16 @@
   ];
 
   const CLICK_MODE_KEY = "sheet-playback-click-seek";
-  const RENDERED_PLAYBACK = {
-    label: "Strings file",
-    audioUrl: "/assets/music/sheet-music/cogwork-dancers/cogwork-dancers-strings.mp3?v=4",
-    timingUrl: "/assets/music/sheet-music/cogwork-dancers/cogwork-dancers-timing.json?v=4",
-  };
-
   // ── Engine ─────────────────────────────────────────────────────────
-  function PlaybackEngine(osmd) {
+  function PlaybackEngine(osmd, renderedPlayback) {
     const self = this;
     self.osmd = osmd;
+    self.renderedPlayback = renderedPlayback;
     self.audioCtx = null;
     self.audioEl = null;
     self.instrument = null;
     self.instrumentName = "church_organ";
-    self.mode = "rendered";
+    self.mode = renderedPlayback ? "rendered" : "live";
     self.renderedReady = false;
     self.renderedLoadPromise = null;
     self.events = [];
@@ -141,6 +146,9 @@
     // AudioContext that was first touched after an await). Returns the
     // context so the caller can verify state if it cares.
     self.primeAudio = function () {
+      if (window.MusicAudio) {
+        return window.MusicAudio.ensureContext(self, "audioCtx");
+      }
       if (!self.audioCtx) {
         self.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
@@ -172,6 +180,7 @@
 
     self.setMode = function (mode, opts = {}) {
       if (mode !== "rendered" && mode !== "live") return;
+      if (mode === "rendered" && !self.renderedPlayback) return;
       if (mode === self.mode) return;
       const wasPlaying = self.state === "playing";
       if (wasPlaying) self.pause();
@@ -278,13 +287,18 @@
 
     self._silenceLive = function () {
       self._stopScheduler();
-      try {
-        self.instrument && self.instrument.stop();
-      } catch (_) {}
-      if (self.audioCtx && self.audioCtx.state !== "closed") {
-        self.audioCtx.close().catch(() => {});
+      if (window.MusicAudio) {
+        window.MusicAudio.stopInstrument(self.instrument);
+        window.MusicAudio.closeContext(self, "audioCtx");
+      } else {
+        try {
+          self.instrument && self.instrument.stop();
+        } catch (_) {}
+        if (self.audioCtx && self.audioCtx.state !== "closed") {
+          self.audioCtx.close().catch(() => {});
+        }
+        self.audioCtx = null;
       }
-      self.audioCtx = null;
       self.instrument = null;
     };
 
@@ -386,16 +400,32 @@
     };
 
     self._ensureAudio = async function () {
-      if (!self.audioCtx) {
-        self.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (window.MusicAudio) {
+        self.audioCtx = window.MusicAudio.ensureContext(self, "audioCtx");
+      } else {
+        if (!self.audioCtx) {
+          self.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (self.audioCtx.state === "suspended") await self.audioCtx.resume();
       }
-      if (self.audioCtx.state === "suspended") await self.audioCtx.resume();
       if (!self.instrument) {
         self._emit("loadingchange", true);
         try {
-          self.instrument = await window.Soundfont.instrument(self.audioCtx, self.instrumentName, {
-            soundfont: "MusyngKite",
-          });
+          if (window.MusicAudio) {
+            self.instrument = await window.MusicAudio.loadSoundfont(self, {
+              contextKey: "audioCtx",
+              instrumentKey: "instrument",
+              loadingKey: "instrumentLoading",
+              failedKey: "instrumentFailed",
+              name: self.instrumentName,
+              soundfont: "MusyngKite",
+            });
+          } else {
+            self.instrument = await window.Soundfont.instrument(self.audioCtx, self.instrumentName, {
+              soundfont: "MusyngKite",
+            });
+          }
+          if (!self.instrument) throw new Error("Soundfont instrument unavailable");
         } finally {
           self._emit("loadingchange", false);
         }
@@ -405,7 +435,8 @@
     self._loadRenderedTiming = async function () {
       if (self.renderedReady) return;
       if (self.renderedLoadPromise) return self.renderedLoadPromise;
-      self.renderedLoadPromise = fetch(RENDERED_PLAYBACK.timingUrl)
+      if (!self.renderedPlayback) throw new Error("Rendered playback is not configured for this score");
+      self.renderedLoadPromise = fetch(self.renderedPlayback.timingUrl)
         .then((res) => {
           if (!res.ok) throw new Error(`Timing map failed: ${res.status}`);
           return res.json();
@@ -429,7 +460,7 @@
     self._ensureRenderedAudio = async function () {
       await self._loadRenderedTiming();
       if (!self.audioEl) {
-        self.audioEl = new Audio(RENDERED_PLAYBACK.audioUrl);
+        self.audioEl = new Audio(self.renderedPlayback.audioUrl);
         self.audioEl.preload = "auto";
         self.audioEl.addEventListener("ended", () => {
           if (self.state !== "playing") return;
@@ -517,11 +548,13 @@
     };
 
     self._buildSchedule();
-    self._loadRenderedTiming().catch((err) => {
-      console.warn("[playback] rendered timing unavailable; falling back to live synth", err);
-      self.mode = "live";
-      self._emit("modechange", "live");
-    });
+    if (self.renderedPlayback) {
+      self._loadRenderedTiming().catch((err) => {
+        console.warn("[playback] rendered timing unavailable; falling back to live synth", err);
+        self.mode = "live";
+        self._emit("modechange", "live");
+      });
+    }
   }
 
   function noteToMidi(pitch) {
@@ -550,7 +583,7 @@
       <label class="sheet-playback__mode">
         <span>Mode</span>
         <select data-pb-mode aria-label="Playback mode">
-          <option value="rendered">${RENDERED_PLAYBACK.label}</option>
+          ${engine.renderedPlayback ? `<option value="rendered">${engine.renderedPlayback.label}</option>` : ""}
           <option value="live">Live sound</option>
         </select>
       </label>

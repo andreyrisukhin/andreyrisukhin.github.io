@@ -52,4 +52,5 @@ Pick a key and progression variant to see the 12-bar form with real chord names.
 
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/audio.js?v=1' | relative_url }}"></script>
 <script src="{{ '/assets/js/blues/main.js' | relative_url }}"></script>

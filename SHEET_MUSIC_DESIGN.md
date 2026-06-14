@@ -73,17 +73,18 @@ SoundFont playback kept as a comparison mode.
 
 What made the static render work:
 
-- Export a temporary MusicXML copy for audio only. Keep the committed MusicXML
-  unchanged for score display.
-- Remove MusicXML `<harmony>` blocks before rendering. MuseScore treats hidden
-  harmony/chord symbols as accompaniment, which created a second delayed
-  playback line.
-- Set the notated part to String Ensemble in the temporary MusicXML before
-  rendering.
-- Render the MP3 with MuseScore Basic and save it as
+- Run `node bin/render-sheet-audio.mjs cogwork-dancers`.
+- The script exports a temporary MusicXML copy for audio only. Keep the
+  committed MusicXML unchanged for score display.
+- The script removes MusicXML `<harmony>` blocks before rendering. MuseScore
+  treats hidden harmony/chord symbols as accompaniment, which created a second
+  delayed playback line.
+- The script sets the notated part to String Ensemble in the temporary MusicXML
+  before rendering.
+- The script renders the MP3 with MuseScore Basic and saves it as
   `assets/music/sheet-music/cogwork-dancers/cogwork-dancers-strings.mp3`.
-- Save a timing map beside it as `cogwork-dancers-timing.json`. The map uses
-  the score tempos at measures 1, 20, and 69 to drive measure seeking.
+- The script saves a timing map beside it as `cogwork-dancers-timing.json`. The
+  map uses score tempo markings to drive measure seeking.
 - Cache-bust both the MP3 and timing JSON whenever either asset changes.
 - Keep the live SoundFont mode optional. It is useful for testing instrument
   colors, but it can lag because it schedules many notes and moves the OSMD

@@ -72,8 +72,23 @@
 
   var tickTimer = null;
   var audioCtx = null;
+  var audioState = { audioCtx: null };
 
   // ── Chord playback via Web Audio ──
+
+  function ensureAudio() {
+    if (window.MusicAudio) {
+      audioCtx = window.MusicAudio.ensureContext(audioState, 'audioCtx');
+      return audioCtx;
+    }
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
 
   function semitoneToFreq(semitone) {
     // semitone 0 = C in octave 3 (MIDI 48)
@@ -147,12 +162,7 @@
   }
 
   function startPlayback() {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
+    ensureAudio();
     state.playing = true;
     state.currentBar = 0;
     state.currentBeat = 0;

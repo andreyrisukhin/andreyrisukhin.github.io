@@ -195,6 +195,7 @@
   // ── Audio ──
 
   function ensureAudio() {
+    if (window.MusicAudio) return window.MusicAudio.ensureContext(runtime, "audioCtx");
     if (!runtime.audioCtx) {
       runtime.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
@@ -242,6 +243,16 @@
   // library is unavailable (offline, CDN blocked). Callers fall back to the
   // pure Web Audio synth voice below.
   function loadPiano() {
+    if (window.MusicAudio) {
+      return window.MusicAudio.loadSoundfont(runtime, {
+        contextKey: "audioCtx",
+        instrumentKey: "piano",
+        loadingKey: "pianoLoading",
+        failedKey: "pianoFailed",
+        name: "acoustic_grand_piano",
+        soundfont: "MusyngKite",
+      });
+    }
     if (runtime.piano) return Promise.resolve(runtime.piano);
     if (runtime.pianoFailed) return Promise.resolve(null);
     if (runtime.pianoLoading) return runtime.pianoLoading;
