@@ -1,5 +1,5 @@
 .homepage-post {
-  --homepage-sketch-text-gap: 0.75rem;
+  --homepage-sketch-text-gap: 36px;
 }
 
 .homepage-post .post-header {
@@ -74,7 +74,7 @@
   }
 
   .homepage-intro {
-    align-items: center;
+    align-items: flex-start;
     flex-direction: row;
     gap: 2rem;
   }
@@ -85,6 +85,7 @@
 
   .homepage-intro__profile {
     flex: 0 0 var(--homepage-profile-width, 30%);
+    margin-top: var(--homepage-profile-top-offset, 0px);
     width: var(--homepage-profile-width, 30%);
   }
 }
