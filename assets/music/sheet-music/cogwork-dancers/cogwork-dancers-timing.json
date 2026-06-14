@@ -1,0 +1,501 @@
+{
+  "version": 4,
+  "score": "cogwork-dancers",
+  "render": "strings-no-harmony",
+  "audio": "cogwork-dancers-strings.mp3",
+  "audioDurationSec": 140.956667,
+  "scoreEndSec": 137.9,
+  "tailSec": 3.056667,
+  "measureCount": 79,
+  "tempoSegments": [
+    {
+      "fromMeasure": 1,
+      "bpm": 120
+    },
+    {
+      "fromMeasure": 20,
+      "bpm": 160
+    },
+    {
+      "fromMeasure": 69,
+      "bpm": 100
+    }
+  ],
+  "measures": [
+    {
+      "measure": 1,
+      "startSec": 0.0,
+      "endSec": 2.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 2,
+      "startSec": 2.0,
+      "endSec": 4.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 3,
+      "startSec": 4.0,
+      "endSec": 6.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 4,
+      "startSec": 6.0,
+      "endSec": 8.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 5,
+      "startSec": 8.0,
+      "endSec": 10.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 6,
+      "startSec": 10.0,
+      "endSec": 12.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 7,
+      "startSec": 12.0,
+      "endSec": 14.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 8,
+      "startSec": 14.0,
+      "endSec": 16.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 9,
+      "startSec": 16.0,
+      "endSec": 18.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 10,
+      "startSec": 18.0,
+      "endSec": 20.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 11,
+      "startSec": 20.0,
+      "endSec": 22.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 12,
+      "startSec": 22.0,
+      "endSec": 24.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 13,
+      "startSec": 24.0,
+      "endSec": 26.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 14,
+      "startSec": 26.0,
+      "endSec": 28.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 15,
+      "startSec": 28.0,
+      "endSec": 30.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 16,
+      "startSec": 30.0,
+      "endSec": 32.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 17,
+      "startSec": 32.0,
+      "endSec": 34.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 18,
+      "startSec": 34.0,
+      "endSec": 36.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 19,
+      "startSec": 36.0,
+      "endSec": 38.0,
+      "durationSec": 2.0
+    },
+    {
+      "measure": 20,
+      "startSec": 38.0,
+      "endSec": 39.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 21,
+      "startSec": 39.5,
+      "endSec": 41.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 22,
+      "startSec": 41.0,
+      "endSec": 42.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 23,
+      "startSec": 42.5,
+      "endSec": 44.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 24,
+      "startSec": 44.0,
+      "endSec": 45.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 25,
+      "startSec": 45.5,
+      "endSec": 47.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 26,
+      "startSec": 47.0,
+      "endSec": 48.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 27,
+      "startSec": 48.5,
+      "endSec": 50.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 28,
+      "startSec": 50.0,
+      "endSec": 51.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 29,
+      "startSec": 51.5,
+      "endSec": 53.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 30,
+      "startSec": 53.0,
+      "endSec": 54.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 31,
+      "startSec": 54.5,
+      "endSec": 56.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 32,
+      "startSec": 56.0,
+      "endSec": 57.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 33,
+      "startSec": 57.5,
+      "endSec": 59.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 34,
+      "startSec": 59.0,
+      "endSec": 60.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 35,
+      "startSec": 60.5,
+      "endSec": 62.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 36,
+      "startSec": 62.0,
+      "endSec": 63.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 37,
+      "startSec": 63.5,
+      "endSec": 65.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 38,
+      "startSec": 65.0,
+      "endSec": 66.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 39,
+      "startSec": 66.5,
+      "endSec": 68.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 40,
+      "startSec": 68.0,
+      "endSec": 69.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 41,
+      "startSec": 69.5,
+      "endSec": 71.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 42,
+      "startSec": 71.0,
+      "endSec": 72.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 43,
+      "startSec": 72.5,
+      "endSec": 74.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 44,
+      "startSec": 74.0,
+      "endSec": 75.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 45,
+      "startSec": 75.5,
+      "endSec": 77.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 46,
+      "startSec": 77.0,
+      "endSec": 78.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 47,
+      "startSec": 78.5,
+      "endSec": 80.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 48,
+      "startSec": 80.0,
+      "endSec": 81.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 49,
+      "startSec": 81.5,
+      "endSec": 83.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 50,
+      "startSec": 83.0,
+      "endSec": 84.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 51,
+      "startSec": 84.5,
+      "endSec": 86.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 52,
+      "startSec": 86.0,
+      "endSec": 87.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 53,
+      "startSec": 87.5,
+      "endSec": 89.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 54,
+      "startSec": 89.0,
+      "endSec": 90.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 55,
+      "startSec": 90.5,
+      "endSec": 92.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 56,
+      "startSec": 92.0,
+      "endSec": 93.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 57,
+      "startSec": 93.5,
+      "endSec": 95.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 58,
+      "startSec": 95.0,
+      "endSec": 96.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 59,
+      "startSec": 96.5,
+      "endSec": 98.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 60,
+      "startSec": 98.0,
+      "endSec": 99.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 61,
+      "startSec": 99.5,
+      "endSec": 101.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 62,
+      "startSec": 101.0,
+      "endSec": 102.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 63,
+      "startSec": 102.5,
+      "endSec": 104.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 64,
+      "startSec": 104.0,
+      "endSec": 105.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 65,
+      "startSec": 105.5,
+      "endSec": 107.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 66,
+      "startSec": 107.0,
+      "endSec": 108.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 67,
+      "startSec": 108.5,
+      "endSec": 110.0,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 68,
+      "startSec": 110.0,
+      "endSec": 111.5,
+      "durationSec": 1.5
+    },
+    {
+      "measure": 69,
+      "startSec": 111.5,
+      "endSec": 113.9,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 70,
+      "startSec": 113.9,
+      "endSec": 116.3,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 71,
+      "startSec": 116.3,
+      "endSec": 118.7,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 72,
+      "startSec": 118.7,
+      "endSec": 121.1,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 73,
+      "startSec": 121.1,
+      "endSec": 123.5,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 74,
+      "startSec": 123.5,
+      "endSec": 125.9,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 75,
+      "startSec": 125.9,
+      "endSec": 128.3,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 76,
+      "startSec": 128.3,
+      "endSec": 130.7,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 77,
+      "startSec": 130.7,
+      "endSec": 133.1,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 78,
+      "startSec": 133.1,
+      "endSec": 135.5,
+      "durationSec": 2.4
+    },
+    {
+      "measure": 79,
+      "startSec": 135.5,
+      "endSec": 137.9,
+      "durationSec": 2.4
+    }
+  ],
+  "notes": "Rendered from temporary MusicXML with harmony/chord-symbol playback removed and the notated part set to String Ensemble 1. This excludes MuseScore chord-symbol accompaniment that sounded like a second delayed playback."
+}

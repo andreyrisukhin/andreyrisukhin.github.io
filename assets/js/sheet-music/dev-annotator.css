@@ -83,16 +83,29 @@
 }
 
 .sheet-annotator-sidebar {
+  /* Theme tokens; overridden by the html[data-theme="dark"] block
+     at the bottom of this file. Inner selectors reference these
+     instead of hardcoded rgba() so the sidebar follows the page
+     theme instead of sitting permadark on a light page. */
+  --sa-bg: rgba(252, 252, 253, 0.97);
+  --sa-fg: #1a1a1a;
+  --sa-border: rgba(0, 0, 0, 0.1);
+  --sa-soft-bg: rgba(0, 0, 0, 0.045);
+  --sa-soft-bg-hover: rgba(0, 0, 0, 0.08);
+  --sa-input-bg: rgba(0, 0, 0, 0.03);
+  --sa-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  --sa-handle-shadow: -4px 0 12px rgba(0, 0, 0, 0.08);
+
   position: fixed;
   top: 0;
   right: 0;
   height: 100vh;
   width: 340px;
-  background: rgba(20, 20, 24, 0.97);
-  color: #f5f5f7;
+  background: var(--sa-bg);
+  color: var(--sa-fg);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   font-size: 0.88rem;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--sa-shadow);
   transform: translateX(0);
   transition: transform 220ms ease;
   z-index: 10000;
@@ -329,11 +342,14 @@
 
 /* Dev-mode toggle button. Fixed to the viewport so it's always
    reachable -- the score container is many screens tall and an
-   absolute-positioned toggle would scroll off with it. */
+   absolute-positioned toggle would scroll off with it. Anchored
+   bottom-left so it doesn't collide with mobile Safari's
+   bottom-right share-sheet / reload affordances and stays clear
+   of the dev annotator sidebar (which slides in from the right). */
 .sheet-dev-toggle {
   position: fixed;
   bottom: 4rem;
-  right: 1rem;
+  left: 1rem;
   z-index: 9996;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -610,6 +626,13 @@ html[data-theme="dark"] #osmd-container svg [stroke="#000000"] {
   stroke: #d8d8d8;
 }
 
+html[data-theme="dark"] .sheet-music-page--flexoki #osmd-container svg [fill="#000000"] {
+  fill: #100f0f;
+}
+html[data-theme="dark"] .sheet-music-page--flexoki #osmd-container svg [stroke="#000000"] {
+  stroke: #100f0f;
+}
+
 /* Hover/click chord tag: invert to a dark pill in dark mode so it
    stops floating like a UI bug over the score. */
 html[data-theme="dark"] .chord-tag {
@@ -695,5 +718,187 @@ html[data-theme="dark"] .stradella-overlay {
 html[data-theme="dark"] #osmd-stradella-toggle.is-pressed {
   background: #4fc3d7;
   border-color: #4fc3d7;
+  color: #1a1a1a;
+}
+
+/* ── Playback bar ────────────────────────────────────────────────
+   Desktop reserves a right-side rail beside the score. Mobile keeps
+   the compact bottom bar. */
+.sheet-music-page--flexoki {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9rem;
+  gap: 1rem;
+  align-items: start;
+}
+.sheet-music-page--flexoki .sheet-music-controls {
+  grid-column: 1 / -1;
+}
+.sheet-music-page--flexoki .sheet-music-container,
+.sheet-music-page--flexoki .sheet-music-status {
+  grid-column: 1;
+}
+.sheet-playback {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  position: sticky;
+  top: 5rem;
+  z-index: 9995;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 9rem;
+  padding: 0.7rem;
+  margin: 0;
+  background: rgba(252, 252, 253, 0.97);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+}
+.sheet-playback__btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  color: inherit;
+}
+.sheet-playback__play {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1f7a8c;
+  color: #fff;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.sheet-playback__play.is-loading {
+  background: #999;
+}
+.sheet-playback__reset {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: transparent;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+.sheet-playback__reset:hover {
+  opacity: 1;
+}
+.sheet-playback__pos {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  min-width: 5.5em;
+  text-align: center;
+}
+.sheet-playback__seek {
+  width: 0.45rem;
+  height: 12rem;
+  accent-color: #1f7a8c;
+  direction: ltr;
+  writing-mode: vertical-lr;
+}
+.sheet-playback__mode,
+.sheet-playback__instrument {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+.sheet-playback__mode select,
+.sheet-playback__instrument select {
+  max-width: 7.75rem;
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: inherit;
+  font: inherit;
+  padding: 0.15rem 0.45rem;
+}
+.sheet-playback__instrument select:disabled {
+  opacity: 0.55;
+}
+.sheet-playback__click-seek {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0;
+  font-size: 0.75rem;
+  text-align: center;
+  opacity: 0.85;
+}
+.sheet-playback__click-seek input {
+  accent-color: #1f7a8c;
+}
+
+@media (max-width: 768px) {
+  .sheet-music-page--flexoki {
+    display: block;
+  }
+  .sheet-playback {
+    position: fixed;
+    bottom: 1rem;
+    top: auto;
+    left: 50%;
+    flex-direction: row;
+    width: auto;
+    transform: translateX(-50%);
+    z-index: 9995;
+    margin: 0;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+  }
+  .sheet-playback__seek {
+    width: 120px;
+    height: auto;
+    direction: ltr;
+    writing-mode: horizontal-tb;
+  }
+  .sheet-playback__pos {
+    min-width: 4.5em;
+    font-size: 0.72rem;
+  }
+  .sheet-playback__mode span,
+  .sheet-playback__instrument span {
+    display: none;
+  }
+  .sheet-playback__mode select,
+  .sheet-playback__instrument select {
+    max-width: 7rem;
+  }
+  .sheet-playback__click-seek span {
+    display: none;
+  }
+}
+
+html[data-theme="dark"] .sheet-playback {
+  background: rgba(20, 20, 24, 0.97);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f5f5f7;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+html[data-theme="dark"] .sheet-playback__reset {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+html[data-theme="dark"] .sheet-playback__mode select,
+html[data-theme="dark"] .sheet-playback__instrument select {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .sheet-playback__play {
+  background: #4fc3d7;
   color: #1a1a1a;
 }

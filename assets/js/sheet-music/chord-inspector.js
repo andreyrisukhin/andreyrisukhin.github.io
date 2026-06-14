@@ -149,7 +149,11 @@
     if (!(e.target instanceof Element)) return;
     if (e.target.closest("[data-sheet-annotator]")) return;
     if (e.target.closest("[data-sheet-dev-toggle]")) return;
+    if (e.target.closest("[data-sheet-playback]")) return;
     if (e.target.closest("[data-chord-inspector]")) return; // popover handles its own clicks
+    // Playback's double-tap-to-seek sets this flag for ~600ms so we
+    // don't flash a stage-1 tag right as the playhead jumps.
+    if (window.__suppressInspectorTap && Date.now() < window.__suppressInspectorTap) return;
     if (e.target.closest("[data-chord-tag]")) {
       // Click on the sticky tag itself -> escalate to inspector if
       // we're at stage 1, collapse if we're at stage 2.
@@ -254,7 +258,7 @@
     //                in m2). Drives the Stradella recipe section so
     //                the player presses the bass that's actually
     //                written. null when it agrees with chordName.
-    const chordName = hit.chordName || detectChord(uniquePcs) || (pitches.length === 1 ? pitches[0] : "—");
+    const chordName = hit.chordName || detectChord(uniquePcs) || (pitches.length === 1 ? pitches[0] : "N/A");
     const harmony = hit.harmony || null;
     const recipeFor = harmony || chordName;
     const stradellaHtml = window.StradellaRecipe && recipeFor ? window.StradellaRecipe.render(recipeFor) : "";
@@ -344,12 +348,12 @@
     root.setAttribute("role", "tooltip");
 
     function showAt(pageX, pageY, data, sticky) {
-      const chord = data.chordName && data.chordName !== "—" ? data.chordName : "";
+      const chord = data.chordName && data.chordName !== "N/A" ? data.chordName : "";
       const pitch = data.clickedPitch ? data.clickedPitch : "";
       let html = "";
       if (chord) html += `<span class="chord-tag__chord">${escapeHtml(chord)}</span>`;
       if (pitch) html += `<span class="chord-tag__pitch">${escapeHtml(pitch)}</span>`;
-      if (!html) html = '<span class="chord-tag__pitch">—</span>';
+      if (!html) html = '<span class="chord-tag__pitch">N/A</span>';
       if (sticky && data.stradellaHtml) {
         html += '<span class="chord-tag__hint">click again for details</span>';
       }
@@ -404,7 +408,7 @@
   function render(d) {
     const pitches = d.pitches.map((p) => `<code>${escapeHtml(p)}</code>`).join(" ");
     const semis = d.semitonesFromRoot.map((s) => `${s}`).join(", ");
-    const intervals = d.intervals.length ? d.intervals.map((s) => INTERVAL_NAMES[s] || s + "st").join(" + ") : "—";
+    const intervals = d.intervals.length ? d.intervals.map((s) => INTERVAL_NAMES[s] || s + "st").join(" + ") : "N/A";
     const metaParts = [d.measureLabel, d.staffLabel].filter(Boolean).join(" · ");
     // "Notes spell" section -- pure stack analysis, no recipe.
     const stackSection = `

@@ -8,11 +8,13 @@ Arranged for organ by Christopher Larkin. Rendered from MusicXML via
 [OpenSheetMusicDisplay](https://opensheetmusicdisplay.org/). Source `.mscz` and
 converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
 
+<div class="sheet-music-page sheet-music-page--flexoki">
 <div class="sheet-music-controls">
   <button id="osmd-zoom-out" class="music-share-btn" type="button">−</button>
   <button id="osmd-zoom-reset" class="music-share-btn" type="button">Reset zoom</button>
   <button id="osmd-zoom-in" class="music-share-btn" type="button">+</button>
   <button id="osmd-stradella-toggle" class="music-share-btn" type="button" data-pressed="false">Show Stradella</button>
+  <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false">Focus score</button>
   <a class="music-share-btn" href="{{ '/assets/music/sheet-music/cogwork-dancers/cogwork-dancers.mscz' | relative_url }}" download>Download .mscz</a>
   <a class="music-share-btn" href="{{ '/assets/music/sheet-music/cogwork-dancers/cogwork-dancers.musicxml' | relative_url }}" download>Download MusicXML</a>
 </div>
@@ -22,7 +24,9 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
 
 <noscript><p>This page renders sheet music client-side with JavaScript. Download the MusicXML or `.mscz` above to view it in another application.</p></noscript>
 
-<link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css' | relative_url }}">
+</div>
+
+<link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css?v=4' | relative_url }}">
 
 <script>
   window.StradellaButtons = {
@@ -37,13 +41,16 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/sheet-music/osmd-bridge.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/chord-inspector.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/playback.js?v=4' | relative_url }}"></script>
 
 <script src="{{ '/assets/js/vendor/opensheetmusicdisplay.min.js' | relative_url }}"></script>
 <script>
 (function () {
+  const sheetPage = document.querySelector('.sheet-music-page');
   const container = document.getElementById('osmd-container');
   const status = document.getElementById('osmd-status');
   const url = '{{ "/assets/music/sheet-music/cogwork-dancers/cogwork-dancers.musicxml" | relative_url }}';
@@ -156,26 +163,21 @@ converted `.musicxml` live under `/assets/music/sheet-music/cogwork-dancers/`.
   document.getElementById('osmd-zoom-in').addEventListener('click', () => { userZoomed = true; zoom = Math.min(zoom + 0.1, 3); applyZoom(); });
   document.getElementById('osmd-zoom-out').addEventListener('click', () => { userZoomed = true; zoom = Math.max(zoom - 0.1, 0.3); applyZoom(); });
   document.getElementById('osmd-zoom-reset').addEventListener('click', () => { userZoomed = false; zoom = fitZoom(); applyZoom(); });
+  const focusBtn = document.getElementById('osmd-focus-toggle');
+  const setFocusMode = (on) => {
+    sheetPage.classList.toggle('sheet-music-page--focus', on);
+    document.documentElement.classList.toggle('sheet-music-focus-open', on);
+    focusBtn.setAttribute('data-pressed', on ? 'true' : 'false');
+    focusBtn.classList.toggle('is-pressed', on);
+    focusBtn.textContent = on ? 'Exit focus' : 'Focus score';
+    lastWidth = 0;
+    setTimeout(onWidthChange, 80);
+  };
+  focusBtn.addEventListener('click', () => setFocusMode(!sheetPage.classList.contains('sheet-music-page--focus')));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && sheetPage.classList.contains('sheet-music-page--focus')) {
+      setFocusMode(false);
+    }
+  });
 })();
 </script>
-
-<style>
-  .sheet-music-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 1rem 0;
-    align-items: center;
-  }
-  .sheet-music-container {
-    width: 100%;
-    overflow-x: auto;
-    background: var(--global-bg-color, #fff);
-    padding: 1rem 0;
-  }
-  .sheet-music-status {
-    color: var(--global-text-color-light, #888);
-    font-style: italic;
-    min-height: 1.25em;
-  }
-</style>
