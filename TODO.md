@@ -2,6 +2,10 @@
 
 Add library
 
+2026-06-05 - Music practice "play comparison" tool idea: add a score option or new music page that records what I play, aligns it against a target score, then reports timing and pitch accuracy afterward. Useful feedback: notes that were early/late, slow/fast measures, wrong/missed/extra notes, and a replay/overlay view. This could reuse the sheet-music OSMD pages, the music exercise playback/input layer, and short note/chord cue work.
+
+2026-06-14 - Sheet music dynamic playback investigation: capture a Chrome performance trace/flame graph around the Cogwork Dancers measure 39 lag, then compare main-thread time in OSMD cursor sync, soundfont-player scheduling, BufferSource creation, and DOM updates before deciding whether to optimize live playback.
+
 2025-12-31 - How to add little info piece to each of my photos? Like XKCD. Each photo has meaning, neat to show on hover or something. 
 2025-12-31 - Interactive chromatic accordion keyboard on Music tab? 
 
