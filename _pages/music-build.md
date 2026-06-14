@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Build a Set List — Andrey Bayan
+title: "Build a Set List: Andrey Bayan"
 permalink: /music/build/
 description: Andrey Bayan's accordion set-list builder. Type chord names like Am7 or A-7/G, identify chords from notes, or browse the full Stradella chord catalog.
 keywords: Andrey Bayan, bayandrey, set list builder, stradella, chord recognizer, accordion, jazz chord shorthand, andrey risukhin
@@ -65,7 +65,7 @@ Examples: `Am7`, `A-7/G` (jazz minus), `F#-6/A`, `Cmaj9`, `Cdim7`.
 
 ## Recognize from notes
 
-Enter notes to identify the chord. The first note is treated as the bass — reorder to see inversions.
+Enter notes to identify the chord. The first note is treated as the bass. Reorder to see inversions.
 
 <div class="recognizer-note-buttons" id="recognizer-note-buttons"></div>
 

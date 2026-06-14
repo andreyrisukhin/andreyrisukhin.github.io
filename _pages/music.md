@@ -1,12 +1,12 @@
 ---
 layout: page
-title: Music — Andrey Bayan
+title: "Music: Andrey Bayan"
 permalink: /music/
 description: Chord theory, Stradella bass recipes, and set-list tools by Andrey Risukhin (a.k.a. Andrey Bayan / @bayandrey). Type a chord like A-7/G and the tool builds the accordion voicing.
 keywords: Andrey Bayan, bayandrey, accordion, stradella bass, chord recipes, bayan, jazz accordion, andrey risukhin, set list, chord recognizer
 ---
 
-By **Andrey Risukhin** — also known as **Andrey Bayan** (handle: **@bayandrey**). References, cheat sheets, and interactive tools for music theory and accordion playing.
+By **Andrey Risukhin**, also known as **Andrey Bayan** (handle: **@bayandrey**). References, cheat sheets, and interactive tools for music theory and accordion playing.
 
 <script type="application/ld+json">
 {

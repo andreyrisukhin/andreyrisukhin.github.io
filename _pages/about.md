@@ -61,7 +61,7 @@ In my free time, I learn to play accordion and teach myself music theory. I writ
 
 I'm a software engineer at [Factory](https://factory.ai/) in San Francisco, working on coding agents and implicit feedback.
 
-I build coding agents at [Factory](https://factory.ai/) in San Francisco. My research interest is implicit feedback — inferring what a user wants from how they behave, not what they say.
+I build coding agents at [Factory](https://factory.ai/) in San Francisco. My research interest is implicit feedback: inferring what a user wants from how they behave, not what they say.
 -->
 
 <!-- Original (kept for reference, do not render):

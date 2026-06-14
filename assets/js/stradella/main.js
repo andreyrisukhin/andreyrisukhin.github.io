@@ -1,4 +1,4 @@
-// Stradella Jam Set List — interactive chord recipe tool
+// Stradella Jam Set List: interactive chord recipe tool
 // Uses shared data from stradella-data.js
 (function () {
   "use strict";
@@ -401,7 +401,7 @@
       });
     }
 
-    // Key bar — delegated click on note buttons
+    // Key bar: delegated click on note buttons
     var keyBar = document.getElementById("stradella-key-bar");
     if (keyBar) {
       keyBar.addEventListener("click", function (e) {
@@ -438,7 +438,7 @@
       });
     }
 
-    // Catalog click — add chord at current catalog key
+    // Catalog click: add chord at current catalog key
     var catalogEl = document.getElementById("stradella-catalog");
     if (catalogEl) {
       catalogEl.addEventListener("click", function (e) {

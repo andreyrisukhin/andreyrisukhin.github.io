@@ -12,7 +12,7 @@
 
 exercises:
   - id: reno-dibono-cycle
-    title: "Reno Dibono — Cycle-of-Fifths Turnaround"
+    title: "Reno Dibono: Cycle-of-Fifths Turnaround"
     attribution:
       name: "Reno Dibono"
       url: "https://www.youtube.com/results?search_query=reno+dibono+accordion"
@@ -27,15 +27,15 @@ exercises:
       - { id: "7", offset: 7, roman: "V7", label: "G7", rh_effect: "sus-like tension" }
       - { id: "maj7inv", offset: 0, roman: "Imaj7", label: "Cmaj7", rh_effect: "maj6 color, resolves to the root" }
       - { id: "maj7inv", offset: 5, roman: "IVmaj7", label: "Fmaj7", rh_effect: "core triad tones" }
-      - { id: "hdim7", offset: 11, roman: "viiø7", label: "Bø7", rh_effect: "tension — leans toward the dominant" }
+      - { id: "hdim7", offset: 11, roman: "viiø7", label: "Bø7", rh_effect: "tension, leans toward the dominant" }
       - { id: "7", offset: 4, roman: "V7/vi", label: "E7", rh_effect: "altered dominant color" }
-      - { id: "m7", offset: 9, roman: "vi7", label: "Am7 ⟲", rh_effect: "home at last — resolves the loop" }
+      - { id: "m7", offset: 9, roman: "vi7", label: "Am7 ⟲", rh_effect: "home at last, resolves the loop" }
     right_hand:
-      notes: [9, 0] # A and C — relative to default_key (key of C)
+      notes: [9, 0] # A and C, relative to default_key (key of C)
       # Description uses token placeholders resolved per current transposition:
       # {{rh.0}}/{{rh.1}} → the two pedal-tone names; {{minorKeyName}} → the
       # relative-minor tonic name.
-      description: "Pedal {{rh.0}} and {{rh.1}} — the root and ♭3 of the relative {{minorKeyName}}-minor tonality. Pick either, trade between them, or ornament with passing tones. Keep them steady while the left hand cycles."
+      description: "Pedal {{rh.0}} and {{rh.1}}, the root and ♭3 of the relative {{minorKeyName}}-minor tonality. Pick either, trade between them, or ornament with passing tones. Keep them steady while the left hand cycles."
     playback:
       beats_per_bar: 4
       subdivisions_per_beat: 4 # 16 slots per bar (16th-note resolution)
@@ -54,26 +54,26 @@ exercises:
       # progression and right_hand.notes at render time.
       short: "Classic diatonic cycle-of-fifths. Every root drops a perfect 5th: {{rootsCycle}}. Each pair is a ii–V or V–I, the strongest resolution in tonal music."
       long_html: |
-        <p>This loop is the diatonic <strong>circle of fifths</strong> inside the key of <strong>{{keyName}} major</strong> (equivalently, <strong>{{minorKeyName}} minor</strong> — they share a key signature). Starting from the vi chord, every bass move is a descending perfect fifth: <em>{{rootsCycle}}</em>. Read any two adjacent chords and you find one of two primary jazz motions:</p>
+        <p>This loop is the diatonic <strong>circle of fifths</strong> inside the key of <strong>{{keyName}} major</strong> (equivalently, <strong>{{minorKeyName}} minor</strong>, they share a key signature). Starting from the vi chord, every bass move is a descending perfect fifth: <em>{{rootsCycle}}</em>. Read any two adjacent chords and you find one of two primary jazz motions:</p>
         <ul>
           <li><strong>ii–V–I in the major.</strong> <code>{{prog.1.chord}} → {{prog.2.chord}} → {{prog.3.chord}}</code> is the canonical ii–V–I in {{keyName}} major.</li>
-          <li><strong>ii°–V7–i in the relative minor.</strong> <code>{{prog.5.chord}} → {{prog.6.chord}} → {{prog.7.chord}}</code> at the end is a harmonic-minor ii°–V7–i cadence in {{minorKeyName}} minor — the V7 carries the leading tone of the minor tonic, pulling home with everything it's got.</li>
+          <li><strong>ii°–V7–i in the relative minor.</strong> <code>{{prog.5.chord}} → {{prog.6.chord}} → {{prog.7.chord}}</code> at the end is a harmonic-minor ii°–V7–i cadence in {{minorKeyName}} minor. The V7 carries the leading tone of the minor tonic, pulling home with everything it's got.</li>
         </ul>
-        <p>The {{prog.5.chord}} (half-diminished, <code>1–♭3–♭5–♭7</code>) is the diatonic viiø of {{keyName}} major (equivalently the ii° of {{minorKeyName}} minor). On Stradella you can voice it as <code>{{prog.1.root}}m / {{prog.5.root}}</code> — a minor triad rooted a minor-third above the ø7's bass — the same recipe on the <a href="/music/stradella/">Stradella Recipes</a> page under the ø7 chord.</p>
+        <p>The {{prog.5.chord}} (half-diminished, <code>1–♭3–♭5–♭7</code>) is the diatonic viiø of {{keyName}} major (equivalently the ii° of {{minorKeyName}} minor). On Stradella you can voice it as <code>{{prog.1.root}}m / {{prog.5.root}}</code>, a minor triad rooted a minor-third above the ø7's bass. The same recipe appears on the <a href="/music/stradella/">Stradella Recipes</a> page under the ø7 chord.</p>
         <h4>Why {{rh.0}} and {{rh.1}} sound good over every chord</h4>
         <p>The two right-hand notes function differently against each bass:</p>
         {{rolesTable}}
-        <p>This is a <strong>common-tone voicing</strong>: two pitches that "mean something different" on every chord, the backbone of a lot of piano-comping vocabulary. It is also how bebop players outline long cycles — with a pedal figure that reinterprets against each new harmony.</p>
+        <p>This is a <strong>common-tone voicing</strong>: two pitches that "mean something different" on every chord, the backbone of a lot of piano-comping vocabulary. It is also how bebop players outline long cycles, with a pedal figure that reinterprets against each new harmony.</p>
         <p>Learning the basses matters because the whole effect only works if your left hand confidently lands <em>{{rootsList}}</em> in rhythm. The right hand has two notes; the left hand carries the harmony.</p>
         <h4>Ways to practice</h4>
         <ul>
-          <li>Transpose to every key using the key bar above — same fingering on the bass column, different sound.</li>
+          <li>Transpose to every key using the key bar above. Same fingering on the bass column, different sound.</li>
           <li>Hold {{rh.0}} and {{rh.1}} as whole notes across every chord, then try quarter-note alternation.</li>
           <li>Use the <a href="/music/chord-recognizer/">Chord Recognizer</a> to verify what the {{rh.0}}+{{rh.1}}+bass combination is actually spelling on each step.</li>
           <li>Load this progression into the <a href="/music/stradella/">Stradella Recipes</a> tool for recipe cards and inversions.</li>
         </ul>
         <h4>Further reading</h4>
         <ul>
-          <li><a href="https://accordionchords.com/tutorials/jazz-accordion-solos/">Jazz Accordion Solos</a> — pattern library</li>
-          <li><a href="https://accordionchords.com/tutorials/stradella-xtensions-harmonic-technique-for-the-accordion/">Stradella Xtensions</a> — Evan Perry-Giblin's book on extended harmony from the Stradella side</li>
+          <li><a href="https://accordionchords.com/tutorials/jazz-accordion-solos/">Jazz Accordion Solos</a>: pattern library</li>
+          <li><a href="https://accordionchords.com/tutorials/stradella-xtensions-harmonic-technique-for-the-accordion/">Stradella Xtensions</a>: Evan Perry-Giblin's book on extended harmony from the Stradella side</li>
         </ul>

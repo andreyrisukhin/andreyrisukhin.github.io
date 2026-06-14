@@ -287,7 +287,7 @@
   pointer-events: none;
 }
 
-/* Tritone (IV ↔ VII) diameter — visible only behind the F→B arrow */
+/* Tritone (IV ↔ VII) diameter, visible only behind the F→B arrow */
 .exercises-circle__tritone {
   stroke: var(--global-divider-color);
   stroke-width: 1;
@@ -296,7 +296,7 @@
   pointer-events: none;
 }
 
-/* Origin marker — slowly rotating dashed ring around prog[0]'s node */
+/* Origin marker: slowly rotating dashed ring around prog[0]'s node */
 .exercises-circle__origin-ring {
   fill: none;
   stroke: var(--global-theme-color);
@@ -317,7 +317,7 @@
   }
 }
 
-/* Traveling playhead — glides from node to node during playback */
+/* Traveling playhead: glides from node to node during playback */
 .exercises-circle__playhead {
   fill: var(--global-theme-color);
   opacity: 0;

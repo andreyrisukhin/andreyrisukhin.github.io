@@ -22,7 +22,7 @@
     },
 
     svg() {
-      return api.container ? api.container.querySelector('svg') : null;
+      return api.container ? api.container.querySelector("svg") : null;
     },
 
     /**
@@ -30,12 +30,12 @@
      * svgPoint, osmdPoint} bundle, or null when the click is far from any note.
      * When `element` (the clicked DOM node) is supplied, prefer a DOM-anchored
      * lookup over OSMD's coordinate-based GetNearestNote, which otherwise
-     * snaps to the nearest visible glyph — often a rest in an adjacent voice.
+     * snaps to the nearest visible glyph, often a rest in an adjacent voice.
      */
     resolveNoteAt(pageX, pageY, maxPxDistance = 36, element = null) {
       if (!api.ready || !api.osmd) return null;
       const gs = api.osmd.GraphicSheet || api.osmd.graphic;
-      if (!gs || typeof gs.domToSvg !== 'function') return null;
+      if (!gs || typeof gs.domToSvg !== "function") return null;
       try {
         const svgPoint = gs.domToSvg({ x: pageX, y: pageY });
         const osmdPoint = gs.svgToOsmd(svgPoint);
@@ -53,26 +53,17 @@
         const voiceEntry = gn.parentVoiceEntry || gn.ParentVoiceEntry || null;
         const staffEntry = voiceEntry ? voiceEntry.parentStaffEntry : null;
         const measure = staffEntry ? staffEntry.parentMeasure : null;
-        const measureNumber =
-          (measure && (measure.MeasureNumber || measure.measureNumber)) || null;
+        const measureNumber = (measure && (measure.MeasureNumber || measure.measureNumber)) || null;
         const staffIndex =
-          (measure && typeof measure.ParentStaff !== 'undefined' &&
-            measure.ParentStaff && typeof measure.ParentStaff.idInMusicSheet !== 'undefined')
+          measure && typeof measure.ParentStaff !== "undefined" && measure.ParentStaff && typeof measure.ParentStaff.idInMusicSheet !== "undefined"
             ? measure.ParentStaff.idInMusicSheet
             : null;
 
-        const notes = voiceEntry && Array.isArray(voiceEntry.notes)
-          ? voiceEntry.notes
-          : [gn];
-        const pitches = notes
-          .map((n) => pitchName(n))
-          .filter(Boolean);
+        const notes = voiceEntry && Array.isArray(voiceEntry.notes) ? voiceEntry.notes : [gn];
+        const pitches = notes.map((n) => pitchName(n)).filter(Boolean);
 
         const sn = gn.sourceNote || gn.SourceNote;
-        const isRest = !!(sn && (
-          sn.isRestFlag === true ||
-          (typeof sn.isRest === 'function' && sn.isRest())
-        ));
+        const isRest = !!(sn && (sn.isRestFlag === true || (typeof sn.isRest === "function" && sn.isRest())));
         const isTied = !!(sn && (sn.NoteTie || sn.noteTie || sn.Tie || sn.tie));
         // Two distinct readings:
         //   chordName -- pure stack analysis: what the noteheads
@@ -87,7 +78,7 @@
         //                root-position by itself). Drives the
         //                Stradella overlay and the inspector's
         //                "Sounds as" line.
-        const chordName = (pitches.length >= 2) ? detectChordName(pitches) : null;
+        const chordName = pitches.length >= 2 ? detectChordName(pitches) : null;
         let harmony = null;
         if (chordName) {
           const measurePitches = staffEntry ? gatherMeasurePitches(staffEntry, gn) : [];
@@ -111,7 +102,7 @@
           noteRect: rectFor(gn),
         };
       } catch (err) {
-        console.warn('[osmd-bridge] resolveNoteAt failed', err);
+        console.warn("[osmd-bridge] resolveNoteAt failed", err);
         return null;
       }
     },
@@ -150,8 +141,11 @@
         const absTop = svgRect.top + window.scrollY;
         const clone = svg.cloneNode(true);
 
-        const viewBox = (svg.getAttribute('viewBox') || '').trim().split(/\s+/).map(Number);
-        let vbX = 0, vbY = 0, vbW = svg.clientWidth, vbH = svg.clientHeight;
+        const viewBox = (svg.getAttribute("viewBox") || "").trim().split(/\s+/).map(Number);
+        let vbX = 0,
+          vbY = 0,
+          vbW = svg.clientWidth,
+          vbH = svg.clientHeight;
         if (viewBox.length === 4 && viewBox.every(Number.isFinite)) {
           [vbX, vbY, vbW, vbH] = viewBox;
         }
@@ -163,12 +157,12 @@
         const cropH = h * scaleY;
         const vbLeft = cx - cropW / 2;
         const vbTop = cy - cropH / 2;
-        clone.setAttribute('viewBox', `${vbLeft} ${vbTop} ${cropW} ${cropH}`);
-        clone.setAttribute('width', String(w));
-        clone.setAttribute('height', String(h));
+        clone.setAttribute("viewBox", `${vbLeft} ${vbTop} ${cropW} ${cropH}`);
+        clone.setAttribute("width", String(w));
+        clone.setAttribute("height", String(h));
 
         const xml = new XMLSerializer().serializeToString(clone);
-        const blob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+        const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         try {
           const toCanvasX = (pagePx) => ((pagePx - absLeft) * scaleX + vbX - vbLeft) * (w / cropW);
@@ -180,18 +174,20 @@
               const by = toCanvasY(overlay.bboxPage.y);
               const bw = overlay.bboxPage.w * scaleX * (w / cropW);
               const bh = overlay.bboxPage.h * scaleY * (h / cropH);
-              ctx.strokeStyle = 'rgba(255, 45, 60, 0.95)';
+              ctx.strokeStyle = "rgba(255, 45, 60, 0.95)";
               ctx.lineWidth = 2;
               ctx.strokeRect(bx, by, bw, bh);
             }
             if (overlay.clickPage) {
               const x = toCanvasX(overlay.clickPage.x);
               const y = toCanvasY(overlay.clickPage.y);
-              ctx.strokeStyle = 'rgba(0, 120, 255, 0.9)';
+              ctx.strokeStyle = "rgba(0, 120, 255, 0.9)";
               ctx.lineWidth = 1.5;
               ctx.beginPath();
-              ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y);
-              ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6);
+              ctx.moveTo(x - 6, y);
+              ctx.lineTo(x + 6, y);
+              ctx.moveTo(x, y - 6);
+              ctx.lineTo(x, y + 6);
               ctx.stroke();
             }
           });
@@ -200,31 +196,33 @@
           URL.revokeObjectURL(url);
         }
       } catch (err) {
-        console.warn('[osmd-bridge] snapshot failed', err);
+        console.warn("[osmd-bridge] snapshot failed", err);
         return null;
       }
     },
   };
 
-  api.readyPromise = new Promise((resolve) => { api._readyResolve = resolve; });
+  api.readyPromise = new Promise((resolve) => {
+    api._readyResolve = resolve;
+  });
   window.__sheetMusic = api;
 
   function graphicalNoteFromElement(osmd, element, pageY) {
-    const stavenoteEl = element.closest && element.closest('.vf-stavenote');
+    const stavenoteEl = element.closest && element.closest(".vf-stavenote");
     if (!stavenoteEl) return null;
     const stavenoteId = stavenoteEl.id;
     if (!stavenoteId) return null;
-    const vfId = stavenoteId.replace(/^vf-/, '');
+    const vfId = stavenoteId.replace(/^vf-/, "");
 
     const graphic = osmd.GraphicSheet || osmd.graphic;
     const candidates = [];
     for (const page of (graphic && graphic.MusicPages) || []) {
-      for (const system of (page.MusicSystems || [])) {
-        for (const line of (system.StaffLines || [])) {
-          for (const measure of (line.Measures || [])) {
-            for (const sentry of (measure.staffEntries || [])) {
-              for (const gve of (sentry.graphicalVoiceEntries || [])) {
-                for (const gn of (gve.notes || [])) {
+      for (const system of page.MusicSystems || []) {
+        for (const line of system.StaffLines || []) {
+          for (const measure of line.Measures || []) {
+            for (const sentry of measure.staffEntries || []) {
+              for (const gve of sentry.graphicalVoiceEntries || []) {
+                for (const gn of gve.notes || []) {
                   const vf = Array.isArray(gn.vfnote) ? gn.vfnote[0] : gn.vfnote;
                   const id = vf && vf.attrs && vf.attrs.id;
                   if (id === vfId || id === stavenoteId) candidates.push(gn);
@@ -238,9 +236,9 @@
     if (!candidates.length) return null;
     if (candidates.length === 1) return candidates[0];
 
-    const noteheadEl = element.closest && element.closest('.vf-notehead');
+    const noteheadEl = element.closest && element.closest(".vf-notehead");
     if (noteheadEl && noteheadEl.parentElement) {
-      const siblings = [...noteheadEl.parentElement.querySelectorAll(':scope > .vf-notehead')];
+      const siblings = [...noteheadEl.parentElement.querySelectorAll(":scope > .vf-notehead")];
       const idx = siblings.indexOf(noteheadEl);
       if (idx >= 0) {
         const byIndex = candidates.find((c) => c.vfnoteIndex === idx);
@@ -248,15 +246,19 @@
       }
     }
 
-    if (typeof pageY === 'number') {
-      const heads = [...stavenoteEl.querySelectorAll('.vf-notehead')];
+    if (typeof pageY === "number") {
+      const heads = [...stavenoteEl.querySelectorAll(".vf-notehead")];
       if (heads.length === candidates.length) {
-        let bestIdx = 0, bestDist = Infinity;
+        let bestIdx = 0,
+          bestDist = Infinity;
         heads.forEach((h, i) => {
           const r = h.getBoundingClientRect();
           const cy = r.top + r.height / 2 + window.scrollY;
           const d = Math.abs(cy - pageY);
-          if (d < bestDist) { bestDist = d; bestIdx = i; }
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = i;
+          }
         });
         const byY = candidates.find((c) => c.vfnoteIndex === bestIdx);
         if (byY) return byY;
@@ -270,12 +272,12 @@
     const vf = gn.vfnote || (Array.isArray(gn.vfnote) ? gn.vfnote[0] : null);
     try {
       const candidates = [
-        vf && typeof vf.getSVGElement === 'function' && vf.getSVGElement(),
+        vf && typeof vf.getSVGElement === "function" && vf.getSVGElement(),
         vf && vf.attrs && vf.attrs.el,
         gn.getSVGGElement && gn.getSVGGElement(),
       ].filter(Boolean);
       for (const el of candidates) {
-        if (el && typeof el.getBoundingClientRect === 'function') {
+        if (el && typeof el.getBoundingClientRect === "function") {
           const r = el.getBoundingClientRect();
           if (r.width > 0 && r.height > 0) {
             return {
@@ -287,12 +289,20 @@
           }
         }
       }
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
     return null;
   }
 
   const NOTE_ENUM_TO_LETTER = {
-    0: 'C', 2: 'D', 4: 'E', 5: 'F', 7: 'G', 9: 'A', 11: 'B',
+    0: "C",
+    2: "D",
+    4: "E",
+    5: "F",
+    7: "G",
+    9: "A",
+    11: "B",
   };
 
   function pitchToMidi(pitch) {
@@ -302,10 +312,10 @@
     const acc = m[2];
     const octave = parseInt(m[3], 10);
     let semi = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[letter];
-    if (acc === '#') semi += 1;
-    else if (acc === 'b') semi -= 1;
-    else if (acc === '##') semi += 2;
-    else if (acc === 'bb') semi -= 2;
+    if (acc === "#") semi += 1;
+    else if (acc === "b") semi -= 1;
+    else if (acc === "##") semi += 2;
+    else if (acc === "bb") semi -= 2;
     return (octave + 1) * 12 + semi;
   }
 
@@ -330,7 +340,7 @@
               if (note === (ownGn && (ownGn.sourceNote || ownGn.SourceNote))) continue;
               const p = note.pitch;
               if (!p) continue;
-              const ht = (typeof p.getHalfTone === 'function') ? p.getHalfTone() : null;
+              const ht = typeof p.getHalfTone === "function" ? p.getHalfTone() : null;
               if (ht == null) continue;
               const pc = halfToneToPC(ht, p);
               if (!pc) continue;
@@ -346,16 +356,16 @@
 
   function halfToneToPC(halfTone, pitch) {
     // Prefer the spelling OSMD reports so flats stay flats (Bb not A#).
-    if (pitch && typeof pitch.fundamentalNoteAsString === 'string') {
+    if (pitch && typeof pitch.fundamentalNoteAsString === "string") {
       const acc = pitch.AccidentalHalfTones;
       let s = pitch.fundamentalNoteAsString.toUpperCase();
-      if (acc === -1) s += 'b';
-      else if (acc === 1) s += '#';
-      else if (acc === -2) s += 'bb';
-      else if (acc === 2) s += '##';
+      if (acc === -1) s += "b";
+      else if (acc === 1) s += "#";
+      else if (acc === -2) s += "bb";
+      else if (acc === 2) s += "##";
       return s;
     }
-    const SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     return SHARP[((halfTone % 12) + 12) % 12];
   }
 
@@ -367,22 +377,30 @@
   // notes themselves say. Does NOT look at other measure pitches --
   // that lives in analyzeHarmony.
   function detectChordName(pitches) {
-    if (!window.Tonal || !window.Tonal.Chord || typeof window.Tonal.Chord.detect !== 'function') return null;
+    if (!window.Tonal || !window.Tonal.Chord || typeof window.Tonal.Chord.detect !== "function") return null;
     const sortedPitches = pitches.slice().sort((a, b) => pitchToMidi(a) - pitchToMidi(b));
-    const pcs = sortedPitches.map((p) => String(p).replace(/-?\d+$/, ''));
+    const pcs = sortedPitches.map((p) => String(p).replace(/-?\d+$/, ""));
     let detected;
-    try { detected = window.Tonal.Chord.detect(pcs) || []; } catch (_) { detected = []; }
+    try {
+      detected = window.Tonal.Chord.detect(pcs) || [];
+    } catch (_) {
+      detected = [];
+    }
     if (!detected.length) return null;
-    const sansSlash = detected.map((d) => d.split('/')[0]);
+    const sansSlash = detected.map((d) => d.split("/")[0]);
     const primary = sansSlash.slice().sort((a, b) => a.length - b.length)[0];
     if (!window.Tonal.Chord.get) return primary;
     let chord;
-    try { chord = window.Tonal.Chord.get(primary); } catch (_) { chord = null; }
+    try {
+      chord = window.Tonal.Chord.get(primary);
+    } catch (_) {
+      chord = null;
+    }
     if (!chord || !chord.tonic) return primary;
     if (!window.ChordName) return primary;
     const lowestPC = pcs[0];
     if (window.ChordName.samePitchClass(lowestPC, chord.tonic)) return primary;
-    return primary + '/' + lowestPC;
+    return primary + "/" + lowestPC;
   }
 
   // Measure-aware reading. Given the stack chord (already detected)
@@ -400,9 +418,13 @@
     if (!window.ChordName) return stackChord;
     if (!Array.isArray(measurePitches) || measurePitches.length === 0) return stackChord;
     const CN = window.ChordName;
-    const baseName = stackChord.split('/')[0];
+    const baseName = stackChord.split("/")[0];
     let chord;
-    try { chord = window.Tonal.Chord.get(baseName); } catch (_) { chord = null; }
+    try {
+      chord = window.Tonal.Chord.get(baseName);
+    } catch (_) {
+      chord = null;
+    }
     if (!chord || !chord.tonic || !Array.isArray(chord.notes)) return stackChord;
 
     const sortedStack = stackPitches.slice().sort((a, b) => pitchToMidi(a) - pitchToMidi(b));
@@ -412,11 +434,14 @@
     for (const cp of measurePitches) {
       if (cp.midi >= stackLowestMidi) break;
       const isChordTone = chord.notes.some((n) => CN.samePitchClass(cp.pc, n));
-      if (isChordTone) { promotedBassPC = cp.pc; break; }
+      if (isChordTone) {
+        promotedBassPC = cp.pc;
+        break;
+      }
     }
     if (!promotedBassPC) return stackChord;
     if (CN.samePitchClass(promotedBassPC, chord.tonic)) return baseName;
-    return baseName + '/' + promotedBassPC;
+    return baseName + "/" + promotedBassPC;
   }
 
   function pitchName(gn) {
@@ -429,34 +454,40 @@
     const letter = NOTE_ENUM_TO_LETTER[fund];
     if (!letter) return null;
     const acc = p.AccidentalHalfTones;
-    let suffix = '';
-    if (acc === 1) suffix = '#';
-    else if (acc === -1) suffix = 'b';
-    else if (acc === 2) suffix = '##';
-    else if (acc === -2) suffix = 'bb';
-    const octave = (typeof p.Octave === 'number') ? p.Octave + 3 : '';
+    let suffix = "";
+    if (acc === 1) suffix = "#";
+    else if (acc === -1) suffix = "b";
+    else if (acc === 2) suffix = "##";
+    else if (acc === -2) suffix = "bb";
+    const octave = typeof p.Octave === "number" ? p.Octave + 3 : "";
     return `${letter}${suffix}${octave}`;
   }
 
   function rasterize(svgUrl, w, h, drawOverlay) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      img.crossOrigin = "anonymous";
       img.onload = () => {
         try {
-          const canvas = document.createElement('canvas');
+          const canvas = document.createElement("canvas");
           canvas.width = w;
           canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#fff';
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#fff";
           ctx.fillRect(0, 0, w, h);
           ctx.drawImage(img, 0, 0, w, h);
-          if (typeof drawOverlay === 'function') {
+          if (typeof drawOverlay === "function") {
             ctx.save();
-            try { drawOverlay(ctx); } finally { ctx.restore(); }
+            try {
+              drawOverlay(ctx);
+            } finally {
+              ctx.restore();
+            }
           }
-          resolve(canvas.toDataURL('image/png'));
-        } catch (err) { reject(err); }
+          resolve(canvas.toDataURL("image/png"));
+        } catch (err) {
+          reject(err);
+        }
       };
       img.onerror = reject;
       img.src = svgUrl;

@@ -1,6 +1,6 @@
 ---
 layout: page
-title: 'Dry River Walk — Zion'
+title: "Dry River Walk: Zion"
 permalink: /trails/zion-dry-river-walk/
 description: >-
   A not-well-known walk through a dry riverbed in Zion National Park.
@@ -9,10 +9,10 @@ sitemap: false
 ---
 
 {% comment %}
-  Unlisted page. Anyone with the link can view it, but it isn't listed
-  in site nav and won't be indexed by search engines (noindex meta
-  emitted below). Drop the URL only with people you trust to respect
-  the spot.
+Unlisted page. Anyone with the link can view it, but it isn't listed
+in site nav and won't be indexed by search engines (noindex meta
+emitted below). Drop the URL only with people you trust to respect
+the spot.
 {% endcomment %}
 
 <meta name="robots" content="noindex, nofollow">

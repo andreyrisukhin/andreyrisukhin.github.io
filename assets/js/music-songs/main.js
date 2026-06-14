@@ -41,7 +41,7 @@
   }
 
   function formatDate(iso) {
-    if (!iso) return "—";
+    if (!iso) return "N/A";
     try {
       var d = new Date(iso);
       return d.toLocaleString();
@@ -211,7 +211,7 @@
         setStatus("Verifying…");
         Sync.verify().then(
           function (r) {
-            setStatus("OK — " + r.fullName + " (default: " + r.defaultBranch + ")", "ok");
+            setStatus("OK: " + r.fullName + " (default: " + r.defaultBranch + ")", "ok");
           },
           function (err) {
             setStatus("Failed: " + (err.message || err), "err");
