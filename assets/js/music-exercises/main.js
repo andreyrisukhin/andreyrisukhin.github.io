@@ -29,9 +29,12 @@
 
   var state = {
     keyDeltas: {},
+    openExercises: {},
     openTheory: {},
     // patterns[id] = [rowIdx] => array<bool> of length slotsPerBar (single bar, repeated)
     patterns: {},
+    basslines: {},
+    bassCursors: {},
     bpms: {},
   };
 
@@ -51,8 +54,11 @@
       if (!raw) return;
       var s = JSON.parse(raw);
       if (s.keyDeltas) state.keyDeltas = s.keyDeltas;
+      if (s.openExercises) state.openExercises = s.openExercises;
       if (s.openTheory) state.openTheory = s.openTheory;
       if (s.patterns) state.patterns = s.patterns;
+      if (s.basslines) state.basslines = s.basslines;
+      if (s.bassCursors) state.bassCursors = s.bassCursors;
       if (s.bpms) state.bpms = s.bpms;
     } catch (e) {
       /* ignore */
@@ -95,8 +101,268 @@
     return beatsPerBar(ex) * subdivsPerBeat(ex);
   }
 
+  function hasLeadEvents(ex) {
+    return !!(ex.right_hand && ex.right_hand.events && ex.right_hand.events.length);
+  }
+
+  function stepBeats(ex, step) {
+    return (step && step.beats) || beatsPerBar(ex);
+  }
+
+  function stepSlots(ex, step) {
+    return stepBeats(ex, step) * subdivsPerBeat(ex);
+  }
+
   function totalSlots(ex) {
-    return ex.progression.length * slotsPerBar(ex);
+    return ex.progression.reduce(function (sum, step) {
+      return sum + stepSlots(ex, step);
+    }, 0);
+  }
+
+  function stepAtSlot(ex, slotIndex) {
+    var acc = 0;
+    for (var i = 0; i < ex.progression.length; i++) {
+      var len = stepSlots(ex, ex.progression[i]);
+      if (slotIndex < acc + len) {
+        return { step: ex.progression[i], index: i, slotInStep: slotIndex - acc, startSlot: acc };
+      }
+      acc += len;
+    }
+    var last = ex.progression.length - 1;
+    return { step: ex.progression[last], index: last, slotInStep: 0, startSlot: acc };
+  }
+
+  function chordDisplayName(step, key) {
+    var root = (((step.offset + key) % 12) + 12) % 12;
+    var chord = S.chordById(step.id);
+    var suffix = chord ? chord.suffix : ID_TO_SUFFIX[step.id] || "";
+    var name = M.noteName(root) + (suffix || "");
+    if (typeof step.bass_offset === "number") name += "/" + M.noteName((((step.bass_offset + key) % 12) + 12) % 12);
+    return name;
+  }
+
+  function hasBasslineEditor(ex) {
+    return !!ex.bassline_editor;
+  }
+
+  function basslineRows(ex) {
+    var rows = {};
+    var out = [];
+    function add(note) {
+      note = ((note % 12) + 12) % 12;
+      if (rows[note]) return;
+      rows[note] = true;
+      out.push(note);
+    }
+    if (ex.bassline_editor && ex.bassline_editor.notes) {
+      ex.bassline_editor.notes.forEach(add);
+    } else {
+      ex.progression.forEach(function (step) {
+        add(typeof step.bass_offset === "number" ? step.bass_offset : step.offset);
+      });
+    }
+    return out;
+  }
+
+  function defaultBassline(ex) {
+    var events = [];
+    var sub = subdivsPerBeat(ex);
+    var acc = 0;
+    ex.progression.forEach(function (step) {
+      var note = typeof step.bass_offset === "number" ? step.bass_offset : step.offset;
+      for (var s = 0; s < stepSlots(ex, step); s += sub) {
+        events.push({ slot: acc + s, note: ((note % 12) + 12) % 12 });
+      }
+      acc += stepSlots(ex, step);
+    });
+    return events;
+  }
+
+  function currentBassline(ex) {
+    if (state.basslines[ex.id] && state.basslines[ex.id].events) return state.basslines[ex.id].events;
+    return defaultBassline(ex);
+  }
+
+  function setBasslineEvent(ex, slot, note) {
+    var existing = currentBassline(ex).map(function (ev) {
+      return { slot: ev.slot, note: ev.note };
+    });
+    existing = existing.filter(function (ev) {
+      return ev.slot !== slot;
+    });
+    if (typeof note === "number") existing.push({ slot: slot, note: note });
+    existing.sort(function (a, b) {
+      return a.slot - b.slot || b.note - a.note;
+    });
+    state.basslines[ex.id] = { events: existing };
+    saveState();
+  }
+
+  function basslineNoteAtSlot(ex, slot) {
+    var events = currentBassline(ex);
+    for (var i = 0; i < events.length; i++) {
+      if (events[i].slot === slot) return events[i].note;
+    }
+    return null;
+  }
+
+  function cycleBasslineSlot(ex, slot) {
+    var rows = basslineRows(ex);
+    var current = basslineNoteAtSlot(ex, slot);
+    if (current === null) {
+      setBasslineEvent(ex, slot, rows[0]);
+      return;
+    }
+    var idx = rows.indexOf(current);
+    var next = idx >= 0 ? rows[idx + 1] : rows[0];
+    setBasslineEvent(ex, slot, typeof next === "number" ? next : null);
+  }
+
+  function currentBassCursor(ex) {
+    var slot = state.bassCursors[ex.id];
+    if (typeof slot !== "number") slot = 0;
+    return Math.max(0, Math.min(totalSlots(ex) - 1, slot));
+  }
+
+  function setBassCursor(ex, slot) {
+    state.bassCursors[ex.id] = Math.max(0, Math.min(totalSlots(ex) - 1, slot));
+    saveState();
+  }
+
+  function basslineExport(ex) {
+    return JSON.stringify(
+      {
+        id: ex.id,
+        subdivisions_per_beat: subdivsPerBeat(ex),
+        events: currentBassline(ex),
+      },
+      null,
+      2
+    );
+  }
+
+  var STAFF_LETTER_BY_PC = [0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6]; // C D E F G A B
+
+  function midiDiatonicStep(midi) {
+    var pc = ((midi % 12) + 12) % 12;
+    var octave = Math.floor(midi / 12) - 1;
+    return octave * 7 + STAFF_LETTER_BY_PC[pc];
+  }
+
+  function staffY(midi, staffTop, bottomLineStep) {
+    return staffTop + 40 - (midiDiatonicStep(midi) - bottomLineStep) * 5;
+  }
+
+  var PITCH_BY_PC = [
+    { step: "C", alter: 0 },
+    { step: "C", alter: 1 },
+    { step: "D", alter: 0 },
+    { step: "E", alter: -1 },
+    { step: "E", alter: 0 },
+    { step: "F", alter: 0 },
+    { step: "F", alter: 1 },
+    { step: "G", alter: 0 },
+    { step: "A", alter: -1 },
+    { step: "A", alter: 0 },
+    { step: "B", alter: -1 },
+    { step: "B", alter: 0 },
+  ];
+
+  function midiToPitch(midi) {
+    var pc = ((midi % 12) + 12) % 12;
+    var p = PITCH_BY_PC[pc];
+    return { step: p.step, alter: p.alter, octave: Math.floor(midi / 12) - 1 };
+  }
+
+  function musicXmlPitch(midi) {
+    var p = midiToPitch(midi);
+    var xml = "<pitch><step>" + p.step + "</step>";
+    if (p.alter) xml += "<alter>" + p.alter + "</alter>";
+    xml += "<octave>" + p.octave + "</octave></pitch>";
+    return xml;
+  }
+
+  function musicXmlNote(ev, staff, voice) {
+    var xml = "<note>" + musicXmlPitch(ev.midi) + "<duration>" + ev.duration + "</duration><voice>" + voice + "</voice><type>";
+    xml += ev.duration >= 2 ? "quarter" : "eighth";
+    xml += "</type><staff>" + staff + "</staff></note>";
+    return xml;
+  }
+
+  function musicXmlRest(duration, staff, voice) {
+    var xml = "<note><rest/><duration>" + duration + "</duration><voice>" + voice + "</voice><type>";
+    xml += duration >= 2 ? "quarter" : "eighth";
+    xml += "</type><staff>" + staff + "</staff></note>";
+    return xml;
+  }
+
+  function eventsForMeasure(events, measureStart, measureEnd) {
+    return events
+      .filter(function (ev) {
+        return ev.slot >= measureStart && ev.slot < measureEnd;
+      })
+      .sort(function (a, b) {
+        return a.slot - b.slot;
+      });
+  }
+
+  function renderVoice(events, measureStart, measureEnd, staff, voice) {
+    var xml = "";
+    var cursor = measureStart;
+    events.forEach(function (ev) {
+      if (ev.slot > cursor) xml += musicXmlRest(ev.slot - cursor, staff, voice);
+      var duration = Math.min(ev.duration || 1, measureEnd - ev.slot);
+      xml += musicXmlNote({ midi: ev.midi, duration: duration }, staff, voice);
+      cursor = ev.slot + duration;
+    });
+    if (cursor < measureEnd) xml += musicXmlRest(measureEnd - cursor, staff, voice);
+    return xml;
+  }
+
+  function buildScoreMusicXml(ex) {
+    var key = currentKey(ex);
+    var slotsBar = slotsPerBar(ex);
+    var measureCount = Math.ceil(totalSlots(ex) / slotsBar);
+    var treble = ex.right_hand.events.map(function (ev) {
+      return {
+        slot: leadEventSlot(ex, ev),
+        duration: Math.max(1, Math.round((ev.duration || 0.5) * subdivsPerBeat(ex))),
+        midi: leadEventMidi(ev, key),
+      };
+    });
+    var bass = currentBassline(ex).map(function (ev, i, arr) {
+      var next = arr[i + 1];
+      var distance = next ? Math.max(1, next.slot - ev.slot) : subdivsPerBeat(ex);
+      return {
+        slot: ev.slot,
+        duration: Math.min(subdivsPerBeat(ex), distance),
+        midi: 48 + ev.note + key,
+      };
+    });
+
+    var xml =
+      '<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"><part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list><part id="P1">';
+    for (var m = 0; m < measureCount; m++) {
+      var start = m * slotsBar;
+      var end = start + slotsBar;
+      xml += '<measure number="' + (m + 1) + '">';
+      if (m === 0) {
+        xml +=
+          '<attributes><divisions>2</divisions><key><fifths>0</fifths></key><time><beats>4</beats><beat-type>4</beat-type></time><staves>2</staves><clef number="1"><sign>G</sign><line>2</line></clef><clef number="2"><sign>F</sign><line>4</line></clef></attributes>';
+      }
+      for (var chordSlot = start; chordSlot < end; chordSlot++) {
+        var pos = stepAtSlot(ex, chordSlot);
+        if (pos.slotInStep !== 0) continue;
+        xml +=
+          '<direction placement="above"><direction-type><words>' + M.esc(chordDisplayName(pos.step, key)) + "</words></direction-type></direction>";
+      }
+      xml += renderVoice(eventsForMeasure(treble, start, end), start, end, 1, 1);
+      xml += "<backup><duration>" + slotsBar + "</duration></backup>";
+      xml += renderVoice(eventsForMeasure(bass, start, end), start, end, 2, 2);
+      xml += "</measure>";
+    }
+    xml += "</part></score-partwise>";
+    return xml;
   }
 
   function currentBpm(ex) {
@@ -157,6 +423,7 @@
       return { id: step.id, key: (step.offset + key) % 12 };
     });
     var chords = M.encodeEntries(key, entries);
+    if (hasLeadEvents(ex)) return chords;
     var pat = currentPattern(ex).map(boolsToStringRow).join("|");
     return chords + ";rh=" + pat;
   }
@@ -236,6 +503,14 @@
       prev = m;
     });
     return out;
+  }
+
+  function leadEventMidi(ev, key) {
+    return 60 + ev.note + key + (ev.octave || 0) * 12;
+  }
+
+  function leadEventSlot(ex, ev) {
+    return Math.round(((ev.beat || 1) - 1) * subdivsPerBeat(ex));
   }
 
   // Lazily fetch the acoustic grand piano soundfont. Resolves to the
@@ -355,9 +630,11 @@
     var bpb = beatsPerBar(ex);
     var sub = subdivsPerBeat(ex);
     var slotsBar = slotsPerBar(ex);
-    var barIdx = Math.floor(slotIndex / slotsBar);
+    var pos = stepAtSlot(ex, slotIndex);
+    var barIdx = pos.index;
     var slotInBar = slotIndex % slotsBar;
-    var step = ex.progression[barIdx];
+    var slotInStep = pos.slotInStep;
+    var step = pos.step;
     if (!step) return;
 
     var key = currentKey(ex);
@@ -372,15 +649,25 @@
     var rhDur = Math.min(quarterSec * 0.5, 0.24);
 
     // LH: staccato chord on each beat (slotInBar divisible by subdivsPerBeat)
-    if (slotInBar % sub === 0) {
+    if (slotInStep % sub === 0) {
       var info = M.chordInfo(root, suffix);
-      var accent = slotInBar === 0;
+      var accent = slotInStep === 0;
       var lhGain = accent ? 0.09 : 0.065;
       if (info && info.semitones) {
         info.semitones.forEach(function (offset) {
           emitNote(root + offset, now, lhDur, lhGain);
         });
       }
+      if (typeof step.bass_offset === "number") {
+        emitNote((((step.bass_offset + key) % 12) + 12) % 12, now, lhDur, lhGain);
+      }
+    }
+
+    if (hasBasslineEditor(ex)) {
+      currentBassline(ex).forEach(function (ev) {
+        if (ev.slot !== slotIndex) return;
+        emitNote(ev.note + key - 12, now, Math.min(quarterSec * 0.55, 0.28), 0.11);
+      });
     }
 
     // RH: active pattern slots, voiced as a close ascending cluster from a
@@ -389,12 +676,19 @@
     // `[A, C]` speaks as A4→C5 (minor third up) rather than C5→A5 (minor
     // sixth = the inversion). Keeps the melody inside the relative-minor
     // register no matter what key the user transposes to.
-    var pattern = currentPattern(ex);
-    var rhMidi = rhVoicing(ex, key);
-    ex.right_hand.notes.forEach(function (_n, rowIdx) {
-      if (!pattern[rowIdx] || !pattern[rowIdx][slotInBar]) return;
-      emitNote(rhMidi[rowIdx] - 48, now, rhDur, 0.13);
-    });
+    if (hasLeadEvents(ex)) {
+      ex.right_hand.events.forEach(function (ev) {
+        if (leadEventSlot(ex, ev) !== slotIndex) return;
+        emitNote(leadEventMidi(ev, key) - 48, now, Math.max(rhDur, quarterSec * (ev.duration || 0.5) * 0.85), 0.13);
+      });
+    } else {
+      var pattern = currentPattern(ex);
+      var rhMidi = rhVoicing(ex, key);
+      ex.right_hand.notes.forEach(function (_n, rowIdx) {
+        if (!pattern[rowIdx] || !pattern[rowIdx][slotInBar]) return;
+        emitNote(rhMidi[rowIdx] - 48, now, rhDur, 0.13);
+      });
+    }
     // Silence unused var warning
     void bpb;
   }
@@ -468,9 +762,10 @@
   function updatePlayhead(ex) {
     var card = document.querySelector('.exercises-card[data-ex="' + ex.id + '"]');
     if (!card) return;
+    var pos = stepAtSlot(ex, runtime.currentSlot);
     var slotsBar = slotsPerBar(ex);
-    var slotInBar = runtime.currentSlot % slotsBar;
-    var barIdx = Math.floor(runtime.currentSlot / slotsBar);
+    var slotInBar = hasLeadEvents(ex) ? runtime.currentSlot : runtime.currentSlot % slotsBar;
+    var barIdx = pos.index;
     var playing = runtime.playingId === ex.id;
 
     var bars = card.querySelectorAll(".exercises-chord");
@@ -487,7 +782,7 @@
     // Circle-of-fifths highlights: the active chord node plus the arrow
     // that leads INTO it (i.e. the transition from barIdx-1 to barIdx).
     var key = currentKey(ex);
-    var activePc = playing && ex.progression[barIdx] ? (((ex.progression[barIdx].offset + key) % 12) + 12) % 12 : null;
+    var activePc = playing && pos.step ? (((pos.step.offset + key) % 12) + 12) % 12 : null;
     var nodes = card.querySelectorAll(".exercises-circle__node");
     nodes.forEach(function (node) {
       var pc = parseInt(node.getAttribute("data-circle-pc"), 10);
@@ -531,10 +826,12 @@
       var root = (((step.offset + key) % 12) + 12) % 12;
       var chord = S.chordById(step.id);
       var suffix = chord ? chord.suffix : ID_TO_SUFFIX[step.id] || "";
+      var chordName = M.noteName(root) + suffix;
+      if (typeof step.bass_offset === "number") chordName += "/" + M.noteName((((step.bass_offset + key) % 12) + 12) % 12);
       return {
         root: root,
         rootName: M.noteName(root),
-        chord: M.noteName(root) + suffix,
+        chord: chordName,
         roman: step.roman,
         rh_effect: step.rh_effect || "",
       };
@@ -802,6 +1099,7 @@
       var chord = S.chordById(step.id);
       var suffix = chord ? chord.suffix : ID_TO_SUFFIX[step.id] || "";
       var displayName = M.noteName(root) + (suffix || "");
+      if (typeof step.bass_offset === "number") displayName += "/" + M.noteName((((step.bass_offset + key) % 12) + 12) % 12);
       var recipe = chord ? S.renderRecipe(chord, root, true) : "\u2014";
 
       var rhLabels = ex.right_hand.notes
@@ -815,6 +1113,7 @@
       html += '<div class="exercises-chord" data-bar="' + barIdx + '">';
       html += '<div class="exercises-chord__roman">' + M.esc(step.roman) + "</div>";
       html += '<div class="exercises-chord__name">' + M.esc(displayName) + "</div>";
+      if (step.beats && step.beats !== beatsPerBar(ex)) html += '<div class="exercises-chord__beats">' + M.esc(step.beats + " beats") + "</div>";
       html += '<div class="exercises-chord__recipe">' + M.esc(recipe) + "</div>";
       html += '<div class="exercises-chord__rh">' + M.esc(rhLabels) + "</div>";
       html += "</div>";
@@ -827,6 +1126,8 @@
   var REST_GLYPH = "\uD834\uDD3D"; // 𝄽 U+1D13D QUARTER REST
 
   function renderSheet(ex) {
+    if (hasLeadEvents(ex)) return renderLeadSheet(ex);
+
     var pattern = currentPattern(ex);
     var bpb = beatsPerBar(ex);
     var sub = subdivsPerBeat(ex);
@@ -895,6 +1196,149 @@
     return html;
   }
 
+  function renderLeadSheet(ex) {
+    var key = currentKey(ex);
+    var sub = subdivsPerBeat(ex);
+    var cols = totalSlots(ex);
+    var rows = [];
+    var rowByKey = {};
+    ex.right_hand.events.forEach(function (ev) {
+      var k = ev.note + ":" + (ev.octave || 0);
+      if (rowByKey[k]) return;
+      var abs = (((ev.note + key) % 12) + 12) % 12;
+      rowByKey[k] = { note: ev.note, octave: ev.octave || 0, label: M.noteName(abs) + String(4 + (ev.octave || 0)) };
+      rows.push(rowByKey[k]);
+    });
+    rows.sort(function (a, b) {
+      return b.octave * 12 + b.note - (a.octave * 12 + a.note);
+    });
+
+    var eventsByRowSlot = {};
+    ex.right_hand.events.forEach(function (ev) {
+      eventsByRowSlot[ev.note + ":" + (ev.octave || 0) + ":" + leadEventSlot(ex, ev)] = ev;
+    });
+
+    var html = '<div class="exercises-sheet exercises-sheet--lead">';
+    html +=
+      '<div class="exercises-sheet__legend">Lead sheet countermelody from the HookTheory tab. Slots are eighth notes across the full 8-bar intro.</div>';
+    html += '<div class="exercises-sheet__scroll">';
+    html += '<div class="exercises-sheet__row exercises-sheet__row--head">';
+    html += '<div class="exercises-sheet__label exercises-sheet__label--head"></div>';
+    html += '<div class="exercises-sheet__staff exercises-sheet__staff--head" style="--slots: ' + cols + ';">';
+    for (var i = 0; i < cols; i++) {
+      var inBeat = i % sub;
+      var beatNum = Math.floor(i / sub) + 1;
+      var label = inBeat === 0 ? String(beatNum) : "&amp;";
+      var beatCls = "exercises-sheet__beatlabel" + (inBeat === 0 ? " is-beat" : "");
+      html += '<span class="' + beatCls + '" style="--slot: ' + i + ';">' + label + "</span>";
+    }
+    html += "</div></div>";
+
+    rows.forEach(function (row) {
+      html += '<div class="exercises-sheet__row">';
+      html += '<div class="exercises-sheet__label">' + M.esc(row.label) + "</div>";
+      html += '<div class="exercises-sheet__staff" style="--slots: ' + cols + "; --subdivs: " + sub + ';">';
+      html += '<div class="exercises-sheet__line"></div>';
+      for (var b = 1; b < cols / sub; b++) {
+        html += '<div class="exercises-sheet__beatsep" style="--slot: ' + b * sub + ';"></div>';
+      }
+      for (var c = 0; c < cols; c++) {
+        var ev = eventsByRowSlot[row.note + ":" + row.octave + ":" + c];
+        if (!ev) continue;
+        var durSlots = Math.max(1, Math.round((ev.duration || 0.5) * sub));
+        var aria = row.label + " at beat " + ev.beat + " for " + ev.duration + " beats";
+        html +=
+          '<span class="exercises-lead-note exercises-slot is-on" data-slot="' +
+          c +
+          '" style="--slot: ' +
+          c +
+          "; --dur-slots: " +
+          durSlots +
+          ';" aria-label="' +
+          M.esc(aria) +
+          '">\u25CF</span>';
+      }
+      html += "</div></div>";
+    });
+
+    html += "</div></div>";
+    return html;
+  }
+
+  function renderBasslineEditor(ex) {
+    if (!hasBasslineEditor(ex)) return "";
+    var key = currentKey(ex);
+    var cols = totalSlots(ex);
+    var rows = basslineRows(ex);
+    var cursor = currentBassCursor(ex);
+    var cursorNote = basslineNoteAtSlot(ex, cursor);
+    var cursorName = cursorNote === null ? "rest" : M.noteName((((cursorNote + key) % 12) + 12) % 12);
+
+    function midiName(midi) {
+      return M.noteName(((midi % 12) + 12) % 12) + (Math.floor(midi / 12) - 1);
+    }
+
+    var html = '<div class="sheet-music-page--flexoki exercises-bassline-editor">';
+    html += "<h3>Piano score editor</h3>";
+    html +=
+      '<p class="exercises-bassline-editor__help">Treble staff is rendered by OSMD from generated MusicXML. Pick a slot, then use the B-system bayan keyboard to enter the bass note. Current slot: <strong>' +
+      (cursor + 1) +
+      "</strong>, " +
+      M.esc(cursorName) +
+      ".</p>";
+    html += '<div class="sheet-music-controls exercises-bassline-editor__controls">';
+    html += '<button class="music-share-btn" type="button" data-action="bassline-prev">Prev slot</button>';
+    html += '<button class="music-share-btn" type="button" data-action="bassline-next">Next slot</button>';
+    html += '<button class="music-share-btn" type="button" data-action="bassline-rest">Rest here</button>';
+    html += '<button class="music-share-btn" type="button" data-action="bassline-seed">Seed chord roots</button>';
+    html += '<button class="music-share-btn" type="button" data-action="bassline-clear">Clear</button>';
+    html += '<button class="music-share-btn" type="button" data-action="bassline-copy">Copy JSON</button>';
+    html += "</div>";
+
+    html += '<div class="exercises-slot-strip" aria-label="Bassline slots">';
+    for (var slot = 0; slot < cols; slot++) {
+      var cls = "exercises-slot-strip__button";
+      if (slot === cursor) cls += " is-current";
+      if (basslineNoteAtSlot(ex, slot) !== null) cls += " is-filled";
+      html += '<button type="button" class="' + cls + '" data-action="bassline-select-slot" data-slot="' + slot + '">' + (slot + 1) + "</button>";
+    }
+    html += "</div>";
+
+    html += '<div class="sheet-music-container exercises-bassline-editor__paper">';
+    html += '<div class="exercises-osmd-score" data-osmd-ex="' + M.esc(ex.id) + '">Loading score…</div>';
+    html += "</div>";
+
+    html += '<div class="exercises-bayan-input" aria-label="B-system bayan bass input">';
+    html += '<div class="bayan-sim-range">B-system input, click a button to write into slot ' + (cursor + 1) + "</div>";
+    html += '<div class="bayan-sim-keyboard exercises-bayan-input__keyboard">';
+    var low = 48 + key - 6;
+    var high = low + 29;
+    for (var col = 0; col < 3; col++) {
+      html += '<div class="bayan-sim-col bayan-sim-col-' + col + '">';
+      for (var midi = low + col; midi <= high; midi += 3) {
+        var pc = (((midi - key) % 12) + 12) % 12;
+        var btnCls = "bayan-sim-button";
+        if (cursorNote === pc) btnCls += " is-active is-root";
+        if (rows.indexOf(pc) === -1) btnCls += " is-out-of-key";
+        html +=
+          '<button type="button" class="' +
+          btnCls +
+          '" data-action="bassline-midi" data-midi="' +
+          midi +
+          '"><span>' +
+          M.esc(midiName(midi)) +
+          "</span></button>";
+      }
+      html += "</div>";
+    }
+    html += "</div></div>";
+
+    html +=
+      '<textarea class="exercises-bassline-export" data-bassline-export readonly spellcheck="false">' + M.esc(basslineExport(ex)) + "</textarea>";
+    html += "</div>";
+    return html;
+  }
+
   function renderTransport(ex) {
     var bpm = currentBpm(ex);
     var html = '<div class="exercises-transport">';
@@ -903,8 +1347,10 @@
     html += '<input type="range" class="exercises-bpm-slider" data-action="bpm-range" min="40" max="200" value="' + bpm + '">';
     html += '<input type="number" class="exercises-bpm-number" data-action="bpm-num" min="40" max="200" value="' + bpm + '">';
     html += "</label>";
-    html += '<button class="music-share-btn" data-action="pattern-clear">All rests</button>';
-    html += '<button class="music-share-btn" data-action="pattern-reset">Reset</button>';
+    if (!hasLeadEvents(ex)) {
+      html += '<button class="music-share-btn" data-action="pattern-clear">All rests</button>';
+      html += '<button class="music-share-btn" data-action="pattern-reset">Reset</button>';
+    }
     html += "</div>";
     return html;
   }
@@ -977,20 +1423,26 @@
   }
 
   function renderExercise(ex) {
-    var html = '<section class="exercises-card" data-ex="' + M.esc(ex.id) + '">';
-    html += '<header class="exercises-card__header">';
+    var open = !!state.openExercises[ex.id];
+    var html = '<details class="exercises-card" data-ex="' + M.esc(ex.id) + '"' + (open ? " open" : "") + ">";
+    html += '<summary class="exercises-card__summary">';
+    html += '<div class="exercises-card__header">';
     html += '<h2 class="exercises-card__title">' + M.esc(ex.title) + "</h2>";
     html += renderAttribution(ex);
-    html += "</header>";
+    html += "</div>";
+    html += "</summary>";
+    html += '<div class="exercises-card__body">';
     html += renderKeyBar(ex);
     html += renderProgressionRow(ex);
     html += renderCircleOfFifths(ex, currentKey(ex));
     html += renderRhPills(ex);
     html += renderSheet(ex);
+    html += renderBasslineEditor(ex);
     html += renderTransport(ex);
     html += renderShareRow(ex);
     html += renderTheory(ex);
-    html += "</section>";
+    html += "</div>";
+    html += "</details>";
     return html;
   }
 
@@ -1002,6 +1454,7 @@
       return;
     }
     root.innerHTML = EXERCISES.map(renderExercise).join("");
+    renderOsmdScores();
   }
 
   function rerenderCard(ex) {
@@ -1010,6 +1463,40 @@
     var tmp = document.createElement("div");
     tmp.innerHTML = renderExercise(ex);
     card.replaceWith(tmp.firstChild);
+    renderOsmdScores();
+  }
+
+  function renderOsmdScores() {
+    if (!window.opensheetmusicdisplay) return;
+    document.querySelectorAll("[data-osmd-ex]").forEach(function (container) {
+      var ex = findExercise(container.getAttribute("data-osmd-ex"));
+      if (!ex || container.getAttribute("data-rendered") === "true") return;
+      container.setAttribute("data-rendered", "true");
+      container.innerHTML = "";
+      var osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
+        backend: "svg",
+        drawTitle: false,
+        drawComposer: false,
+        drawPartNames: false,
+        drawMeasureNumbers: false,
+        autoResize: false,
+      });
+      if (osmd.EngravingRules) {
+        osmd.EngravingRules.RenderPartNames = false;
+        osmd.EngravingRules.RenderMeasureNumbers = false;
+        osmd.EngravingRules.RenderChordSymbols = true;
+      }
+      osmd
+        .load(buildScoreMusicXml(ex))
+        .then(function () {
+          osmd.Zoom = 0.82;
+          osmd.render();
+        })
+        .catch(function (err) {
+          console.error(err);
+          container.textContent = "Could not render score.";
+        });
+    });
   }
 
   // Update only the share textbox (cheaper than full re-render after a slot toggle)
@@ -1049,6 +1536,53 @@
         state.keyDeltas[exId] = (((newKey - ex.default_key) % 12) + 12) % 12;
         saveState();
         rerenderCard(ex);
+        return;
+      }
+
+      var bassCell = e.target.closest('[data-action="bassline-slot"]');
+      if (bassCell) {
+        var bassCard = bassCell.closest(".exercises-card");
+        var bassEx = findExercise(bassCard.getAttribute("data-ex"));
+        if (!bassEx) return;
+        var bassSlot = parseInt(bassCell.getAttribute("data-slot"), 10);
+        cycleBasslineSlot(bassEx, bassSlot);
+        rerenderCard(bassEx);
+        return;
+      }
+
+      var bassSeedBtn = e.target.closest('[data-action="bassline-seed"]');
+      if (bassSeedBtn) {
+        var seedEx = findExercise(bassSeedBtn.closest(".exercises-card").getAttribute("data-ex"));
+        if (!seedEx) return;
+        state.basslines[seedEx.id] = { events: defaultBassline(seedEx) };
+        saveState();
+        rerenderCard(seedEx);
+        return;
+      }
+
+      var bassClearBtn = e.target.closest('[data-action="bassline-clear"]');
+      if (bassClearBtn) {
+        var clearEx = findExercise(bassClearBtn.closest(".exercises-card").getAttribute("data-ex"));
+        if (!clearEx) return;
+        state.basslines[clearEx.id] = { events: [] };
+        saveState();
+        rerenderCard(clearEx);
+        return;
+      }
+
+      var bassCopyBtn = e.target.closest('[data-action="bassline-copy"]');
+      if (bassCopyBtn) {
+        var exportText = bassCopyBtn.closest(".exercises-bassline-editor").querySelector("[data-bassline-export]");
+        if (!exportText) return;
+        exportText.select();
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(exportText.value).then(function () {
+            bassCopyBtn.textContent = "Copied!";
+            setTimeout(function () {
+              bassCopyBtn.textContent = "Copy JSON";
+            }, 1500);
+          });
+        }
         return;
       }
 
@@ -1189,7 +1723,15 @@
       "toggle",
       function (e) {
         var details = e.target;
-        if (!details.classList || !details.classList.contains("exercises-theory")) return;
+        if (!details.classList) return;
+        if (details.classList.contains("exercises-card")) {
+          var cardId = details.getAttribute("data-ex");
+          if (!cardId) return;
+          state.openExercises[cardId] = details.open;
+          saveState();
+          return;
+        }
+        if (!details.classList.contains("exercises-theory")) return;
         var exId = details.getAttribute("data-ex");
         if (!exId) return;
         state.openTheory[exId] = details.open;

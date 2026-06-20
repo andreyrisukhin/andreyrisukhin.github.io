@@ -77,3 +77,93 @@ exercises:
           <li><a href="https://accordionchords.com/tutorials/jazz-accordion-solos/">Jazz Accordion Solos</a>: pattern library</li>
           <li><a href="https://accordionchords.com/tutorials/stradella-xtensions-harmonic-technique-for-the-accordion/">Stradella Xtensions</a>: Evan Perry-Giblin's book on extended harmony from the Stradella side</li>
         </ul>
+
+  - id: fearless-first-lead-sheet
+    title: "Fearless First: Intro Lead Sheet"
+    attribution:
+      name: "Kevin MacLeod"
+      url: "https://www.hooktheory.com/theorytab/view/kevin-macleod/fearless-first"
+      note: "Chords and countermelody from the HookTheory tab for the intro."
+    default_key: 0 # C minor
+    progression:
+      - { id: "min", offset: 0, roman: "i", label: "Cm", rh_effect: "C/E♭ minor-third motor" }
+      - { id: "maj", offset: 3, roman: "III", label: "E♭", rh_effect: "B♭/E♭ outlines 5/root" }
+      - { id: "maj", offset: 8, roman: "VI", label: "A♭", rh_effect: "A♭/E♭ outlines root/5" }
+      - { id: "min", offset: 0, roman: "i64", label: "Cm/G", bass_offset: 7, beats: 2, rh_effect: "G/E♭ gives 5/♭3 over the inversion" }
+      - { id: "min", offset: 7, roman: "v", label: "Gm", beats: 2, rh_effect: "G/D outlines root/5" }
+      - { id: "min", offset: 0, roman: "i", label: "Cm", rh_effect: "C/E♭ returns the minor-third motor" }
+      - { id: "maj", offset: 3, roman: "III", label: "E♭", rh_effect: "B♭/E♭ repeats the 5/root figure" }
+      - { id: "maj", offset: 8, roman: "VI", label: "A♭", rh_effect: "A♭/E♭ repeats root/5" }
+      - { id: "min", offset: 7, roman: "v", label: "Gm", rh_effect: "G sustains, then A♭ leaves the loop open" }
+    right_hand:
+      notes: [0, 3, 10, 8, 7, 2] # C, E♭, B♭, A♭, G, D
+      description: "Intro countermelody: mostly an eighth-note two-note motor under each chord, then a held {{rh.4}} → {{rh.3}} ending. This is the tabbed line, not the later flute-improv solo."
+      events:
+        - { note: 0, octave: 0, beat: 1, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 1.5, duration: 0.5 }
+        - { note: 0, octave: 0, beat: 2, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 2.5, duration: 0.5 }
+        - { note: 0, octave: 0, beat: 3, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 3.5, duration: 0.5 }
+        - { note: 0, octave: 0, beat: 4, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 4.5, duration: 0.5 }
+        - { note: 10, octave: -1, beat: 5, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 5.5, duration: 0.5 }
+        - { note: 10, octave: -1, beat: 6, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 6.5, duration: 0.5 }
+        - { note: 10, octave: -1, beat: 7, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 7.5, duration: 0.5 }
+        - { note: 10, octave: -1, beat: 8, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 8.5, duration: 0.5 }
+        - { note: 8, octave: -1, beat: 9, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 9.5, duration: 0.5 }
+        - { note: 8, octave: -1, beat: 10, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 10.5, duration: 0.5 }
+        - { note: 8, octave: -1, beat: 11, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 11.5, duration: 0.5 }
+        - { note: 8, octave: -1, beat: 12, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 12.5, duration: 0.5 }
+        - { note: 7, octave: -1, beat: 13, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 13.5, duration: 0.5 }
+        - { note: 7, octave: -1, beat: 14, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 14.5, duration: 0.5 }
+        - { note: 7, octave: -1, beat: 15, duration: 0.5 }
+        - { note: 2, octave: 0, beat: 15.5, duration: 0.5 }
+        - { note: 7, octave: -1, beat: 16, duration: 0.5 }
+        - { note: 2, octave: 0, beat: 16.5, duration: 0.5 }
+        - { note: 0, octave: 0, beat: 17, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 17.5, duration: 0.5 }
+        - { note: 0, octave: 0, beat: 18, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 18.5, duration: 0.5 }
+        - { note: 0, octave: 0, beat: 19, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 19.5, duration: 0.5 }
+        - { note: 0, octave: 0, beat: 20, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 20.5, duration: 0.5 }
+        - { note: 10, octave: -1, beat: 21, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 21.5, duration: 0.5 }
+        - { note: 10, octave: -1, beat: 22, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 22.5, duration: 0.5 }
+        - { note: 10, octave: -1, beat: 23, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 23.5, duration: 0.5 }
+        - { note: 10, octave: -1, beat: 24, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 24.5, duration: 0.5 }
+        - { note: 8, octave: -1, beat: 25, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 25.5, duration: 0.5 }
+        - { note: 8, octave: -1, beat: 26, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 26.5, duration: 0.5 }
+        - { note: 8, octave: -1, beat: 27, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 27.5, duration: 0.5 }
+        - { note: 8, octave: -1, beat: 28, duration: 0.5 }
+        - { note: 3, octave: 0, beat: 28.5, duration: 0.5 }
+        - { note: 7, octave: 0, beat: 29, duration: 1.5 }
+        - { note: 8, octave: 0, beat: 30.5, duration: 2.5 }
+    playback:
+      beats_per_bar: 4
+      subdivisions_per_beat: 2
+      bpm: 92
+    theory:
+      short: "C-minor intro: {{prog.0.chord}} → {{prog.1.chord}} → {{prog.2.chord}}, then {{prog.3.chord}} → {{prog.4.chord}}. The countermelody is mostly chord tones."
+      long_html: |
+        <p>The HookTheory intro is in <strong>{{keyName}} minor</strong>. The harmony is small and blunt: <code>{{prog.0.chord}} → {{prog.1.chord}} → {{prog.2.chord}}</code>, then a half-bar split from <code>{{prog.3.chord}}</code> to <code>{{prog.4.chord}}</code>. The second half repeats the first three bars and lands on <code>{{prog.8.chord}}</code>.</p>
+        <p>The right hand is a countermelody, not the later flute solo. Most bars alternate a low chord tone with <code>{{rh.1}}</code>: <code>{{rh.0}}/{{rh.1}}</code> over {{prog.0.chord}}, <code>{{rh.2}}/{{rh.1}}</code> over {{prog.1.chord}}, <code>{{rh.3}}/{{rh.1}}</code> over {{prog.2.chord}}, then <code>{{rh.4}}/{{rh.5}}</code> over {{prog.4.chord}}.</p>
+        <p>Practice it as a bass-and-right-hand coordination drill. The left hand changes harmony every bar except the split fourth bar; the right hand keeps eighth notes until the held <code>{{rh.4}} → {{rh.3}}</code> ending.</p>

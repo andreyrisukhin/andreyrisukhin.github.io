@@ -1,0 +1,67 @@
+.sheet-builder-status {
+  margin: 0 0 0.75rem;
+  color: var(--sheet-muted);
+}
+
+.sheet-builder-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.sheet-builder-slot {
+  min-width: 2rem;
+  border: 1px solid var(--sheet-border);
+  border-radius: 0.3rem;
+  background: var(--sheet-paper);
+  color: var(--sheet-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+
+  &.is-filled {
+    border-color: var(--sheet-accent);
+    color: var(--sheet-ink);
+  }
+
+  &.is-current {
+    background: var(--sheet-accent);
+    color: var(--sheet-paper);
+  }
+}
+
+.sheet-builder-score {
+  margin-bottom: 1rem;
+}
+
+.sheet-builder-bayan {
+  margin: 1rem 0;
+
+  h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0 0 0.75rem;
+    color: var(--sheet-muted);
+    font-size: 0.875rem;
+  }
+}
+
+.sheet-builder-bayan__keyboard {
+  min-height: 16rem;
+  max-height: 24rem;
+}
+
+.sheet-builder-export {
+  width: 100%;
+  min-height: 9rem;
+  padding: 0.6rem;
+  border: 1px solid var(--sheet-border);
+  border-radius: 0.4rem;
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.75rem;
+}

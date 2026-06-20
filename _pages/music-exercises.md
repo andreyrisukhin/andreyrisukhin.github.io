@@ -4,7 +4,7 @@ title: Music Exercises
 permalink: /music/exercises/
 ---
 
-Hardcoded practice loops with chord progression, suggested right-hand pattern, and a theory note. Use the key bar on each card to transpose.
+Hardcoded practice loops with chord progression, suggested right-hand pattern, and a theory note. Use the key bar on each card to transpose. For score experiments, use the separate [Sheet Builder](/music/sheet-builder/).
 
 <div id="exercises-root" class="exercises-root"></div>
 

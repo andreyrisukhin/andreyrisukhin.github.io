@@ -10,13 +10,43 @@
 .exercises-card {
   border: 1px solid var(--global-divider-color);
   border-radius: 8px;
-  padding: 1rem 1.25rem;
+  padding: 0;
   background: var(--global-card-bg-color);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+.exercises-card__summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1rem 1.25rem;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::after {
+    content: "Open";
+    float: right;
+    margin-top: -2.1rem;
+    font-size: 0.8rem;
+    color: var(--global-theme-color);
+  }
+}
+
+.exercises-card[open] .exercises-card__summary {
+  border-bottom: 1px solid var(--global-divider-color);
+
+  &::after {
+    content: "Close";
+  }
+}
+
+.exercises-card__body {
+  padding: 1rem 1.25rem;
+}
+
 .exercises-card__header {
-  margin-bottom: 0.75rem;
+  padding-right: 4rem;
 }
 
 .exercises-card__title {
@@ -68,6 +98,12 @@
   font-weight: 700;
   line-height: 1.2;
   color: var(--global-text-color);
+}
+
+.exercises-chord__beats {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-top: 0.1rem;
 }
 
 .exercises-chord__recipe {
@@ -350,6 +386,11 @@
   margin-bottom: 1rem;
 }
 
+.exercises-sheet__scroll {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
 .exercises-sheet__legend {
   font-size: 0.8rem;
   opacity: 0.7;
@@ -451,6 +492,192 @@
   &.is-current {
     background: color-mix(in srgb, var(--global-theme-color) 25%, var(--global-bg-color));
   }
+}
+
+.exercises-sheet--lead {
+  .exercises-sheet__row {
+    min-width: 72rem;
+  }
+
+  .exercises-slot {
+    cursor: default;
+    pointer-events: none;
+  }
+}
+
+.exercises-lead-note {
+  width: calc((100% - 0.5rem) / var(--slots) * var(--dur-slots, 1));
+  max-width: none;
+  left: calc(var(--slot) / var(--slots) * (100% - 0.5rem) + 0.25rem);
+  transform: translateY(-50%);
+}
+
+.exercises-bassline-editor {
+  margin: 1rem 0;
+
+  h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.05rem;
+  }
+}
+
+.exercises-bassline-editor__help {
+  margin: 0 0 0.75rem;
+  color: var(--sheet-muted);
+  font-size: 0.875rem;
+}
+
+.exercises-bassline-editor__controls {
+  margin-bottom: 0.75rem;
+}
+
+.exercises-bassline-editor__paper {
+  margin-bottom: 0.75rem;
+}
+
+.exercises-piano-staff {
+  display: block;
+  height: auto;
+  color: var(--sheet-ink);
+}
+
+.exercises-piano-staff__paper {
+  fill: var(--sheet-paper);
+}
+
+.exercises-piano-staff__line,
+.exercises-piano-staff__barline,
+.exercises-piano-staff__ledger {
+  stroke: var(--sheet-ink);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.exercises-piano-staff__barline {
+  opacity: 0.55;
+}
+
+.exercises-piano-staff__ledger {
+  opacity: 0.9;
+}
+
+.exercises-piano-staff__brace {
+  fill: none;
+  stroke: var(--sheet-ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.exercises-piano-staff__clef {
+  fill: var(--sheet-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 3.3rem;
+}
+
+.exercises-piano-staff__clef--bass {
+  font-size: 2.6rem;
+}
+
+.exercises-piano-staff__chord {
+  fill: var(--sheet-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.exercises-piano-staff__note {
+  fill: var(--sheet-ink);
+}
+
+.exercises-piano-staff__note--bass {
+  fill: var(--sheet-accent);
+}
+
+.exercises-piano-staff__stem,
+.exercises-piano-staff__tie {
+  stroke: currentColor;
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.exercises-piano-staff__tie {
+  fill: none;
+  stroke: var(--sheet-muted);
+  stroke-linecap: round;
+}
+
+.exercises-piano-staff__hit {
+  fill: transparent;
+  cursor: pointer;
+
+  &:hover {
+    fill: color-mix(in srgb, var(--sheet-accent) 15%, transparent);
+  }
+}
+
+.exercises-sheet--bassline {
+  margin-bottom: 0;
+
+  .exercises-sheet__row {
+    min-width: 72rem;
+  }
+
+  .exercises-sheet__label {
+    color: var(--sheet-ink);
+    opacity: 0.85;
+  }
+
+  .exercises-sheet__staff--head {
+    height: 1.6rem;
+  }
+}
+
+.exercises-bassline-chord {
+  position: absolute;
+  left: calc(var(--slot) / var(--slots) * (100% - 0.5rem) + 0.25rem);
+  width: calc(var(--dur-slots) / var(--slots) * (100% - 0.5rem));
+  top: 0.05rem;
+  padding-inline: 0.25rem;
+  border-left: 1px solid var(--sheet-faint);
+  color: var(--sheet-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.exercises-bassline-cell {
+  position: absolute;
+  top: 50%;
+  left: calc((var(--slot) + 0.5) / var(--slots) * (100% - 0.5rem) + 0.25rem);
+  width: calc((100% - 0.5rem) / var(--slots));
+  min-width: 1rem;
+  height: 1.65rem;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--sheet-accent);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--sheet-accent-soft);
+  }
+
+  &.is-on {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+}
+
+.exercises-bassline-export {
+  width: 100%;
+  min-height: 7rem;
+  padding: 0.6rem;
+  border: 1px solid var(--sheet-border);
+  border-radius: 0.4rem;
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.75rem;
 }
 
 .exercises-sheet__beatlabel {
