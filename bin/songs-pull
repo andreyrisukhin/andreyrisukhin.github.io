@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# Pull songs from the songs-inbox branch into data/songs-inbox/ in the
+# working tree of the current branch (without committing).
+#
+# The phone PWA writes one JSON file per saved song to that branch via
+# the GitHub Contents API. data/songs-inbox/ is excluded from the Jekyll
+# build, so even if you commit the pulled files to main they won't ship.
+#
+# Usage: bin/songs-pull
+#        bin/songs-ls   # quick summary after pulling
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+BRANCH="${SONGS_INBOX_BRANCH:-songs-inbox}"
+DIR="data/songs-inbox"
+
+git fetch origin "$BRANCH" 2>/dev/null || {
+  echo "[songs-pull] no remote branch '$BRANCH' yet (nothing to pull)"
+  exit 0
+}
+
+mkdir -p "$DIR"
+# Replace the local copy of the dir with the remote branch's view.
+# --no-overlay so files deleted on the inbox branch get removed locally too.
+git checkout --no-overlay "origin/$BRANCH" -- "$DIR" || {
+  echo "[songs-pull] '$DIR' is empty on origin/$BRANCH (nothing to pull)"
+  exit 0
+}
+
+echo "[songs-pull] pulled from origin/$BRANCH into $DIR/"
+"$REPO_ROOT/bin/songs-ls"

@@ -40,7 +40,7 @@ Pick a key and progression variant to see the 12-bar form with real chord names.
 
 <h2>Blues Scale</h2>
 
-<p>Use for improvisation over the progression. The highlighted note is the <strong>blue note</strong> (♭5) — a chromatic passing tone that gives the blues its characteristic sound.</p>
+<p>Use for improvisation over the progression. The highlighted note is the <strong>blue note</strong> (♭5), a chromatic passing tone that gives the blues its characteristic sound.</p>
 
 <div id="blues-scale-notes" class="blues-scale-notes"></div>
 
@@ -52,4 +52,5 @@ Pick a key and progression variant to see the 12-bar form with real chord names.
 
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/audio.js?v=1' | relative_url }}"></script>
 <script src="{{ '/assets/js/blues/main.js' | relative_url }}"></script>

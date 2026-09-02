@@ -16,13 +16,16 @@
 
 .music-key-btn {
   padding: 0.35rem 0.5rem;
-  font-size: 0.9rem;
+  font-size: $type-size-small;
   font-weight: 600;
   border: 1px solid var(--global-divider-color);
   background: var(--global-bg-color);
   color: var(--global-text-color);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
   min-width: 2.4rem;
   text-align: center;
   @include hover-tint;
@@ -58,13 +61,13 @@
 
 .music-share label {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: $type-size-small;
 }
 
 .music-share-text {
   flex: 1;
   min-width: 180px;
-  font-size: 0.85rem;
+  font-size: $type-size-small;
   padding: 0.3rem 0.5rem;
   border-radius: 4px;
   border: 1px solid var(--global-divider-color);
@@ -74,7 +77,7 @@
 }
 
 .music-share-btn {
-  font-size: 0.85rem;
+  font-size: $type-size-small;
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
   border: 1px solid var(--global-divider-color);
@@ -85,6 +88,47 @@
 
   &:hover {
     background: var(--global-divider-color);
+  }
+}
+
+/* ── Chord-name search preview (/music/build/) ── */
+
+.chord-search-result {
+  margin: -0.75rem 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  min-height: 1.35em;
+}
+
+.chord-search-result__name {
+  font-weight: 600;
+  color: var(--global-text-color);
+}
+
+.chord-search-result__recipe {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.88rem;
+  color: var(--global-text-color);
+  opacity: 0.8;
+}
+
+.chord-search-result__message {
+  font-style: italic;
+  color: var(--global-text-color);
+  opacity: 0.6;
+}
+
+.chord-search-status {
+  margin: -0.5rem 0 1rem;
+  font-size: $type-size-small;
+  min-height: 1.2em;
+  font-weight: 600;
+
+  &[data-kind="success"] {
+    color: var(--global-theme-color);
+  }
+  &[data-kind="error"] {
+    color: #c0392b;
   }
 }
 
@@ -107,17 +151,21 @@
   color: var(--global-text-color);
   background: var(--global-card-bg-color);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
 
   &:hover {
     border-color: var(--global-theme-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
 
   &__icon {
     display: block;
-    font-size: 1.4rem;
+    font-size: $type-size-h2;
     color: var(--global-theme-color);
     margin-bottom: 0.5rem;
   }
@@ -125,13 +173,15 @@
   &__title {
     display: block;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: $type-size-h3;
+    line-height: 1.35;
     margin-bottom: 0.3rem;
   }
 
   &__desc {
     display: block;
-    font-size: 0.85rem;
+    font-size: $type-size-small;
+    line-height: $type-line-small;
     opacity: 0.7;
   }
 }
@@ -151,12 +201,15 @@
 
 .music-toggle-btn {
   padding: 0.35rem 0.75rem;
-  font-size: 0.85rem;
+  font-size: $type-size-small;
   border: 1px solid var(--global-divider-color);
   background: var(--global-bg-color);
   color: var(--global-text-color);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
   @include hover-tint;
 
   &:first-child {

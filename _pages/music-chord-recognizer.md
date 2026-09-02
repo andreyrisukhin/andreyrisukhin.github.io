@@ -4,7 +4,7 @@ title: Chord Recognizer
 permalink: /music/chord-recognizer/
 ---
 
-Enter notes to identify the chord. The first note is treated as the bass — reorder to see inversions.
+Enter notes to identify the chord. The first note is treated as the bass. Reorder to see inversions.
 
 <div class="recognizer-note-buttons" id="recognizer-note-buttons"></div>
 
@@ -20,6 +20,7 @@ Enter notes to identify the chord. The first note is treated as the bass — reo
 <div id="recognizer-staff" class="recognizer-staff"></div>
 
 <noscript><p>This interactive tool requires JavaScript.</p></noscript>
+
 <script>
   window.StradellaButtons = {
     {% for btn in site.data.music.stradella_buttons.buttons %}
@@ -30,4 +31,6 @@ Enter notes to identify the chord. The first note is treated as the bass — reo
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/chord-recognizer/main.js' | relative_url }}"></script>

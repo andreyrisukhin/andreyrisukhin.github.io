@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Summarize songs in data/songs-inbox/ after running bin/songs-pull.
+# One row per song: id  saved-at  chords  name (notes truncated).
+#
+# Usage: bin/songs-ls
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+DIR="$REPO_ROOT/data/songs-inbox"
+
+if [ ! -d "$DIR" ]; then
+  echo "[songs-ls] no $DIR (run bin/songs-pull first)"
+  exit 0
+fi
+
+shopt -s nullglob
+files=("$DIR"/*.json)
+if [ "${#files[@]}" -eq 0 ]; then
+  echo "[songs-ls] no songs"
+  exit 0
+fi
+
+# Use node to parse the JSON files (no jq dependency).
+node -e '
+const fs = require("fs");
+const path = require("path");
+const dir = process.argv[1];
+const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json")).sort();
+const rows = [];
+for (const f of files) {
+  let s;
+  try { s = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")); }
+  catch (e) { rows.push([f, "(parse error)", "", ""]); continue; }
+  const chords = (s.snapshot && Array.isArray(s.snapshot.selected)) ? s.snapshot.selected.length : 0;
+  rows.push([s.id || f.replace(/\.json$/, ""), s.savedAt || "", chords, s.name || "(untitled)", s.notes || ""]);
+}
+const widths = [0, 0, 0, 0];
+for (const r of rows) for (let i = 0; i < 4; i++) widths[i] = Math.max(widths[i], String(r[i]).length);
+for (const r of rows) {
+  const id = String(r[0]).padEnd(widths[0]);
+  const at = String(r[1]).padEnd(widths[1]);
+  const ch = String(r[2]).padStart(3);
+  const name = String(r[3]);
+  const notes = r[4] ? "  — " + String(r[4]).split("\n")[0].slice(0, 60) : "";
+  console.log(`${id}  ${at}  ${ch}c  ${name}${notes}`);
+}
+console.log(`\n${rows.length} song${rows.length === 1 ? "" : "s"}`);
+' "$DIR"

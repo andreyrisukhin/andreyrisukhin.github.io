@@ -21,5 +21,6 @@ Hardcoded practice loops with chord progression, suggested right-hand pattern, a
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script>
+<script src="{{ '/assets/js/music/audio.js?v=1' | relative_url }}"></script>
+<script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-exercises/main.js' | relative_url }}"></script>

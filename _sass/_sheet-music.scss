@@ -1,0 +1,162 @@
+.sheet-music-page--flexoki {
+  --sheet-paper: #fffcf0;
+  --sheet-bg: #f2f0e5;
+  --sheet-bg-soft: #e6e4d9;
+  --sheet-ink: #100f0f;
+  --sheet-muted: #6f6e69;
+  --sheet-faint: #b7b5ac;
+  --sheet-border: #dad8ce;
+  --sheet-border-soft: #e6e4d9;
+  --sheet-accent: #24837b;
+  --sheet-accent-soft: #ddf1e4;
+  --sheet-warning: #af3029;
+  --sheet-shadow: 0 1.25rem 3rem rgba(16, 15, 15, 0.12);
+
+  max-width: min(100%, 74rem);
+  margin: 0 auto;
+  padding: 1.25rem;
+  border: 1px solid var(--sheet-border-soft);
+  border-radius: 1rem;
+  background: radial-gradient(circle at top left, rgba(250, 238, 198, 0.38), transparent 18rem),
+    linear-gradient(180deg, var(--sheet-bg), color-mix(in srgb, var(--sheet-bg) 84%, var(--sheet-paper)));
+  color: var(--sheet-ink);
+}
+
+.sheet-music-page--flexoki .sheet-music-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0 0 1rem;
+}
+
+.sheet-music-page--flexoki .sheet-music-controls .music-share-btn {
+  border-color: var(--sheet-border);
+  background: color-mix(in srgb, var(--sheet-paper) 92%, var(--sheet-bg));
+  color: var(--sheet-muted);
+  box-shadow: 0 1px 0 rgba(16, 15, 15, 0.04);
+
+  &:hover,
+  &:focus {
+    border-color: var(--sheet-accent);
+    background: var(--sheet-accent-soft);
+    color: var(--sheet-ink);
+  }
+}
+
+.sheet-music-page--flexoki #osmd-stradella-toggle.is-pressed,
+.sheet-music-page--flexoki #osmd-stradella-toggle[data-pressed="true"],
+.sheet-music-page--flexoki #osmd-focus-toggle.is-pressed,
+.sheet-music-page--flexoki #osmd-focus-toggle[data-pressed="true"] {
+  border-color: var(--sheet-accent);
+  background: var(--sheet-accent);
+  color: var(--sheet-paper);
+}
+
+.sheet-music-page--flexoki .sheet-music-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  border: 1px solid var(--sheet-border);
+  border-radius: 0.55rem;
+  background: var(--sheet-paper);
+  box-shadow: var(--sheet-shadow);
+  color: var(--sheet-ink);
+}
+
+.sheet-music-page--flexoki .sheet-music-container svg {
+  display: block;
+  margin: 0 auto;
+  color: var(--sheet-ink);
+}
+
+.sheet-music-page--flexoki .sheet-music-status {
+  min-height: 1.25em;
+  margin: 0.85rem 0 0;
+  color: var(--sheet-muted);
+  font-style: italic;
+}
+
+html[data-theme="dark"] .sheet-music-page--flexoki {
+  --sheet-paper: #fffcf0;
+  --sheet-bg: #100f0f;
+  --sheet-bg-soft: #1c1b1a;
+  --sheet-ink: #100f0f;
+  --sheet-muted: #575653;
+  --sheet-faint: #878580;
+  --sheet-border: #343331;
+  --sheet-border-soft: #282726;
+  --sheet-accent: #3aa99f;
+  --sheet-accent-soft: #143f3c;
+  --sheet-warning: #d14d41;
+  --sheet-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.38);
+
+  background: radial-gradient(circle at top left, rgba(36, 30, 8, 0.45), transparent 18rem),
+    linear-gradient(180deg, var(--sheet-bg-soft), var(--sheet-bg));
+  color: #cecdc3;
+}
+
+html[data-theme="dark"] .sheet-music-page--flexoki .sheet-music-controls .music-share-btn {
+  border-color: var(--sheet-border);
+  background: #282726;
+  color: #cecdc3;
+
+  &:hover,
+  &:focus {
+    border-color: var(--sheet-accent);
+    background: var(--sheet-accent-soft);
+    color: #fffcf0;
+  }
+}
+
+html[data-theme="dark"] .sheet-music-page--flexoki #osmd-stradella-toggle.is-pressed,
+html[data-theme="dark"] .sheet-music-page--flexoki #osmd-stradella-toggle[data-pressed="true"],
+html[data-theme="dark"] .sheet-music-page--flexoki #osmd-focus-toggle.is-pressed,
+html[data-theme="dark"] .sheet-music-page--flexoki #osmd-focus-toggle[data-pressed="true"] {
+  color: #100f0f;
+}
+
+html.sheet-music-focus-open,
+html.sheet-music-focus-open body {
+  overflow: hidden;
+}
+
+.sheet-music-page--flexoki.sheet-music-page--focus {
+  position: fixed;
+  inset: 0.75rem;
+  z-index: 10020;
+  max-width: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28);
+}
+
+.sheet-music-page--flexoki.sheet-music-page--focus .sheet-music-controls {
+  position: sticky;
+  top: 0;
+  z-index: 10021;
+  margin: -0.25rem -0.25rem 1rem;
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--sheet-bg) 86%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .sheet-music-page--flexoki {
+    margin-inline: -0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+  }
+
+  .sheet-music-page--flexoki .sheet-music-container {
+    padding: 0.5rem;
+    border-radius: 0.4rem;
+  }
+
+  .sheet-music-page--flexoki.sheet-music-page--focus {
+    inset: 0;
+    border-radius: 0;
+    padding: 0.75rem;
+  }
+}

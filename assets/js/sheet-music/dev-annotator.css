@@ -1,0 +1,904 @@
+.sheet-annotator-preview {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 4px;
+  border: 3px solid #f4c95d;
+  background: rgba(244, 201, 93, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 0 12px rgba(244, 201, 93, 0.55);
+  z-index: 2147483646;
+}
+.sheet-annotator-preview[data-kind="chord-symbol"] {
+  border-color: #3ea6ff;
+  background: rgba(62, 166, 255, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 0 12px rgba(62, 166, 255, 0.55);
+}
+.sheet-annotator-preview[data-kind="region"] {
+  border-color: rgba(180, 180, 180, 0.9);
+  background: rgba(180, 180, 180, 0.18);
+  border-style: dashed;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.sheet-annotator-preview__label {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 3px;
+  background: rgba(20, 20, 24, 0.94);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font:
+    600 10px/1.2 -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    sans-serif;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.sheet-annotator-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #ff5a5f;
+  color: #fff;
+  font:
+    700 11px/1 -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  padding: 0;
+  z-index: 9999;
+  transition: transform 120ms ease;
+}
+.sheet-annotator-pin:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+.sheet-annotator-pin.is-flashing {
+  animation: sheet-annotator-flash 900ms ease-out;
+}
+@keyframes sheet-annotator-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 90, 95, 0.7);
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+  40% {
+    box-shadow: 0 0 0 22px rgba(255, 90, 95, 0);
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.sheet-annotator-sidebar {
+  /* Theme tokens; overridden by the html[data-theme="dark"] block
+     at the bottom of this file. Inner selectors reference these
+     instead of hardcoded rgba() so the sidebar follows the page
+     theme instead of sitting permadark on a light page. */
+  --sa-bg: rgba(252, 252, 253, 0.97);
+  --sa-fg: #1a1a1a;
+  --sa-border: rgba(0, 0, 0, 0.1);
+  --sa-soft-bg: rgba(0, 0, 0, 0.045);
+  --sa-soft-bg-hover: rgba(0, 0, 0, 0.08);
+  --sa-input-bg: rgba(0, 0, 0, 0.03);
+  --sa-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  --sa-handle-shadow: -4px 0 12px rgba(0, 0, 0, 0.08);
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 340px;
+  background: var(--sa-bg);
+  color: var(--sa-fg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 0.88rem;
+  box-shadow: var(--sa-shadow);
+  transform: translateX(0);
+  transition: transform 220ms ease;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-annotator-sidebar.is-collapsed {
+  transform: translateX(calc(100% - 40px));
+}
+
+.sheet-annotator-sidebar__toggle {
+  position: absolute;
+  left: -40px;
+  top: 12px;
+  width: 40px;
+  height: 64px;
+  background: rgba(20, 20, 24, 0.97);
+  color: #fff;
+  border: none;
+  border-radius: 8px 0 0 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+}
+.sheet-annotator-sidebar__toggle-badge {
+  background: #ff5a5f;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 14px;
+  text-align: center;
+}
+.sheet-annotator-sidebar__toggle-label {
+  font-size: 0.7rem;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.sheet-annotator-sidebar__inner {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0.9rem 1rem 1rem;
+  overflow: hidden;
+}
+
+.sheet-annotator-sidebar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.sheet-annotator-sidebar__title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.sheet-annotator-sidebar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff5a5f;
+  box-shadow: 0 0 8px rgba(255, 90, 95, 0.6);
+}
+.sheet-annotator-sidebar__close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 0 0.25rem;
+}
+.sheet-annotator-sidebar__close:hover {
+  opacity: 1;
+}
+
+.sheet-annotator-sidebar__hint {
+  font-size: 0.76rem;
+  opacity: 0.65;
+  margin: 0 0 0.65rem;
+}
+
+.sheet-annotator-sidebar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.8rem;
+}
+.sheet-annotator-sidebar__actions button {
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.3rem 0.55rem;
+  border-radius: 5px;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+.sheet-annotator-sidebar__actions button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.sheet-annotator-sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.sheet-annotator-sidebar__empty {
+  font-size: 0.82rem;
+  opacity: 0.6;
+  font-style: italic;
+  margin: 0;
+}
+
+.sheet-annotator-entry {
+  padding: 0.55rem 0 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sheet-annotator-entry__head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.3rem;
+}
+.sheet-annotator-entry__id {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff5a5f;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.72rem;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.sheet-annotator-entry__ctx {
+  flex: 1 1 auto;
+  font-size: 0.74rem;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.sheet-annotator-entry__delete {
+  background: transparent;
+  color: inherit;
+  border: none;
+  opacity: 0.5;
+  cursor: pointer;
+  padding: 0 0.3rem;
+  font-size: 1rem;
+}
+.sheet-annotator-entry__delete:hover {
+  opacity: 1;
+}
+.sheet-annotator-entry__note {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 0.35rem 0.45rem;
+  font-family: inherit;
+  font-size: 0.83rem;
+  resize: vertical;
+  min-height: 52px;
+}
+.sheet-annotator-entry__note:focus {
+  outline: 2px solid #ff5a5f;
+  outline-offset: -2px;
+  border-color: transparent;
+}
+
+.sheet-annotator-toast {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 24, 0.94);
+  color: #fff;
+  padding: 0.55rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  z-index: 10002;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 640px) {
+  .sheet-annotator-sidebar {
+    width: 85vw;
+  }
+}
+
+.sheet-annotator-sidebar__status {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  opacity: 0.7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.sheet-annotator-sidebar__status.is-warn {
+  color: #ffb44f;
+  opacity: 0.95;
+}
+
+.sheet-annotator-entry__thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0.35rem 0;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #fff;
+}
+
+/* Dev-mode toggle button. Fixed to the viewport so it's always
+   reachable -- the score container is many screens tall and an
+   absolute-positioned toggle would scroll off with it. Anchored
+   bottom-left so it doesn't collide with mobile Safari's
+   bottom-right share-sheet / reload affordances and stays clear
+   of the dev annotator sidebar (which slides in from the right). */
+.sheet-dev-toggle {
+  position: fixed;
+  bottom: 4rem;
+  left: 1rem;
+  z-index: 9996;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.7);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition:
+    opacity 120ms ease-out,
+    transform 120ms ease-out;
+}
+.sheet-dev-toggle:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.sheet-dev-toggle.is-on {
+  background: #1f7a8c;
+  color: #fff;
+  border-color: #1f7a8c;
+  opacity: 0.95;
+  box-shadow: 0 2px 8px rgba(31, 122, 140, 0.4);
+}
+.sheet-dev-toggle.is-on:hover {
+  opacity: 1;
+}
+html[data-theme="dark"] .sheet-dev-toggle {
+  background: rgba(40, 42, 54, 0.95);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.75);
+}
+html[data-theme="dark"] .sheet-dev-toggle.is-on {
+  background: #4fc3d7;
+  color: #1a1a1a;
+  border-color: #4fc3d7;
+}
+
+/* Chord-name tag (hover/click stage 1) */
+.chord-tag {
+  position: absolute;
+  z-index: 9997;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color: #222;
+  border-radius: 4px;
+  padding: 0.2rem 0.45rem;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    opacity 120ms ease-out,
+    transform 120ms ease-out;
+}
+.chord-tag.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.chord-tag.is-sticky {
+  pointer-events: auto;
+  cursor: pointer;
+  border-color: rgba(31, 122, 140, 0.6);
+  box-shadow: 0 4px 14px rgba(31, 122, 140, 0.25);
+}
+.chord-tag__chord {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+.chord-tag__pitch {
+  opacity: 0.65;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+}
+.chord-tag__hint {
+  display: block;
+  font-size: 0.62rem;
+  opacity: 0.5;
+  margin-top: 0.1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Chord inspector popover.
+   Light-mode default; the dark-mode block at the bottom of this file
+   inverts to dark bg + light text. Explicit `code` color is required
+   because _overrides.scss sets a global `code { color: var(--global-text-color) }`
+   that otherwise wins over inheritance and leaves pitch chips
+   unreadable on the popover background. */
+.chord-inspector {
+  position: absolute;
+  z-index: 9998;
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  min-width: 240px;
+  max-width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 0.85rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 160ms ease-out,
+    transform 160ms ease-out;
+}
+.chord-inspector code {
+  color: inherit;
+  background: rgba(0, 0, 0, 0.06);
+}
+.chord-inspector.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.chord-inspector__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.chord-inspector__title {
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+.chord-inspector__close {
+  background: transparent;
+  color: inherit;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 0 0.25rem;
+}
+.chord-inspector__close:hover {
+  opacity: 1;
+}
+.chord-inspector__meta {
+  font-size: 0.72rem;
+  opacity: 0.7;
+  margin-bottom: 0.45rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.chord-inspector__section {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+.chord-inspector__section:first-of-type {
+  margin-top: 0.4rem;
+  padding-top: 0;
+  border-top: none;
+}
+.chord-inspector__section-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin-bottom: 0.15rem;
+}
+.chord-inspector__section-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+.chord-inspector__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.18rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.8rem;
+}
+.chord-inspector__row:first-of-type {
+  border-top: none;
+}
+.chord-inspector__row--note {
+  border-top: none;
+  font-style: italic;
+  opacity: 0.7;
+  font-size: 0.72rem;
+  padding: 0;
+  margin-bottom: 0.25rem;
+}
+.chord-inspector__row > span:first-child {
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+}
+.chord-inspector__row > span:last-child {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: right;
+}
+.chord-inspector__row code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.78rem;
+  margin-right: 2px;
+}
+.chord-inspector__row--hi {
+  color: #b76e00;
+}
+.chord-inspector__stradella {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+.chord-inspector__stradella .stradella-recipe > strong {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  margin-bottom: 0.3rem;
+}
+.chord-inspector__stradella .stradella-recipe__item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+.chord-inspector__stradella .stradella-recipe__item:first-of-type {
+  border-top: none;
+}
+.chord-inspector__stradella .stradella-recipe__voicing {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  color: #b76e00;
+}
+.chord-inspector__stradella .stradella-recipe__note {
+  font-size: 0.72rem;
+  opacity: 0.75;
+  margin-top: 0.1rem;
+}
+.chord-inspector__stradella .stradella-recipe__warn {
+  font-size: 0.7rem;
+  color: #c2185b;
+  margin-top: 0.1rem;
+}
+.chord-inspector__stradella .stradella-recipe__item.is-approx .stradella-recipe__voicing {
+  color: #c97a00;
+  opacity: 0.85;
+}
+.chord-inspector__stradella .stradella-recipe__item.is-bug .stradella-recipe__voicing {
+  color: #b71c1c;
+}
+
+/* ── Dark mode ──────────────────────────────────────────────────
+   OSMD writes inline fill="#000000" / stroke="#000000" on every
+   notehead, stem, beam, ledger line, accidental, clef, time/key
+   signature, slur, tie, and staff line. Black on a near-black
+   background is unreadable, so promote the dark hits to a light
+   ink in dark mode. CSS overrides SVG presentation attributes,
+   and we leave fill="none" / stroke="none" alone so we don't
+   accidentally repaint hollow noteheads or filled regions. */
+html[data-theme="dark"] #osmd-container svg [fill="#000000"] {
+  fill: #d8d8d8;
+}
+html[data-theme="dark"] #osmd-container svg [stroke="#000000"] {
+  stroke: #d8d8d8;
+}
+
+html[data-theme="dark"] .sheet-music-page--flexoki #osmd-container svg [fill="#000000"] {
+  fill: #100f0f;
+}
+html[data-theme="dark"] .sheet-music-page--flexoki #osmd-container svg [stroke="#000000"] {
+  stroke: #100f0f;
+}
+
+/* Hover/click chord tag: invert to a dark pill in dark mode so it
+   stops floating like a UI bug over the score. */
+html[data-theme="dark"] .chord-tag {
+  background: rgba(40, 42, 54, 0.97);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f5f5f7;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+html[data-theme="dark"] .chord-tag.is-sticky {
+  border-color: rgba(79, 195, 215, 0.7);
+  box-shadow: 0 4px 16px rgba(79, 195, 215, 0.35);
+}
+html[data-theme="dark"] .chord-tag__pitch {
+  opacity: 0.7;
+}
+
+/* Chord inspector popover: dark bg + light text in dark mode.
+   Mirrors the chord-tag invert pattern above. */
+html[data-theme="dark"] .chord-inspector {
+  background: rgba(20, 20, 24, 0.97);
+  color: #f5f5f7;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+}
+html[data-theme="dark"] .chord-inspector code,
+html[data-theme="dark"] .chord-inspector__row code {
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+html[data-theme="dark"] .chord-inspector__section,
+html[data-theme="dark"] .chord-inspector__stradella,
+html[data-theme="dark"] .chord-inspector__stradella .stradella-recipe__item {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+html[data-theme="dark"] .chord-inspector__row {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .chord-inspector__row--hi,
+html[data-theme="dark"] .chord-inspector__stradella .stradella-recipe__voicing {
+  color: #ffcb6b;
+}
+html[data-theme="dark"] .chord-inspector__stradella .stradella-recipe__warn {
+  color: #f48fb1;
+}
+html[data-theme="dark"] .chord-inspector__stradella .stradella-recipe__item.is-approx .stradella-recipe__voicing {
+  color: #ffd180;
+}
+html[data-theme="dark"] .chord-inspector__stradella .stradella-recipe__item.is-bug .stradella-recipe__voicing {
+  color: #ef9a9a;
+}
+
+/* In-score Stradella overlay (anchored inside #osmd-container so it
+   moves with zoom/autoresize redraws). Pointer-events none so it
+   never blocks click resolution into the underlying notehead. */
+.stradella-overlay {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: rgba(120, 90, 0, 0.85);
+  background: rgba(255, 246, 220, 0.85);
+  border: 1px solid rgba(180, 140, 0, 0.25);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  z-index: 5;
+}
+html[data-theme="dark"] .stradella-overlay {
+  color: #ffd180;
+  background: rgba(40, 30, 10, 0.7);
+  border-color: rgba(255, 209, 128, 0.3);
+}
+
+/* Toggle button pressed state (matches the existing music-share-btn
+   look, just with a teal accent so it's obvious when it's on). */
+#osmd-stradella-toggle.is-pressed {
+  background: #1f7a8c;
+  border-color: #1f7a8c;
+  color: #fff;
+}
+html[data-theme="dark"] #osmd-stradella-toggle.is-pressed {
+  background: #4fc3d7;
+  border-color: #4fc3d7;
+  color: #1a1a1a;
+}
+
+/* ── Playback bar ────────────────────────────────────────────────
+   Desktop reserves a right-side rail beside the score. Mobile keeps
+   the compact bottom bar. */
+.sheet-music-page--flexoki {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9rem;
+  gap: 1rem;
+  align-items: start;
+}
+.sheet-music-page--flexoki .sheet-music-controls {
+  grid-column: 1 / -1;
+}
+.sheet-music-page--flexoki .sheet-music-container,
+.sheet-music-page--flexoki .sheet-music-status {
+  grid-column: 1;
+}
+.sheet-playback {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  position: sticky;
+  top: 5rem;
+  z-index: 9995;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 9rem;
+  padding: 0.7rem;
+  margin: 0;
+  background: rgba(252, 252, 253, 0.97);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+}
+.sheet-playback__btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  color: inherit;
+}
+.sheet-playback__play {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1f7a8c;
+  color: #fff;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.sheet-playback__play.is-loading {
+  background: #999;
+}
+.sheet-playback__reset {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: transparent;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+.sheet-playback__reset:hover {
+  opacity: 1;
+}
+.sheet-playback__pos {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  min-width: 5.5em;
+  text-align: center;
+}
+.sheet-playback__seek {
+  width: 0.45rem;
+  height: 12rem;
+  accent-color: #1f7a8c;
+  direction: ltr;
+  writing-mode: vertical-lr;
+}
+.sheet-playback__mode,
+.sheet-playback__instrument {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+.sheet-playback__mode select,
+.sheet-playback__instrument select {
+  max-width: 7.75rem;
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: inherit;
+  font: inherit;
+  padding: 0.15rem 0.45rem;
+}
+.sheet-playback__instrument select:disabled {
+  opacity: 0.55;
+}
+.sheet-playback__click-seek {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0;
+  font-size: 0.75rem;
+  text-align: center;
+  opacity: 0.85;
+}
+.sheet-playback__click-seek input {
+  accent-color: #1f7a8c;
+}
+
+@media (max-width: 768px) {
+  .sheet-music-page--flexoki {
+    display: block;
+  }
+  .sheet-playback {
+    position: fixed;
+    bottom: 1rem;
+    top: auto;
+    left: 50%;
+    flex-direction: row;
+    width: auto;
+    transform: translateX(-50%);
+    z-index: 9995;
+    margin: 0;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+  }
+  .sheet-playback__seek {
+    width: 120px;
+    height: auto;
+    direction: ltr;
+    writing-mode: horizontal-tb;
+  }
+  .sheet-playback__pos {
+    min-width: 4.5em;
+    font-size: 0.72rem;
+  }
+  .sheet-playback__mode span,
+  .sheet-playback__instrument span {
+    display: none;
+  }
+  .sheet-playback__mode select,
+  .sheet-playback__instrument select {
+    max-width: 7rem;
+  }
+  .sheet-playback__click-seek span {
+    display: none;
+  }
+}
+
+html[data-theme="dark"] .sheet-playback {
+  background: rgba(20, 20, 24, 0.97);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f5f5f7;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+html[data-theme="dark"] .sheet-playback__reset {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+html[data-theme="dark"] .sheet-playback__mode select,
+html[data-theme="dark"] .sheet-playback__instrument select {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .sheet-playback__play {
+  background: #4fc3d7;
+  color: #1a1a1a;
+}

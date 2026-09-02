@@ -1,0 +1,153 @@
+{
+  "version": 2,
+  "source": "mc_noteblock_v1.sf2",
+  "sampleFormat": "wav",
+  "renderedVelocity": 110,
+  "renderedDurationMs": 1800,
+  "instruments": [
+    {
+      "name": "Banjo",
+      "slug": "banjo",
+      "bank": 0,
+      "program": 0,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/banjo.wav"
+    },
+    {
+      "name": "Bass",
+      "slug": "bass",
+      "bank": 0,
+      "program": 1,
+      "baseNote": 42,
+      "noteRange": [30, 54],
+      "sample": "/assets/music/bayan-simulator/bass.wav"
+    },
+    {
+      "name": "Bit",
+      "slug": "bit",
+      "bank": 0,
+      "program": 2,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/bit.wav"
+    },
+    {
+      "name": "Chime",
+      "slug": "chime",
+      "bank": 0,
+      "program": 3,
+      "baseNote": 90,
+      "noteRange": [78, 102],
+      "sample": "/assets/music/bayan-simulator/chime.wav"
+    },
+    {
+      "name": "Click",
+      "slug": "click",
+      "bank": 0,
+      "program": 4,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/click.wav"
+    },
+    {
+      "name": "Cowbell",
+      "slug": "cowbell",
+      "bank": 0,
+      "program": 5,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/cowbell.wav"
+    },
+    {
+      "name": "Didgeridoo",
+      "slug": "didgeridoo",
+      "bank": 0,
+      "program": 6,
+      "baseNote": 42,
+      "noteRange": [30, 54],
+      "sample": "/assets/music/bayan-simulator/didgeridoo.wav"
+    },
+    {
+      "name": "Flute",
+      "slug": "flute",
+      "bank": 0,
+      "program": 7,
+      "baseNote": 78,
+      "noteRange": [66, 90],
+      "sample": "/assets/music/bayan-simulator/flute.wav"
+    },
+    {
+      "name": "Glockenspiel",
+      "slug": "glockenspiel",
+      "bank": 0,
+      "program": 8,
+      "baseNote": 90,
+      "noteRange": [78, 102],
+      "sample": "/assets/music/bayan-simulator/glockenspiel.wav"
+    },
+    {
+      "name": "Guitar",
+      "slug": "guitar",
+      "bank": 0,
+      "program": 9,
+      "baseNote": 54,
+      "noteRange": [42, 66],
+      "sample": "/assets/music/bayan-simulator/guitar.wav"
+    },
+    {
+      "name": "Harp",
+      "slug": "harp",
+      "bank": 0,
+      "program": 10,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/harp.wav"
+    },
+    {
+      "name": "Kick",
+      "slug": "kick",
+      "bank": 0,
+      "program": 11,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/kick.wav"
+    },
+    {
+      "name": "Pling",
+      "slug": "pling",
+      "bank": 0,
+      "program": 12,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/pling.wav"
+    },
+    {
+      "name": "Snare",
+      "slug": "snare",
+      "bank": 0,
+      "program": 13,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/snare.wav"
+    },
+    {
+      "name": "Vibraphone",
+      "slug": "vibraphone",
+      "bank": 0,
+      "program": 14,
+      "baseNote": 66,
+      "noteRange": [54, 78],
+      "sample": "/assets/music/bayan-simulator/vibraphone.wav"
+    },
+    {
+      "name": "Xylophone",
+      "slug": "xylophone",
+      "bank": 0,
+      "program": 15,
+      "baseNote": 90,
+      "noteRange": [78, 102],
+      "sample": "/assets/music/bayan-simulator/xylophone.wav"
+    }
+  ]
+}

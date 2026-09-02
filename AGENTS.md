@@ -9,10 +9,12 @@ Companion file: `DESIGN.md` covers visual layout (image spacing, figure conventi
 When I share prose (drafts of `_posts/*.md`, `_news/*.md`, `_pages/*.md`, README sections), the default response is a **critique with specific, line-referenced edits**, not a rewritten draft. Only rewrite when I explicitly ask ("rewrite this", "give me a version", etc.).
 
 A good critique:
+
 - Quotes the offending phrase, then says what is wrong, then proposes a concrete shorter alternative.
 - Is ordered worst-offender first.
 - Distinguishes mechanical issues (grammar, voice) from substantive ones (claim is vague, evidence is missing, structure buries the lede).
 - Stops when there is nothing more to say. No filler, no "great work overall."
+- Includes a Zinsser pass: cut dead words, qualifiers, passive constructions, adverb crutches, throat-clearing openings, long words with short equivalents, and recap endings.
 
 ## Voice I am writing in
 
@@ -32,10 +34,13 @@ Reject these on sight in my drafts:
 8. **Sentences over ~25 words** when they could be split. Long sentences are fine when load-bearing; not as default.
 9. **Bulleted lists used as a thinking shortcut** when the items are not actually parallel, or when prose would carry the idea better.
 10. **Closing summaries that restate the post.** End on the strongest concrete sentence, not a recap.
+11. **Long words where short words would do.** "Utilize" → "use"; "demonstrate" → "show"; "facilitate" → "help".
+12. **Mushy endings.** Stop on the last real idea. Do not add a paragraph that explains the ending.
 
 ## Substantive checks
 
 Beyond mechanics, ask:
+
 - What is the one sentence this post exists to deliver? Is it in the first paragraph?
 - What claim is made without evidence? What number, anecdote, or example would back it?
 - What does the reader know at the end that they did not know at the start? If the answer is "nothing specific", the post is not ready.

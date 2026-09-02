@@ -27,14 +27,14 @@ pre {
 // See DESIGN.md, principle 1: pictures need room to breathe.
 // :not(.highlight):not(.cover) avoids touching code-block figures and the
 // hero/cover figure which have their own layout rules.
-figure:not(.highlight):not(.cover) {
+figure.figure-spaced:not(.highlight):not(.cover) {
   margin-top: 2.5rem;
   margin-bottom: 2.5rem;
 }
 
 // Adjacent figures (no prose between them) should not collapse into each
 // other. Force a real gap between back-to-back images.
-figure:not(.highlight):not(.cover) + figure:not(.highlight):not(.cover) {
+figure.figure-spaced:not(.highlight):not(.cover) + figure.figure-spaced:not(.highlight):not(.cover) {
   margin-top: 2.5rem;
 }
 

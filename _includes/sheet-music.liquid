@@ -1,0 +1,58 @@
+{% assign sheet_slug = include.slug %}
+{% assign sheet_dir = include.asset_dir | default: sheet_slug %}
+{% assign musicxml_path = '/assets/music/sheet-music/' | append: sheet_dir | append: '/' | append: sheet_slug | append: '.musicxml' %}
+{% assign mscz_path = '/assets/music/sheet-music/' | append: sheet_dir | append: '/' | append: sheet_slug | append: '.mscz' %}
+
+<div
+  class="sheet-music-page sheet-music-page--flexoki"
+  data-musicxml-url="{{ musicxml_path | relative_url }}"
+  {% if include.rendered_audio %}
+    data-rendered-audio-url="{{ include.rendered_audio | relative_url }}"
+  {% endif %}
+  {% if include.timing_json %}
+    data-timing-url="{{ include.timing_json | relative_url }}"
+  {% endif %}
+>
+  <div class="sheet-music-controls">
+    <button id="osmd-zoom-out" class="music-share-btn" type="button">−</button>
+    <button id="osmd-zoom-reset" class="music-share-btn" type="button">Reset zoom</button>
+    <button id="osmd-zoom-in" class="music-share-btn" type="button">+</button>
+    <button id="osmd-stradella-toggle" class="music-share-btn" type="button" data-pressed="false">Show Stradella</button>
+    <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false">Focus score</button>
+    <a class="music-share-btn" href="{{ mscz_path | relative_url }}" download>Download .mscz</a>
+    <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
+  </div>
+
+  <div id="osmd-container" class="sheet-music-container"></div>
+  <p id="osmd-status" class="sheet-music-status">Loading score…</p>
+
+  <noscript>
+    <p>This page renders sheet music client-side with JavaScript. Download the MusicXML or `.mscz` above to view it in another application.</p>
+  </noscript>
+</div>
+
+<link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css?v=4' | relative_url }}">
+
+<script>
+  window.StradellaButtons = {
+    {% for btn in site.data.music.stradella_buttons.buttons %}
+    {{ btn.id | jsonify }}: {{ btn.offsets | jsonify }}{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  };
+</script>
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/audio.js?v=1' | relative_url }}"></script>
+<script src="{{ '/assets/js/sheet-music/osmd-bridge.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/chord-inspector.js' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/dev-annotator.js?v=2' | relative_url }}"></script>
+{% if include.playback %}
+  <script defer src="{{ '/assets/js/sheet-music/playback.js?v=5' | relative_url }}"></script>
+{% endif %}
+<script src="{{ '/assets/js/vendor/opensheetmusicdisplay.min.js' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/page.js?v=1' | relative_url }}"></script>

@@ -1,4 +1,4 @@
-// Music Exercises — hardcoded practice progressions with playback.
+// Music Exercises: hardcoded practice progressions with playback.
 // The right-hand pattern is a single bar (with sub-beat resolution so you can
 // place off-beat notes and rests) that repeats across every chord. The LH
 // plays the progression as staccato quarter notes. A combined share string
@@ -195,6 +195,7 @@
   // ── Audio ──
 
   function ensureAudio() {
+    if (window.MusicAudio) return window.MusicAudio.ensureContext(runtime, "audioCtx");
     if (!runtime.audioCtx) {
       runtime.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
@@ -242,6 +243,16 @@
   // library is unavailable (offline, CDN blocked). Callers fall back to the
   // pure Web Audio synth voice below.
   function loadPiano() {
+    if (window.MusicAudio) {
+      return window.MusicAudio.loadSoundfont(runtime, {
+        contextKey: "audioCtx",
+        instrumentKey: "piano",
+        loadingKey: "pianoLoading",
+        failedKey: "pianoFailed",
+        name: "acoustic_grand_piano",
+        soundfont: "MusyngKite",
+      });
+    }
     if (runtime.piano) return Promise.resolve(runtime.piano);
     if (runtime.pianoFailed) return Promise.resolve(null);
     if (runtime.pianoLoading) return runtime.pianoLoading;
@@ -509,11 +520,11 @@
   // The YAML theory text uses {{token}} placeholders so that chord names,
   // note names, and key references stay correct when the user transposes.
   // Tokens available:
-  //   {{keyName}}, {{minorKeyName}}      — tonic of the major key / its relative minor
-  //   {{rh.0}} … {{rh.N}}                — right-hand pedal tone names
-  //   {{prog.N.chord|root|roman}}        — per-progression-step values
-  //   {{rootsCycle}}, {{rootsList}}      — roots joined by arrows / commas
-  //   {{rolesTable}}                     — generated interval-role table HTML
+  //   {{keyName}}, {{minorKeyName}}      : tonic of the major key / its relative minor
+  //   {{rh.0}} … {{rh.N}}                : right-hand pedal tone names
+  //   {{prog.N.chord|root|roman}}        : per-progression-step values
+  //   {{rootsCycle}}, {{rootsList}}      : roots joined by arrows / commas
+  //   {{rolesTable}}                     : generated interval-role table HTML
 
   function buildTheoryContext(ex, key) {
     var prog = ex.progression.map(function (step) {
@@ -597,7 +608,7 @@
   // ── Circle of fifths ──
 
   // Clockwise from 12 o'clock, each step is up a perfect fifth. So moving
-  // counter-clockwise is "down a fifth" — the natural direction of this
+  // counter-clockwise is "down a fifth", the natural direction of this
   // cycle-of-fifths progression.
   var CIRCLE_PCS = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5];
 
@@ -740,7 +751,7 @@
         ')"/>';
     }
 
-    // Origin is the tonal "home" of the cycle — where progression starts
+    // Origin is the tonal "home" of the cycle, where progression starts
     // and resolves back to. Marking it makes the visual direction of motion
     // readable at a glance (you see where you came from, where you're going).
     var originPc = progPcs.length ? progPcs[0] : -1;
@@ -763,7 +774,7 @@
       svg += "</g>";
     }
 
-    // Traveling playhead — a small glowing disk that animates between the
+    // Traveling playhead: a small glowing disk that animates between the
     // active chord nodes during playback. It lives at the end of the SVG
     // so it draws on top of arrows and nodes. Its cx/cy have a CSS
     // transition, so updating them moves it smoothly around the circle.
@@ -775,7 +786,7 @@
 
     var html = '<div class="exercises-circle">';
     html +=
-      '<div class="exercises-circle__legend">Circle of fifths. The <strong>shaded 180° arc</strong> is the diatonic half of the key — every chord root of a major key lives there, which is why only half the circle lights up in any transposition. The ringed node is <strong>home</strong>. Arrows walk counter-clockwise (each a descending 5th); the <strong>dashed diameter</strong> is the tritone between IV and VII — a literal diameter of the circle, and the only "shortcut" the progression takes across the gap. Hit Play to watch the playhead traverse.</div>';
+      '<div class="exercises-circle__legend">Circle of fifths. The <strong>shaded 180° arc</strong> is the diatonic half of the key: every chord root of a major key lives there, which is why only half the circle lights up in any transposition. The ringed node is <strong>home</strong>. Arrows walk counter-clockwise (each a descending 5th); the <strong>dashed diameter</strong> is the tritone between IV and VII, a literal diameter of the circle, and the only "shortcut" the progression takes across the gap. Hit Play to watch the playhead traverse.</div>';
     html += '<div class="exercises-circle__wrap">' + svg + "</div>";
     html += "</div>";
     return html;
@@ -824,7 +835,7 @@
 
     var html = '<div class="exercises-sheet">';
     html +=
-      '<div class="exercises-sheet__legend">One bar of right-hand rhythm, repeated under every chord. Click a slot to toggle between note and rest — use the off-beats (e, &amp;, a) for syncopation.</div>';
+      '<div class="exercises-sheet__legend">One bar of right-hand rhythm, repeated under every chord. Click a slot to toggle between note and rest. Use the off-beats (e, &amp;, a) for syncopation.</div>';
 
     // Beat-number strip above the staves
     html += '<div class="exercises-sheet__row exercises-sheet__row--head">';
@@ -848,7 +859,7 @@
       html += '<div class="exercises-sheet__label">' + M.esc(noteName) + "</div>";
       html += '<div class="exercises-sheet__staff" style="--slots: ' + cols + "; --subdivs: " + sub + ';">';
       html += '<div class="exercises-sheet__line"></div>';
-      // Beat separators (internal only — skip the leading edge)
+      // Beat separators (internal only, skip the leading edge)
       for (var b = 1; b < bpb; b++) {
         html += '<div class="exercises-sheet__beatsep" style="--slot: ' + b * sub + ';"></div>';
       }
