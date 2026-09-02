@@ -3,7 +3,7 @@ layout: page
 permalink: /teaching/
 title: teaching
 description: Courses I served as Teaching Assistant for at the University of Washington.
-nav: true
+nav: false
 nav_order: 6
 ---
 
