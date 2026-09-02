@@ -1,0 +1,23 @@
+_config.yml
+  2e1bee73bd7a607e 89-90,124,276-277
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "48a85e3553fcfa15d5bc4010178730e7f1ccc9d8",
+  "prompts": {
+    "2e1bee73bd7a607e": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "8fe1a827-67f3-42a1-aea0-fd8cae0461ac",
+        "model": "deepseek-v4-pro"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 11,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
