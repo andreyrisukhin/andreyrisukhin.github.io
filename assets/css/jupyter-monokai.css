@@ -521,6 +521,13 @@ hr {
   z-index: 10;
 }
 
+mark,
+.mark {
+  background-color: #282828;
+  color: #f8f8f0;
+  padding: 0.15em;
+}
+
 #toc a,
 .toc {
   color: #f8f8f0 !important;

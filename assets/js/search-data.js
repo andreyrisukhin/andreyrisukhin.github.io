@@ -44,7 +44,18 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/kata/";
               },
-            },{id: "post-clocking-in-to-the-factory",
+            },{id: "post-trying-to-measure-my-best-work",
+        
+          title: "Trying to Measure My Best Work",
+        
+        description: "Intermediate thoughts on a six-week challenge, a weekly automation, and the missing context needed to measure judgment.",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/best-work-stays-recent/";
+          
+        },
+      },{id: "post-clocking-in-to-the-factory",
         
           title: "Clocking In to the Factory",
         
