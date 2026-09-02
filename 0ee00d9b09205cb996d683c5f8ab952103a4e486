@@ -1,0 +1,66 @@
+_sass/_base.scss
+  de92b5eb6cfda7a6 250,254-257,260-262,268-270,273-303,307,321-329,333-368,370-371
+_includes/header.liquid
+  de92b5eb6cfda7a6 74,85
+_pages/blog.md
+  de92b5eb6cfda7a6 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "0ee00d9b09205cb996d683c5f8ab952103a4e486",
+  "prompts": {
+    "44ccb3014d0b79da": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "08400f1a-810c-4ac7-b7d8-d5543726d9f0",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1644,
+      "overriden_lines": 0
+    },
+    "de92b5eb6cfda7a6": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "dc377005-9a7e-43e6-88eb-e43ae744c37e",
+        "model": "gpt-5.6-sol-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 405,
+      "total_deletions": 135,
+      "accepted_lines": 641,
+      "overriden_lines": 0
+    },
+    "e43314323a5312c4": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "1ad5c3c9-7680-431d-9585-cd5de35ed16e",
+        "model": "gpt-5.5-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "f67ee87b42ad6130": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "5c520741-2ef4-4d68-a92e-e1280cc2c4a3",
+        "model": "gpt-5.5-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 416,
+      "overriden_lines": 0
+    }
+  }
+}
