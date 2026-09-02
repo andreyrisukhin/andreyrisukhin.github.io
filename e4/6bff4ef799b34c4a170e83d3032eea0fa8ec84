@@ -1,0 +1,76 @@
+_posts/2026-08-29-best-work-stays-recent.md
+  de92b5eb6cfda7a6 9,16,20,22,25-30,32,34
+  d7e190b766e2c495 1-8,10-11,15,19,21,23,33,35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "e46bff4ef799b34c4a170e83d3032eea0fa8ec84",
+  "prompts": {
+    "44ccb3014d0b79da": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "08400f1a-810c-4ac7-b7d8-d5543726d9f0",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 1744,
+      "total_deletions": 101,
+      "accepted_lines": 1644,
+      "overriden_lines": 0
+    },
+    "d7e190b766e2c495": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "ce9b9f42-0482-46e3-8ec2-4f6edcdc95e1",
+        "model": "gpt-5.6-sol-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 190,
+      "total_deletions": 107,
+      "accepted_lines": 16,
+      "overriden_lines": 4
+    },
+    "de92b5eb6cfda7a6": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "dc377005-9a7e-43e6-88eb-e43ae744c37e",
+        "model": "gpt-5.6-sol-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 47,
+      "total_deletions": 80,
+      "accepted_lines": 12,
+      "overriden_lines": 2
+    },
+    "e43314323a5312c4": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "1ad5c3c9-7680-431d-9585-cd5de35ed16e",
+        "model": "gpt-5.5-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "f67ee87b42ad6130": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "5c520741-2ef4-4d68-a92e-e1280cc2c4a3",
+        "model": "gpt-5.5-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 421,
+      "total_deletions": 1,
+      "accepted_lines": 415,
+      "overriden_lines": 1
+    }
+  }
+}
