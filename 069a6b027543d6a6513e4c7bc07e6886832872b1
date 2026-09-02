@@ -1,0 +1,37 @@
+assets/js/music-exercises/main.js
+  d4f9ba8a63ad1d4d 32,36-37,57,60-61,104-115,117-132,135-350,352-365,426,508-513,633-634,636-637,652,654,661-663,666-670,679-684,691,765,767-768,785,829-830,834,1102,1116,1129-1130,1199-1264,1268-1341,1350,1353,1426-1429,1432-1434,1440,1444-1445,1457,1466-1499,1542-1588,1726-1734
+_pages/music-exercises.md
+  d4f9ba8a63ad1d4d 7
+_data/music/exercises.yml
+  d4f9ba8a63ad1d4d 80-169
+assets/css/main.scss
+  d4f9ba8a63ad1d4d 24
+_sass/_sheet-builder.scss
+  d4f9ba8a63ad1d4d 1-67
+_pages/music-sheet-builder.md
+  d4f9ba8a63ad1d4d 1-19
+_sass/_music-exercises.scss
+  d4f9ba8a63ad1d4d 13,18-45,49,103-108,389-391,497-512,515-682
+assets/js/sheet-builder/main.js
+  d4f9ba8a63ad1d4d 1-142,146-239,243-292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "069a6b027543d6a6513e4c7bc07e6886832872b1",
+  "prompts": {
+    "d4f9ba8a63ad1d4d": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "448e83bc-de79-4fcc-a091-8de57b3668cd",
+        "model": "gpt-5.5-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 1528,
+      "total_deletions": 301,
+      "accepted_lines": 1248,
+      "overriden_lines": 5
+    }
+  }
+}
