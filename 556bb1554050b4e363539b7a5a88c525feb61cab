@@ -1,0 +1,31 @@
+assets/js/workbench/model.js
+  d6ab7c7ab3cb561b 1-173,175-242
+assets/js/workbench/main.js
+  d6ab7c7ab3cb561b 1,4-13,15-27,29-33,35-36,38-39,41-42,44-49,51-73,75-86,88-91,93-95,97-107,111-116,118-124,127-133,135-140,142-160,162-187,189-190,192-211,213-227,229-258,260-289,291-311,314-329,331-339,343-364,366-370,373-375,379-385,388-391,393-398,401-418,420-424,426-440,442-474,477-480,482-506,510-520,524-527,529-533,535,539-540,542,544-547,553,555-578,581-590,593-599,602-606,608-611,613-616,618-621,624-633,635-640,642-655,657-694,696-699,701-766
+_includes/music-workbench.liquid
+  d6ab7c7ab3cb561b 31-54,85-88
+_scripts/workbench-model-test.js
+  d6ab7c7ab3cb561b 1-136
+assets/js/music/common.js
+  d6ab7c7ab3cb561b 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "556bb1554050b4e363539b7a5a88c525feb61cab",
+  "prompts": {
+    "d6ab7c7ab3cb561b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "c9d789d1-eb2e-49b4-af10-cc4aa7207822",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 1331,
+      "total_deletions": 1254,
+      "accepted_lines": 1130,
+      "overriden_lines": 1
+    }
+  }
+}
