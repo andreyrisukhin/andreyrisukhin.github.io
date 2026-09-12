@@ -1,0 +1,29 @@
+assets/js/workbench/main.js
+  d6ab7c7ab3cb561b 965
+_config.yml
+  d6ab7c7ab3cb561b 52,189-193
+_pages/music.md
+  d6ab7c7ab3cb561b 2-6,8-9,12,14-55
+.github/workflows/broken-links.yml
+  d6ab7c7ab3cb561b 52-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "fd66952c0490e8e766cbd256723d637db1793785",
+  "prompts": {
+    "d6ab7c7ab3cb561b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "c9d789d1-eb2e-49b4-af10-cc4aa7207822",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 68,
+      "total_deletions": 90,
+      "accepted_lines": 65,
+      "overriden_lines": 0
+    }
+  }
+}
