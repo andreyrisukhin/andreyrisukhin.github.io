@@ -39,6 +39,11 @@
   p {
     line-height: 1.5;
   }
+  p a,
+  footer a {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
   button,
   input,
   select,
@@ -79,14 +84,51 @@
   .music-toggle-btn {
     flex-shrink: 0;
   }
+  .music-table-scroll,
+  .stradella-catalog {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 4px;
+  }
+  .music-table-scroll {
+    margin: 1rem 0;
+    table {
+      min-width: 600px;
+      margin-bottom: 0;
+    }
+  }
+  :is(.music-table-scroll, .stradella-catalog, .wb-table-scroll, .wb-keyboard-scroll):focus-visible {
+    outline: 2px solid var(--music-accent);
+    outline-offset: 2px;
+  }
   footer {
     border-top: 1px solid var(--music-rule);
   }
   .music-page {
     padding-bottom: 3rem;
   }
+  .music-update-notice {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--music-rule);
+    font-size: 0.875rem;
+    button {
+      border: 1px solid var(--music-rule);
+      border-radius: 3px;
+      background: var(--music-surface);
+      color: var(--music-accent);
+      padding: 0.5rem 1rem;
+    }
+  }
+  > .container.mt-5 {
+    margin-top: 1.5rem !important;
+  }
   .music-page-header {
-    margin: 2rem 0;
+    margin: 1.25rem 0;
     max-width: 46rem;
   }
   .music-eyebrow,
@@ -95,7 +137,7 @@
     color: var(--music-muted);
   }
   .music-eyebrow {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
   .music-eyebrow span {
     margin: 0 0.5rem;
@@ -133,7 +175,7 @@
     display: block;
     color: var(--music-ink);
     padding: 0.75rem 0;
-    span {
+    > span {
       display: block;
     }
     .music-small {
@@ -153,7 +195,7 @@
   }
   .workbench {
     border-top: 1px solid var(--music-rule);
-    padding-top: 1.5rem;
+    padding-top: 1rem;
   }
   .workbench-input-row {
     label {
@@ -268,8 +310,8 @@
     display: none !important;
   }
   .wb-transport {
-    margin: 0 0 1.5rem;
-    padding: 1rem 0;
+    margin: 0 0 1rem;
+    padding: 0.5rem 0;
     border-block: 1px solid var(--music-rule);
   }
   .wb-play-actions {
@@ -313,6 +355,9 @@
       width: fit-content;
     }
   }
+  .wb-library {
+    margin: 0.5rem 0 0;
+  }
   #workbench-share-result {
     margin-top: 1rem;
     input {
@@ -321,7 +366,9 @@
     }
   }
   .wb-key-select {
-    margin: 0 0 1rem;
+    margin: 1rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--music-rule);
   }
   .wb-section-heading {
     display: flex;
@@ -655,6 +702,15 @@ html[data-theme="dark"] .music-notebook {
   --music-accent: #f1a4a5;
   --music-on-accent: #291619;
   --music-rule: #65594c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.transition .music-notebook,
+  html.transition .music-notebook *,
+  html.transition .music-notebook *::before,
+  html.transition .music-notebook *::after {
+    transition: none !important;
+  }
 }
 
 .home-music-link {

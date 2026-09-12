@@ -12,7 +12,14 @@ window.WorkbenchDiagrams = (function () {
     var height = (top + 4) * 6 + 36;
     var bottom = height - 36;
     var width = Math.max(260, 58 + voices.length * 48);
-    var html = '<svg class="wb-staff" role="group" aria-label="Chord tones in ascending pitch order" viewBox="0 0 ' + width + " " + height + '">';
+    var html =
+      '<svg class="wb-staff" role="group" aria-label="Chord tones in ascending pitch order" style="min-width:' +
+      width +
+      'px" viewBox="0 0 ' +
+      width +
+      " " +
+      height +
+      '">';
     [0, 2, 4, 6, 8].forEach(function (step) {
       var y = bottom - step * 6;
       html += '<line x1="36" y1="' + y + '" x2="' + (width - 8) + '" y2="' + y + '"/>';

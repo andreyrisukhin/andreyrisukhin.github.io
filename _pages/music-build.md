@@ -89,7 +89,7 @@ Click a chord to add it to the set list at the current key.
 </div>
 
 <div class="music-key-bar" id="stradella-key-bar"></div>
-<div id="stradella-catalog" class="stradella-catalog"></div>
+<div id="stradella-catalog" class="stradella-catalog" tabindex="0" role="region" aria-label="Chord catalog, scroll horizontally in Grid view"></div>
 
 <noscript><p>This interactive tool requires JavaScript.</p></noscript>
 

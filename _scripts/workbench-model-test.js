@@ -126,6 +126,11 @@ test("single notes and unmatched sets still have voices", () => {
   assert.equal(Model.voices(Model.fromNotes([0])).length, 1);
   assert.deepEqual(json(Model.fromNotes([0, 0, 4, 7]).notes), [0, 4, 7]);
 });
+test("dense notation keeps full-size scrollable note targets", () => {
+  const diagram = sandbox.WorkbenchDiagrams.staff(Model.fromNotes([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]));
+  assert.ok(diagram.includes('style="min-width:634px"'));
+  assert.ok(diagram.includes('width="44" height="44"'));
+});
 test("all supported catalog chords survive a save roundtrip", () => {
   sandbox.StradellaData.CHORDS.filter((c) => !c.bug && sandbox.Music.chordInfo(0, c.suffix)).forEach((c) => {
     const model = Model.fromSuffix(0, c.suffix);

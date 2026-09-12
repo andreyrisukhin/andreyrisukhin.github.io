@@ -26,12 +26,14 @@ layout: default
     >
     <a href="{{ '/music/#field-notes' | relative_url }}">Read</a>
   </nav>
-  <header class="music-page-header">
-    <p class="music-eyebrow">Andrey’s music notebook <span aria-hidden="true">/</span> Bayan &amp; harmony</p>
-    <h1>{{ page.title }}</h1>
-    {% if page.description %}
-      <p class="music-lead">{{ page.description }}</p>
-    {% endif %}
-  </header>
-  <article>{{ content }}</article>
+  <article>
+    <header class="music-page-header">
+      <p class="music-eyebrow">Andrey’s music notebook <span aria-hidden="true">/</span> Bayan &amp; harmony</p>
+      <h1>{{ page.title }}</h1>
+      {% if page.description %}
+        <p class="music-lead">{{ page.description }}</p>
+      {% endif %}
+    </header>
+    {{ content }}
+  </article>
 </div>

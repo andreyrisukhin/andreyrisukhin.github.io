@@ -3,15 +3,15 @@ permalink: /manifest.webmanifest
 sitemap: false
 ---
 {
-  "name": "Andrey's Music Assistant",
-  "short_name": "Music",
-  "description": "Offline-first chord recognizer, Stradella recipes, blues helper, and music theory references.",
+  "name": "Andrey’s Bayan Notebook",
+  "short_name": "Bayan",
+  "description": "Explore chords as notes, bayan buttons, notation, and sound. Keep practice in this browser.",
   "start_url": "/music/",
   "scope": "/music/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#faf7f0",
+  "theme_color": "#faf7f0",
   "icons": [
     {
       "src": "/assets/img/pwa/icon-192.png",

@@ -17,6 +17,8 @@ A flat lowers a degree by one semitone; a sharp raises it by one. For example, `
 
 ## Common scales
 
+<div class="music-table-scroll" tabindex="0" role="region" aria-label="Common scales, scroll horizontally" markdown="1">
+
 | Scale            | Formula          | Step pattern            | Example                      |
 | ---------------- | ---------------- | ----------------------- | ---------------------------- |
 | Major            | 1 2 3 4 5 6 7    | W W H W W W H           | C D E F G A B                |
@@ -29,11 +31,15 @@ A flat lowers a degree by one semitone; a sharp raises it by one. For example, `
 | Whole tone       | 1 2 3 ♯4 ♯5 ♭7   | W W W W W W             | C D E F♯ G♯ B♭               |
 | Chromatic        | All 12 pitches   | H H H H H H H H H H H H | C C♯ D D♯ E F F♯ G G♯ A A♯ B |
 
+</div>
+
 `3H` means three semitones. In classical music, melodic minor usually returns to natural minor when descending. Jazz melodic minor keeps the raised 6th and 7th in both directions.
 
 ## Major keys and their relative minors
 
 Each pair below uses the same seven notes. The tonic determines whether the music sounds major or minor.
+
+<div class="music-table-scroll" tabindex="0" role="region" aria-label="Major keys and relative minors, scroll horizontally" markdown="1">
 
 | Major key | Major-scale notes   | Relative minor | Natural-minor notes |
 | --------- | ------------------- | -------------- | ------------------- |
@@ -50,9 +56,13 @@ Each pair below uses the same seven notes. The tonic determines whether the musi
 | B♭        | B♭ C D E♭ F G A     | G minor        | G A B♭ C D E♭ F     |
 | B         | B C♯ D♯ E F♯ G♯ A♯  | G♯ minor       | G♯ A♯ B C♯ D♯ E F♯  |
 
+</div>
+
 ## The seven modes
 
 The modes use the same major-scale interval pattern but place the tonic on a different degree. The examples below all use the notes of C major.
+
+<div class="music-table-scroll" tabindex="0" role="region" aria-label="Modes, scroll horizontally" markdown="1">
 
 | Mode                    | Formula            | Example       |
 | ----------------------- | ------------------ | ------------- |
@@ -63,6 +73,8 @@ The modes use the same major-scale interval pattern but place the tonic on a dif
 | Mixolydian              | 1 2 3 4 5 6 ♭7     | G A B C D E F |
 | Aeolian (natural minor) | 1 2 ♭3 4 5 ♭6 ♭7   | A B C D E F G |
 | Locrian                 | 1 ♭2 ♭3 4 ♭5 ♭6 ♭7 | B C D E F G A |
+
+</div>
 
 ## How scales relate
 
@@ -76,9 +88,13 @@ The modes use the same major-scale interval pattern but place the tonic on a dif
 
 Build a triad by taking a scale degree, skipping the next note, and taking the following note twice. In C major, this gives C–E–G. Repeating the process on each degree produces:
 
+<div class="music-table-scroll" tabindex="0" role="region" aria-label="Chords from scales, scroll horizontally" markdown="1">
+
 | Scale         | I     | II         | III   | IV    | V     | VI    | VII        |
 | ------------- | ----- | ---------- | ----- | ----- | ----- | ----- | ---------- |
 | Major         | major | minor      | minor | major | major | minor | diminished |
 | Natural minor | minor | diminished | major | minor | minor | major | major      |
+
+</div>
 
 See the [chord reference](/music/chords/) for seventh chords and other scale types.

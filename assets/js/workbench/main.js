@@ -57,6 +57,7 @@
     state.label = options.label || "";
     state.degrees = options.degrees || null;
     input.removeAttribute("aria-invalid");
+    document.getElementById("workbench-share-result").hidden = true;
     if (options.syncInput) setInputFromState();
     render();
     announce(current() ? current().name + (state.items.length > 1 ? ", progression of " + state.items.length + " chords." : ".") : "");
@@ -296,6 +297,7 @@
       Diagrams.keyboard(model) +
       '<p class="music-small">Rotated pitch map. Three semitones along a row, one between rows. Press a button to hear it.</p></section></div>' +
       recipe(model);
+    html += keyBar();
     html += '<details class="workbench-disclosure wb-theory"' + (state.theory ? " open" : "") + "><summary>Theory &amp; other readings</summary>";
     if (model.detail) {
       html += '<dl class="wb-theory-grid"><dt>Intervals</dt><dd>';
@@ -321,21 +323,22 @@
     var model = current();
     var focused = document.activeElement;
     var focusSelector = null;
-    if (result.contains(focused)) {
+    if (result.contains(focused) || document.getElementById("workbench-matrix").contains(focused)) {
       ["data-step", "data-wbkey", "data-action", "data-suffix"].some(function (attr) {
         if (!focused.hasAttribute(attr)) return false;
         focusSelector = "[" + attr + "=" + JSON.stringify(focused.getAttribute(attr)) + "]";
         return true;
       });
     }
-    result.innerHTML = model ? keyBar() + progression() + chordCard(model) : "";
+    result.innerHTML = model ? progression() + chordCard(model) : "";
     document.getElementById("workbench-transport").hidden = !model;
+    document.getElementById("workbench-save-options").hidden = !model;
     document.getElementById("workbench-play").textContent = Player.isPlaying() ? "Stop" : state.items.length > 1 ? "Play progression" : "Hear chord";
     document.getElementById("workbench-tempo").hidden = state.items.length < 2;
     document.getElementById("workbench-roll").hidden = state.items.length > 1;
     renderMatrix();
     if (focusSelector) {
-      var target = result.querySelector(focusSelector);
+      var target = root.querySelector(focusSelector);
       if (target) target.focus({ preventScroll: true });
     }
   }
@@ -368,6 +371,12 @@
       document.getElementById("workbench-play").textContent = "Stop";
       announce("Playing with a synthesized tone.");
     } else if (Player.isMuted()) announce("Sound is muted. Unmute to play.");
+  }
+
+  async function playNotes(midis) {
+    var started = await Player.play([midis], { onError: announce });
+    if (started) document.getElementById("workbench-play").textContent = "Stop";
+    else if (Player.isMuted()) announce("Sound is muted. Unmute to play.");
   }
 
   function highlight(pcs) {
@@ -595,13 +604,13 @@
     var note = e.target.closest("[data-midi]");
     if (note) {
       var midi = Number(note.dataset.midi);
-      Player.play([[midi]], { onError: announce });
+      playNotes([midi]);
       highlight([midi % 12]);
       return;
     }
     if (!el) return;
     if (el.hasAttribute("data-sound")) {
-      Player.play([el.dataset.sound.split(",").map(Number)], { onError: announce });
+      playNotes(el.dataset.sound.split(",").map(Number));
       highlight(el.dataset.pcs.split(",").map(Number));
       return;
     }
@@ -671,12 +680,15 @@
       state.matrix = !state.matrix;
       renderLibrary();
       renderMatrix();
+      root.querySelector('[data-action="matrix"]').focus({ preventScroll: true });
       return;
     }
     if (el.dataset.action === "sheet") return openSheet();
     if (el.dataset.action === "close-sheet") {
       state.sheet = false;
       document.getElementById("workbench-sheet").hidden = true;
+      if (root.querySelector(".wb-library").open) root.querySelector('[data-action="sheet"]').focus({ preventScroll: true });
+      else input.focus({ preventScroll: true });
       return;
     }
   });

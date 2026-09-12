@@ -12,6 +12,7 @@ Notes:
 
 ---
 
+<div class="music-table-scroll" tabindex="0" role="region" aria-label="Chords from scales, scroll horizontally">
 <table>
   <thead>
     <tr>
@@ -140,6 +141,7 @@ Notes:
 
   </tbody>
 </table>
+</div>
 
 ---
 
