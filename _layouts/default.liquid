@@ -16,7 +16,7 @@
   </head>
 
   <!-- Body -->
-  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% if site.footer_fixed %}fixed-bottom-footer{% else %}sticky-bottom-footer{% endif %}">
+  <body class="{% if page.url contains '/music/' %}music-notebook{% endif %} {% if site.navbar_fixed %}fixed-top-nav{% endif %} {% if site.footer_fixed %}fixed-bottom-footer{% else %}sticky-bottom-footer{% endif %}">
     <!-- Header -->
     {% include header.liquid %}
 

@@ -1,0 +1,61 @@
+<section class="workbench" aria-label="Bayan workbench" data-music-home="{{ '/music/' | relative_url }}">
+  <div class="workbench-input-row">
+    <label for="workbench-input">What are you playing?</label>
+    <input
+      type="text"
+      id="workbench-input"
+      class="workbench-input"
+      placeholder="Am7, C E G, or 2 5 1 in G"
+      value="Am7"
+      maxlength="500"
+      aria-describedby="workbench-input-help"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+    >
+    <p id="workbench-input-help">Type a chord, notes (bass first), or scale degrees in a major key.</p>
+  </div>
+  <div id="workbench-hint" class="workbench-hint">
+    <span class="workbench-hint-label">Try</span>
+    <button type="button" class="workbench-chip" data-example="Am7">Am7</button>
+    <button type="button" class="workbench-chip" data-example="C E G">C E G</button>
+    <button type="button" class="workbench-chip" data-example="2 5 1 in G">ii–V–I in G</button>
+    <button type="button" class="workbench-chip" data-example="Fd7/C">A Stradella recipe</button>
+  </div>
+  <details class="workbench-disclosure">
+    <summary>More ways to explore</summary>
+    <div id="workbench-library" class="workbench-hint workbench-library"></div>
+    <p class="music-small">Try ABC notation: C E G c | d2 B2 | c4. Link imports are not supported.</p>
+  </details>
+  <p id="workbench-announcement" class="sr-only" role="status" aria-live="polite"></p>
+  <div class="workbench-layout">
+    <div class="workbench-main">
+      <div id="workbench-sheet" class="workbench-sheet" style="display: none"></div>
+      <div id="workbench-result" class="workbench-result"></div>
+      <div id="workbench-matrix" class="workbench-matrix" style="display: none"></div>
+    </div>
+    <aside id="workbench-setlist" class="workbench-setlist" aria-label="Saved practice" style="display: none"></aside>
+  </div>
+</section>
+<noscript>
+  <p>The workbench needs JavaScript. For Am7, play A bass with the C major chord button: A + C E G.</p>
+  <p>
+    The <a href="{{ '/music/scales/' | relative_url }}">scale reference</a> and
+    <a href="{{ '/music/intervals/' | relative_url }}">interval reference</a> work without JavaScript.
+  </p>
+</noscript>
+<script>
+  window.MusicExercises = {{ site.data.music.exercises.exercises | jsonify }};
+  window.StradellaButtons = {
+    {% for btn in site.data.music.stradella_buttons.buttons %}
+    {{ btn.id | jsonify }}: {{ btn.offsets | jsonify }}{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  };
+</script>
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/vendor/abcjs-basic-min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/classify.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/main.js' | relative_url }}"></script>

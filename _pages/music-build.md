@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: music
 title: "Build a Set List: Andrey Bayan"
 permalink: /music/build/
 description: Andrey Bayan's accordion set-list builder. Type chord names like Am7 or A-7/G, identify chords from notes, or browse the full Stradella chord catalog.

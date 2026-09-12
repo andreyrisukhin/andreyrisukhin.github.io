@@ -1,6 +1,6 @@
 ---
-layout: page
-title: Diatonic Chord Quality Order by Scale Type and Chord Structure
+layout: music
+title: Chords from scales
 permalink: /music/chords/
 ---
 

@@ -962,6 +962,7 @@
 
     renderLibrary();
     renderSetlist();
+    handleInput(input.value || "Am7");
 
     document.addEventListener("click", function (e) {
       // Example chips fill the input

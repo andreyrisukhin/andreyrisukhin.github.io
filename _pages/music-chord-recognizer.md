@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: music
 title: Chord Recognizer
 permalink: /music/chord-recognizer/
 ---

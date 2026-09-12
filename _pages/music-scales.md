@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: music
 title: Scale Reference
 permalink: /music/scales/
 description: Scale formulas, note names, modes, and the relationships between major and minor keys.

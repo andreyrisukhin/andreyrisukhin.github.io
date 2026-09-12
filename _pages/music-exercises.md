@@ -1,14 +1,14 @@
 ---
-layout: page
+layout: music
 title: Music Exercises
 permalink: /music/exercises/
 ---
 
-Hardcoded practice loops with chord progression, suggested right-hand pattern, and a theory note. Use the key bar on each card to transpose.
+Practice a progression with a right-hand pattern and a theory note. Use the key bar to transpose.
 
 <div id="exercises-root" class="exercises-root"></div>
 
-<noscript><p>This interactive tool requires JavaScript. The exercise titles and theory notes still render without it, but the chord recipes and transposition will not.</p></noscript>
+<noscript><p>Playback and transposition need JavaScript. Try the <a href="/music/scales/">scale reference</a> for a printable practice companion.</p></noscript>
 
 <script>
   window.MusicExercises = {{ site.data.music.exercises.exercises | jsonify }};

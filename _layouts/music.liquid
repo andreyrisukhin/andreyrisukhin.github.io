@@ -1,0 +1,37 @@
+---
+layout: default
+---
+<div class="music-page">
+  <nav class="music-section-nav" aria-label="Music">
+    <a
+      href="{{ '/music/' | relative_url }}"
+      {% if page.permalink == '/music/' or page.permalink == '/music/workbench/' %}
+        aria-current="page"
+      {% endif %}
+      >Explore</a
+    >
+    <a
+      href="{{ '/music/exercises/' | relative_url }}"
+      {% if page.permalink == '/music/exercises/' %}
+        aria-current="page"
+      {% endif %}
+      >Practice</a
+    >
+    <a
+      href="{{ '/music/bayan-simulator/' | relative_url }}"
+      {% if page.permalink == '/music/bayan-simulator/' %}
+        aria-current="page"
+      {% endif %}
+      >Play</a
+    >
+    <a href="{{ '/music/#field-notes' | relative_url }}">Read</a>
+  </nav>
+  <header class="music-page-header">
+    <p class="music-eyebrow">Andrey’s music notebook <span aria-hidden="true">/</span> Bayan &amp; harmony</p>
+    <h1>{{ page.title }}</h1>
+    {% if page.description %}
+      <p class="music-lead">{{ page.description }}</p>
+    {% endif %}
+  </header>
+  <article>{{ content }}</article>
+</div>

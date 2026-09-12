@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: music
 title: 12-Bar Blues Jam Helper
 permalink: /music/blues/
 ---

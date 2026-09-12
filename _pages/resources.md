@@ -5,8 +5,6 @@ nav: true
 nav_order: 9
 dropdown: true
 children:
-  - title: music
-    permalink: /music/
   - title: ditherer
     permalink: /ditherer/
   - title: kata

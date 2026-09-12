@@ -1,6 +1,6 @@
 ---
-layout: page
-title: Interval Reference Sheet (By Semitones)
+layout: music
+title: Intervals
 permalink: /music/intervals/
 ---
 

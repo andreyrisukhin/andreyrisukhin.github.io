@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: music
 title: "Sheet Music: Cogwork Dancers"
 permalink: /music/sheet/cogwork-dancers/
 ---

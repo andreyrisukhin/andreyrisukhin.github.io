@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: music
 title: Bayan Simulator
 permalink: /music/bayan-simulator/
 description: A browser-based B-system bayan keyboard for auditioning melodies and chords with Minecraft note-block samples.

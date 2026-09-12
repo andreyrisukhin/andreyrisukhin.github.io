@@ -49,7 +49,7 @@ rss_icon: true
 # -----------------------------------------------------------------------------
 
 navbar_fixed: true
-footer_fixed: true
+footer_fixed: false
 search_enabled: true
 socials_in_search: true
 posts_in_search: true
@@ -186,6 +186,11 @@ exclude:
   - _projects/?_project.md
   - AGENTS.md
   - DESIGN.md
+  - MUSIC_DESIGN_AUDIT.md
+  - MUSIC_REDESIGN_NOTES.md
+  - SITE_DESIGN_REFRESH_PLAN.md
+  - .build-venv/
+  - .factory/
   - NOTES-sheet-music-rendering.md
   - bin/
   - CONTRIBUTING.md

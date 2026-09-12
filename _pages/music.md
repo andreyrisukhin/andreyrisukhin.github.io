@@ -1,90 +1,55 @@
 ---
-layout: page
-title: "Music: Andrey Bayan"
+layout: music
+title: Bayan workbench
+nav_title: music
+nav: true
+nav_order: 4
 permalink: /music/
-description: Chord theory, Stradella bass recipes, and set-list tools by Andrey Risukhin (a.k.a. Andrey Bayan / @bayandrey). Type a chord like A-7/G and the tool builds the accordion voicing.
-keywords: Andrey Bayan, bayandrey, accordion, stradella bass, chord recipes, bayan, jazz accordion, andrey risukhin, set list, chord recognizer
+description: Explore a chord as notes, buttons, notation, and sound.
+keywords: Andrey Bayan, bayandrey, accordion, stradella bass, bayan, music theory
 ---
 
-By **Andrey Risukhin**, also known as **Andrey Bayan** (handle: **@bayandrey**). References, cheat sheets, and interactive tools for music theory and accordion playing.
+{% include music-workbench.liquid %}
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Andrey Risukhin",
-  "alternateName": ["Andrey Bayan", "bayandrey"],
-  "url": "https://andreyrisukhin.github.io/music/",
-  "knowsAbout": ["accordion", "Stradella bass system", "music theory", "jazz harmony"],
-  "mainEntityOfPage": "https://andreyrisukhin.github.io/music/"
-}
-</script>
+<section class="music-shelf" id="practice-notebook" aria-labelledby="practice-title">
+  <h2 id="practice-title">From the practice notebook</h2>
+  <div class="music-shelf-grid">
+    <a class="music-shelf-item" href="{{ '/music/exercises/' | relative_url }}">
+      <span>Two notes, changing harmony <span aria-hidden="true">↗</span></span>
+      <span class="music-small">Reno di Bono’s cycle-of-fifths turnaround. Keep the right hand still; let the bass change its meaning.</span>
+    </a>
+    <a class="music-shelf-item" href="{{ '/music/sheet/cogwork-dancers/' | relative_url }}">
+      <span>Cogwork Dancers <span aria-hidden="true">↗</span></span>
+      <span class="music-small">Christopher Larkin’s music, arranged for organ. Read the score and explore its harmony.</span>
+    </a>
+    <a class="music-shelf-item" href="{{ '/music/blues/' | relative_url }}">
+      <span>Twelve bars to play with <span aria-hidden="true">↗</span></span>
+      <span class="music-small">A blues progression and its scale, in any key.</span>
+    </a>
+    <a class="music-shelf-item" href="{{ '/music/bayan-simulator/' | relative_url }}">
+      <span>Meet the B-system <span aria-hidden="true">↗</span></span>
+      <span class="music-small">A diagonal button keyboard. Try the layout with Minecraft note-block sounds.</span>
+    </a>
+  </div>
+</section>
 
-## Tools
-
-{: .music-landing-section}
-
-<div class="music-landing-grid">
-  <a href="/music/build/" class="music-landing-card">
-    <i class="fa-solid fa-list-music music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Build a Set List</span>
-    <span class="music-landing-card__desc">Type a chord (Am7, A-7/G), pick notes, or browse the catalog</span>
-  </a>
-  <a href="/music/stradella/" class="music-landing-card">
-    <i class="fa-solid fa-grip music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Stradella Recipes</span>
-    <span class="music-landing-card__desc">How to build chords from Stradella bass buttons</span>
-  </a>
-  <a href="/music/blues/" class="music-landing-card">
-    <i class="fa-solid fa-music music-landing-card__icon"></i>
-    <span class="music-landing-card__title">12-Bar Blues Jam Helper</span>
-    <span class="music-landing-card__desc">Pick a key, see the progression and blues scale</span>
-  </a>
-  <a href="/music/chord-recognizer/" class="music-landing-card">
-    <i class="fa-solid fa-ear-listen music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Chord Recognizer</span>
-    <span class="music-landing-card__desc">Enter notes to identify a chord and see inversions</span>
-  </a>
-  <a href="/music/bayan-simulator/" class="music-landing-card">
-    <i class="fa-solid fa-keyboard music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Bayan Simulator</span>
-    <span class="music-landing-card__desc">Play a B-system button keyboard with Minecraft note-block samples</span>
-  </a>
-  <a href="/music/exercises/" class="music-landing-card">
-    <i class="fa-solid fa-dumbbell music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Exercises</span>
-    <span class="music-landing-card__desc">Practice loops with right-hand patterns and theory notes</span>
-  </a>
-  <a href="/music/sheet/cogwork-dancers/" class="music-landing-card">
-    <i class="fa-solid fa-music music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Sheet: Cogwork Dancers</span>
-    <span class="music-landing-card__desc">Christopher Larkin organ arrangement, rendered via OSMD</span>
-  </a>
-  <a href="/music/songs/" class="music-landing-card">
-    <i class="fa-solid fa-floppy-disk music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Songs</span>
-    <span class="music-landing-card__desc">Save Stradella setlists, sync them back to the site repo</span>
-  </a>
-</div>
-
-## References
-
-{: .music-landing-section}
-
-<div class="music-landing-grid">
-  <a href="/music/scales/" class="music-landing-card">
-    <i class="fa-solid fa-wave-square music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Scale Reference</span>
-    <span class="music-landing-card__desc">Scale formulas, note names, modes, and major-minor relationships</span>
-  </a>
-  <a href="/music/chords/" class="music-landing-card">
-    <i class="fa-solid fa-table-cells music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Chord Reference</span>
-    <span class="music-landing-card__desc">Diatonic chord qualities for every scale type and chord structure</span>
-  </a>
-  <a href="/music/intervals/" class="music-landing-card">
-    <i class="fa-solid fa-ruler-horizontal music-landing-card__icon"></i>
-    <span class="music-landing-card__title">Interval Reference</span>
-    <span class="music-landing-card__desc">Intervals from 0–12 semitones with names and examples</span>
-  </a>
-</div>
+<section class="music-shelf" id="field-notes" aria-labelledby="notes-title">
+  <h2 id="notes-title">Field notes</h2>
+  <ul class="music-index">
+    <li><a href="{{ '/music/scales/' | relative_url }}">Scales &amp; modes</a></li>
+    <li><a href="{{ '/music/chords/' | relative_url }}">Chords from scales</a></li>
+    <li><a href="{{ '/music/intervals/' | relative_url }}">Intervals</a></li>
+    <li><a href="{{ '/music/stradella/' | relative_url }}">Stradella catalog</a></li>
+  </ul>
+  <details class="workbench-disclosure">
+    <summary>Earlier tools &amp; saved songs</summary>
+    <ul class="music-index">
+      <li><a href="{{ '/music/build/' | relative_url }}">Set-list builder</a></li>
+      <li><a href="{{ '/music/chord-recognizer/' | relative_url }}">Chord recognizer</a></li>
+      <li><a href="{{ '/music/songs/' | relative_url }}">Saved songs</a></li>
+      <li><a href="{{ '/music/sheet/reclaiming-entropy/' | relative_url }}">Reclaiming Entropy</a></li>
+    </ul>
+    <p class="music-small">Existing song libraries and shared links still work. Workbench practice is saved separately in this browser.</p>
+  </details>
+  <p class="music-small">Made by Andrey Risukhin, also known as Andrey Bayan / @bayandrey.</p>
+</section>

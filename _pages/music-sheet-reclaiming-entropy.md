@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: music
 title: "Sheet Music: Reclaiming Entropy"
 permalink: /music/sheet/reclaiming-entropy/
 ---
