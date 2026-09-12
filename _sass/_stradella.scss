@@ -22,6 +22,11 @@
   border-radius: 5px;
   background: var(--global-bg-color);
   padding: 0.35rem 0.5rem;
+
+  &.is-current {
+    border-color: var(--global-theme-color);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--global-theme-color) 18%, transparent);
+  }
 }
 
 .stradella-card__chord {
@@ -89,7 +94,6 @@
 
 /* ── Catalog ── */
 
-
 .stradella-catalog-family__title {
   margin: 1rem 0 0.15rem;
   font-size: 0.95rem;
@@ -123,7 +127,9 @@
   color: var(--global-text-color);
   cursor: pointer;
   text-align: center;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
   min-height: 44px;
 
   &:hover {
@@ -240,6 +246,41 @@
   white-space: nowrap;
 }
 
+/* ── Circle player ── */
+
+.stradella-player {
+  margin: 0 0 1.5rem;
+}
+
+.stradella-player__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.stradella-bpm-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+#stradella-bpm-range {
+  width: 9rem;
+}
+
+#stradella-bpm-number {
+  width: 4rem;
+}
+
+.stradella-circle-empty {
+  text-align: center;
+  margin: 0.5rem 0 1rem;
+}
+
 /* ── Inversions ── */
 
 .stradella-inversions {
@@ -310,4 +351,3 @@
 .stradella-card.is-disabled {
   opacity: 0.3;
 }
-

@@ -11,7 +11,7 @@ Example: `Em / C` = press C bass + E minor chord.
 ## Set List
 
 <div class="music-share">
-  <label>Share:</label>
+  <label>Permalink:</label>
   <input type="text" id="stradella-share-text" class="music-share-text">
   <button id="stradella-share-copy" class="music-share-btn">Copy</button>
   <button id="stradella-share-load" class="music-share-btn">Load</button>
@@ -39,6 +39,17 @@ Example: `Em / C` = press C bass + E minor chord.
 
 <div id="stradella-setlist" class="stradella-setlist"></div>
 
+<div class="stradella-player">
+  <div class="stradella-player__controls">
+    <button type="button" id="stradella-play" class="music-share-btn">▶ Play</button>
+    <label class="stradella-bpm-label">BPM
+      <input type="range" id="stradella-bpm-range" min="40" max="200" value="96">
+      <input type="number" id="stradella-bpm-number" min="40" max="200" value="96">
+    </label>
+  </div>
+  <div id="stradella-circle"></div>
+</div>
+
 <div class="music-key-bar" id="stradella-key-bar"></div>
 <div id="stradella-catalog" class="stradella-catalog"></div>
 
@@ -54,6 +65,7 @@ Example: `Em / C` = press C bass + E minor chord.
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script>
 <script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>
