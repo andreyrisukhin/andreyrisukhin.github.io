@@ -1,0 +1,38 @@
+assets/js/stradella/main.js
+  917dca6f945751c3 361-388,693,862
+_pages/music-stradella.md
+  917dca6f945751c3 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "0bfb10a542ec55c963600a7ae3f174feb89d952a",
+  "prompts": {
+    "5a62feb39cf9323c": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "6c8cad9c-8af2-4a42-9d2f-a71aa5c6a112",
+        "model": "gpt-5.6-sol-fast"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 109,
+      "total_deletions": 25,
+      "accepted_lines": 80,
+      "overriden_lines": 4
+    },
+    "917dca6f945751c3": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "695a52af-a27c-4079-9780-f527bc4ed991",
+        "model": "deepseek-v4-pro"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 31,
+      "total_deletions": 3,
+      "accepted_lines": 31,
+      "overriden_lines": 0
+    }
+  }
+}
