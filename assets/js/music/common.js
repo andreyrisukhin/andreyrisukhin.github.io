@@ -228,6 +228,7 @@ window.Music = (function () {
     var BUTTONS = window.StradellaData.BUTTONS;
     var quals = { M: "M", m: "m", 7: "7", d7: "d7" };
     var notes = new Set();
+    var buttonRoots = [];
     notes.add(bassSemitone);
 
     // Split on "+" to get individual button presses
@@ -256,13 +257,15 @@ window.Music = (function () {
       if (noteSemitone === -1) return null;
       var offsets = BUTTONS[qualPart];
       if (!offsets) return null;
+      buttonRoots.push(noteSemitone);
       for (var j = 0; j < offsets.length; j++) {
         notes.add((noteSemitone + offsets[j]) % 12);
       }
     }
 
     if (notes.size < 2) return null;
-    // Convert Set to sorted array
+    // Convert Set to sorted array, then rotate so the bass note comes first —
+    // downstream chord detection treats the first note as the bass
     var result = [];
     notes.forEach(function (n) {
       result.push(n);
@@ -270,6 +273,11 @@ window.Music = (function () {
     result.sort(function (a, b) {
       return a - b;
     });
+    var bassIdx = result.indexOf(bassSemitone);
+    if (bassIdx > 0) result = result.slice(bassIdx).concat(result.slice(0, bassIdx));
+    // Expose the chord-button roots so chord detection can prefer the
+    // interpretation the player actually reached for (e.g. GM/B -> G/B, not Bm#5)
+    result.buttonRoots = buttonRoots;
     return result;
   }
 

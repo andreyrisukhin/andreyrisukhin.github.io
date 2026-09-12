@@ -1,0 +1,387 @@
+/* ===== Music Workbench ===== */
+
+/* ── Smart input ── */
+
+.workbench-input-row {
+  margin-bottom: 0.75rem;
+}
+
+.workbench-input {
+  width: 100%;
+  font-size: 1.2rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+
+  &:focus {
+    outline: none;
+    border-color: var(--global-theme-color);
+  }
+}
+
+/* ── Example chips / hint row ── */
+
+.workbench-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.workbench-hint-label {
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.workbench-chip {
+  font-size: 0.85rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  cursor: pointer;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    border-color: var(--global-theme-color);
+  }
+
+  &.is-active {
+    background: var(--global-theme-color);
+    color: #fff;
+    border-color: var(--global-theme-color);
+  }
+}
+
+.workbench-library {
+  margin-top: -0.75rem;
+}
+
+.workbench-chip-roman {
+  display: block;
+  font-size: 0.65rem;
+  opacity: 0.6;
+  font-family: inherit;
+}
+
+/* ── Progression block ── */
+
+.workbench-progression-block {
+  margin-bottom: 1rem;
+}
+
+.workbench-progression-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.workbench-progression-label {
+  font-weight: 700;
+}
+
+.workbench-keybar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 0.6rem;
+}
+
+/* ── Circle of fifths ── */
+
+.workbench-circle {
+  margin-top: 0.75rem;
+}
+
+.workbench-circle-svg {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+}
+
+.workbench-circle-node {
+  circle {
+    fill: var(--global-bg-color);
+    stroke: var(--global-divider-color);
+    stroke-width: 1.5;
+  }
+
+  text {
+    fill: var(--global-text-color);
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.55;
+  }
+
+  &.in-progression {
+    circle {
+      stroke: var(--global-theme-color);
+      stroke-width: 2;
+    }
+
+    text {
+      opacity: 1;
+    }
+  }
+
+  &.is-active circle {
+    fill: var(--global-theme-color);
+  }
+
+  &.is-active text {
+    fill: #fff;
+  }
+}
+
+.workbench-circle-order {
+  font-size: 9px !important;
+  fill: var(--global-theme-color) !important;
+  opacity: 1 !important;
+}
+
+.workbench-circle-edge {
+  fill: none;
+  stroke: var(--global-theme-color);
+  stroke-width: 1.5;
+  opacity: 0.65;
+}
+
+.workbench-circle-arrowhead {
+  fill: var(--global-theme-color);
+}
+
+/* ── Sheet draft ── */
+
+.workbench-sheet {
+  margin-bottom: 1rem;
+}
+
+.workbench-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.workbench-sheet-text {
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: var(--global-theme-color);
+  }
+}
+
+.workbench-sheet-render {
+  margin: 0.75rem 0;
+
+  svg {
+    max-width: 100%;
+  }
+}
+
+/* ── Chord type matrix ── */
+
+.workbench-matrix {
+  margin-top: 1rem;
+}
+
+.workbench-matrix-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.workbench-matrix-hint {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.workbench-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+
+  th {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.6;
+    padding: 0.3rem 0.35rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  td {
+    padding: 0.2rem 0.35rem;
+    vertical-align: top;
+    border-top: 1px solid var(--global-divider-color);
+  }
+}
+
+.workbench-matrix-cell {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.15rem 0.3rem;
+  margin: 0.1rem 0;
+  color: var(--global-text-color);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--global-theme-color);
+  }
+}
+
+.workbench-matrix-suffix {
+  display: block;
+  font-weight: 700;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+}
+
+.workbench-matrix-diff {
+  font-weight: 400;
+  font-size: 0.7rem;
+  opacity: 0.55;
+  margin-left: 0.3rem;
+}
+
+.workbench-matrix-formula {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.55;
+}
+
+.workbench-setlist-count {
+  opacity: 0.5;
+  font-size: 0.8rem;
+}
+
+/* ── Layout: result + setlist sidebar ── */
+
+.workbench-layout {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .workbench-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Result card ── */
+
+.workbench-card {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 8px;
+  background: var(--global-card-bg-color);
+}
+
+.workbench-section {
+  margin-top: 0.9rem;
+}
+
+.workbench-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.55;
+  margin: 0 0 0.3rem 0;
+}
+
+.workbench-actions {
+  margin-top: 1rem;
+}
+
+.workbench-progression {
+  margin-bottom: 0.6rem;
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* ── Setlist sidebar ── */
+
+.workbench-setlist {
+  min-width: 160px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 8px;
+  background: var(--global-card-bg-color);
+}
+
+.workbench-setlist-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workbench-setlist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+}
+
+.workbench-setlist-load {
+  background: none;
+  border: none;
+  padding: 0.15rem 0;
+  color: var(--global-text-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-align: left;
+
+  &:hover {
+    color: var(--global-theme-color);
+  }
+}
+
+.workbench-setlist-remove {
+  background: none;
+  border: none;
+  color: var(--global-text-color);
+  opacity: 0.4;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+
+  &:hover {
+    opacity: 1;
+    color: #c44;
+  }
+}

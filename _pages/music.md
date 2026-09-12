@@ -72,6 +72,11 @@ By **Andrey Risukhin**, also known as **Andrey Bayan** (handle: **@bayandrey**).
 {: .music-landing-section}
 
 <div class="music-landing-grid">
+  <a href="/music/scales/" class="music-landing-card">
+    <i class="fa-solid fa-wave-square music-landing-card__icon"></i>
+    <span class="music-landing-card__title">Scale Reference</span>
+    <span class="music-landing-card__desc">Scale formulas, note names, modes, and major-minor relationships</span>
+  </a>
   <a href="/music/chords/" class="music-landing-card">
     <i class="fa-solid fa-table-cells music-landing-card__icon"></i>
     <span class="music-landing-card__title">Chord Reference</span>

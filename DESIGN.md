@@ -4,6 +4,8 @@ Visual design principles for andreyrisukhin.github.io. These are taste calls I w
 
 Pair with `AGENTS.md` (prose). This file governs the visual frame, that one governs the words.
 
+Planned menu, motion, and palette work lives in [`SITE_DESIGN_REFRESH_PLAN.md`](SITE_DESIGN_REFRESH_PLAN.md).
+
 ## Core principles
 
 ### 1. Images need room to breathe
