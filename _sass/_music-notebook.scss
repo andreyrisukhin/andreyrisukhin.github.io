@@ -264,6 +264,354 @@
       color: var(--music-muted);
     }
   }
+  [hidden] {
+    display: none !important;
+  }
+  .wb-transport {
+    margin: 0 0 1.5rem;
+    padding: 1rem 0;
+    border-block: 1px solid var(--music-rule);
+  }
+  .wb-play-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+  .wb-play-actions label {
+    margin: 0;
+  }
+  .wb-play-actions input:not([type="checkbox"]) {
+    max-width: 180px;
+    min-height: 44px;
+    border: 1px solid var(--music-rule);
+    border-radius: 3px;
+    background: var(--music-surface);
+    color: var(--music-ink);
+    padding: 0.4rem;
+  }
+  #workbench-bpm {
+    width: 72px;
+  }
+  #workbench-tempo {
+    margin-top: 0.75rem;
+  }
+  .wb-primary {
+    background: var(--music-accent);
+    color: var(--music-on-accent);
+    border: 1px solid var(--music-accent);
+    border-radius: 3px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+  }
+  .wb-save-options {
+    margin-top: 0.5rem;
+    summary {
+      color: var(--music-muted);
+      padding: 0.5rem 0;
+      cursor: pointer;
+      width: fit-content;
+    }
+  }
+  #workbench-share-result {
+    margin-top: 1rem;
+    input {
+      display: block;
+      width: 100%;
+    }
+  }
+  .wb-key-select {
+    margin: 0 0 1rem;
+  }
+  .wb-section-heading {
+    display: flex;
+    gap: 0.5rem 1rem;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    h2,
+    h3 {
+      margin: 0;
+    }
+  }
+  .wb-chord-panel {
+    padding: 1.5rem;
+    background: var(--music-surface);
+    border: 1px solid var(--music-rule);
+    border-radius: 3px;
+  }
+  #wb-chord-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.5rem;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+  .wb-representations {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+  .wb-notation,
+  .wb-map {
+    min-width: 0;
+    h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+  }
+  .wb-note-list {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .wb-note {
+    min-width: 44px;
+    padding: 0.3rem;
+    border: 1px solid var(--music-rule);
+    border-radius: 3px;
+    color: var(--music-ink);
+    background: transparent;
+    font-weight: 600;
+    small {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--music-muted);
+      font-weight: 400;
+    }
+  }
+  .wb-staff-scroll,
+  .wb-keyboard-scroll,
+  .wb-table-scroll {
+    overflow-x: auto;
+    padding: 6px;
+  }
+  .wb-staff {
+    width: 100%;
+    min-width: 260px;
+    max-height: none;
+    line {
+      stroke: var(--music-muted);
+      stroke-width: 1;
+      pointer-events: none;
+    }
+    text {
+      fill: var(--music-ink);
+      font-size: 18px;
+      pointer-events: none;
+    }
+    ellipse {
+      fill: var(--music-ink);
+      pointer-events: none;
+      transition: fill 120ms;
+    }
+    .wb-clef {
+      font-size: 50px;
+      font-family: Georgia, "Noto Music", serif;
+    }
+    g {
+      cursor: pointer;
+    }
+    .wb-note-hit {
+      fill: transparent;
+    }
+    g:focus {
+      outline: none;
+    }
+    g:focus-visible .wb-note-hit {
+      stroke: var(--music-accent);
+      stroke-width: 2;
+    }
+    g.is-linked ellipse {
+      fill: var(--music-accent);
+    }
+  }
+  .wb-keyboard {
+    display: grid;
+    grid-template-columns: repeat(var(--wb-columns), 44px);
+    gap: 8px 4px;
+    padding: 4px 16px 4px 4px;
+    width: max-content;
+  }
+  .wb-key {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--music-rule);
+    color: var(--music-muted);
+    background: var(--music-paper);
+    font-size: 0.75rem;
+    small {
+      font-size: 0.75rem;
+      margin-left: 2px;
+    }
+    &.in-chord {
+      background: var(--music-accent);
+      border-color: var(--music-accent);
+      color: var(--music-on-accent);
+    }
+  }
+  .wb-note.is-linked,
+  .wb-key.is-linked {
+    outline: 2px solid var(--music-accent);
+    outline-offset: 3px;
+  }
+  .wb-theory [data-pc].is-linked {
+    background: var(--music-accent);
+    color: var(--music-on-accent);
+  }
+  .wb-recipe {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--music-rule);
+  }
+  .wb-recipe-formula {
+    font-family: ui-monospace, monospace;
+    margin: 0.75rem 0;
+    font-size: 1.125rem;
+  }
+  .wb-recipe-buttons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .wb-bass-button,
+  .wb-chord-button {
+    border: 1px solid var(--music-accent);
+    color: var(--music-accent);
+    background: transparent;
+  }
+  .wb-bass-button {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    small,
+    span {
+      display: block;
+    }
+    small {
+      font-size: 0.75rem;
+    }
+  }
+  .wb-chord-button {
+    border-radius: 3px;
+    padding: 0.5rem 1rem;
+  }
+  .wb-theory {
+    margin: 1rem 0 0;
+    border-top: 1px solid var(--music-rule);
+  }
+  .wb-theory-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+    dd {
+      margin: 0;
+    }
+  }
+  .wb-progression-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 200px;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .wb-progression-panel .workbench-progression {
+    margin: 1rem 0;
+  }
+  .workbench-prog-chip .music-small {
+    color: inherit;
+    font-size: 0.75rem;
+  }
+  .workbench-chip-roman {
+    color: inherit;
+    opacity: 1;
+    font-size: 0.75rem;
+  }
+  .wb-circle-path {
+    fill: none;
+    stroke: var(--music-rule);
+    stroke-width: 1.5;
+    transition: stroke 140ms;
+    &.is-current {
+      stroke: var(--music-accent);
+      stroke-width: 3;
+    }
+  }
+  .workbench-circle-node text {
+    opacity: 1;
+    fill: var(--music-muted);
+  }
+  .workbench-setlist {
+    background: transparent;
+    border-inline: 0;
+    padding: 0.5rem 0;
+    summary {
+      padding: 0.5rem 0;
+      cursor: pointer;
+    }
+  }
+  .wb-saved-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-top: 1px solid var(--music-rule);
+    }
+  }
+  .wb-saved-load {
+    background: none;
+    color: var(--music-accent);
+    border: 0;
+    padding: 0.75rem 0;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  .wb-import {
+    font-size: 0.875rem;
+    input {
+      display: block;
+      margin-top: 0.5rem;
+      max-width: 100%;
+    }
+  }
+  .wb-warning {
+    color: var(--music-accent);
+    font-size: 0.875rem;
+  }
+  .wb-empty {
+    padding: 1.5rem 0;
+    color: var(--music-muted);
+  }
+  @media (max-width: 760px) {
+    .wb-representations {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+    }
+    .wb-chord-panel {
+      padding: 1rem;
+    }
+    .wb-staff {
+      max-width: 400px;
+    }
+    .wb-progression-panel {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.5rem;
+      .workbench-circle {
+        text-align: center;
+      }
+    }
+  }
   @media (max-width: 640px) {
     .music-page-header {
       margin: 1.5rem 0;

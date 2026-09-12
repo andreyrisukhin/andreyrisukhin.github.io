@@ -15,7 +15,7 @@ window.Music = (function () {
   function esc(s) {
     var d = document.createElement("div");
     d.textContent = s;
-    return d.innerHTML;
+    return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
   // Render a 12-button key bar into a container, call onSelect(key) on click

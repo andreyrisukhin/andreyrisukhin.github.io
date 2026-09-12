@@ -1,1096 +1,767 @@
-// Music Workbench — one smart input, progressive disclosure, shared setlist
+// One musical object, seen as notation, buttons, a recipe, and sound.
 (function () {
   "use strict";
-
-  var M = window.Music;
-  var Classify = window.WorkbenchClassify;
-  var STORAGE_KEY = "musicWorkbenchSetlist";
-
-  // ── State ──
-  // current: active chord model { name, root, notes:[semis, bass first], detail, alternatives, roman? }
-  // progression: { label, steps, key, transposable, items:[model], activeIdx }
-
+  var root = document.querySelector(".workbench");
+  if (!root) return;
+  var M = window.Music,
+    Model = window.WorkbenchModel,
+    Player = window.WorkbenchPlayer;
+  var Diagrams = window.WorkbenchDiagrams,
+    S = window.StradellaData;
+  var input = document.getElementById("workbench-input");
+  var result = document.getElementById("workbench-result");
+  var KEY = "musicWorkbenchSetlist";
   var state = {
-    current: null,
-    progression: null,
-    matrixOpen: false,
-    sheet: { open: false, text: "", barModels: [] },
-    setlist: loadSetlist(),
+    items: [],
+    index: 0,
+    key: 0,
+    degrees: null,
+    label: "",
+    bpm: 96,
+    loop: false,
+    saved: [],
+    storageError: "",
+    drawer: false,
+    theory: false,
+    matrix: false,
+    sheet: false,
   };
-
-  // ── Classifier deps ──
-
-  function isChord(tok) {
-    if (!window.Tonal) return false;
-    var parts = tok.split("/");
-    if (parts.length > 2) return false;
-    var name = M.toAscii(parts[0]);
-    name = name.charAt(0).toUpperCase() + name.slice(1);
-    var chord = Tonal.Chord.get(name);
-    if (chord.empty || !chord.notes || chord.notes.length === 0) return false;
-    if (parts.length === 2 && M.parseNote(parts[1]) === -1) return false;
-    return true;
-  }
-
-  // ── Degree parsing (major key) ──
-
-  var MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
-  var DIATONIC7 = ["maj7", "m7", "m7", "maj7", "7", "m7", "m7b5"];
-  var ROMAN_VAL = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7 };
-  var ROMANS = ["I", "II", "III", "IV", "V", "VI", "VII"];
-  var DEGREE_TOKEN_RE = /^(vii|vi|v|iv|iii|ii|i|[1-7])(\u00B0|\u00F8|dim7?|maj7|m7b5|m7|m|7)?$/i;
-
-  // "V7" / "2" / "viiø" -> { deg: 1-7, suffix: chord suffix for Tonal }
-  function parseDegreeToken(tok) {
-    var m = tok.match(DEGREE_TOKEN_RE);
-    if (!m) return null;
-    var numeral = m[1];
-    var deg = /^[1-7]$/.test(numeral) ? parseInt(numeral, 10) : ROMAN_VAL[numeral.toLowerCase()];
-    var qual = m[2] || "";
-    var suffix;
-    if (qual === "\u00B0" || qual === "dim") suffix = "dim";
-    else if (qual === "dim7") suffix = "dim7";
-    else if (qual === "\u00F8") suffix = "m7b5";
-    else if (qual) suffix = qual;
-    else if (/^[1-7]$/.test(numeral)) suffix = DIATONIC7[deg - 1];
-    else if (numeral === numeral.toLowerCase()) suffix = deg === 7 ? "m7b5" : "m7";
-    else suffix = deg === 5 ? "7" : "maj7";
-    return { deg: deg, suffix: suffix };
-  }
-
-  function romanLabel(deg, suffix) {
-    var minorish = /^(m(?!aj)|dim)/.test(suffix);
-    var base = minorish ? ROMANS[deg - 1].toLowerCase() : ROMANS[deg - 1];
-    if (suffix === "m7b5") return base + "\u00F87";
-    if (suffix === "dim") return base + "\u00B0";
-    if (suffix === "dim7") return base + "\u00B07";
-    if (suffix === "maj7") return base + "maj7";
-    if (suffix === "m7" || suffix === "7") return base + "7";
-    if (suffix === "m") return base;
-    return base + suffix;
-  }
-
-  // ── Model builders ──
-
-  function rootOfChordName(name) {
-    var m = M.toAscii(name).match(/^[A-G][#b]?/);
-    return m ? M.parseNote(m[0]) : -1;
-  }
-
-  // Move the first candidate whose root matches one of the given semitones to the front
-  function promoteByRoot(detected, roots) {
-    if (!roots || roots.length === 0) return detected;
-    for (var i = 0; i < detected.length; i++) {
-      var m = detected[i].split("/")[0].match(/^[A-G][#b]?/);
-      if (m && roots.indexOf(M.parseNote(m[0])) !== -1) {
-        if (i === 0) return detected;
-        return [detected[i]].concat(detected.slice(0, i), detected.slice(i + 1));
-      }
-    }
-    return detected;
-  }
-
-  function detailFromTonalName(chordName) {
-    if (!window.Tonal || !chordName) return null;
-    var chord = Tonal.Chord.get(chordName.split("/")[0]);
-    if (chord.empty) return null;
-    var semitones = chord.intervals.map(function (iv) {
-      return Tonal.Interval.semitones(iv);
-    });
-    return {
-      notes: chord.notes,
-      intervals: chord.intervals.map(M.formatInterval),
-      semitones: semitones,
-    };
-  }
-
-  function modelFromNotes(semitones, source) {
-    if (semitones.length < 2) return null;
-    var unique = [];
-    var seen = {};
-    semitones.forEach(function (s) {
-      if (!seen[s]) {
-        seen[s] = true;
-        unique.push(s);
-      }
-    });
-    var names = unique.map(M.asciiNoteName);
-    var detected = window.Tonal ? Tonal.Chord.detect(names) : [];
-    if (source === "recipe" && semitones.buttonRoots) {
-      detected = promoteByRoot(detected, semitones.buttonRoots);
-    }
-    var primary = detected[0] || null;
-    return {
-      name: primary,
-      root: primary ? rootOfChordName(primary) : -1,
-      inversion: primary ? inversionLabel(primary) : "",
-      alternatives: detected.slice(1),
-      notes: semitones,
-      detail: detailFromTonalName(primary),
-      suffix: primary ? suffixOfChordName(primary) : null,
-    };
-  }
-
-  function modelFromChordName(name) {
-    if (!window.Tonal) return null;
-    var parts = name.split("/");
-    var main = M.toAscii(parts[0]);
-    main = main.charAt(0).toUpperCase() + main.slice(1);
-    var chord = Tonal.Chord.get(main);
-    if (chord.empty || !chord.tonic) return null;
-    var rootChroma = Tonal.Note.chroma(chord.tonic);
-    var semis = chord.intervals.map(function (iv) {
-      return (rootChroma + Tonal.Interval.semitones(iv)) % 12;
-    });
-    if (parts.length === 2) {
-      var bass = M.parseNote(parts[1]);
-      var idx = semis.indexOf(bass);
-      if (idx > 0) semis = semis.slice(idx).concat(semis.slice(0, idx));
-      else if (idx === -1) semis.unshift(bass);
-    }
-    var displayName = chord.symbol + (parts.length === 2 ? "/" + M.toAscii(parts[1]) : "");
-    return {
-      name: displayName,
-      root: rootChroma,
-      inversion: "",
-      alternatives: [],
-      notes: semis,
-      detail: detailFromTonalName(main),
-      suffix: suffixOfChordName(chord.symbol),
-    };
-  }
-
-  // Build a model from an explicit root + display suffix (matrix cells, exercises)
-  function modelFromSuffix(root, suffix, roman) {
-    var info = M.chordInfo(root, suffix);
-    if (!info) return null;
-    return {
-      name: M.chordName(root, suffix),
-      root: root,
-      roman: roman || "",
-      inversion: "",
-      alternatives: [],
-      notes: info.semitones.map(function (s) {
-        return (root + s) % 12;
-      }),
-      detail: info,
-      suffix: suffix,
-    };
-  }
-
-  function suffixOfChordName(name) {
-    var m = M.toAscii(name.split("/")[0]).match(/^[A-G][#b]?(.*)$/);
-    return m ? m[1] : null;
-  }
-
-  // ── Progressions ──
-  // steps: [{kind:'chord', name} | {kind:'degree', token} | {kind:'stradella', id, offset, roman}]
-
-  function buildProgressionItems(prog) {
-    return prog.steps
-      .map(function (step) {
-        if (step.kind === "entry") {
-          return modelFromEntry(step.entry);
-        }
-        if (step.kind === "chord") {
-          var mo = modelFromChordName(step.name);
-          if (mo && step.roman) mo.roman = step.roman;
-          return mo;
-        }
-        if (step.kind === "degree") {
-          var d = parseDegreeToken(step.token);
-          if (!d) return null;
-          var root = (prog.key + MAJOR_SCALE[d.deg - 1]) % 12;
-          var model = modelFromSuffix(root, d.suffix);
-          if (model) model.roman = romanLabel(d.deg, d.suffix);
-          return model;
-        }
-        if (step.kind === "stradella") {
-          var c = window.StradellaData && StradellaData.chordById(step.id);
-          if (!c) return null;
-          var r = (prog.key + step.offset) % 12;
-          return modelFromSuffix(r, c.suffix, step.roman);
-        }
-        return null;
-      })
-      .filter(function (x) {
-        return x;
-      });
-  }
-
-  function setProgression(prog) {
-    prog.items = buildProgressionItems(prog);
-    prog.activeIdx = 0;
-    state.progression = prog.items.length > 0 ? prog : null;
-    state.current = prog.items[0] || null;
-    renderMain();
-  }
-
-  // ── Setlist (localStorage) ──
-  // item: { name, chords: [{name, roman, notes}] }
-
-  function loadSetlist() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      var list = raw ? JSON.parse(raw) : [];
-      if (!Array.isArray(list)) return [];
-      // Migrate v1 single-chord items { name, notes }
-      return list.map(function (item) {
-        if (item.notes && !item.chords) {
-          return { name: item.name, chords: [{ name: item.name, notes: item.notes }] };
-        }
-        return item;
-      });
-    } catch (e) {
-      return [];
-    }
-  }
-
-  function saveSetlist() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.setlist));
-    } catch (e) {
-      /* private mode */
-    }
-  }
-
-  function chordEntry(model) {
-    return {
-      name: model.name || model.notes.map(M.noteName).join(" "),
-      roman: model.roman || "",
-      root: model.root,
-      suffix: model.suffix,
-      notes: model.notes,
-    };
-  }
-
-  // Rebuild a model from a stored setlist entry. Prefer root+suffix (exact,
-  // handles Stradella-only names like "maj7 (inv)"), fall back to parsing the
-  // name, then to re-detecting from raw notes (v1 items)
-  function modelFromEntry(entry) {
-    var model = null;
-    if (entry.suffix != null && entry.root >= 0) {
-      model = modelFromSuffix(entry.root, entry.suffix, entry.roman);
-    }
-    if (!model && entry.name) model = modelFromChordName(entry.name);
-    if (!model && entry.notes) model = modelFromNotes(entry.notes, "notes");
-    if (model && entry.roman) model.roman = entry.roman;
-    return model;
-  }
-
-  function addChordToSetlist(model) {
-    state.setlist.push({ name: chordEntry(model).name, chords: [chordEntry(model)] });
-    saveSetlist();
-    renderSetlist();
-  }
-
-  function addProgressionToSetlist(prog) {
-    state.setlist.push({
-      name:
-        prog.label ||
-        prog.items
-          .map(function (i) {
-            return i.name;
-          })
-          .join(" "),
-      chords: prog.items.map(chordEntry),
-    });
-    saveSetlist();
-    renderSetlist();
-  }
-
-  // ── Chord detail helpers ──
-
-  function inversionLabel(chordName) {
-    if (!window.Tonal || !chordName) return "";
-    var parts = chordName.split("/");
-    if (parts.length < 2) return "Root position";
-    var bass = parts[parts.length - 1];
-    var chord = Tonal.Chord.get(parts.slice(0, -1).join("/"));
-    if (chord.empty || !chord.notes) return "";
-    var bassChroma = Tonal.Note.chroma(bass);
-    for (var i = 0; i < chord.notes.length; i++) {
-      if (Tonal.Note.chroma(chord.notes[i]) === bassChroma) {
-        var labels = ["Root position", "1st inversion", "2nd inversion", "3rd inversion"];
-        return labels[i] || i + "th inversion";
-      }
-    }
-    return "Bass: " + bass;
-  }
-
-  function renderStradellaEntries(rootSemitone, suffix) {
-    var S = window.StradellaData;
-    if (!S || rootSemitone < 0 || suffix == null) return "";
-    var entries = S.findBySuffix(suffix);
-    if (entries.length === 0) return "";
-    var html = '<div class="workbench-section"><h4 class="workbench-section-title">How to play (Stradella)</h4>';
-    for (var j = 0; j < entries.length; j++) {
-      var c = entries[j];
-      var cls = "recognizer-stradella-item";
-      if (c.bug) cls += " is-bug";
-      else if (c.approx) cls += " is-approx";
-      html += '<div class="' + cls + '">';
-      html += '<span class="recognizer-stradella-recipe">' + M.esc(S.renderRecipe(c, rootSemitone, true)) + "</span>";
-      if (c.notes) html += '<span class="recognizer-stradella-note">' + M.esc(c.notes) + "</span>";
-      var warn = c.bugNote || c.approxNote || c.uncertainNote;
-      if (warn) html += '<span class="recognizer-stradella-warn">' + M.esc(warn) + "</span>";
-      html += "</div>";
-    }
-    html += "</div>";
-    return html;
-  }
-
-  // ── Staff SVG ──
-
-  var LETTER_STEP = { C: -2, D: -1, E: 0, F: 1, G: 2, A: 3, B: 4 };
-  var SEMITONE_TO_STAFF = [
-    { letter: "C", acc: "" },
-    { letter: "D", acc: "\u266D" },
-    { letter: "D", acc: "" },
-    { letter: "E", acc: "\u266D" },
-    { letter: "E", acc: "" },
-    { letter: "F", acc: "" },
-    { letter: "F", acc: "\u266F" },
-    { letter: "G", acc: "" },
-    { letter: "A", acc: "\u266D" },
-    { letter: "A", acc: "" },
-    { letter: "B", acc: "\u266D" },
-    { letter: "B", acc: "" },
+  var FIFTHS = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5];
+  var presets = [
+    { id: "ii-v-i", label: "ii–V–I", degrees: ["2", "5", "1"] },
+    { id: "blues-12", label: "12-bar blues", degrees: ["17", "47", "17", "17", "47", "47", "17", "17", "57", "47", "17", "57"] },
   ];
 
-  function staffSvg(semitones) {
-    var notes = [];
-    semitones.forEach(function (semitone, i) {
-      var info = SEMITONE_TO_STAFF[semitone];
-      var step = LETTER_STEP[info.letter];
-      var octave = 4;
-      if (i > 0 && step + (octave - 4) * 7 < notes[i - 1].step) octave = 5;
-      notes.push({ letter: info.letter, acc: info.acc, step: step + (octave - 4) * 7 });
-    });
-
-    var lineSpacing = 10,
-      bottomLineY = 60,
-      leftMargin = 40,
-      noteSpacing = 50,
-      rightPad = 20;
-    var svgWidth = leftMargin + notes.length * noteSpacing + rightPad;
-    var svg = '<svg class="recognizer-staff-svg" viewBox="0 0 ' + svgWidth + ' 90" xmlns="http://www.w3.org/2000/svg">';
-
-    [0, 2, 4, 6, 8].forEach(function (s) {
-      var ly = bottomLineY - s * (lineSpacing / 2);
-      svg +=
-        '<line class="recognizer-staff-line" x1="' + (leftMargin - 5) + '" y1="' + ly + '" x2="' + (svgWidth - rightPad + 5) + '" y2="' + ly + '"/>';
-    });
-    svg +=
-      '<text class="recognizer-staff-clef" x="5" y="' +
-      (bottomLineY - 2 * lineSpacing + 8) +
-      '" font-family="serif, \'Noto Music\', \'Segoe UI Symbol\'" font-size="38">\uD834\uDD1E</text>';
-
-    notes.forEach(function (n, i) {
-      var x = leftMargin + (i + 0.5) * noteSpacing;
-      var y = bottomLineY - n.step * (lineSpacing / 2);
-      var ls;
-      for (ls = -2; ls >= n.step; ls -= 2) {
-        var lly = bottomLineY - ls * (lineSpacing / 2);
-        svg += '<line class="recognizer-staff-ledger" x1="' + (x - 10) + '" y1="' + lly + '" x2="' + (x + 10) + '" y2="' + lly + '"/>';
-      }
-      for (ls = 10; ls <= n.step; ls += 2) {
-        var lly2 = bottomLineY - ls * (lineSpacing / 2);
-        svg += '<line class="recognizer-staff-ledger" x1="' + (x - 10) + '" y1="' + lly2 + '" x2="' + (x + 10) + '" y2="' + lly2 + '"/>';
-      }
-      if (n.acc) {
-        svg += '<text class="recognizer-staff-accidental" x="' + (x - 14) + '" y="' + (y + 4) + '" text-anchor="end">' + n.acc + "</text>";
-      }
-      svg += '<ellipse class="recognizer-staff-notehead" cx="' + x + '" cy="' + y + '" rx="6" ry="4.5" transform="rotate(-15 ' + x + " " + y + ')"/>';
-    });
-    return svg + "</svg>";
+  function announce(text) {
+    document.getElementById("workbench-announcement").textContent = text;
   }
-
-  // ── Circle of fifths SVG ──
-
-  var FIFTHS = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5];
-
-  function circlePos(semitone, cx, cy, r) {
-    var idx = FIFTHS.indexOf(((semitone % 12) + 12) % 12);
-    var angle = ((-90 + idx * 30) * Math.PI) / 180;
-    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  function button(text, attrs, cls) {
+    return '<button type="button" class="' + (cls || "workbench-chip") + '" ' + (attrs || "") + ">" + text + "</button>";
   }
-
-  function circleSvg(items, activeIdx) {
-    var size = 260,
-      cx = size / 2,
-      cy = size / 2,
-      r = 100,
-      nodeR = 17;
-    var roots = items.map(function (it) {
-      return it.root;
-    });
-    var inProg = {};
-    roots.forEach(function (root, i) {
-      if (root < 0) return;
-      if (!inProg[root]) inProg[root] = [];
-      inProg[root].push(i + 1);
-    });
-
-    var svg = '<svg class="workbench-circle-svg" viewBox="0 0 ' + size + " " + size + '" xmlns="http://www.w3.org/2000/svg">';
-    svg +=
-      '<defs><marker id="wb-arrow" viewBox="0 0 10 10" refX="9" refY="5" ' +
-      'markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
-      '<path d="M 0 0 L 10 5 L 0 10 z" class="workbench-circle-arrowhead"/></marker></defs>';
-
-    // Edges between consecutive roots, curved toward center
-    for (var i = 0; i < roots.length - 1; i++) {
-      if (roots[i] < 0 || roots[i + 1] < 0 || roots[i] === roots[i + 1]) continue;
-      var a = circlePos(roots[i], cx, cy, r);
-      var b = circlePos(roots[i + 1], cx, cy, r);
-      // Trim endpoints to node edge
-      var dx = b.x - a.x,
-        dy = b.y - a.y,
-        len = Math.sqrt(dx * dx + dy * dy);
-      var ax = a.x + (dx / len) * nodeR,
-        ay = a.y + (dy / len) * nodeR;
-      var bx = b.x - (dx / len) * (nodeR + 4),
-        by = b.y - (dy / len) * (nodeR + 4);
-      var mx = (ax + bx) / 2 + (cx - (ax + bx) / 2) * 0.25;
-      var my = (ay + by) / 2 + (cy - (ay + by) / 2) * 0.25;
-      svg +=
-        '<path class="workbench-circle-edge" d="M ' + ax + " " + ay + " Q " + mx + " " + my + " " + bx + " " + by + '" marker-end="url(#wb-arrow)"/>';
-    }
-
-    // Nodes
-    FIFTHS.forEach(function (semitone) {
-      var p = circlePos(semitone, cx, cy, r);
-      var steps = inProg[semitone];
-      var isActive = steps && activeIdx != null && items[activeIdx] && items[activeIdx].root === semitone;
-      var cls = "workbench-circle-node" + (steps ? " in-progression" : "") + (isActive ? " is-active" : "");
-      svg += '<g class="' + cls + '">';
-      svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + nodeR + '"/>';
-      svg += '<text x="' + p.x + '" y="' + (p.y + 4) + '" text-anchor="middle">' + M.esc(M.noteName(semitone)) + "</text>";
-      if (steps) {
-        var bp = circlePos(semitone, cx, cy, r + nodeR + 9);
-        svg += '<text class="workbench-circle-order" x="' + bp.x + '" y="' + (bp.y + 3) + '" text-anchor="middle">' + steps.join(",") + "</text>";
-      }
-      svg += "</g>";
-    });
-
-    return svg + "</svg>";
+  function current() {
+    return state.items[state.index];
   }
-
-  // ── Key bar (own delegation-safe version) ──
-
-  function keyBarHtml(activeKey) {
-    var html = '<div class="workbench-keybar">';
-    M.NOTES.forEach(function (n, i) {
-      var cls = "music-key-btn" + (i === activeKey ? " is-active" : "");
-      html += '<button class="' + cls + '" data-wbkey="' + i + '">' + M.esc(n) + "</button>";
-    });
-    return html + "</div>";
-  }
-
-  // ── Chord card ──
-
-  function renderChordCard(model) {
-    var html = '<div class="workbench-card">';
-
-    if (model.name) {
-      html += '<div class="recognizer-chord-name">' + M.esc(model.name);
-      if (model.roman) html += '<span class="recognizer-inversion">' + M.esc(model.roman) + "</span>";
-      if (model.inversion) html += '<span class="recognizer-inversion">(' + M.esc(model.inversion) + ")</span>";
-      html += "</div>";
-    } else {
-      html +=
-        '<div class="recognizer-chord-name">?</div>' +
-        '<p class="recognizer-prompt">No chord recognized for ' +
-        M.esc(model.notes.map(M.noteName).join(" ")) +
-        "</p>";
-    }
-
-    if (model.alternatives && model.alternatives.length > 0) {
-      html += '<div class="recognizer-alternatives">Also: ';
-      html += model.alternatives
-        .map(function (c) {
-          return '<button class="workbench-chip" data-chord="' + M.esc(c) + '">' + M.esc(c) + "</button>";
-        })
-        .join(" ");
-      html += "</div>";
-    }
-
-    if (model.detail) {
-      html += '<div class="recognizer-details">';
-      html += "<div><strong>Notes:</strong> " + M.esc(model.detail.notes.join(" ")) + "</div>";
-      html += "<div><strong>Intervals:</strong> " + M.esc(model.detail.intervals.join(" ")) + "</div>";
-      html += "<div><strong>Semitones:</strong> " + M.esc(model.detail.semitones.join("\u2013")) + "</div>";
-      html += "</div>";
-    }
-
-    html += '<div class="workbench-section"><h4 class="workbench-section-title">Sheet</h4>' + staffSvg(model.notes) + "</div>";
-    html += renderStradellaEntries(model.root, model.suffix);
-
-    html += '<div class="workbench-actions">' + '<button class="music-share-btn" id="workbench-add">Add to setlist</button>' + "</div>";
-
-    html += "</div>";
-    return html;
-  }
-
-  // ── Progression block ──
-
-  function renderProgressionBlock(prog) {
-    var html = '<div class="workbench-card workbench-progression-block">';
-    html += '<div class="workbench-progression-head">';
-    if (prog.label) html += '<span class="workbench-progression-label">' + M.esc(prog.label) + "</span>";
-    html += '<button class="music-share-btn" id="workbench-add-prog">Add progression to setlist</button>';
-    html += "</div>";
-
-    if (prog.transposable) html += keyBarHtml(prog.key);
-
-    html += '<div class="workbench-progression">';
-    prog.items.forEach(function (item, i) {
-      var cls = "workbench-chip workbench-prog-chip" + (i === prog.activeIdx ? " is-active" : "");
-      html += '<button class="' + cls + '" data-idx="' + i + '">' + M.esc(item.name);
-      if (item.roman) html += '<span class="workbench-chip-roman">' + M.esc(item.roman) + "</span>";
-      html += "</button>";
-    });
-    html += "</div>";
-
-    html += '<div class="workbench-circle">' + circleSvg(prog.items, prog.activeIdx) + "</div>";
-    html += "</div>";
-    return html;
-  }
-
-  // ── Sheet draft (abcjs) ──
-
-  var SHEET_SEED = "C E G c | d2 B2 | c4";
-  var ACCIDENTAL_OFFSET = { "^": 1, _: -1, "=": 0 };
-
-  function fullAbc(text) {
-    if (/^[XK]:/m.test(text)) return text;
-    return "X:1\nM:4/4\nL:1/4\nK:C\n" + text;
-  }
-
-  // Extract pitch classes per bar from ABC body text (headers stripped)
-  function sheetBarModels(text) {
-    var body = text
-      .split("\n")
-      .filter(function (line) {
-        return !/^[A-Za-z]:/.test(line);
+  function setInputFromState() {
+    input.value = state.items
+      .map(function (m) {
+        return m.name;
       })
       .join(" ");
-    var bars = body.split("|");
-    var models = [];
-    bars.forEach(function (bar, barIdx) {
-      var semis = [];
-      var re = /([_^=]?)([A-Ga-g])/g;
-      var m;
-      while ((m = re.exec(bar)) !== null) {
-        var s = M.parseNote(m[2].toUpperCase());
-        if (s === -1) continue;
-        s = (s + (ACCIDENTAL_OFFSET[m[1]] || 0) + 12) % 12;
-        if (semis.indexOf(s) === -1) semis.push(s);
-      }
-      if (semis.length === 0) return;
-      var model = semis.length >= 2 ? modelFromNotes(semis, "notes") : null;
-      models.push({ bar: barIdx + 1, model: model, semis: semis });
-    });
-    return models;
+  }
+  function selectItems(items, options) {
+    Player.stop();
+    options = options || {};
+    state.items = items.filter(Boolean);
+    state.index = Math.min(options.index || 0, Math.max(0, state.items.length - 1));
+    state.key = options.key == null ? (current() ? current().root : 0) : options.key;
+    state.label = options.label || "";
+    state.degrees = options.degrees || null;
+    input.removeAttribute("aria-invalid");
+    if (options.syncInput) setInputFromState();
+    render();
+    announce(current() ? current().name + (state.items.length > 1 ? ", progression of " + state.items.length + " chords." : ".") : "");
   }
 
-  function openSheet(text) {
-    state.sheet.open = true;
-    state.sheet.text = text || state.sheet.text || SHEET_SEED;
-    var panel = document.getElementById("workbench-sheet");
-    if (!panel) return;
-    if (!panel.innerHTML) {
-      panel.innerHTML =
-        '<div class="workbench-card">' +
-        '<div class="workbench-sheet-head">' +
-        '<span class="workbench-section-title">Sheet draft (ABC notation)</span>' +
-        '<span><button class="music-share-btn" id="workbench-sheet-setlist">Add chords to setlist</button> ' +
-        '<button class="music-share-btn" id="workbench-sheet-close">Close</button></span>' +
-        "</div>" +
-        '<textarea id="workbench-sheet-text" class="workbench-sheet-text" rows="4" spellcheck="false"></textarea>' +
-        '<div id="workbench-sheet-render" class="workbench-sheet-render"></div>' +
-        '<div id="workbench-sheet-chords" class="workbench-progression"></div>' +
-        "</div>";
-      var ta = document.getElementById("workbench-sheet-text");
-      ta.addEventListener("input", function () {
-        state.sheet.text = ta.value;
-        updateSheetRender();
+  function classify(value) {
+    Player.stop();
+    state.sheet = false;
+    document.getElementById("workbench-sheet").hidden = true;
+    var c = WorkbenchClassify.classify(value.slice(0, 500), {
+      isChord: function (name) {
+        return !!Model.fromName(name);
+      },
+      parseRecipe: M.parseRecipeInput,
+    });
+    if (c.type === "degrees") {
+      var key = c.key ? M.parseNote(c.key) : 0;
+      return selectItems(
+        c.degrees.map(function (t) {
+          return Model.fromDegree(t, key);
+        }),
+        {
+          key: key,
+          degrees: c.degrees,
+          label: "Major-key progression",
+        }
+      );
+    }
+    if (c.type === "chords") return selectItems(c.names.map(Model.fromName));
+    if (c.type === "recipe") return selectItems([Model.fromNotes(c.notes, c.notes.buttonRoots)]);
+    if (c.type === "notes" || c.type === "note") {
+      return selectItems([Model.fromNotes(M.parseNoteInput(c.tokens ? c.tokens.join(" ") : c.token))]);
+    }
+    if (c.type === "sheet") {
+      selectItems([]);
+      return openSheet(c.text);
+    }
+    selectItems([]);
+    if (c.type === "empty") {
+      result.innerHTML = '<p class="wb-empty">Start with a chord above, or try one of the examples.</p>';
+    } else {
+      var message =
+        c.type === "url"
+          ? "Link imports are not supported. Type the notes or chords instead."
+          : "That input is not recognized. Try Am7, C E G, or 2 5 1 in G.";
+      result.innerHTML = '<p class="wb-empty">' + message + "</p>";
+      input.setAttribute("aria-invalid", "true");
+      announce(message);
+    }
+  }
+
+  function keyBar() {
+    var html =
+      '<div class="wb-key-select"><span class="music-small">' +
+      (state.items.length > 1 ? "Key / transpose" : "Root / transpose") +
+      "</span>" +
+      '<div class="workbench-keybar" role="group" aria-label="Transpose">';
+    M.NOTES.forEach(function (n, i) {
+      html += button(
+        M.esc(n),
+        'data-wbkey="' + i + '" aria-pressed="' + (state.key === i) + '"',
+        "music-key-btn" + (state.key === i ? " is-active" : "")
+      );
+    });
+    return html + "</div></div>";
+  }
+
+  function circle() {
+    var cx = 126,
+      cy = 126,
+      radius = 93;
+    function pos(pc) {
+      var angle = ((-90 + FIFTHS.indexOf(pc) * 30) * Math.PI) / 180;
+      return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+    }
+    var html =
+      '<svg class="workbench-circle-svg" viewBox="0 0 252 252" role="img" aria-label="Circle of fifths: ' +
+      M.esc(
+        state.items
+          .map(function (item) {
+            return item.name;
+          })
+          .join(", ")
+      ) +
+      '">';
+    state.items.forEach(function (item, i) {
+      if (!i || item.root === state.items[i - 1].root) return;
+      var a = pos(state.items[i - 1].root),
+        b = pos(item.root);
+      html +=
+        '<path class="wb-circle-path' +
+        (i === state.index ? " is-current" : "") +
+        '" d="M ' +
+        a.x +
+        " " +
+        a.y +
+        " Q 126 126 " +
+        b.x +
+        " " +
+        b.y +
+        '"/>';
+    });
+    FIFTHS.forEach(function (pc) {
+      var p = pos(pc),
+        active = current().root === pc;
+      var steps = [];
+      state.items.forEach(function (m, i) {
+        if (m.root === pc) steps.push(i + 1);
+      });
+      html +=
+        '<g class="workbench-circle-node' +
+        (steps.length ? " in-progression" : "") +
+        (active ? " is-active" : "") +
+        '">' +
+        '<circle cx="' +
+        p.x +
+        '" cy="' +
+        p.y +
+        '" r="18"/><text x="' +
+        p.x +
+        '" y="' +
+        (p.y + 4) +
+        '" text-anchor="middle">' +
+        M.esc(M.noteName(pc)) +
+        "</text><title>" +
+        M.esc(M.noteName(pc)) +
+        (steps.length ? ": steps " + steps.join(", ") : "") +
+        "</title></g>";
+    });
+    return html + "</svg>";
+  }
+
+  function progression() {
+    if (state.items.length < 2) return "";
+    var html =
+      '<section class="wb-progression-panel" aria-label="Progression"><div><div class="wb-section-heading">' +
+      "<h2>" +
+      M.esc(state.label || "Your progression") +
+      '</h2><span class="music-small">4 beats per chord</span></div>' +
+      '<div class="workbench-progression" role="group" aria-label="Progression chords">';
+    state.items.forEach(function (item, i) {
+      html += button(
+        '<span class="music-small">' +
+          (i + 1) +
+          "</span> " +
+          M.esc(item.name) +
+          '<span class="workbench-chip-roman">' +
+          M.esc(item.roman || "") +
+          "</span>",
+        'data-step="' + i + '" aria-pressed="' + (i === state.index) + '"',
+        "workbench-chip workbench-prog-chip" + (i === state.index ? " is-active" : "")
+      );
+    });
+    return (
+      html +
+      '</div><p class="music-small">Choose a chord to inspect. The path follows its root around the circle of fifths.</p></div>' +
+      '<div class="workbench-circle">' +
+      circle() +
+      "</div></section>"
+    );
+  }
+
+  function recipe(model) {
+    var recipes = Model.recipes(model);
+    if (!recipes.length)
+      return '<section class="wb-recipe"><h3>Left hand · Stradella</h3><p class="music-small">No catalog recipe for this voicing. Explore the notes on the right-hand pitch map.</p></section>';
+    recipes.sort(function (a, b) {
+      return Number(b.exact) - Number(a.exact);
+    });
+    var r = recipes[0];
+    var html =
+      '<section class="wb-recipe"><div class="wb-section-heading"><h3>Left hand · Stradella</h3>' +
+      '<span class="music-small">' +
+      (r.exact ? "Exact pitch set" : "Approximate pitch set") +
+      "</span></div>" +
+      '<p class="wb-recipe-formula">' +
+      M.esc(r.label) +
+      '</p><div class="wb-recipe-buttons">';
+    html += button(
+      "<span>" + M.esc(M.noteName(r.bass)) + "</span><small>Bass</small>",
+      'data-sound="' + (48 + r.bass) + '" data-pcs="' + r.bass + '"',
+      "wb-bass-button"
+    );
+    r.parts.forEach(function (part) {
+      html +=
+        '<span class="music-small" aria-hidden="true">+</span>' +
+        button(
+          M.esc(part.name),
+          'data-sound="' +
+            part.notes
+              .map(function (n) {
+                return 60 + n;
+              })
+              .join(",") +
+            '" data-pcs="' +
+            part.notes.join(",") +
+            '"',
+          "wb-chord-button"
+        );
+    });
+    html +=
+      '</div><p class="music-small">Press together: bass + chord button' +
+      (r.parts.length > 1 ? "s" : "") +
+      ". These are pitch sets, not prescribed fingerings.</p>";
+    if (r.rh != null) html += '<p class="music-small">Add ' + M.esc(M.noteName(r.rh)) + " in the right hand.</p>";
+    if (r.missing.length) html += '<p class="wb-warning">Missing: ' + M.esc(r.missing.map(M.noteName).join(", ")) + ".</p>";
+    if (r.extra.length) html += '<p class="wb-warning">Extra tones: ' + M.esc(r.extra.map(M.noteName).join(", ")) + ".</p>";
+    if (r.large) html += '<p class="wb-warning">A theoretical stack, not an ergonomic left-hand voicing. Move extra tones to the right hand.</p>';
+    if (r.warning) html += '<p class="music-small">Catalog note: ' + M.esc(r.warning) + "</p>";
+    return html + "</section>";
+  }
+
+  function chordCard(model) {
+    var voices = Model.voices(model);
+    var html =
+      '<section class="wb-chord-panel" aria-labelledby="wb-chord-title"><div class="wb-section-heading">' +
+      '<h2 id="wb-chord-title" class="recognizer-chord-name">' +
+      M.esc(model.name) +
+      '</h2><span class="music-small">' +
+      M.esc(model.roman || (model.notes[0] !== model.root ? M.noteName(model.notes[0]) + " in the bass" : "Root position")) +
+      "</span></div>";
+    html +=
+      '<div class="wb-representations"><section class="wb-notation" aria-label="Notes and notation"><h3>Notes on the staff</h3>' +
+      '<div class="wb-note-list">';
+    voices.forEach(function (v, i) {
+      html += button(
+        M.esc(v.name.replace(/b/g, "♭").replace(/#/g, "♯")) + "<small>" + (i === 0 ? "bass" : v.octave) + "</small>",
+        'data-pc="' + v.pc + '" data-midi="' + v.midi + '" aria-label="Hear ' + M.esc(v.name) + v.octave + '"',
+        "wb-note"
+      );
+    });
+    html +=
+      '</div><div class="wb-staff-scroll">' +
+      Diagrams.staff(model) +
+      '</div><p class="music-small">Read left to right. Focus or hover a note to find it on the buttons.</p></section>' +
+      '<section class="wb-map" aria-label="Bayan pitch map"><h3>Right hand · B-system</h3>' +
+      Diagrams.keyboard(model) +
+      '<p class="music-small">Rotated pitch map. Three semitones along a row, one between rows. Press a button to hear it.</p></section></div>' +
+      recipe(model);
+    html += '<details class="workbench-disclosure wb-theory"' + (state.theory ? " open" : "") + "><summary>Theory &amp; other readings</summary>";
+    if (model.detail) {
+      html += '<dl class="wb-theory-grid"><dt>Intervals</dt><dd>';
+      model.detail.notes.forEach(function (n, i) {
+        html += '<span data-pc="' + Tonal.Note.chroma(n) + '">' + M.esc(model.detail.intervals[i]) + "</span> ";
+      });
+      html += "</dd><dt>Semitones from root</dt><dd>" + M.esc(model.detail.semitones.join(" · ")) + "</dd></dl>";
+    } else html += '<p class="music-small">No single chord name fits this collection. You can still hear, transpose, and save it.</p>';
+    if (model.alternatives && model.alternatives.length) {
+      html += '<p class="music-small">Other names depend on musical context:</p><div class="workbench-hint">';
+      model.alternatives.forEach(function (name) {
+        html += button(M.esc(name), 'data-chord="' + M.esc(name) + '"');
+      });
+      html += "</div>";
+    }
+    return (
+      html +
+      '<p class="music-small">Playback uses an ascending close voicing. Real accordion registers and omitted chord tones vary by instrument.</p></details></section>'
+    );
+  }
+
+  function render() {
+    var model = current();
+    var focused = document.activeElement;
+    var focusSelector = null;
+    if (result.contains(focused)) {
+      ["data-step", "data-wbkey", "data-action", "data-suffix"].some(function (attr) {
+        if (!focused.hasAttribute(attr)) return false;
+        focusSelector = "[" + attr + "=" + JSON.stringify(focused.getAttribute(attr)) + "]";
+        return true;
       });
     }
-    document.getElementById("workbench-sheet-text").value = state.sheet.text;
-    panel.style.display = "";
-    updateSheetRender();
-    var hint = document.getElementById("workbench-hint");
-    if (hint) hint.style.display = "none";
-  }
-
-  function closeSheet() {
-    state.sheet.open = false;
-    var panel = document.getElementById("workbench-sheet");
-    if (panel) panel.style.display = "none";
-    renderLibrary();
-  }
-
-  function updateSheetRender() {
-    var renderDiv = document.getElementById("workbench-sheet-render");
-    var chordsDiv = document.getElementById("workbench-sheet-chords");
-    if (!renderDiv || !window.ABCJS) return;
-    try {
-      ABCJS.renderAbc(renderDiv, fullAbc(state.sheet.text), { responsive: "resize" });
-    } catch (e) {
-      renderDiv.innerHTML = '<p class="recognizer-prompt">Could not render — check the ABC syntax</p>';
+    result.innerHTML = model ? keyBar() + progression() + chordCard(model) : "";
+    document.getElementById("workbench-transport").hidden = !model;
+    document.getElementById("workbench-play").textContent = Player.isPlaying() ? "Stop" : state.items.length > 1 ? "Play progression" : "Hear chord";
+    document.getElementById("workbench-tempo").hidden = state.items.length < 2;
+    document.getElementById("workbench-roll").hidden = state.items.length > 1;
+    renderMatrix();
+    if (focusSelector) {
+      var target = result.querySelector(focusSelector);
+      if (target) target.focus({ preventScroll: true });
     }
-    state.sheet.barModels = sheetBarModels(state.sheet.text);
-    var html = "";
-    state.sheet.barModels.forEach(function (bm, i) {
-      var label = bm.model && bm.model.name ? bm.model.name : bm.semis.map(M.noteName).join(" ");
-      html +=
-        '<button class="workbench-chip" data-bar="' +
-        i +
-        '">' +
-        M.esc(label) +
-        '<span class="workbench-chip-roman">bar ' +
-        bm.bar +
-        "</span></button>";
+  }
+
+  async function play(options) {
+    if (!current()) return;
+    options = options || {};
+    var models = options.single ? [current()] : state.items;
+    var started = await Player.play(
+      models.map(function (model) {
+        return Model.voices(model).map(function (v) {
+          return v.midi;
+        });
+      }),
+      {
+        bpm: state.bpm,
+        roll: options.roll,
+        loop: state.loop && models.length > 1,
+        progression: models.length > 1,
+        onError: announce,
+        onStep: function (index) {
+          if (models.length > 1) {
+            state.index = index;
+            render();
+          }
+        },
+      }
+    );
+    if (started) {
+      document.getElementById("workbench-play").textContent = "Stop";
+      announce("Playing with a synthesized tone.");
+    } else if (Player.isMuted()) announce("Sound is muted. Unmute to play.");
+  }
+
+  function highlight(pcs) {
+    root.querySelectorAll("[data-pc]").forEach(function (el) {
+      el.classList.toggle("is-linked", pcs.indexOf(Number(el.dataset.pc)) >= 0);
     });
-    chordsDiv.innerHTML = html ? '<span class="workbench-hint-label">Bar chords:</span> ' + html : "";
   }
 
-  // ── Chord type matrix ──
-
-  function matrixToggleHtml() {
-    return '<button class="workbench-chip' + (state.matrixOpen ? " is-active" : "") + '" id="workbench-matrix-toggle">All chord types</button>';
+  function readSaved() {
+    try {
+      state.saved = Model.savedItems(localStorage.getItem(KEY));
+      state.storageError = "";
+    } catch (_) {
+      state.saved = [];
+      state.storageError = "Saved practice could not be read. Existing data has not been changed.";
+    }
+  }
+  function persist() {
+    if (state.storageError) {
+      announce(state.storageError);
+      return false;
+    }
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state.saved));
+      return true;
+    } catch (_) {
+      announce("Storage is unavailable. Your changes remain in this tab; export a backup before closing it.");
+      return false;
+    }
+  }
+  function renderSaved() {
+    var aside = document.getElementById("workbench-setlist");
+    aside.style.display = "";
+    var html =
+      '<details id="wb-saved-drawer"' +
+      (state.drawer ? " open" : "") +
+      '><summary>Saved practice <span class="music-small">' +
+      state.saved.length +
+      '</span></summary><p class="music-small">Stored only in this browser. Earlier Stradella songs are kept separately.</p>';
+    if (state.storageError) html += '<p class="wb-warning">' + state.storageError + "</p>";
+    if (!state.saved.length && !state.storageError) html += '<p class="music-small">Save a chord or progression to return to it later.</p>';
+    html += '<ol class="wb-saved-list">';
+    state.saved.forEach(function (item, i) {
+      html +=
+        "<li>" +
+        button(M.esc(item.name), 'data-load="' + i + '"', "wb-saved-load") +
+        button("Remove", 'data-remove="' + i + '" aria-label="Remove ' + M.esc(item.name) + '"', "music-share-btn") +
+        "</li>";
+    });
+    html +=
+      '</ol><div class="workbench-hint">' +
+      button("Export practice", 'data-action="export"', "music-share-btn") +
+      '<label class="wb-import">Import backup<input type="file" id="wb-import" accept=".json,application/json"></label></div></details>';
+    aside.innerHTML = html;
+  }
+  function saveCurrent() {
+    if (!current() || state.storageError) return announce(state.storageError || "Choose a chord first.");
+    var name = document.getElementById("workbench-save-name").value.trim();
+    state.saved.push({
+      name:
+        name ||
+        state.label ||
+        state.items
+          .map(function (m) {
+            return m.name;
+          })
+          .join(" · "),
+      chords: state.items.map(Model.entry),
+      key: state.key,
+      bpm: state.bpm,
+    });
+    var saved = persist();
+    state.drawer = true;
+    renderSaved();
+    if (saved) announce("Practice saved in this browser.");
+  }
+  function exportSaved() {
+    var blob = new Blob([JSON.stringify(state.saved, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob),
+      link = document.createElement("a");
+    link.href = url;
+    link.download = "bayan-practice.json";
+    link.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+  async function share() {
+    if (!current()) return;
+    var url = new URL(root.dataset.musicHome, location.origin);
+    url.searchParams.set("chords", JSON.stringify(state.items.map(Model.entry)));
+    url.searchParams.set("key", String(state.key));
+    url.searchParams.set("step", String(state.index));
+    url.searchParams.set("bpm", String(state.bpm));
+    var field = document.getElementById("workbench-share-url");
+    field.value = url.href;
+    document.getElementById("workbench-share-result").hidden = false;
+    try {
+      await navigator.clipboard.writeText(url.href);
+      announce("Link copied. It contains these chords, not your saved library.");
+    } catch (_) {
+      field.focus();
+      field.select();
+      announce("Select and copy the link below.");
+    }
+  }
+  function restoreLink() {
+    var params = new URLSearchParams(location.search);
+    var payload = params.get("chords");
+    if (!payload) return false;
+    try {
+      if (payload.length > 30000) throw new Error("Link too large.");
+      var entries = JSON.parse(payload);
+      var saved = Model.savedItems(JSON.stringify([{ name: "Shared progression", chords: entries }]));
+      var items = saved[0].chords.map(Model.restore);
+      if (
+        items.some(function (m) {
+          return !m;
+        })
+      )
+        throw new Error("Invalid chord.");
+      var key = Number(params.get("key")),
+        step = Number(params.get("step"));
+      var bpm = Number(params.get("bpm"));
+      state.bpm = Number.isFinite(bpm) && bpm >= 40 && bpm <= 200 ? bpm : 96;
+      document.getElementById("workbench-bpm").value = state.bpm;
+      selectItems(items, {
+        syncInput: true,
+        key: params.has("key") && Number.isInteger(key) && key >= 0 && key < 12 ? key : items[0].root,
+        index: Number.isInteger(step) && step >= 0 ? step : 0,
+      });
+      return true;
+    } catch (_) {
+      classify("Am7");
+      announce("This shared link is invalid. Showing the default chord instead.");
+      return true;
+    }
   }
 
+  function renderLibrary() {
+    var html = '<span class="workbench-hint-label">Progressions</span>';
+    presets.forEach(function (p) {
+      html += button(p.label, 'data-preset="' + p.id + '"');
+    });
+    (window.MusicExercises || []).forEach(function (ex) {
+      html += button(M.esc(ex.title), 'data-exercise="' + M.esc(ex.id) + '"');
+    });
+    html += button("Notation draft", 'data-action="sheet"');
+    html += button("All chord types", 'data-action="matrix" aria-expanded="' + state.matrix + '"');
+    document.getElementById("workbench-library").innerHTML = html;
+  }
   function renderMatrix() {
     var container = document.getElementById("workbench-matrix");
-    if (!container) return;
-    if (!state.matrixOpen || !window.StradellaData) {
-      container.innerHTML = "";
-      container.style.display = "none";
-      return;
-    }
-    var S = window.StradellaData;
-    var root = state.current && state.current.root >= 0 ? state.current.root : 0;
-    var currentSet = null;
-    if (state.current) {
-      currentSet = {};
-      state.current.notes.forEach(function (s) {
-        currentSet[s] = true;
-      });
-    }
-
+    container.style.display = state.matrix ? "" : "none";
+    if (!state.matrix) return;
+    var model = current(),
+      rootPc = model ? model.root : 0;
     var html =
-      '<div class="workbench-card"><div class="workbench-matrix-head">' +
-      '<span class="workbench-section-title">All chord types on ' +
-      M.esc(M.noteName(root)) +
-      "</span>";
-    if (currentSet) {
-      html += '<span class="workbench-matrix-hint">\u00B1n = tones changed vs ' + M.esc(state.current.name || "current") + "</span>";
-    }
-    html += '</div><table class="workbench-matrix-table"><thead><tr><th></th>';
+      '<div class="workbench-card"><h2>Chord types on ' +
+      M.esc(M.noteName(rootPc)) +
+      "</h2>" +
+      '<p class="music-small">Compare a different quality on the same root.</p><div class="wb-table-scroll" tabindex="0" role="region" aria-label="Chord type table">' +
+      '<table class="workbench-matrix-table"><thead><tr><th scope="col">Extension</th>';
     S.GRID_COLS.forEach(function (q) {
-      html += "<th>" + M.esc(q) + "</th>";
+      html += '<th scope="col">' + M.esc(q) + "</th>";
     });
     html += "</tr></thead><tbody>";
-
     S.GRID_ROWS.forEach(function (ext) {
-      html += "<tr><th>" + M.esc(ext) + "</th>";
-      S.GRID_COLS.forEach(function (qual) {
+      html += '<tr><th scope="row">' + ext + "</th>";
+      S.GRID_COLS.forEach(function (quality) {
         html += "<td>";
-        var seenSuffix = {};
+        var seen = {};
         S.CHORDS.forEach(function (c) {
-          if (c.quality !== qual || c.extension !== ext || c.bug) return;
-          if (seenSuffix[c.suffix]) return;
-          seenSuffix[c.suffix] = true;
-          var info = M.chordInfo(root, c.suffix);
-          if (!info) return;
-          var label = c.suffix === "" ? "maj" : c.suffix;
-          var diffBadge = "";
-          if (currentSet) {
-            var cellSet = {};
-            info.semitones.forEach(function (s) {
-              cellSet[(root + s) % 12] = true;
-            });
-            var diff = 0;
-            var k;
-            for (k in cellSet) if (!currentSet[k]) diff++;
-            for (k in currentSet) if (!cellSet[k]) diff++;
-            if (diff > 0) diffBadge = '<span class="workbench-matrix-diff">\u00B1' + diff + "</span>";
-          }
-          html +=
-            '<button class="workbench-matrix-cell" data-suffix="' +
-            M.esc(c.suffix) +
-            '">' +
-            '<span class="workbench-matrix-suffix">' +
-            M.esc(label) +
-            diffBadge +
-            "</span>" +
-            '<span class="workbench-matrix-formula">' +
-            M.esc(c.intervals) +
-            "</span>" +
-            "</button>";
+          if (c.extension !== ext || c.quality !== quality || c.bug || seen[c.suffix]) return;
+          seen[c.suffix] = true;
+          if (!Model.fromSuffix(rootPc, c.suffix)) return;
+          html += button(M.esc(c.suffix || "major"), 'data-suffix="' + M.esc(c.suffix) + '"', "workbench-matrix-cell");
         });
         html += "</td>";
       });
       html += "</tr>";
     });
-    html += "</tbody></table></div>";
-    container.innerHTML = html;
-    container.style.display = "";
+    container.innerHTML = html + "</tbody></table></div></div>";
   }
-
-  // ── Library ──
-
-  function builtinPresets() {
-    return [
-      { id: "ii-v-i", title: "ii\u2013V\u2013I", degrees: ["2", "5", "1"] },
-      { id: "blues-12", title: "12-Bar Blues", degrees: ["17", "47", "17", "17", "47", "47", "17", "17", "57", "47", "17", "57"] },
-    ];
-  }
-
-  function renderLibrary() {
-    var container = document.getElementById("workbench-library");
-    if (!container) return;
-    var html = '<span class="workbench-hint-label">Library:</span>';
-    builtinPresets().forEach(function (p) {
-      html += '<button class="workbench-chip" data-preset="' + p.id + '">' + p.title + "</button>";
-    });
-    (window.MusicExercises || []).forEach(function (ex) {
-      html += '<button class="workbench-chip" data-exercise="' + M.esc(ex.id) + '">' + M.esc(ex.title) + "</button>";
-    });
-    html += '<button class="workbench-chip' + (state.sheet.open ? " is-active" : "") + '" id="workbench-sheet-toggle">Sheet draft</button>';
-    html += matrixToggleHtml();
-    container.innerHTML = html;
-  }
-
-  function loadPreset(id) {
-    var preset = builtinPresets().filter(function (p) {
-      return p.id === id;
-    })[0];
-    if (!preset) return;
-    setProgression({
-      label: preset.title,
-      steps: preset.degrees.map(function (t) {
-        return { kind: "degree", token: t };
-      }),
-      key: 0,
-      transposable: true,
-    });
-  }
-
-  function loadExercise(id) {
-    var ex = (window.MusicExercises || []).filter(function (e) {
-      return e.id === id;
-    })[0];
-    if (!ex) return;
-    setProgression({
-      label: ex.title,
-      steps: ex.progression.map(function (step) {
-        return { kind: "stradella", id: step.id, offset: step.offset, roman: step.roman };
-      }),
-      key: ex.default_key || 0,
-      transposable: true,
-    });
-  }
-
-  // ── Main rendering ──
-
-  function renderMain() {
-    var container = document.getElementById("workbench-result");
-    var hint = document.getElementById("workbench-hint");
-    if (!container) return;
-
-    var html = "";
-    if (state.progression) {
-      html += renderProgressionBlock(state.progression);
+  function openSheet(text) {
+    Player.stop();
+    state.sheet = true;
+    var panel = document.getElementById("workbench-sheet");
+    panel.hidden = false;
+    panel.style.display = "";
+    panel.innerHTML =
+      '<div class="workbench-card"><div class="wb-section-heading"><h2>Notation draft</h2>' +
+      button("Close", 'data-action="close-sheet"', "music-share-btn") +
+      "</div>" +
+      '<label for="wb-abc">ABC notation</label><textarea id="wb-abc" class="workbench-sheet-text" rows="4" maxlength="10000" spellcheck="false"></textarea>' +
+      '<div id="wb-abc-render" class="workbench-sheet-render"></div><p class="music-small">A notation scratchpad, not automatic harmonization. Enter a chord above to study its voicing.</p></div>';
+    var ta = document.getElementById("wb-abc");
+    ta.value = text || "C E G c | d2 B2 | c4";
+    function draw() {
+      try {
+        var abc = /^[XK]:/m.test(ta.value) ? ta.value : "X:1\nM:4/4\nL:1/4\nK:C\n" + ta.value;
+        ABCJS.renderAbc("wb-abc-render", abc, { responsive: "resize" });
+      } catch (_) {
+        document.getElementById("wb-abc-render").textContent = "Check the ABC syntax.";
+      }
     }
-    if (state.current) {
-      html += renderChordCard(state.current);
-    }
-    container.innerHTML = html;
-    if (hint) hint.style.display = state.current || state.progression || state.sheet.open ? "none" : "";
-    renderMatrix();
+    ta.addEventListener("input", draw);
+    draw();
   }
 
-  function showMessage(msg) {
-    state.current = null;
-    state.progression = null;
-    var container = document.getElementById("workbench-result");
-    var hint = document.getElementById("workbench-hint");
-    if (container) {
-      container.innerHTML = msg ? '<div class="workbench-card"><p class="recognizer-prompt">' + msg + "</p></div>" : "";
-    }
-    if (hint) hint.style.display = msg ? "none" : "";
-    renderMatrix();
-  }
-
-  function renderResult(classification) {
-    switch (classification.type) {
-      case "empty":
-        showMessage("");
-        return;
-      case "note":
-        state.progression = null;
-        state.current = null;
-        var container = document.getElementById("workbench-result");
-        container.innerHTML =
-          '<div class="workbench-card"><div class="recognizer-chord-name">' +
-          M.esc(M.noteName(M.parseNote(classification.token))) +
-          "</div>" +
-          '<p class="recognizer-prompt">Add more notes to identify a chord, or type a chord name like Am7</p></div>';
-        var hint = document.getElementById("workbench-hint");
-        if (hint) hint.style.display = "none";
-        renderMatrix();
-        return;
-      case "notes":
-        state.progression = null;
-        state.current = modelFromNotes(M.parseNoteInput(classification.tokens.join(" ")), "notes");
-        renderMain();
-        return;
-      case "recipe":
-        state.progression = null;
-        state.current = modelFromNotes(classification.notes, "recipe");
-        renderMain();
-        return;
-      case "degrees":
-        setProgression({
-          label: classification.degrees.join(" ") + (classification.key ? " in " + classification.key : ""),
-          steps: classification.degrees.map(function (t) {
-            return { kind: "degree", token: t };
-          }),
-          key: classification.key ? Math.max(0, M.parseNote(classification.key)) : 0,
-          transposable: true,
+  function transpose(key) {
+    var index = state.index;
+    var items = state.degrees
+      ? state.degrees.map(function (d) {
+          return Model.fromDegree(d, key);
+        })
+      : state.items.map(function (m) {
+          return Model.transpose(m, Model.mod(key - state.key));
         });
-        return;
-      case "chords":
-        if (classification.names.length === 1) {
-          state.progression = null;
-          state.current = modelFromChordName(classification.names[0]);
-          renderMain();
-        } else {
-          setProgression({
-            label: "",
-            steps: classification.names.map(function (n) {
-              return { kind: "chord", name: n };
-            }),
-            key: 0,
-            transposable: false,
-          });
-        }
-        return;
-      case "sheet":
-        state.progression = null;
-        state.current = null;
-        renderMain();
-        openSheet(classification.text);
-        renderLibrary();
-        return;
-      case "url":
-        showMessage("Tab and MuseScore ingestion is coming soon. For now, type notes (C E G) or a chord name (Am7).");
-        return;
-      default:
-        showMessage('Not recognized. Try notes like "C E G", a chord like "Am7", degrees like "2 5 1 in G", or a Stradella recipe like "Fd7/C".');
-    }
+    selectItems(items, { key: key, index: index, degrees: state.degrees, label: state.label, syncInput: true });
   }
 
-  // ── Setlist rendering ──
-
-  function renderSetlist() {
-    var aside = document.getElementById("workbench-setlist");
-    if (!aside) return;
-    if (state.setlist.length === 0) {
-      aside.style.display = "none";
-      aside.innerHTML = "";
+  root.addEventListener("click", function (e) {
+    var el = e.target.closest("button");
+    var note = e.target.closest("[data-midi]");
+    if (note) {
+      var midi = Number(note.dataset.midi);
+      Player.play([[midi]], { onError: announce });
+      highlight([midi % 12]);
       return;
     }
-    aside.style.display = "";
-    var html = '<h4 class="workbench-section-title">Setlist</h4><ul class="workbench-setlist-items">';
-    state.setlist.forEach(function (item, i) {
-      var count = item.chords.length > 1 ? ' <span class="workbench-setlist-count">(' + item.chords.length + ")</span>" : "";
-      html +=
-        '<li class="workbench-setlist-item">' +
-        '<button class="workbench-setlist-load" data-index="' +
-        i +
-        '">' +
-        M.esc(item.name) +
-        count +
-        "</button>" +
-        '<button class="workbench-setlist-remove" data-index="' +
-        i +
-        '" title="Remove">&times;</button>' +
-        "</li>";
-    });
-    html += "</ul>";
-    aside.innerHTML = html;
-  }
-
-  function loadSetlistItem(item) {
-    if (item.chords.length === 1) {
-      state.progression = null;
-      state.current = modelFromEntry(item.chords[0]);
-      renderMain();
-    } else {
-      setProgression({
-        label: item.name,
-        steps: item.chords.map(function (c) {
-          return { kind: "entry", entry: c };
-        }),
-        key: 0,
-        transposable: false,
-      });
+    if (!el) return;
+    if (el.hasAttribute("data-sound")) {
+      Player.play([el.dataset.sound.split(",").map(Number)], { onError: announce });
+      highlight(el.dataset.pcs.split(",").map(Number));
+      return;
     }
-  }
-
-  // ── Wiring ──
-
-  function handleInput(value) {
-    var classification = Classify.classify(value, {
-      isChord: isChord,
-      parseRecipe: M.parseRecipeInput,
+    if (el.dataset.example) {
+      input.value = el.dataset.example;
+      classify(input.value);
+      return;
+    }
+    if (el.dataset.chord) {
+      input.value = el.dataset.chord;
+      classify(input.value);
+      return;
+    }
+    if (el.hasAttribute("data-step")) {
+      Player.stop();
+      state.index = Number(el.dataset.step);
+      render();
+      return;
+    }
+    if (el.hasAttribute("data-wbkey")) return transpose(Number(el.dataset.wbkey));
+    if (el.hasAttribute("data-suffix"))
+      return selectItems([Model.fromSuffix(current() ? current().root : 0, el.dataset.suffix)], { syncInput: true });
+    if (el.dataset.preset) {
+      var p = presets.find(function (item) {
+        return item.id === el.dataset.preset;
+      });
+      return selectItems(
+        p.degrees.map(function (d) {
+          return Model.fromDegree(d, 0);
+        }),
+        { key: 0, degrees: p.degrees, label: p.label, syncInput: true }
+      );
+    }
+    if (el.dataset.exercise) {
+      var ex = (window.MusicExercises || []).find(function (item) {
+        return item.id === el.dataset.exercise;
+      });
+      return selectItems(
+        ex.progression.map(function (step) {
+          var c = S.chordById(step.id),
+            pc = Model.mod(ex.default_key + step.offset);
+          var model = Model.fromSuffix(pc, c.suffix, step.roman);
+          if (c.recipe && c.recipe.bass) {
+            var bass = Model.mod(pc + c.recipe.bass);
+            model = Model.fromName(model.name + "/" + M.asciiNoteName(bass));
+            model.roman = step.roman;
+          }
+          return model;
+        }),
+        { key: ex.default_key, label: ex.title, syncInput: true }
+      );
+    }
+    if (el.hasAttribute("data-load")) {
+      var item = state.saved[Number(el.dataset.load)];
+      state.bpm = item.bpm || 96;
+      document.getElementById("workbench-bpm").value = state.bpm;
+      return selectItems(item.chords.map(Model.restore), { label: item.name, key: item.key, syncInput: true });
+    }
+    if (el.hasAttribute("data-remove")) {
+      state.saved.splice(Number(el.dataset.remove), 1);
+      persist();
+      renderSaved();
+      return;
+    }
+    if (el.dataset.action === "export") return exportSaved();
+    if (el.dataset.action === "matrix") {
+      state.matrix = !state.matrix;
+      renderLibrary();
+      renderMatrix();
+      return;
+    }
+    if (el.dataset.action === "sheet") return openSheet();
+    if (el.dataset.action === "close-sheet") {
+      state.sheet = false;
+      document.getElementById("workbench-sheet").hidden = true;
+      return;
+    }
+  });
+  root.addEventListener("keydown", function (e) {
+    var note = e.target.closest("g[data-midi]");
+    if (note && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      note.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    }
+    if (e.key === "Escape") Player.stop();
+  });
+  ["pointerover", "focusin"].forEach(function (event) {
+    root.addEventListener(event, function (e) {
+      var el = e.target.closest("[data-pc], [data-pcs]");
+      if (el) highlight(el.dataset.pcs ? el.dataset.pcs.split(",").map(Number) : [Number(el.dataset.pc)]);
     });
-    renderResult(classification);
-  }
-
-  function init() {
-    var input = document.getElementById("workbench-input");
-    if (!input) return;
-
-    input.addEventListener("input", function () {
-      handleInput(input.value);
+  });
+  ["pointerout", "focusout"].forEach(function (event) {
+    root.addEventListener(event, function (e) {
+      if (e.target.closest("[data-pc], [data-pcs]")) highlight([]);
     });
-
-    renderLibrary();
-    renderSetlist();
-    handleInput(input.value || "Am7");
-
-    document.addEventListener("click", function (e) {
-      // Example chips fill the input
-      var example = e.target.closest(".workbench-chip[data-example]");
-      if (example) {
-        input.value = example.getAttribute("data-example");
-        handleInput(input.value);
-        input.focus();
-        return;
-      }
-
-      if (e.target.id === "workbench-add" && state.current) {
-        addChordToSetlist(state.current);
-        return;
-      }
-      if (e.target.id === "workbench-add-prog" && state.progression) {
-        addProgressionToSetlist(state.progression);
-        return;
-      }
-      if (e.target.id === "workbench-matrix-toggle") {
-        state.matrixOpen = !state.matrixOpen;
-        renderLibrary();
-        renderMatrix();
-        return;
-      }
-      if (e.target.id === "workbench-sheet-toggle") {
-        if (state.sheet.open) closeSheet();
-        else {
-          openSheet();
-          renderLibrary();
-        }
-        return;
-      }
-      if (e.target.id === "workbench-sheet-close") {
-        closeSheet();
-        return;
-      }
-      if (e.target.id === "workbench-sheet-setlist") {
-        var models = state.sheet.barModels
-          .map(function (bm) {
-            return bm.model;
-          })
-          .filter(function (mo) {
-            return mo && mo.name;
-          });
-        if (models.length > 0) {
-          addProgressionToSetlist({ label: "Sheet draft", items: models });
-        }
-        return;
-      }
-      var barChip = e.target.closest(".workbench-chip[data-bar]");
-      if (barChip) {
-        var bm = state.sheet.barModels[parseInt(barChip.getAttribute("data-bar"), 10)];
-        if (bm && bm.model) {
-          state.progression = null;
-          state.current = bm.model;
-          renderMain();
-        }
-        return;
-      }
-
-      var preset = e.target.closest(".workbench-chip[data-preset]");
-      if (preset) {
-        loadPreset(preset.getAttribute("data-preset"));
-        return;
-      }
-      var exercise = e.target.closest(".workbench-chip[data-exercise]");
-      if (exercise) {
-        loadExercise(exercise.getAttribute("data-exercise"));
-        return;
-      }
-
-      var progChip = e.target.closest(".workbench-prog-chip[data-idx]");
-      if (progChip && state.progression) {
-        state.progression.activeIdx = parseInt(progChip.getAttribute("data-idx"), 10);
-        state.current = state.progression.items[state.progression.activeIdx] || null;
-        renderMain();
-        return;
-      }
-
-      var keyBtn = e.target.closest(".music-key-btn[data-wbkey]");
-      if (keyBtn && state.progression && state.progression.transposable) {
-        state.progression.key = parseInt(keyBtn.getAttribute("data-wbkey"), 10);
-        var idx = state.progression.activeIdx;
-        state.progression.items = buildProgressionItems(state.progression);
-        state.progression.activeIdx = Math.min(idx, state.progression.items.length - 1);
-        state.current = state.progression.items[state.progression.activeIdx] || null;
-        renderMain();
-        return;
-      }
-
-      var matrixCell = e.target.closest(".workbench-matrix-cell[data-suffix]");
-      if (matrixCell) {
-        var root = state.current && state.current.root >= 0 ? state.current.root : 0;
-        var model = modelFromSuffix(root, matrixCell.getAttribute("data-suffix"));
-        if (model) {
-          state.progression = null;
-          state.current = model;
-          renderMain();
-        }
-        return;
-      }
-
-      var chip = e.target.closest(".workbench-chip[data-chord]");
-      if (chip) {
-        input.value = chip.getAttribute("data-chord");
-        handleInput(input.value);
-        return;
-      }
-
-      var load = e.target.closest(".workbench-setlist-load");
-      if (load) {
-        var item = state.setlist[parseInt(load.getAttribute("data-index"), 10)];
-        if (item) loadSetlistItem(item);
-        return;
-      }
-      var remove = e.target.closest(".workbench-setlist-remove");
-      if (remove) {
-        state.setlist.splice(parseInt(remove.getAttribute("data-index"), 10), 1);
-        saveSetlist();
-        renderSetlist();
-      }
-    });
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  });
+  root.addEventListener(
+    "toggle",
+    function (e) {
+      if (e.target.id === "wb-saved-drawer") state.drawer = e.target.open;
+      if (e.target.classList.contains("wb-theory")) state.theory = e.target.open;
+    },
+    true
+  );
+  root.addEventListener("change", async function (e) {
+    if (e.target.id !== "wb-import") return;
+    var file = e.target.files[0];
+    if (!file) return;
+    try {
+      if (state.storageError || file.size > 200000) throw new Error("Invalid import.");
+      var imported = Model.savedItems(await file.text());
+      if (imported.length > 100) throw new Error("Too many items.");
+      state.saved = state.saved.concat(imported);
+      var saved = persist();
+      state.drawer = true;
+      renderSaved();
+      if (saved) announce("Imported practice. Existing items were kept.");
+    } catch (_) {
+      announce("Could not import this backup. Use a valid practice export under 200 KB; existing data was kept.");
+    }
+  });
+  input.addEventListener("input", function () {
+    classify(input.value);
+  });
+  document.getElementById("workbench-play").addEventListener("click", function () {
+    if (Player.isPlaying()) Player.stop();
+    else play();
+  });
+  document.getElementById("workbench-roll").addEventListener("click", function () {
+    play({ single: true, roll: true });
+  });
+  document.getElementById("workbench-mute").addEventListener("click", function (e) {
+    var muted = Player.mute();
+    e.currentTarget.textContent = muted ? "Unmute" : "Mute";
+    e.currentTarget.setAttribute("aria-pressed", String(muted));
+    announce(muted ? "Sound muted." : "Sound enabled. Nothing plays until you press a note or play button.");
+  });
+  document.getElementById("workbench-bpm").addEventListener("change", function (e) {
+    state.bpm = Math.max(40, Math.min(200, Number(e.target.value) || 96));
+    e.target.value = state.bpm;
+    Player.stop();
+  });
+  document.getElementById("workbench-loop").addEventListener("change", function (e) {
+    state.loop = e.target.checked;
+    Player.stop();
+  });
+  document.getElementById("workbench-save").addEventListener("click", saveCurrent);
+  document.getElementById("workbench-share").addEventListener("click", share);
+  Player.onStop(function () {
+    document.getElementById("workbench-play").textContent = state.items.length > 1 ? "Play progression" : "Hear chord";
+  });
+  window.addEventListener("storage", function (e) {
+    if (e.key === KEY) {
+      readSaved();
+      renderSaved();
+    }
+  });
+  readSaved();
+  renderSaved();
+  renderLibrary();
+  if (!restoreLink()) classify(input.value || "Am7");
 })();

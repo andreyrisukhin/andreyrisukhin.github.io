@@ -28,6 +28,30 @@
     <p class="music-small">Try ABC notation: C E G c | d2 B2 | c4. Link imports are not supported.</p>
   </details>
   <p id="workbench-announcement" class="sr-only" role="status" aria-live="polite"></p>
+  <div id="workbench-transport" class="wb-transport" hidden>
+    <div class="wb-play-actions">
+      <button type="button" id="workbench-play" class="wb-primary">Hear chord</button>
+      <button type="button" id="workbench-roll" class="music-share-btn">Roll upward</button>
+      <button type="button" id="workbench-mute" class="music-share-btn" aria-pressed="false">Mute</button>
+      <span class="music-small">Synthesized tone</span>
+    </div>
+    <div id="workbench-tempo" class="wb-play-actions" hidden>
+      <label for="workbench-bpm">Tempo <input type="number" id="workbench-bpm" value="96" min="40" max="200"> BPM</label>
+      <label><input type="checkbox" id="workbench-loop"> Loop</label>
+    </div>
+    <details class="wb-save-options">
+      <summary>Save or share this practice</summary>
+      <div class="wb-play-actions">
+        <label for="workbench-save-name">Name <input type="text" id="workbench-save-name" placeholder="Optional" maxlength="120"></label>
+        <button type="button" id="workbench-save" class="music-share-btn">Save in this browser</button>
+        <button type="button" id="workbench-share" class="music-share-btn">Copy link</button>
+      </div>
+      <div id="workbench-share-result" hidden>
+        <label for="workbench-share-url">Shareable link</label>
+        <input type="text" id="workbench-share-url" class="music-share-text" readonly>
+      </div>
+    </details>
+  </div>
   <div class="workbench-layout">
     <div class="workbench-main">
       <div id="workbench-sheet" class="workbench-sheet" style="display: none"></div>
@@ -58,4 +82,8 @@
 <script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/classify.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/audio.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/player.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/diagrams.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/main.js' | relative_url }}"></script>
