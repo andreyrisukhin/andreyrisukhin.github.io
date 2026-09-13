@@ -14,7 +14,8 @@
   };
   // Extend the A/D/G/C excerpt through E and B to include Gmaj7's B minor button.
   const leftRoots = [11, 4, 9, 2, 7, 0];
-  const performances = chords.map((chord) => Hands.performance(chord, leftRoots));
+  const choices = chords.map(() => ({}));
+  const performance = (i) => Hands.performance(chords[i], leftRoots, choices[i]);
   const key = 7;
   const steps = [...document.querySelectorAll("[data-step]")];
   let index = 0;
@@ -22,7 +23,7 @@
   let generation = 0;
 
   function render() {
-    Hands.render(chords[index], { right: range, left: leftRoots });
+    Hands.render(chords[index], { right: range, left: leftRoots }, choices[index]);
     steps.forEach((step, i) => {
       if (i === index) step.setAttribute("aria-current", "step");
       else step.removeAttribute("aria-current");
@@ -113,6 +114,7 @@
       return;
     }
     Hands.clearInspection();
+    const performances = chords.map((_, i) => performance(i));
     start(
       "sequence",
       performances.map((sound) => sound.midis),
@@ -136,7 +138,7 @@
     if (playback === "note") Player.stop();
     else {
       Hands.clearInspection();
-      hear(performances[index]);
+      hear(performance(index));
     }
   });
   $("previous").addEventListener("click", () => select(index - 1));
@@ -171,5 +173,9 @@
     $("theme").setAttribute("aria-pressed", String(dark));
   });
   render();
-  Hands.bind(hear);
+  Hands.bind(hear, (next) => {
+    Player.stop();
+    choices[index] = next;
+    render();
+  });
 })();

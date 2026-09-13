@@ -5,6 +5,7 @@
   const Player = window.WorkbenchPlayer;
   const $ = (id) => document.getElementById(id);
   const model = Model.fromName("Am7");
+  let choice = {};
   let playing = false,
     generation = 0;
 
@@ -35,7 +36,7 @@
   $("play").addEventListener("click", () => {
     if (playing) return Player.stop();
     Hands.clearInspection();
-    play(Hands.performance(model));
+    play(Hands.performance(model, undefined, choice));
   });
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
@@ -48,5 +49,9 @@
     $("theme").setAttribute("aria-pressed", String(dark));
   });
   Hands.render(model);
-  Hands.bind(play);
+  Hands.bind(play, (next) => {
+    Player.stop();
+    choice = next;
+    Hands.render(model, {}, choice);
+  });
 })();

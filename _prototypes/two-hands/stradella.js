@@ -45,26 +45,12 @@ window.PrototypeStradella = (function () {
     );
   }
 
-  function selected(model, visibleRoots = roots) {
-    const recipe = window.WorkbenchModel.recipes(model).find((item) => item.exact);
-    if (!recipe) return [];
-    const cells = layout(visibleRoots);
-    const bass = cells.find((cell) => cell.kind === "bass" && cell.root === recipe.bass);
-    const parts = recipe.parts.map((part) =>
-      cells.find(
-        (cell) =>
-          cell.kind !== "bass" &&
-          cell.kind !== "counter" &&
-          cell.notes.length === part.notes.length &&
-          cell.notes.every((note) => part.notes.includes(note))
-      )
-    );
-    if (!bass || parts.some((part) => !part)) return [];
-    return [bass.id, ...parts.map((part) => part.id)];
+  function selected(model, visibleRoots = roots, choice = {}) {
+    return window.PrototypeVoicings.resolve(model, visibleRoots, choice)?.leftIds || [];
   }
 
-  function mount(container, model, visibleRoots = roots) {
-    const chosen = selected(model, visibleRoots);
+  function mount(container, model, visibleRoots = roots, choice = {}) {
+    const chosen = selected(model, visibleRoots, choice);
     const cells = layout(visibleRoots);
     container.innerHTML = columns
       .map(
@@ -82,7 +68,7 @@ window.PrototypeStradella = (function () {
               (cell) =>
                 '<button type="button" class="hand-key' +
                 (chosen.includes(cell.id) ? " is-selected" : "") +
-                (chosen.includes(cell.id) && cell.kind === "bass" && cell.root === model.root ? " is-root" : "") +
+                (chosen.includes(cell.id) && ["bass", "counter"].includes(cell.kind) && cell.root === model.root ? " is-root" : "") +
                 '" data-left-id="' +
                 cell.id +
                 '" aria-label="Hear ' +
@@ -90,7 +76,7 @@ window.PrototypeStradella = (function () {
                 '"' +
                 (chosen.includes(cell.id)
                   ? ' aria-description="' +
-                    (cell.kind === "bass" && cell.root === model.root ? "Chord root. " : "") +
+                    (["bass", "counter"].includes(cell.kind) && cell.root === model.root ? "Chord root. " : "") +
                     'Part of the displayed left-hand recipe"'
                   : "") +
                 "><span>" +

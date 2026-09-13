@@ -4,9 +4,10 @@ window.PrototypeHandInspector = (function () {
   const Model = window.WorkbenchModel;
   const Left = window.PrototypeStradella;
   const Inspector = window.PrototypeChordInspector;
+  const Voicings = window.PrototypeVoicings;
   const $ = (id) => document.getElementById(id);
   const pretty = (name) => name.replace(/b/g, "♭").replace(/#/g, "♯");
-  let model, cells, baseLabels;
+  let model, cells, baseLabels, choice;
   let leftRoots = Left.roots;
   let initialized = false;
   let hover = null,
@@ -22,12 +23,11 @@ window.PrototypeHandInspector = (function () {
     };
   }
 
-  function performance(chord, visibleRoots = Left.roots) {
-    const available = Left.layout(visibleRoots);
-    const leftIds = Left.selected(chord, visibleRoots);
-    const leftMidis = leftIds.flatMap((id) => available.find((cell) => cell.id === id).midis);
+  function performance(chord, visibleRoots = Left.roots, selectedChoice = {}) {
+    const voicing = Voicings.resolve(chord, visibleRoots, selectedChoice);
+    if (!voicing) return { midis: [], leftIds: [], rightMidis: [] };
     const rightMidis = Model.voices(chord).map((voice) => voice.midi);
-    return { midis: [...leftMidis, ...rightMidis], leftIds, rightMidis };
+    return { midis: [...voicing.midis, ...rightMidis], leftIds: voicing.leftIds, rightMidis };
   }
 
   function link() {
@@ -80,7 +80,7 @@ window.PrototypeHandInspector = (function () {
     if (restoreFocus) $("left-scroll").focus({ preventScroll: true });
   }
 
-  function render(next, range = {}) {
+  function render(next, range = {}, selectedChoice = {}) {
     model = next;
     leftRoots = range.left || Left.roots;
     cells = Left.layout(leftRoots);
@@ -90,11 +90,42 @@ window.PrototypeHandInspector = (function () {
       [...document.querySelectorAll(".bayan-key")].map((button) => [+button.dataset.midi, button.querySelector("span").textContent])
     );
     const scroll = $("left-scroll").scrollLeft;
-    Left.mount($("left-keyboard"), model, leftRoots);
+    const voicing = Voicings.resolve(model, leftRoots, selectedChoice);
+    choice = voicing?.choice || selectedChoice;
+    Left.mount($("left-keyboard"), model, leftRoots, choice);
     $("left-scroll").scrollLeft = initialized ? scroll : $("left-scroll").scrollWidth;
     initialized = true;
-    const chosen = Left.selected(model, leftRoots);
-    if (chosen.length) $("recipe").textContent = chosen.map((id) => cells.find((cell) => cell.id === id).name).join(" + ");
+    const escape = window.Music.esc;
+    $("voicing").innerHTML = Voicings.options(model, leftRoots, choice.bass)
+      .map(
+        (item) =>
+          '<option value="' +
+          escape(item.id) +
+          '"' +
+          (item.available ? "" : " disabled") +
+          ">" +
+          escape(item.label + (item.available ? "" : " (outside excerpt)")) +
+          "</option>"
+      )
+      .join("");
+    $("bass-choice").innerHTML = Voicings.basses(model, leftRoots)
+      .map(
+        (item) =>
+          '<option value="' +
+          item.pc +
+          '"' +
+          (item.available ? "" : " disabled") +
+          ">" +
+          escape(item.label + (item.available ? "" : " (outside excerpt)")) +
+          "</option>"
+      )
+      .join("");
+    $("voicing").value = choice.voicing || "";
+    $("bass-choice").value = String(choice.bass ?? model.notes[0]);
+    $("play").disabled = $("hear-left").disabled = !voicing;
+    $("recipe").textContent = voicing?.recipe || "No playable voicing in this excerpt.";
+    $("recipe-detail").textContent = voicing?.detail || "Choose an available button combination and bass.";
+    $("change-status").textContent += " Left hand: " + $("recipe").textContent + ".";
     link();
     $("button-status").textContent = "";
   }
@@ -106,7 +137,7 @@ window.PrototypeHandInspector = (function () {
     });
   }
 
-  function bind(onAudition) {
+  function bind(onAudition, onVoicingChange) {
     function leftCell(target) {
       const button = target.closest("[data-left-id]");
       return button && $("left-keyboard").contains(button) ? cells.find((cell) => cell.id === button.dataset.leftId) : null;
@@ -146,6 +177,19 @@ window.PrototypeHandInspector = (function () {
       onAudition({ midis: [midi], leftIds: [], rightMidis: [midi] });
     });
     $("clear-inspection").addEventListener("click", clearInspection);
+    ["voicing", "bass-choice"].forEach((id) => {
+      $(id).addEventListener("change", () =>
+        onVoicingChange({
+          voicing: $("voicing").value,
+          bass: Number($("bass-choice").value),
+        })
+      );
+    });
+    $("hear-left").addEventListener("click", () => {
+      clearInspection();
+      const voicing = Voicings.resolve(model, leftRoots, choice);
+      if (voicing) onAudition({ midis: voicing.midis, leftIds: voicing.leftIds, rightMidis: [] });
+    });
   }
 
   return { inspectionModel, performance, render, markSounding, clearInspection, bind };

@@ -23,11 +23,13 @@ vm.createContext(context);
   "assets/js/music/stradella-data.js",
   "assets/js/workbench/model.js",
   "_prototypes/two-hands/stradella.js",
+  "_prototypes/two-hands/voicings.js",
   "_prototypes/two-hands/inspector.js",
 ].forEach((file) => vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context));
 const Left = context.PrototypeStradella;
 const Model = context.WorkbenchModel;
 const Hands = context.PrototypeHandInspector;
+const Voicings = context.PrototypeVoicings;
 const json = (value) => JSON.parse(JSON.stringify(value));
 const cells = json(Left.layout());
 let count = 0;
@@ -118,13 +120,13 @@ test("both-hand audio preserves the selected Am7 recipe and right-hand voicing",
     rightMidis: [69, 72, 76, 79],
   });
 });
-test("the fixed progression excerpt contains every exact recipe", () => {
+test("the fixed progression excerpt contains every conventional recipe", () => {
   const roots = [11, 4, 9, 2, 7, 0];
   const layout = json(Left.layout(roots));
   assert.equal(layout.length, 36);
   const expected = [
     { name: "Am7", ids: ["bass-9", "M-0"], midis: [45, 48, 52, 55, 69, 72, 76, 79] },
-    { name: "D7", ids: ["bass-2", "d7-9"], midis: [38, 48, 54, 57, 62, 66, 69, 72] },
+    { name: "D7", ids: ["bass-2", "7-2"], midis: [38, 48, 50, 54, 62, 66, 69, 72] },
     { name: "Gmaj7", ids: ["bass-7", "m-11"], midis: [43, 50, 54, 59, 67, 71, 74, 78] },
   ];
   expected.forEach(({ name, ids, midis }) => {
@@ -132,12 +134,91 @@ test("the fixed progression excerpt contains every exact recipe", () => {
     assert.deepEqual(json(Left.selected(model, roots)), ids);
     assert.deepEqual(json(Hands.performance(model, roots)).midis, midis);
     const actual = [...new Set(ids.flatMap((id) => layout.find((cell) => cell.id === id).notes))].sort((a, b) => a - b);
+    const missing = json(Voicings.resolve(model, roots).missing);
     assert.deepEqual(
-      actual,
+      [...actual, ...missing].sort((a, b) => a - b),
       json(model.notes).sort((a, b) => a - b)
     );
   });
   roots.forEach((root, row) => assert.equal(layout.find((cell) => cell.id === "bass-" + root).row, row));
+});
+test("D7 defaults to its seventh button and exposes the full-pitch alternative", () => {
+  const model = Model.fromName("D7"),
+    roots = [11, 4, 9, 2, 7, 0];
+  const standard = json(Voicings.resolve(model, roots));
+  assert.deepEqual(standard.leftIds, ["bass-2", "7-2"]);
+  assert.deepEqual(standard.missing, [9]);
+  assert.equal(standard.omittedFifth, true);
+  assert.match(standard.detail, /A \(fifth\) omitted, standard Stradella/);
+  const full = json(Voicings.resolve(model, roots, { voicing: "catalog-7", bass: 2 }));
+  assert.deepEqual(full.leftIds, ["bass-2", "d7-9"]);
+  assert.deepEqual(full.missing, []);
+  assert.deepEqual(full.midis, [38, 48, 54, 57]);
+});
+test("all dominant seventh defaults transpose as root-third-seventh buttons", () => {
+  const roots = Array.from({ length: 12 }, (_, i) => i);
+  roots.forEach((root) => {
+    const model = Model.fromName(context.Music.asciiNoteName(root) + "7");
+    const result = json(Voicings.resolve(model, roots));
+    assert.deepEqual(result.leftIds, ["bass-" + root, "7-" + root]);
+    assert.deepEqual(result.missing, [(root + 7) % 12]);
+    assert.equal(result.omittedFifth, true);
+  });
+});
+test("inversions use actual bass or counterbass buttons and retain right-hand MIDI", () => {
+  const model = Model.fromName("D7"),
+    roots = [11, 4, 9, 2, 7, 0];
+  const cases = [
+    [2, "bass-2", 38],
+    [6, "counter-2", 42],
+    [9, "bass-9", 45],
+    [0, "bass-0", 36],
+  ];
+  cases.forEach(([bass, id, midi]) => {
+    const choice = { voicing: "standard", bass };
+    const sound = json(Hands.performance(model, roots, choice));
+    assert.equal(sound.leftIds[0], id);
+    assert.equal(sound.midis[0], midi);
+    assert.deepEqual(sound.rightMidis, [62, 66, 69, 72]);
+    assert.ok(sound.midis.slice(1).every((note) => note > midi));
+  });
+});
+test("stacked voicings deduplicate shared reeds without dropping chord tones", () => {
+  const model = Model.fromName("Am7");
+  const choice = json(Voicings.resolve(model, Left.roots, { voicing: "stacked", bass: 9 }));
+  assert.deepEqual(choice.leftIds, ["bass-9", "m-9", "M-0"]);
+  assert.deepEqual(choice.midis, [45, 48, 52, 57, 55]);
+  assert.equal(new Set(choice.midis).size, choice.midis.length);
+  assert.deepEqual(choice.missing, []);
+});
+test("incomplete left voicings disclose the notes supplied by the unchanged right hand", () => {
+  const choice = json(Voicings.resolve(Model.fromName("Gmaj7"), [11, 4, 9, 2, 7, 0], { voicing: "catalog-maj7", bass: 11 }));
+  assert.deepEqual(choice.missing, [7]);
+  assert.match(choice.detail, /G supplied by the right hand/);
+});
+test("unavailable choices and non-chord bass notes fail closed", () => {
+  const model = Model.fromName("Gmaj7");
+  assert.equal(Voicings.resolve(model, Left.roots), null);
+  assert.ok(json(Voicings.options(model, Left.roots)).every((option) => !option.available));
+  assert.equal(Voicings.resolve(Model.fromName("D7"), Left.roots, { voicing: "standard", bass: 1 }), null);
+  assert.equal(Voicings.resolve(Model.fromName("D7"), Left.roots, { voicing: "made-up", bass: 2 }), null);
+});
+test("every offered voicing and inversion stays within the selected harmony", () => {
+  const roots = [11, 4, 9, 2, 7, 0];
+  ["Am7", "D7", "Gmaj7"].forEach((name) => {
+    const model = Model.fromName(name);
+    Voicings.basses(model, roots)
+      .filter((bass) => bass.available)
+      .forEach((bass) => {
+        Voicings.options(model, roots, bass.pc)
+          .filter((option) => option.available)
+          .forEach((option) => {
+            const choice = Voicings.resolve(model, roots, { voicing: option.id, bass: bass.pc });
+            assert.ok(choice.notes.every((pc) => model.notes.includes(pc)));
+            assert.equal(choice.midis[0] % 12, bass.pc);
+          });
+      });
+  });
 });
 test("notation preserves spellings and octave accuracy throughout the extended range", () => {
   Left.layout([11, 4, 9, 2, 7, 0]).forEach((cell) => {

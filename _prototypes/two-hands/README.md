@@ -2,14 +2,14 @@
 
 Preview: `http://localhost:8877/_prototypes/two-hands/`
 
-One Am7 example: selected-chord notation and independent button inspection above a Stradella schematic and B-system keyboard. The written left-hand recipe sits below. The hands stack on smaller screens.
+One Am7 example: selected-chord notation, independent button inspection, and a left-hand voicing chooser above the Stradella and B-system maps. The hands stack on smaller screens.
 
 The diagrams share button appearance through `chord-study/buttons.css`, not musical geometry. Right-hand buttons retain piano key colors. Stradella buttons are neutral ivory, with columns identified by function; a major-chord button is not a piano key.
 
 ## Musical model
 
 - Six columns, from right to left: counterbass (nearest the hand), bass, major, minor, seventh, diminished seventh. The four fundamental rows are A, D, G, C from top to bottom, so fifths run upward. Each row slants upward from right to left. Counterbass notes sit a major third above their row’s fundamental.
-- The selected recipe comes from the existing model: A bass plus C major, producing A + C/E/G. The root ring marks A bass on the left and A4 on the right.
+- The default recipe is A bass plus C major, producing A + C/E/G. Alternatives can add the A minor button or change the bass to another chord tone. The root ring marks the chord root, not an inversion’s bass.
 - Chord-button tones use `StradellaData.BUTTONS`, including the project’s three-note seventh/diminished conventions. Actual reed/register combinations vary.
 - The left-hand audio uses illustrative bass/chord registers. Selected-chord notation shows the right-hand voicing. Button-inspection notation is a separate, read-only pitch reference, not a transcription of every sounding left-hand reed.
 
@@ -23,7 +23,7 @@ A tapped button’s explanation stays available after its tone ends. Clear reset
 
 The Stradella panel is a schematic excerpt, not a full 120-bass instrument or a fingering recommendation. On small screens it initially shows the right edge, with bass and counterbass visible, and scrolls within its panel. Arrow keys follow the displayed direction: left/right changes function, up/down moves through fifths.
 
-No editing, persistence, or integration into the production workbench.
+No chord editing, persistence, or integration into the production workbench.
 
 ## Visual passes and validation
 
@@ -48,3 +48,14 @@ Run the new checks with `node _scripts/two-hands-prototype-test.js`. The prototy
 - The single-chord excerpt remains A/D/G/C, with the approved 10px column stagger. The progression supplies its larger fixed range separately.
 - Inspection space is reserved so hovering a button does not move the instruments. Its notation has no play targets: tapping a displayed high reference note must not pretend to audition a low left-hand reed.
 - The new notation API uses a versioned script URL in its consumers to avoid mixing cached old exports with the new inspector.
+
+## Voicing choices
+
+The chooser separates chord buttons from bass/inversion. `voicings.js` prefers ordinary major, minor, dominant-seventh, and diminished-seventh buttons where available. It treats conventional omitted fifths as intentional, not failed harmony matches. The legacy production catalog is unchanged.
+
+- D7 uses D bass + D seventh by default. The A diminished-seventh alternative supplies the fifth when used with D bass.
+- Am7 and Gmaj7 offer their usual catalog combination and a stacked-button alternative. Shared pitches sound once in the illustrative chord register.
+- Bass choices use chord tones, preferring an available fundamental bass button and otherwise a counterbass button. Choices outside the fixed excerpt are disabled, not silently substituted.
+- The readout lists actual left-hand tones and explains omissions or tones supplied by the unchanged right hand. Inversions change the low bass, not the selected chord or right-hand voicing.
+- “Hear left hand” auditions the chosen combination alone. The main Stop button and Escape stop audio. Changing a choice stops any current playback and clears inspection.
+- Prototype choices last until reload. The progression keeps a separate choice for each step.

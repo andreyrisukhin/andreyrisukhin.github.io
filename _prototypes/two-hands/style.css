@@ -108,12 +108,33 @@
   margin-top: 20px;
 }
 .hand-recipe {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--rule);
+  padding: 24px 0;
+  border-bottom: 1px solid var(--rule);
 }
 .hand-recipe .recipe {
   margin-top: 12px;
+  min-height: 62px;
+}
+.hand-recipe .recipe-detail {
+  max-width: none;
+  min-height: 48px;
+  margin-top: 4px;
+}
+.voicing-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 16px;
+}
+.voicing-controls select {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--key);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
 }
 :is(.hand-key, .bayan-key).is-linked {
   outline: 2px dashed var(--accent);
@@ -152,6 +173,21 @@ footer a {
   }
 }
 @media (max-width: 440px) {
+  .voicing-controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .hand-recipe .section-heading {
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .hand-recipe .recipe {
+    font-size: 18px;
+    min-height: 72px;
+  }
+  .hand-recipe .recipe-detail {
+    min-height: 96px;
+  }
   .left-scroll-hint {
     display: block;
   }

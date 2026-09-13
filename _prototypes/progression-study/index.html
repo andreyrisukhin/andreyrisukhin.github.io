@@ -21,9 +21,10 @@
     <script defer src="../../assets/js/workbench/player.js"></script>
     <script defer src="../../assets/js/workbench/diagrams.js"></script>
     <script defer src="../chord-study/inspector.js?v=2"></script>
-    <script defer src="../two-hands/stradella.js"></script>
-    <script defer src="../two-hands/inspector.js"></script>
-    <script defer src="progression.js"></script>
+    <script defer src="../two-hands/stradella.js?v=2"></script>
+    <script defer src="../two-hands/voicings.js"></script>
+    <script defer src="../two-hands/inspector.js?v=2"></script>
+    <script defer src="progression.js?v=2"></script>
   </head>
   <body>
     <div class="page">
@@ -115,6 +116,25 @@
               <p class="inspection-help">Pitch reference only; left-hand audio uses lower octaves.</p>
             </section>
           </div>
+          <section class="hand-recipe" aria-labelledby="recipe-heading">
+            <div class="section-heading">
+              <h2 id="recipe-heading">Left-hand voicing</h2>
+              <button id="hear-left" class="play-button" type="button">Hear left hand</button>
+            </div>
+            <div class="voicing-controls">
+              <div>
+                <label for="voicing">Chord buttons</label
+                ><select id="voicing" aria-describedby="voicing-help"></select>
+              </div>
+              <div>
+                <label for="bass-choice">Bass / inversion</label
+                ><select id="bass-choice" aria-describedby="voicing-help"></select>
+              </div>
+            </div>
+            <p id="recipe" class="recipe"></p>
+            <p id="recipe-detail" class="recipe-detail"></p>
+            <p id="voicing-help" class="inspection-help">Changes this step’s left hand only. The chord and right-hand voicing stay unchanged.</p>
+          </section>
           <div class="hands">
             <section class="left-hand" aria-labelledby="left-heading">
               <div class="section-heading">
@@ -151,11 +171,6 @@
           <div class="legend" aria-hidden="true">
             <span><i class="legend-tone"></i> Selected</span><span><i class="legend-root"></i> Root</span>
           </div>
-          <section class="hand-recipe" aria-labelledby="recipe-heading">
-            <h2 id="recipe-heading">Left-hand recipe</h2>
-            <p id="recipe" class="recipe"></p>
-            <p id="recipe-detail" class="recipe-detail"></p>
-          </section>
           <p id="audio-status" role="status" hidden></p>
           <p id="change-status" class="sr-only" role="status"></p>
           <p id="button-status" class="sr-only" role="status"></p>
