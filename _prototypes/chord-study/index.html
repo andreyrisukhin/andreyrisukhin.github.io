@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Chord study · Layout prototype</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="../../assets/js/vendor/tonal.min.js"></script>
+    <script defer src="../../assets/js/music/common.js"></script>
+    <script defer src="../../assets/js/music/chord-name.js"></script>
+    <script defer src="../../assets/js/music/stradella-data.js"></script>
+    <script defer src="../../assets/js/music/audio.js"></script>
+    <script defer src="../../assets/js/workbench/model.js"></script>
+    <script defer src="../../assets/js/music/bayan-keyboard.js"></script>
+    <script defer src="../../assets/js/workbench/player.js"></script>
+    <script defer src="../../assets/js/workbench/diagrams.js"></script>
+    <script defer src="study.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <p>Bayan notebook <span class="breadcrumb">/ Chord study</span></p>
+        <button id="theme" class="text-button" type="button" aria-pressed="false">Dark mode</button>
+      </header>
+
+      <main>
+        <section class="selection" aria-label="Choose a chord">
+          <form id="chord-form">
+            <label for="chord-input">Choose a chord</label>
+            <div class="input-row">
+              <input
+                id="chord-input"
+                name="chord"
+                value="Am7"
+                placeholder="e.g. Am7"
+                autocomplete="off"
+                spellcheck="false"
+                required
+                aria-describedby="input-help input-error"
+              />
+              <button class="primary" type="submit">Show chord</button>
+            </div>
+            <p id="input-help" class="examples">
+              Try <button type="button" data-chord="Am7">Am7</button><button type="button" data-chord="Cmaj7">Cmaj7</button
+              ><button type="button" data-chord="D7">D7</button><button type="button" data-chord="F#m7b5">F♯m7♭5</button>
+            </p>
+            <p id="input-error" class="error" role="alert" hidden></p>
+          </form>
+        </section>
+
+        <article aria-labelledby="chord-name">
+          <header class="chord-heading">
+            <div>
+              <h1 id="chord-name">Am7</h1>
+              <p id="chord-description">A minor seventh</p>
+            </div>
+            <div class="playback">
+              <button id="play" type="button" class="play-button"><span aria-hidden="true">▶</span> <span id="play-label">Hear chord</span></button>
+              <p>Synthesized tone</p>
+            </div>
+          </header>
+
+          <div class="inspector">
+            <div class="reading-column">
+              <section class="notes" aria-labelledby="notes-heading">
+                <div class="section-heading">
+                  <h2 id="notes-heading">Notes</h2>
+                  <span>Ascending voicing</span>
+                </div>
+                <div id="staff" class="staff-scroll" tabindex="0" role="region" aria-label="Staff notation; scroll for wider chords"></div>
+              </section>
+
+              <section class="bass" aria-labelledby="bass-heading">
+                <div class="section-heading">
+                  <h2 id="bass-heading">Left hand</h2>
+                  <span>Stradella bass</span>
+                </div>
+                <p id="recipe" class="recipe"></p>
+                <p id="recipe-detail" class="recipe-detail"></p>
+              </section>
+            </div>
+
+            <section class="right-hand" aria-labelledby="keyboard-heading">
+              <div class="section-heading">
+                <h2 id="keyboard-heading">Right hand</h2>
+                <span>B-system</span>
+              </div>
+              <div class="keyboard-frame">
+                <p class="direction">Higher notes ↑</p>
+                <div id="keyboard"></div>
+                <div class="legend" aria-hidden="true">
+                  <span><i class="legend-tone"></i> Chord tone</span>
+                  <span><i class="legend-root"></i> Root</span>
+                </div>
+              </div>
+              <p class="keyboard-help">Three core rows. Tap a note to hear it.</p>
+            </section>
+          </div>
+          <p id="audio-status" role="status" hidden></p>
+          <p id="change-status" class="sr-only" role="status"></p>
+        </article>
+      </main>
+      <footer>Layout prototype. No saved data.</footer>
+      <noscript>This prototype needs JavaScript to draw the notes and keyboard.</noscript>
+    </div>
+  </body>
+</html>
