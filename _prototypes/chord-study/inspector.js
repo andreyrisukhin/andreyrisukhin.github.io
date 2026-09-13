@@ -1,4 +1,4 @@
-/* Shared by the two layout prototypes; no selection or playback ownership. */
+/* Shared notation and chord rendering; no selection or playback ownership. */
 window.PrototypeChordInspector = (function () {
   "use strict";
   const Model = window.WorkbenchModel;
@@ -6,13 +6,19 @@ window.PrototypeChordInspector = (function () {
   const $ = (id) => document.getElementById(id);
   const pretty = (name) => name.replace(/b/g, "♭").replace(/#/g, "♯");
 
-  function render(model, range = {}) {
-    $("chord-name").textContent = pretty(model.name);
-    const chord = window.Tonal.Chord.get(model.name.split("/")[0]);
-    $("chord-description").textContent = chord.type ? pretty(chord.tonic) + " " + chord.type : chord.notes.length + " chord tones";
+  function renderNotation(container, model, { interactive = true, label } = {}) {
     const voices = Model.voices(model);
-    $("staff").innerHTML = window.WorkbenchDiagrams.staff(model);
-    const svg = $("staff").querySelector("svg");
+    container.innerHTML = window.WorkbenchDiagrams.staff(model);
+    const svg = container.querySelector("svg");
+    if (!interactive) {
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", label);
+      svg.querySelectorAll('[role="button"]').forEach((note) => {
+        note.removeAttribute("role");
+        note.removeAttribute("tabindex");
+        note.removeAttribute("aria-label");
+      });
+    }
     const width = svg.viewBox.baseVal.width;
     const positions = [...svg.querySelectorAll("ellipse")].map((note) => Number(note.getAttribute("cx")));
     const notation = document.createElement("div");
@@ -39,7 +45,15 @@ window.PrototypeChordInspector = (function () {
       tone.style.left = (positions[i] / width) * 100 + "%";
     });
     notation.append(svg, tones);
-    $("staff").append(notation);
+    container.append(notation);
+  }
+
+  function render(model, range = {}) {
+    $("chord-name").textContent = pretty(model.name);
+    const chord = window.Tonal.Chord.get(model.name.split("/")[0]);
+    $("chord-description").textContent = chord.type ? pretty(chord.tonic) + " " + chord.type : chord.notes.length + " chord tones";
+    const voices = Model.voices(model);
+    renderNotation($("staff"), model);
     window.BayanKeyboard.mount($("keyboard"), {
       low: range.low ?? Math.max(0, voices[0].midi - 3),
       high: range.high ?? Math.min(127, Math.max(voices[0].midi + 11, voices[voices.length - 1].midi + 1)),
@@ -86,5 +100,5 @@ window.PrototypeChordInspector = (function () {
     });
   }
 
-  return { render, markSounding, bind };
+  return { render, renderNotation, markSounding, bind };
 })();

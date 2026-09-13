@@ -14,14 +14,19 @@ window.PrototypeStradella = (function () {
     { id: "counter", label: "Counterbass", short: "Counter bass" },
   ];
 
-  function layout() {
+  function layout(visibleRoots = roots) {
     return columns.flatMap((column, c) =>
-      roots.map((root, r) => {
+      visibleRoots.map((root, r) => {
         const bass = column.id === "bass" || column.id === "counter";
         const pc = mod(root + (column.id === "counter" ? 4 : 0));
         const label =
           column.id === "counter" ? window.Tonal.Note.transpose(M.asciiNoteName(root), "3M").replace(/#/g, "♯").replace(/b/g, "♭") : M.noteName(pc);
         const notes = bass ? [pc] : window.StradellaData.BUTTONS[column.id].map((interval) => mod(root + interval));
+        const chord = bass ? null : window.Tonal.Chord.get(M.asciiNoteName(root) + { M: "M", m: "m", 7: "7", d7: "dim7" }[column.id]);
+        const spellings = notes.map((note) => (bass ? M.toAscii(label) : chord.notes.find((name) => window.Tonal.Note.chroma(name) === note)));
+        const intervals = notes.map((note) =>
+          bass ? "1" : M.formatInterval(chord.intervals[chord.notes.findIndex((name) => window.Tonal.Note.chroma(name) === note)])
+        );
         return {
           id: column.id + "-" + root,
           kind: column.id,
@@ -29,6 +34,8 @@ window.PrototypeStradella = (function () {
           column: c,
           root: pc,
           notes,
+          spellings,
+          intervals,
           label,
           name: label + " " + column.label.toLowerCase(),
           // Demonstration registers only; real reed/register combinations vary.
@@ -38,10 +45,10 @@ window.PrototypeStradella = (function () {
     );
   }
 
-  function selected(model) {
+  function selected(model, visibleRoots = roots) {
     const recipe = window.WorkbenchModel.recipes(model).find((item) => item.exact);
     if (!recipe) return [];
-    const cells = layout();
+    const cells = layout(visibleRoots);
     const bass = cells.find((cell) => cell.kind === "bass" && cell.root === recipe.bass);
     const parts = recipe.parts.map((part) =>
       cells.find(
@@ -56,9 +63,9 @@ window.PrototypeStradella = (function () {
     return [bass.id, ...parts.map((part) => part.id)];
   }
 
-  function mount(container, model) {
-    const chosen = selected(model);
-    const cells = layout();
+  function mount(container, model, visibleRoots = roots) {
+    const chosen = selected(model, visibleRoots);
+    const cells = layout(visibleRoots);
     container.innerHTML = columns
       .map(
         (column, c) =>
@@ -96,8 +103,8 @@ window.PrototypeStradella = (function () {
       .join("");
   }
 
-  function bind(container, handlers) {
-    const cells = layout();
+  function bind(container, handlers, visibleRoots = roots) {
+    const cells = layout(visibleRoots);
     function cellFor(target) {
       const button = target.closest("[data-left-id]");
       return button && container.contains(button) ? cells.find((cell) => cell.id === button.dataset.leftId) : null;

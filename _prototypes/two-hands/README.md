@@ -2,7 +2,7 @@
 
 Preview: `http://localhost:8877/_prototypes/two-hands/`
 
-One Am7 example: chord-tone notation above a Stradella schematic and B-system keyboard, with the written left-hand recipe below. The hands stack on smaller screens.
+One Am7 example: selected-chord notation and independent button inspection above a Stradella schematic and B-system keyboard. The written left-hand recipe sits below. The hands stack on smaller screens.
 
 The diagrams share button appearance through `chord-study/buttons.css`, not musical geometry. Right-hand buttons retain piano key colors. Stradella buttons are neutral ivory, with columns identified by function; a major-chord button is not a piano key.
 
@@ -11,13 +11,15 @@ The diagrams share button appearance through `chord-study/buttons.css`, not musi
 - Six columns, from right to left: counterbass (nearest the hand), bass, major, minor, seventh, diminished seventh. The four fundamental rows are A, D, G, C from top to bottom, so fifths run upward. Each row slants upward from right to left. Counterbass notes sit a major third above their row’s fundamental.
 - The selected recipe comes from the existing model: A bass plus C major, producing A + C/E/G. The root ring marks A bass on the left and A4 on the right.
 - Chord-button tones use `StradellaData.BUTTONS`, including the project’s three-note seventh/diminished conventions. Actual reed/register combinations vary.
-- The left-hand audio uses illustrative bass/chord registers. The notation is a shared pitch-class reference in the right-hand octave, not a transcription of every sounding left-hand reed.
+- The left-hand audio uses illustrative bass/chord registers. Selected-chord notation shows the right-hand voicing. Button-inspection notation is a separate, read-only pitch reference, not a transcription of every sounding left-hand reed.
 
-Hover or keyboard-focus a left-hand button to link its tones across the diagrams. Clicking or tapping also plays it. The detail panel lists every tone, including any outside Am7, so the diagram never silently drops an extra note.
+Hover or keyboard-focus a left-hand button to link its tones across the diagrams. Clicking or tapping also plays it. The inspection panel draws every button tone, including those outside Am7, without changing the selected chord or recipe.
+
+Spellings follow the button’s harmony: A7 uses C♯, and C diminished seventh uses B♭♭. Non-selected right-hand keys adopt the inspected spelling; selected keys retain the selected chord’s spelling. Pitch classes and audio are unchanged.
 
 Dashed outlines show related pitches in every visible right-hand octave; solid brass halos show playback. Selection crosshatching remains limited to the exact right-hand voicing and left-hand recipe. Root rings stay unchanged. “Hear both hands” plays the selected left-hand recipe and right-hand voicing together.
 
-A tapped button’s explanation stays available after its tone ends. Escape stops playback and clears that inspection. Playing a right-hand note or both hands also clears stale left-hand links.
+A tapped button’s explanation stays available after its tone ends. Clear resets inspection without changing the selected chord. Escape also stops playback. Playing a right-hand note or both hands clears stale left-hand links.
 
 The Stradella panel is a schematic excerpt, not a full 120-bass instrument or a fingering recommendation. On small screens it initially shows the right edge, with bass and counterbass visible, and scrolls within its panel. Arrow keys follow the displayed direction: left/right changes function, up/down moves through fifths.
 
@@ -37,3 +39,12 @@ The left-hand diagram was rotated and then reflected vertically into the request
 - The earlier chord and progression screenshots remained byte-identical after extracting shared button CSS.
 
 Run the new checks with `node _scripts/two-hands-prototype-test.js`. The prototype still needs visual review; these checks do not establish a fingering recommendation or real-instrument audio fidelity.
+
+## Shared inspection checkpoint
+
+`inspector.js` shares hand rendering, complete button notation, related-pitch links, and performance pitch lists with the progression prototype. Page controllers still own selection and playback. `chord-study/inspector.js` supplies the common notation renderer; the original chord screen remains visually unchanged.
+
+- The 13 unit checks now also cover contextual seventh/diminished spellings, complete inspection voices, and all three exact progression recipes.
+- The single-chord excerpt remains A/D/G/C, with the approved 10px column stagger. The progression supplies its larger fixed range separately.
+- Inspection space is reserved so hovering a button does not move the instruments. Its notation has no play targets: tapping a displayed high reference note must not pretend to audition a low left-hand reed.
+- The new notation API uses a versioned script URL in its consumers to avoid mixing cached old exports with the new inspector.

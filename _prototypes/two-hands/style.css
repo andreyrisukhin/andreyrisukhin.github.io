@@ -1,16 +1,51 @@
 /* The two instruments share appearance, not layout. */
-.notes-overview {
-  padding: 0 0 16px;
+.tone-overviews {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 48px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--rule);
 }
-.notes-overview .staff-scroll {
+.tone-overviews > section {
+  min-width: 0;
+}
+.tone-overviews .section-heading {
+  min-height: 44px;
+  align-items: center;
+}
+.tone-overviews .staff-scroll {
+  height: 208px;
   margin-top: 8px;
   padding-bottom: 0;
   border: 0;
 }
-.notes-overview .notation {
+.tone-overviews .notation {
   width: min(100%, 280px);
   margin-inline: auto;
+}
+.notation-caption,
+#button-detail,
+.inspection-help {
+  font-size: 14px;
+  color: var(--muted);
+}
+#button-staff {
+  display: flex;
+  align-items: flex-start;
+}
+#button-staff > .notation {
+  flex-shrink: 0;
+}
+#button-detail {
+  min-height: 42px;
+}
+.inspection-help {
+  margin-top: 4px;
+  font-size: 12px;
+}
+#clear-inspection:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 .hands {
   display: grid;
@@ -80,17 +115,6 @@
 .hand-recipe .recipe {
   margin-top: 12px;
 }
-.button-detail {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px 16px;
-  padding-top: 16px;
-}
-#button-detail {
-  flex: 1 1 260px;
-  min-height: 24px;
-}
 :is(.hand-key, .bayan-key).is-linked {
   outline: 2px dashed var(--accent);
   outline-offset: 3px;
@@ -111,15 +135,20 @@ footer a {
   text-underline-offset: 3px;
 }
 @media (max-width: 800px) {
+  .tone-overviews {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .button-inspection {
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+  }
   .hands {
     grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
   .right-frame #keyboard {
     margin-top: 0;
-  }
-  #button-detail {
-    min-height: 48px;
   }
 }
 @media (max-width: 440px) {

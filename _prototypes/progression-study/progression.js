@@ -4,7 +4,7 @@
   const Model = window.WorkbenchModel;
   const M = window.Music;
   const Player = window.WorkbenchPlayer;
-  const Inspector = window.PrototypeChordInspector;
+  const Hands = window.PrototypeHandInspector;
   const $ = (id) => document.getElementById(id);
   const chords = ["Am7", "D7", "Gmaj7"].map(Model.fromName);
   const allVoices = chords.flatMap((chord) => Model.voices(chord).map((voice) => voice.midi));
@@ -12,6 +12,9 @@
     low: Math.floor((Math.min(...allVoices) - 1) / 3) * 3,
     high: Math.ceil((Math.max(...allVoices) + 2) / 3) * 3 - 1,
   };
+  // Extend the A/D/G/C excerpt through E and B to include Gmaj7's B minor button.
+  const leftRoots = [11, 4, 9, 2, 7, 0];
+  const performances = chords.map((chord) => Hands.performance(chord, leftRoots));
   const key = 7;
   const steps = [...document.querySelectorAll("[data-step]")];
   let index = 0;
@@ -19,7 +22,7 @@
   let generation = 0;
 
   function render() {
-    Inspector.render(chords[index], range);
+    Hands.render(chords[index], { right: range, left: leftRoots });
     steps.forEach((step, i) => {
       if (i === index) step.setAttribute("aria-current", "step");
       else step.removeAttribute("aria-current");
@@ -69,11 +72,11 @@
   Player.onStop(() => {
     generation++;
     playback = null;
-    Inspector.markSounding([]);
+    Hands.markSounding();
     steps.forEach((step) => step.classList.remove("is-playing"));
     $("sequence-play-label").textContent = "Play all";
-    $("play-sequence").setAttribute("aria-label", "Play all chords from the beginning");
-    $("play-label").textContent = "Hear chord";
+    $("play-sequence").setAttribute("aria-label", "Play both hands from the beginning");
+    $("play-label").textContent = "Hear both hands";
     $("play").removeAttribute("aria-label");
   });
 
@@ -92,13 +95,13 @@
     if (!(await result) && ticket === generation) Player.stop();
   }
 
-  function hear(midis, wholeChord) {
-    start("note", [midis], {
+  function hear(sound) {
+    start("note", [sound.midis], {
       onStep: () => {
         playback = "note";
-        Inspector.markSounding(midis);
+        Hands.markSounding(sound);
         $("play-label").textContent = "Stop";
-        $("play").setAttribute("aria-label", wholeChord ? "Stop chord playback" : "Stop note playback");
+        $("play").setAttribute("aria-label", "Stop playback");
       },
       onError: audioError,
     });
@@ -109,9 +112,10 @@
       Player.stop();
       return;
     }
+    Hands.clearInspection();
     start(
       "sequence",
-      chords.map((chord) => Model.voices(chord).map((v) => v.midi)),
+      performances.map((sound) => sound.midis),
       {
         progression: true,
         bpm: 96,
@@ -120,7 +124,7 @@
           index = next;
           render();
           steps.forEach((step, i) => step.classList.toggle("is-playing", i === index));
-          Inspector.markSounding(Model.voices(chords[index]).map((v) => v.midi));
+          Hands.markSounding(performances[index]);
           $("sequence-play-label").textContent = "Stop";
           $("play-sequence").setAttribute("aria-label", "Stop progression playback");
         },
@@ -130,11 +134,10 @@
   });
   $("play").addEventListener("click", () => {
     if (playback === "note") Player.stop();
-    else
-      hear(
-        Model.voices(chords[index]).map((v) => v.midi),
-        true
-      );
+    else {
+      Hands.clearInspection();
+      hear(performances[index]);
+    }
   });
   $("previous").addEventListener("click", () => select(index - 1));
   $("next").addEventListener("click", () => select(index + 1));
@@ -157,11 +160,16 @@
       select(target);
     });
   });
-  Inspector.bind((midi) => hear([midi], false));
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    Player.stop();
+    Hands.clearInspection();
+  });
   $("theme").addEventListener("click", () => {
     const dark = document.documentElement.dataset.theme !== "dark";
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     $("theme").setAttribute("aria-pressed", String(dark));
   });
   render();
+  Hands.bind(hear);
 })();

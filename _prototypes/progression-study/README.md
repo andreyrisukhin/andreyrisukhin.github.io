@@ -4,16 +4,18 @@ Open `http://localhost:8877/_prototypes/progression-study/` with the repository-
 
 This read-only screen studies Am7 → D7 → Gmaj7 in G major. Select a chord directly or use previous/next. Left/right arrows, Home, and End also work when a step button has focus.
 
-“Play all” starts at the beginning, at 96 BPM with four beats per chord. Selecting a step stops playback. “Hear chord” or a note button interrupts the sequence and plays only that selection. Stop and page visibility changes cancel playback.
+“Play all” plays both hands from the beginning, at 96 BPM with four beats per chord. Selecting a step stops playback. “Hear both hands” plays the current chord’s recipe and right-hand voicing. Auditioning a button interrupts the sequence. Stop, Escape, and page visibility changes cancel playback.
 
 The transition section looks ahead to the next chord. At the last step, it shows the arrival from D7 to Gmaj7 instead of inventing a return to Am7. Common tones are pitch classes, not a promise that these ascending voicings hold the same octave.
 
 ## Boundaries
 
-- Uses the approved chord stylesheet and a shared `PrototypeChordInspector`; the chord screen keeps its existing layout and behavior.
+- Uses the approved button stylesheet and shared `PrototypeHandInspector`. Selected-chord notation and complete button inspection remain independent; the original chord screen keeps its existing layout and behavior.
 - Ivory/charcoal key faces, selected-key crosshatching, clear note labels, and the root ring remain unchanged.
-- The keyboard uses one fixed C4–A♭5 window across all steps, so the instrument does not shift during playback. This wider range is intentional; the single-chord screen keeps its smaller window.
-- Progression-specific CSS is confined to the strip, step controls, and transition section.
+- The right-hand keyboard uses one fixed C4–A♭5 window across all steps. The left-hand map stays B/E/A/D/G/C from top to bottom, extending the original excerpt to include B minor. Both maps retain their coordinates through chord changes.
+- Recipes: Am7 uses A bass + C major; D7 uses D bass + A diminished seventh; Gmaj7 uses G bass + B minor. Each contains every chord tone and no extra pitch classes under the existing three-note Stradella convention.
+- Both-hand playback uses illustrative low-register left-hand voices and the exact displayed right-hand voices. Button inspection shows all tones with harmonic spelling, but its notation is only a pitch reference. Left-only audio does not mark the high reference notes as sounding.
+- Progression-specific CSS remains confined to the strip, step controls, and transition section. Hand and inspection layouts come from `two-hands/style.css`.
 - No chord editing, saving, importing, key changes, tempo controls, or looping in this review pass.
 - No service worker, stored data, or changes to the production music pages.
 
@@ -31,3 +33,11 @@ The first pass buried transition details beneath the bass recipe. They now sit b
 - Syntax and formatting checks and 33 shared model/renderer/player tests passed. The production Jekyll site was not rebuilt because this remains a standalone prototype.
 
 These are implementation checks, not visual approval. No changes have been integrated into the production workbench.
+
+## Two-hand checkpoint
+
+- All three steps and all 36 left-hand buttons checked at 320, 390, 768, 850, and 1440px in both themes. Complete inspected notes, exact recipes, unchanged selection during inspection, fixed map coordinates, and no page overflow.
+- Actual oscillator pitches matched all three both-hand chords and all 36 individual left-hand buttons. Playback followed steps 0 → 1 → 2, then stopped with no stale highlights.
+- Step selection, left/right auditions, immediate Stop, Escape, page-hide cancellation, Home/End, and extended left-hand arrow navigation passed.
+- Axe reported no violations in the tested desktop light/dark and mobile screens. Its incomplete arrow/accidental contrast checks were verified from computed colors, with contrast at least 5.8:1.
+- The original chord-screen screenshot stayed byte-identical after extracting reusable notation rendering.
