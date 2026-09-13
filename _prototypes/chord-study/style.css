@@ -339,10 +339,10 @@ h2 {
   margin-bottom: calc((var(--bayan-size) + var(--bayan-gap)) * var(--bayan-column) / 3);
 }
 .bayan-key {
-  --button-face: var(--key);
-  --button-ink: var(--ink);
-  --key-dot: #f5f1e7;
-  position: relative;
+  --button-face: #f5f1e7;
+  --button-ink: #292923;
+  --button-edge: #c6c1b4;
+  --button-hatch: #8b8679;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -351,41 +351,33 @@ h2 {
   height: var(--bayan-size);
   padding: 0;
   border-radius: 50%;
-  border-color: var(--rule);
+  border-color: var(--button-edge);
   background: var(--button-face);
   color: var(--button-ink);
   font-size: 14px;
   line-height: 1.2;
 }
-.bayan-key > span {
-  transform: translateY(-3px);
-}
-/* Pitch class, not spelling, determines this small orientation cue. */
+/* Key color follows pitch class; crosshatching separately indicates selection. */
 .bayan-key:is([data-pc="1"], [data-pc="3"], [data-pc="6"], [data-pc="8"], [data-pc="10"]) {
-  --key-dot: #343832;
+  --button-face: #343832;
+  --button-ink: #f5f1e7;
+  --button-edge: #62675c;
+  --button-hatch: #91978b;
 }
-.bayan-key::before {
-  content: "";
-  box-sizing: border-box;
-  position: absolute;
-  top: calc(50% + 10px);
-  left: calc(50% - 3px);
-  width: 6px;
-  height: 6px;
-  border: 1px solid #86877a;
-  border-radius: 50%;
-  background: var(--key-dot);
-  pointer-events: none;
+.bayan-key.is-selected,
+.legend .legend-tone {
+  background-image: repeating-linear-gradient(45deg, transparent 0 4px, var(--button-hatch) 4px 5px, transparent 5px 8px),
+    repeating-linear-gradient(-45deg, transparent 0 4px, var(--button-hatch) 4px 5px, transparent 5px 8px);
 }
-.bayan-key.is-selected {
-  --button-face: var(--ink);
-  --button-ink: var(--paper);
-  border: 2px solid var(--ink);
+.bayan-key.is-selected > span {
+  padding: 1px 3px;
+  border-radius: 2px;
+  background: var(--button-face);
 }
 .bayan-key.is-root {
   box-shadow:
     inset 0 0 0 3px var(--button-face),
-    inset 0 0 0 4px var(--button-ink);
+    inset 0 0 0 5px var(--button-ink);
 }
 .bayan-key:where(:hover:not(:disabled)) {
   outline: 1px solid var(--accent);
@@ -417,16 +409,17 @@ h2 {
   gap: 6px;
 }
 .legend i {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--ink);
+  --button-hatch: var(--muted);
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--muted);
   border-radius: 50%;
-  background: var(--ink);
+  background: var(--surface);
 }
 .legend .legend-root {
   box-shadow:
-    inset 0 0 0 2px var(--ink),
-    inset 0 0 0 3px var(--paper);
+    inset 0 0 0 2px var(--surface),
+    inset 0 0 0 4px var(--ink);
 }
 #audio-status {
   color: var(--error);
