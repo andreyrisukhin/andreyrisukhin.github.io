@@ -1,0 +1,29 @@
+assets/js/music/bayan-simulator.js
+  d6ab7c7ab3cb561b 120,122-123,135,154-162,228
+_sass/_bayan-simulator.scss
+  d6ab7c7ab3cb561b 100,103,105
+_sass/_music-notebook.scss
+  d6ab7c7ab3cb561b 477
+assets/js/music/bayan-keyboard.js
+  d6ab7c7ab3cb561b 1-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "3920ac25e9cfd32b6223aaff96286d179bd4f73a",
+  "prompts": {
+    "d6ab7c7ab3cb561b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "c9d789d1-eb2e-49b4-af10-cc4aa7207822",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 108,
+      "total_deletions": 158,
+      "accepted_lines": 122,
+      "overriden_lines": 0
+    }
+  }
+}
