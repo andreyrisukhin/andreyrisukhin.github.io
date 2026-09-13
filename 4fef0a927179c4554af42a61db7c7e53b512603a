@@ -1,0 +1,35 @@
+_prototypes/progression-study/progression.js
+  d6ab7c7ab3cb561b 7,15-17,25,75,78-79,98-99,102,104,115,118,127,137-140,163-166,174
+_prototypes/two-hands/style.css
+  d6ab7c7ab3cb561b 2-6,9-14,16-17,22,26-37,39-49,138-145
+_prototypes/two-hands/README.md
+  d6ab7c7ab3cb561b 5,14,16,18,22,42-50
+_prototypes/two-hands/inspector.js
+  d6ab7c7ab3cb561b 1-152
+_prototypes/two-hands/stradella.js
+  d6ab7c7ab3cb561b 17,19,25-29,37-38,48,51,66-68,106-107
+_prototypes/two-hands/index.html
+  d6ab7c7ab3cb561b 22,24,47-63
+_scripts/two-hands-prototype-test.js
+  d6ab7c7ab3cb561b 26,30,80-119,121-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "4fef0a927179c4554af42a61db7c7e53b512603a",
+  "prompts": {
+    "d6ab7c7ab3cb561b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "c9d789d1-eb2e-49b4-af10-cc4aa7207822",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 349,
+      "total_deletions": 63,
+      "accepted_lines": 346,
+      "overriden_lines": 0
+    }
+  }
+}
