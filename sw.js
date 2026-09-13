@@ -50,6 +50,7 @@ const PRECACHE_URLS = [
   '/assets/js/music/stradella-recipe.js',
   '/assets/js/workbench/classify.js',
   '/assets/js/workbench/model.js',
+  '/assets/js/workbench/session.js',
   '/assets/js/workbench/player.js',
   '/assets/js/workbench/diagrams.js',
   '/assets/js/workbench/main.js',

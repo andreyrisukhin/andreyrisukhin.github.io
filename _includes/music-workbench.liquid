@@ -1,43 +1,90 @@
 <section class="workbench" aria-label="Bayan workbench" data-music-home="{{ '/music/' | relative_url }}">
-  <div class="workbench-input-row">
-    <label for="workbench-input">What are you playing?</label>
-    <input
-      type="text"
-      id="workbench-input"
-      class="workbench-input"
-      placeholder="Am7, C E G, or 2 5 1 in G"
-      value="Am7"
-      maxlength="500"
-      aria-describedby="workbench-input-help"
-      autocomplete="off"
-      autocapitalize="off"
-      spellcheck="false"
-    >
-    <p id="workbench-input-help">Type a chord, notes (bass first), or scale degrees in a major key.</p>
+  <div class="wb-view-switch" role="group" aria-label="Study view">
+    <button type="button" data-view="chord" aria-pressed="true">Chord / notes</button>
+    <button type="button" data-view="progression" aria-pressed="false">Progression</button>
   </div>
-  <div id="workbench-hint" class="workbench-hint">
-    <span class="workbench-hint-label">Try</span>
-    <button type="button" class="workbench-chip" data-example="Am7">Am7</button>
-    <button type="button" class="workbench-chip" data-example="C E G">C E G</button>
-    <button type="button" class="workbench-chip" data-example="2 5 1 in G">ii–V–I in G</button>
-    <button type="button" class="workbench-chip" data-example="Fd7/C">A Stradella recipe</button>
-  </div>
+  <section class="wb-chooser" aria-labelledby="wb-choose-title">
+    <div class="wb-section-heading">
+      <h2 id="wb-choose-title">Choose material</h2>
+      <div class="wb-source-switch" role="group" aria-label="Selection method">
+        <button type="button" data-source="type" aria-pressed="true">Type</button>
+        <button type="button" data-source="menu" aria-pressed="false">Chord menu</button>
+        <button type="button" data-source="notes" aria-pressed="false">Pick notes</button>
+      </div>
+    </div>
+    <div id="wb-source-type" class="workbench-input-row">
+      <label for="workbench-input" id="wb-input-label" class="sr-only">Chord name or notes</label>
+      <input
+        type="text"
+        id="workbench-input"
+        class="workbench-input"
+        placeholder="Am7 or C E G"
+        value="Am7"
+        maxlength="500"
+        aria-describedby="workbench-input-help"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+      >
+      <p id="workbench-input-help">Notes are bass first. A bare C is one note; CM is a major chord.</p>
+      <div class="workbench-hint">
+        <span class="workbench-hint-label">Try</span>
+        <button type="button" class="workbench-chip" data-example="Am7">Am7</button>
+        <button type="button" class="workbench-chip" data-example="C E G">C E G</button>
+        <button type="button" class="workbench-chip" data-example="Fd7/C">Fd7/C</button>
+        <button type="button" class="workbench-chip" data-example="2 5 1 in G" data-progression-only hidden>ii–V–I in G</button>
+      </div>
+    </div>
+    <div id="wb-source-menu" hidden>
+      <div class="wb-menu-fields">
+        <label
+          >Root
+          <select id="wb-menu-root"></select
+        ></label>
+        <label
+          >Chord type
+          <select id="wb-menu-quality"></select
+        ></label>
+        <button type="button" data-action="choose-menu" class="music-share-btn">Choose chord</button>
+      </div>
+      <details class="workbench-disclosure">
+        <summary>Browse every chord type</summary>
+        <div id="workbench-matrix" class="workbench-matrix"></div>
+      </details>
+    </div>
+    <div id="wb-source-notes" hidden>
+      <p class="music-small">Select pitch classes, bass first. Choose a selected note again to remove it.</p>
+      <div id="wb-note-picker" class="workbench-hint" role="group" aria-label="Pick notes"></div>
+      <button type="button" data-action="clear-notes" class="music-share-btn">Clear notes</button>
+    </div>
+    <div id="wb-selection-feedback" class="wb-selection-feedback" role="status" aria-live="polite"></div>
+    <div id="wb-candidate-actions" class="wb-play-actions" hidden>
+      <button type="button" data-action="append" class="wb-primary">Add to progression</button>
+      <button type="button" data-action="replace" class="music-share-btn">Replace selected chord</button>
+    </div>
+    <label id="wb-chord-transpose" class="music-small"
+      >Transpose selection
+      <select id="wb-transpose-root"></select
+    ></label>
+    <details id="wb-progression-library" class="workbench-disclosure" hidden>
+      <summary>Load a progression or exercise</summary>
+      <p class="music-small">Loading replaces the current sequence. Save it first if you want to keep it.</p>
+      <div id="workbench-library" class="workbench-hint"></div>
+    </details>
+  </section>
   <p id="workbench-announcement" class="sr-only" role="status" aria-live="polite"></p>
-  <div id="workbench-transport" class="wb-transport" hidden>
-    <div class="wb-play-actions">
-      <button type="button" id="workbench-play" class="wb-primary">Hear chord</button>
-      <button type="button" id="workbench-roll" class="music-share-btn">Roll upward</button>
-      <button type="button" id="workbench-mute" class="music-share-btn" aria-pressed="false">Mute</button>
-      <span class="music-small">Synthesized tone</span>
+  <section id="wb-progression-view" aria-label="Progression study" hidden>
+    <div id="wb-sequence"></div>
+    <div id="workbench-transport" class="wb-transport">
+      <div class="wb-play-actions">
+        <button type="button" id="workbench-play" class="wb-primary">Play progression</button>
+        <label for="workbench-bpm">Tempo <input type="number" id="workbench-bpm" value="96" min="40" max="200"> BPM</label>
+        <label><input type="checkbox" id="workbench-loop"> Loop</label>
+      </div>
     </div>
-    <div id="workbench-tempo" class="wb-play-actions" hidden>
-      <label for="workbench-bpm">Tempo <input type="number" id="workbench-bpm" value="96" min="40" max="200"> BPM</label>
-      <label><input type="checkbox" id="workbench-loop"> Loop</label>
-    </div>
-  </div>
+  </section>
   <div class="workbench-layout">
     <div class="workbench-main">
-      <div id="workbench-sheet" class="workbench-sheet" style="display: none"></div>
       <div id="workbench-result" class="workbench-result"></div>
       <details id="workbench-save-options" class="wb-save-options" hidden>
         <summary>Save or share this practice</summary>
@@ -51,12 +98,12 @@
           <input type="text" id="workbench-share-url" class="music-share-text" readonly>
         </div>
       </details>
-      <details class="workbench-disclosure wb-library">
-        <summary>More ways to explore</summary>
-        <div id="workbench-library" class="workbench-hint workbench-library"></div>
-        <p class="music-small">Try ABC notation: C E G c | d2 B2 | c4. Link imports are not supported.</p>
+      <details class="workbench-disclosure wb-scratchpad">
+        <summary>Notation scratchpad</summary>
+        <button type="button" data-action="sheet" class="music-share-btn">Open ABC draft</button>
+        <p class="music-small">A separate notation draft, not automatic harmonization. Link imports are not supported.</p>
       </details>
-      <div id="workbench-matrix" class="workbench-matrix" style="display: none"></div>
+      <div id="workbench-sheet" class="workbench-sheet" hidden></div>
     </div>
     <aside id="workbench-setlist" class="workbench-setlist" aria-label="Saved practice" style="display: none"></aside>
   </div>
@@ -84,6 +131,7 @@
 <script src="{{ '/assets/js/workbench/classify.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/audio.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/session.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/bayan-keyboard.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/player.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/diagrams.js' | relative_url }}"></script>

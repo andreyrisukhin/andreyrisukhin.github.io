@@ -11,21 +11,19 @@
   var input = document.getElementById("workbench-input");
   var result = document.getElementById("workbench-result");
   var KEY = "musicWorkbenchSetlist";
-  var state = {
-    items: [],
-    index: 0,
-    key: 0,
-    degrees: null,
-    label: "",
-    bpm: 96,
-    loop: false,
+  var session = WorkbenchSession.create();
+  var state = Object.assign(session.state, {
     saved: [],
     storageError: "",
     drawer: false,
-    theory: false,
-    matrix: false,
     sheet: false,
-  };
+    source: "type",
+    candidate: [],
+    candidateOptions: {},
+    picked: [],
+    menuRoot: 0,
+    menuSuffix: "m7",
+  });
   var FIFTHS = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5];
   var presets = [
     { id: "ii-v-i", label: "ii–V–I", degrees: ["2", "5", "1"] },
@@ -42,29 +40,36 @@
     return state.items[state.index];
   }
   function setInputFromState() {
-    input.value = state.items
+    state.input = state.items
       .map(function (m) {
         return m.name;
       })
       .join(" ");
+    input.value = state.input;
   }
   function selectItems(items, options) {
     Player.stop();
     options = options || {};
-    state.items = items.filter(Boolean);
-    state.index = Math.min(options.index || 0, Math.max(0, state.items.length - 1));
-    state.key = options.key == null ? (current() ? current().root : 0) : options.key;
-    state.label = options.label || "";
-    state.degrees = options.degrees || null;
+    session.set(items, options);
+    if (options.bpm) state.bpm = options.bpm;
     input.removeAttribute("aria-invalid");
     document.getElementById("workbench-share-result").hidden = true;
-    if (options.syncInput) setInputFromState();
+    if (options.syncInput) {
+      if (state.mode === "chord") setInputFromState();
+      else input.value = state.input = "";
+    }
+    if (options.mode) {
+      state.candidate = [];
+      state.source = "type";
+      feedback("");
+    }
     render();
     announce(current() ? current().name + (state.items.length > 1 ? ", progression of " + state.items.length + " chords." : ".") : "");
   }
 
   function classify(value) {
     Player.stop();
+    state.input = value;
     state.sheet = false;
     document.getElementById("workbench-sheet").hidden = true;
     var c = WorkbenchClassify.classify(value.slice(0, 500), {
@@ -75,7 +80,7 @@
     });
     if (c.type === "degrees") {
       var key = c.key ? M.parseNote(c.key) : 0;
-      return selectItems(
+      return choose(
         c.degrees.map(function (t) {
           return Model.fromDegree(t, key);
         }),
@@ -86,33 +91,120 @@
         }
       );
     }
-    if (c.type === "chords") return selectItems(c.names.map(Model.fromName));
-    if (c.type === "recipe") return selectItems([Model.fromNotes(c.notes, c.notes.buttonRoots)]);
+    if (c.type === "chords") return choose(c.names.map(Model.fromName));
+    if (c.type === "recipe") return choose([Model.fromNotes(c.notes, c.notes.buttonRoots)]);
     if (c.type === "notes" || c.type === "note") {
-      return selectItems([Model.fromNotes(M.parseNoteInput(c.tokens ? c.tokens.join(" ") : c.token))]);
+      return choose([Model.fromNotes(M.parseNoteInput(c.tokens ? c.tokens.join(" ") : c.token))]);
     }
     if (c.type === "sheet") {
-      selectItems([]);
-      return openSheet(c.text);
+      feedback("Use the notation scratchpad below for ABC. Your selection has not changed.");
+      state.candidate = [];
+      candidateActions();
+      return;
     }
-    selectItems([]);
-    if (c.type === "empty") {
-      result.innerHTML = '<p class="wb-empty">Start with a chord above, or try one of the examples.</p>';
-    } else {
-      var message =
-        c.type === "url"
+    state.candidate = [];
+    candidateActions();
+    var message =
+      c.type === "empty"
+        ? "Choose a chord or notes. The last valid selection stays visible."
+        : c.type === "url"
           ? "Link imports are not supported. Type the notes or chords instead."
-          : "That input is not recognized. Try Am7, C E G, or 2 5 1 in G.";
-      result.innerHTML = '<p class="wb-empty">' + message + "</p>";
+          : "That input is not recognized. Try Am7 or C E G. The current selection has not changed.";
+    feedback(message);
+    if (c.type !== "empty") {
       input.setAttribute("aria-invalid", "true");
-      announce(message);
     }
+  }
+
+  function feedback(message) {
+    document.getElementById("wb-selection-feedback").textContent = message || "";
+  }
+  function candidateActions() {
+    document.getElementById("wb-candidate-actions").hidden = state.mode !== "progression" || !state.candidate.length;
+    root.querySelector('[data-action="replace"]').disabled = state.candidate.length !== 1 || !current();
+  }
+  function choose(items, options) {
+    items = items.filter(Boolean);
+    state.candidate = items;
+    state.candidateOptions = options || {};
+    input.removeAttribute("aria-invalid");
+    candidateActions();
+    if (!items.length) return feedback("Pick at least one note.");
+    if (state.mode === "chord" && items.length === 1) {
+      feedback("");
+      if (state.source === "notes") {
+        input.value = state.input = items[0].notes.map(M.asciiNoteName).join(" ");
+      }
+      return selectItems(items, Object.assign({}, options, { syncInput: state.source === "menu" }));
+    }
+    var names = items
+      .map(function (m) {
+        return m.name;
+      })
+      .join(" · ");
+    if (state.mode === "progression") return feedback("Ready to add: " + names + ". The sequence is unchanged until you add or replace.");
+    feedback("This is a sequence. Open it in Progression view without changing this chord.");
+    document
+      .getElementById("wb-selection-feedback")
+      .insertAdjacentHTML("beforeend", " " + button("Open as progression", 'data-action="open-progression"', "music-share-btn"));
+  }
+  function switchView(mode) {
+    Player.stop();
+    state.input = input.value;
+    session.switchView(mode);
+    state.candidate = [];
+    state.source = "type";
+    state.picked = [];
+    input.value = state.input;
+    input.removeAttribute("aria-invalid");
+    feedback("");
+    render();
+    if (state.mode === "progression" && input.value.trim()) classify(input.value);
+    announce(mode === "progression" ? "Progression view. Choose a step to inspect." : "Chord and notes view.");
+  }
+  function setSource(source) {
+    state.source = source;
+    state.candidate = [];
+    feedback("");
+    renderChooser();
+    if (source === "type" && state.mode === "progression" && input.value.trim()) classify(input.value);
+    if (source === "notes" && state.picked.length) choose([Model.fromNotes(state.picked)]);
+  }
+  function renderChooser() {
+    var isProgression = state.mode === "progression";
+    root.querySelectorAll("[data-view]").forEach(function (button) {
+      button.setAttribute("aria-pressed", String(button.dataset.view === state.mode));
+    });
+    root.querySelectorAll("[data-source]").forEach(function (button) {
+      button.setAttribute("aria-pressed", String(button.dataset.source === state.source));
+      document.getElementById("wb-source-" + button.dataset.source).hidden = button.dataset.source !== state.source;
+    });
+    root.querySelectorAll("[data-progression-only]").forEach(function (element) {
+      element.hidden = !isProgression;
+    });
+    document.getElementById("wb-progression-library").hidden = !isProgression;
+    document.getElementById("wb-input-label").textContent = isProgression ? "Chord or sequence to add" : "Chord name or notes";
+    input.placeholder = isProgression ? "Am7 D7 Gmaj7, or 2 5 1 in G" : "Am7 or C E G";
+    document.getElementById("wb-chord-transpose").hidden = isProgression;
+    document.getElementById("wb-transpose-root").value = state.key;
+    candidateActions();
+    renderMatrix();
+    var picker = document.getElementById("wb-note-picker");
+    var focusPc = picker.contains(document.activeElement) ? document.activeElement.dataset.pick : null;
+    picker.innerHTML = M.NOTES.map(function (name, pc) {
+      return button(
+        M.esc(name),
+        'data-pick="' + pc + '" aria-pressed="' + (state.picked.indexOf(pc) >= 0) + '"',
+        "music-key-btn" + (state.picked.indexOf(pc) >= 0 ? " is-active" : "")
+      );
+    }).join("");
+    if (focusPc != null) picker.querySelector('[data-pick="' + focusPc + '"]').focus({ preventScroll: true });
   }
 
   function keyBar() {
     var html =
       '<div class="wb-key-select"><span class="music-small">' +
-      (state.items.length > 1 ? "Key / transpose" : "Root / transpose") +
+      "Progression key / transpose" +
       "</span>" +
       '<div class="workbench-keybar" role="group" aria-label="Transpose">';
     M.NOTES.forEach(function (n, i) {
@@ -191,12 +283,14 @@
   }
 
   function progression() {
-    if (state.items.length < 2) return "";
+    if (state.mode !== "progression") return "";
     var html =
       '<section class="wb-progression-panel" aria-label="Progression"><div><div class="wb-section-heading">' +
       "<h2>" +
       M.esc(state.label || "Your progression") +
-      '</h2><span class="music-small">4 beats per chord</span></div>' +
+      '</h2><span class="music-small">4 beats per chord · ' +
+      M.esc(M.noteName(state.key)) +
+      " major reference</span></div>" +
       '<div class="workbench-progression" role="group" aria-label="Progression chords">';
     state.items.forEach(function (item, i) {
       html += button(
@@ -205,19 +299,53 @@
           "</span> " +
           M.esc(item.name) +
           '<span class="workbench-chip-roman">' +
-          M.esc(item.roman || "") +
+          M.esc(Model.functionInKey(item, state.key)) +
           "</span>",
         'data-step="' + i + '" aria-pressed="' + (i === state.index) + '"',
         "workbench-chip workbench-prog-chip" + (i === state.index ? " is-active" : "")
       );
     });
-    return (
-      html +
-      '</div><p class="music-small">Choose a chord to inspect. The path follows its root around the circle of fifths.</p></div>' +
-      '<div class="workbench-circle">' +
-      circle() +
-      "</div></section>"
-    );
+    html += "</div>";
+    if (current()) {
+      html +=
+        '<div class="wb-sequence-actions">' +
+        button("Earlier", 'data-action="earlier"' + (state.index === 0 ? " disabled" : ""), "music-share-btn") +
+        button("Later", 'data-action="later"' + (state.index === state.items.length - 1 ? " disabled" : ""), "music-share-btn") +
+        button("Remove selected", 'data-action="remove-step"', "music-share-btn") +
+        "</div>";
+      if (state.index > 0) {
+        var before = state.items[state.index - 1],
+          model = current();
+        var common = model.notes.filter(function (pc) {
+          return before.notes.indexOf(pc) >= 0;
+        });
+        var delta = Model.mod(model.root - before.root);
+        var motion = [
+          "same root",
+          "root up a semitone",
+          "root up a tone",
+          "root up a minor third",
+          "root up a major third",
+          "root up a fourth",
+          "root moves a tritone",
+          "root down a fourth",
+          "root down a major third",
+          "root down a minor third",
+          "root down a tone",
+          "root down a semitone",
+        ][delta];
+        html +=
+          '<p class="wb-relationship">' +
+          M.esc(
+            before.name + " → " + model.name + ": " + motion + ". Common tones: " + (common.length ? common.map(M.noteName).join(", ") : "none") + "."
+          ) +
+          "</p>";
+      } else
+        html += '<p class="music-small">Select a step to inspect it. Later steps show root movement and common tones from the preceding chord.</p>';
+    } else html += '<p class="music-small">No chords yet. Choose material above, then add it to this progression.</p>';
+    html += keyBar() + "</div>";
+    if (current()) html += '<details class="wb-fifths"><summary>Circle of fifths</summary>' + circle() + "</details>";
+    return html + "</section>";
   }
 
   function recipe(model) {
@@ -273,14 +401,32 @@
   function chordCard(model) {
     var voices = Model.voices(model);
     var html =
-      '<section class="wb-chord-panel" aria-labelledby="wb-chord-title"><div class="wb-section-heading">' +
+      '<section class="wb-chord-panel" aria-labelledby="wb-chord-title"><p class="wb-inspect-label">' +
+      (state.mode === "progression" ? "Inspect step " + (state.index + 1) + " of " + state.items.length : "Inspect selection") +
+      '</p><div class="wb-section-heading">' +
       '<h2 id="wb-chord-title" class="recognizer-chord-name">' +
       M.esc(model.name) +
       '</h2><span class="music-small">' +
-      M.esc(model.roman || (model.notes[0] !== model.root ? M.noteName(model.notes[0]) + " in the bass" : "Root position")) +
+      M.esc(
+        state.mode === "progression"
+          ? Model.functionInKey(model, state.key)
+          : model.notes[0] !== model.root
+            ? M.noteName(model.notes[0]) + " in the bass"
+            : model.notes.length > 1
+              ? "Root position"
+              : "Single note"
+      ) +
       "</span></div>";
     html +=
-      '<div class="wb-representations"><section class="wb-notation" aria-label="Notes and notation"><h3>Notes on the staff</h3>' +
+      '<div class="wb-inspector-actions wb-play-actions">' +
+      button("Hear chord", 'data-action="hear" id="wb-hear"', "wb-primary") +
+      button("Roll upward", 'data-action="roll"', "music-share-btn") +
+      button(Player.isMuted() ? "Unmute" : "Mute", 'data-action="mute" aria-pressed="' + Player.isMuted() + '"', "music-share-btn") +
+      '<span class="music-small">Synthesized tone</span></div>' +
+      '<div class="wb-inspector-grid">' +
+      recipe(model) +
+      '<section class="wb-right-hand" aria-label="Right hand"><h3>Right hand</h3><div class="wb-right-layout">' +
+      '<div class="wb-notation"><p class="music-small">Notes and staff</p>' +
       '<div class="wb-note-list">';
     voices.forEach(function (v, i) {
       html += button(
@@ -292,13 +438,11 @@
     html +=
       '</div><div class="wb-staff-scroll">' +
       Diagrams.staff(model) +
-      '</div><p class="music-small">Read left to right. Focus or hover a note to find it on the buttons.</p></section>' +
-      '<section class="wb-map" aria-label="Bayan pitch map"><h3>Right hand · B-system</h3>' +
+      '</div><p class="music-small">Focus or hover a note to find it on the keyboard.</p></div>' +
+      '<div class="wb-map"><p class="music-small">B-system · higher notes ↑</p>' +
       Diagrams.keyboard(model) +
-      '<p class="music-small">Higher notes at the top. Outlined buttons are this voicing; the double ring marks its root. Press a button to hear it.</p></section></div>' +
-      recipe(model);
-    html += keyBar();
-    html += '<details class="workbench-disclosure wb-theory"' + (state.theory ? " open" : "") + "><summary>Theory &amp; other readings</summary>";
+      '<p class="music-small">Outlined: voiced notes.<br>Double ring: root.</p></div></div></section>';
+    html += '<section class="wb-theory" aria-label="Music theory"><h3>Theory</h3>';
     if (model.detail) {
       html += '<dl class="wb-theory-grid"><dt>Intervals</dt><dd>';
       model.detail.notes.forEach(function (n, i) {
@@ -315,32 +459,45 @@
     }
     return (
       html +
-      '<p class="music-small">Playback uses an ascending close voicing. Real accordion registers and omitted chord tones vary by instrument.</p></details></section>'
+      '<p class="music-small">The staff and keyboard show one ascending close voicing, not prescribed fingerings.</p></section></div></section>'
     );
   }
 
   function render() {
+    document.getElementById("workbench-share-result").hidden = true;
     var model = current();
     var focused = document.activeElement;
     var focusSelector = null;
-    if (result.contains(focused) || document.getElementById("workbench-matrix").contains(focused)) {
+    if (
+      result.contains(focused) ||
+      document.getElementById("wb-sequence").contains(focused) ||
+      document.getElementById("workbench-matrix").contains(focused)
+    ) {
       ["data-step", "data-wbkey", "data-action", "data-suffix"].some(function (attr) {
         if (!focused.hasAttribute(attr)) return false;
         focusSelector = "[" + attr + "=" + JSON.stringify(focused.getAttribute(attr)) + "]";
         return true;
       });
     }
-    result.innerHTML = model ? progression() + chordCard(model) : "";
+    result.innerHTML = model ? chordCard(model) : '<p class="wb-empty">Choose material to inspect its left hand, right hand, and theory.</p>';
+    document.getElementById("wb-sequence").innerHTML = progression();
+    document.getElementById("wb-progression-view").hidden = state.mode !== "progression";
     document.getElementById("workbench-transport").hidden = !model;
     document.getElementById("workbench-save-options").hidden = !model;
-    document.getElementById("workbench-play").textContent = Player.isPlaying() ? "Stop" : state.items.length > 1 ? "Play progression" : "Hear chord";
-    document.getElementById("workbench-tempo").hidden = state.items.length < 2;
-    document.getElementById("workbench-roll").hidden = state.items.length > 1;
-    renderMatrix();
+    document.getElementById("workbench-bpm").value = state.bpm;
+    document.getElementById("workbench-loop").checked = state.loop;
+    updatePlayback();
+    renderChooser();
     if (focusSelector) {
       var target = root.querySelector(focusSelector);
       if (target) target.focus({ preventScroll: true });
     }
+  }
+
+  function updatePlayback() {
+    document.getElementById("workbench-play").textContent = Player.isPlaying() ? "Stop" : "Play progression";
+    var hear = document.getElementById("wb-hear");
+    if (hear) hear.textContent = Player.isPlaying() ? "Stop" : current() && current().notes.length === 1 ? "Hear note" : "Hear chord";
   }
 
   async function play(options) {
@@ -356,32 +513,44 @@
       {
         bpm: state.bpm,
         roll: options.roll,
-        loop: state.loop && models.length > 1,
-        progression: models.length > 1,
+        loop: state.loop && state.mode === "progression" && !options.single,
+        progression: state.mode === "progression" && !options.single,
         onError: announce,
         onStep: function (index) {
           if (models.length > 1) {
             state.index = index;
             render();
           }
+          sounding(
+            Model.voices(models[index]).map(function (v) {
+              return v.midi;
+            })
+          );
         },
       }
     );
     if (started) {
-      document.getElementById("workbench-play").textContent = "Stop";
+      updatePlayback();
       announce("Playing with a synthesized tone.");
     } else if (Player.isMuted()) announce("Sound is muted. Unmute to play.");
   }
 
   async function playNotes(midis) {
     var started = await Player.play([midis], { onError: announce });
-    if (started) document.getElementById("workbench-play").textContent = "Stop";
-    else if (Player.isMuted()) announce("Sound is muted. Unmute to play.");
+    if (started) {
+      updatePlayback();
+      sounding(midis);
+    } else if (Player.isMuted()) announce("Sound is muted. Unmute to play.");
   }
 
   function highlight(pcs) {
     root.querySelectorAll("[data-pc]").forEach(function (el) {
       el.classList.toggle("is-linked", pcs.indexOf(Number(el.dataset.pc)) >= 0);
+    });
+  }
+  function sounding(midis) {
+    result.querySelectorAll(".bayan-key").forEach(function (button) {
+      button.classList.toggle("is-sounding", midis.indexOf(Number(button.dataset.midi)) >= 0);
     });
   }
 
@@ -422,7 +591,11 @@
     state.saved.forEach(function (item, i) {
       html +=
         "<li>" +
-        button(M.esc(item.name), 'data-load="' + i + '"', "wb-saved-load") +
+        button(
+          M.esc(item.name) + '<span class="music-small"> · ' + (item.mode === "progression" ? "Progression" : "Chord / notes") + "</span>",
+          'data-load="' + i + '"',
+          "wb-saved-load"
+        ) +
         button("Remove", 'data-remove="' + i + '" aria-label="Remove ' + M.esc(item.name) + '"', "music-share-btn") +
         "</li>";
     });
@@ -447,6 +620,8 @@
       chords: state.items.map(Model.entry),
       key: state.key,
       bpm: state.bpm,
+      mode: state.mode,
+      index: state.index,
     });
     var saved = persist();
     state.drawer = true;
@@ -471,6 +646,7 @@
     url.searchParams.set("key", String(state.key));
     url.searchParams.set("step", String(state.index));
     url.searchParams.set("bpm", String(state.bpm));
+    url.searchParams.set("view", state.mode);
     var field = document.getElementById("workbench-share-url");
     field.value = url.href;
     document.getElementById("workbench-share-result").hidden = false;
@@ -501,10 +677,10 @@
       var key = Number(params.get("key")),
         step = Number(params.get("step"));
       var bpm = Number(params.get("bpm"));
-      state.bpm = Number.isFinite(bpm) && bpm >= 40 && bpm <= 200 ? bpm : 96;
-      document.getElementById("workbench-bpm").value = state.bpm;
       selectItems(items, {
         syncInput: true,
+        mode: params.get("view") === "progression" || items.length > 1 ? "progression" : "chord",
+        bpm: Number.isFinite(bpm) && bpm >= 40 && bpm <= 200 ? bpm : 96,
         key: params.has("key") && Number.isInteger(key) && key >= 0 && key < 12 ? key : items[0].root,
         index: Number.isInteger(step) && step >= 0 ? step : 0,
       });
@@ -524,20 +700,16 @@
     (window.MusicExercises || []).forEach(function (ex) {
       html += button(M.esc(ex.title), 'data-exercise="' + M.esc(ex.id) + '"');
     });
-    html += button("Notation draft", 'data-action="sheet"');
-    html += button("All chord types", 'data-action="matrix" aria-expanded="' + state.matrix + '"');
     document.getElementById("workbench-library").innerHTML = html;
   }
   function renderMatrix() {
     var container = document.getElementById("workbench-matrix");
-    container.style.display = state.matrix ? "" : "none";
-    if (!state.matrix) return;
-    var model = current(),
-      rootPc = model ? model.root : 0;
+    if (state.source !== "menu") return;
+    var rootPc = state.menuRoot;
     var html =
-      '<div class="workbench-card"><h2>Chord types on ' +
+      '<div class="workbench-card"><h3>Chord types on ' +
       M.esc(M.noteName(rootPc)) +
-      "</h2>" +
+      "</h3>" +
       '<p class="music-small">Compare a different quality on the same root.</p><div class="wb-table-scroll" tabindex="0" role="region" aria-label="Chord type table">' +
       '<table class="workbench-matrix-table"><thead><tr><th scope="col">Extension</th>';
     S.GRID_COLS.forEach(function (q) {
@@ -596,7 +768,7 @@
       : state.items.map(function (m) {
           return Model.transpose(m, Model.mod(key - state.key));
         });
-    selectItems(items, { key: key, index: index, degrees: state.degrees, label: state.label, syncInput: true });
+    selectItems(items, { key: key, index: index, degrees: state.degrees, label: state.label, syncInput: state.mode === "chord" });
   }
 
   root.addEventListener("click", function (e) {
@@ -609,6 +781,61 @@
       return;
     }
     if (!el) return;
+    if (el.dataset.view) return switchView(el.dataset.view);
+    if (el.dataset.source) return setSource(el.dataset.source);
+    if (el.hasAttribute("data-pick")) {
+      var pc = Number(el.dataset.pick),
+        found = state.picked.indexOf(pc);
+      if (found >= 0) state.picked.splice(found, 1);
+      else state.picked.push(pc);
+      choose(state.picked.length ? [Model.fromNotes(state.picked)] : []);
+      return renderChooser();
+    }
+    if (el.dataset.action === "clear-notes") {
+      state.picked = [];
+      choose([]);
+      return renderChooser();
+    }
+    if (el.dataset.action === "choose-menu") return choose([Model.fromSuffix(state.menuRoot, state.menuSuffix)]);
+    if (el.dataset.action === "open-progression") {
+      var pending = state.candidate.slice(),
+        pendingOptions = Object.assign({}, state.candidateOptions);
+      switchView("progression");
+      return selectItems(pending, Object.assign(pendingOptions, { mode: "progression", syncInput: true }));
+    }
+    if (el.dataset.action === "append" || el.dataset.action === "replace") {
+      Player.stop();
+      var changed = session.insert(state.candidate, el.dataset.action === "replace");
+      render();
+      feedback(
+        changed
+          ? el.dataset.action === "append"
+            ? "Added to progression."
+            : "Selected chord replaced."
+          : "Cannot apply this selection. A progression holds up to 128 chords."
+      );
+      return;
+    }
+    if (el.dataset.action === "remove-step" || el.dataset.action === "earlier" || el.dataset.action === "later") {
+      Player.stop();
+      if (el.dataset.action === "remove-step") session.remove();
+      else session.move(el.dataset.action === "earlier" ? -1 : 1);
+      render();
+      return;
+    }
+    if (el.dataset.action === "hear") {
+      if (Player.isPlaying()) Player.stop();
+      else play({ single: true });
+      return;
+    }
+    if (el.dataset.action === "roll") return play({ single: true, roll: true });
+    if (el.dataset.action === "mute") {
+      var muted = Player.mute();
+      el.textContent = muted ? "Unmute" : "Mute";
+      el.setAttribute("aria-pressed", String(muted));
+      announce(muted ? "Sound muted." : "Sound enabled. Press a note or play button to hear it.");
+      return;
+    }
     if (el.hasAttribute("data-sound")) {
       playNotes(el.dataset.sound.split(",").map(Number));
       highlight(el.dataset.pcs.split(",").map(Number));
@@ -620,8 +847,10 @@
       return;
     }
     if (el.dataset.chord) {
-      input.value = el.dataset.chord;
-      classify(input.value);
+      var reading = Model.fromName(el.dataset.chord);
+      if (state.mode === "progression") {
+        choose([reading]);
+      } else selectItems([reading], { syncInput: true });
       return;
     }
     if (el.hasAttribute("data-step")) {
@@ -631,8 +860,11 @@
       return;
     }
     if (el.hasAttribute("data-wbkey")) return transpose(Number(el.dataset.wbkey));
-    if (el.hasAttribute("data-suffix"))
-      return selectItems([Model.fromSuffix(current() ? current().root : 0, el.dataset.suffix)], { syncInput: true });
+    if (el.hasAttribute("data-suffix")) {
+      state.menuSuffix = el.dataset.suffix;
+      document.getElementById("wb-menu-quality").value = state.menuSuffix;
+      return choose([Model.fromSuffix(state.menuRoot, state.menuSuffix)]);
+    }
     if (el.dataset.preset) {
       var p = presets.find(function (item) {
         return item.id === el.dataset.preset;
@@ -641,7 +873,7 @@
         p.degrees.map(function (d) {
           return Model.fromDegree(d, 0);
         }),
-        { key: 0, degrees: p.degrees, label: p.label, syncInput: true }
+        { mode: "progression", key: 0, degrees: p.degrees, label: p.label, syncInput: true }
       );
     }
     if (el.dataset.exercise) {
@@ -660,14 +892,19 @@
           }
           return model;
         }),
-        { key: ex.default_key, label: ex.title, syncInput: true }
+        { mode: "progression", key: ex.default_key, label: ex.title, syncInput: true }
       );
     }
     if (el.hasAttribute("data-load")) {
       var item = state.saved[Number(el.dataset.load)];
-      state.bpm = item.bpm || 96;
-      document.getElementById("workbench-bpm").value = state.bpm;
-      return selectItems(item.chords.map(Model.restore), { label: item.name, key: item.key, syncInput: true });
+      return selectItems(item.chords.map(Model.restore), {
+        label: item.name,
+        key: item.key,
+        bpm: item.bpm,
+        mode: item.mode,
+        index: item.index,
+        syncInput: true,
+      });
     }
     if (el.hasAttribute("data-remove")) {
       state.saved.splice(Number(el.dataset.remove), 1);
@@ -676,18 +913,11 @@
       return;
     }
     if (el.dataset.action === "export") return exportSaved();
-    if (el.dataset.action === "matrix") {
-      state.matrix = !state.matrix;
-      renderLibrary();
-      renderMatrix();
-      root.querySelector('[data-action="matrix"]').focus({ preventScroll: true });
-      return;
-    }
     if (el.dataset.action === "sheet") return openSheet();
     if (el.dataset.action === "close-sheet") {
       state.sheet = false;
       document.getElementById("workbench-sheet").hidden = true;
-      if (root.querySelector(".wb-library").open) root.querySelector('[data-action="sheet"]').focus({ preventScroll: true });
+      if (root.querySelector(".wb-scratchpad").open) root.querySelector('[data-action="sheet"]').focus({ preventScroll: true });
       else input.focus({ preventScroll: true });
       return;
     }
@@ -716,7 +946,6 @@
     "toggle",
     function (e) {
       if (e.target.id === "wb-saved-drawer") state.drawer = e.target.open;
-      if (e.target.classList.contains("wb-theory")) state.theory = e.target.open;
     },
     true
   );
@@ -744,15 +973,6 @@
     if (Player.isPlaying()) Player.stop();
     else play();
   });
-  document.getElementById("workbench-roll").addEventListener("click", function () {
-    play({ single: true, roll: true });
-  });
-  document.getElementById("workbench-mute").addEventListener("click", function (e) {
-    var muted = Player.mute();
-    e.currentTarget.textContent = muted ? "Unmute" : "Mute";
-    e.currentTarget.setAttribute("aria-pressed", String(muted));
-    announce(muted ? "Sound muted." : "Sound enabled. Nothing plays until you press a note or play button.");
-  });
   document.getElementById("workbench-bpm").addEventListener("change", function (e) {
     state.bpm = Math.max(40, Math.min(200, Number(e.target.value) || 96));
     e.target.value = state.bpm;
@@ -765,13 +985,40 @@
   document.getElementById("workbench-save").addEventListener("click", saveCurrent);
   document.getElementById("workbench-share").addEventListener("click", share);
   Player.onStop(function () {
-    document.getElementById("workbench-play").textContent = state.items.length > 1 ? "Play progression" : "Hear chord";
+    updatePlayback();
+    sounding([]);
   });
   window.addEventListener("storage", function (e) {
     if (e.key === KEY) {
       readSaved();
       renderSaved();
     }
+  });
+  var roots = M.NOTES.map(function (name, pc) {
+    return '<option value="' + pc + '">' + M.esc(name) + "</option>";
+  }).join("");
+  document.getElementById("wb-menu-root").innerHTML = roots;
+  document.getElementById("wb-transpose-root").innerHTML = roots;
+  var suffixes = [];
+  S.CHORDS.forEach(function (chord) {
+    if (!chord.bug && suffixes.indexOf(chord.suffix) < 0 && Model.fromSuffix(0, chord.suffix)) suffixes.push(chord.suffix);
+  });
+  document.getElementById("wb-menu-quality").innerHTML = suffixes
+    .map(function (suffix) {
+      return '<option value="' + M.esc(suffix) + '">' + M.esc(suffix || "major") + "</option>";
+    })
+    .join("");
+  document.getElementById("wb-menu-quality").value = state.menuSuffix;
+  ["wb-menu-root", "wb-menu-quality"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () {
+      state.menuRoot = Number(document.getElementById("wb-menu-root").value);
+      state.menuSuffix = document.getElementById("wb-menu-quality").value;
+      choose([Model.fromSuffix(state.menuRoot, state.menuSuffix)]);
+      renderMatrix();
+    });
+  });
+  document.getElementById("wb-transpose-root").addEventListener("change", function (event) {
+    transpose(Number(event.target.value));
   });
   readSaved();
   renderSaved();

@@ -59,6 +59,9 @@
   &.is-sounding {
     background: var(--global-theme-color);
     color: var(--music-on-accent, #fff);
+    kbd {
+      color: inherit;
+    }
   }
   &:disabled {
     opacity: 0.35;

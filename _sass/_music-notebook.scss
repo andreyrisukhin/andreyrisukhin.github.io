@@ -314,6 +314,148 @@
     padding: 0.5rem 0;
     border-block: 1px solid var(--music-rule);
   }
+  .wb-view-switch,
+  .wb-source-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    button {
+      border: 0;
+      border-bottom: 2px solid transparent;
+      padding: 0.5rem 0.25rem;
+      background: none;
+      color: var(--music-muted);
+    }
+    button[aria-pressed="true"] {
+      color: var(--music-ink);
+      border-bottom-color: var(--music-accent);
+      font-weight: 600;
+    }
+  }
+  .wb-view-switch {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+  }
+  .wb-source-switch {
+    font-size: 0.875rem;
+    gap: 0.25rem 0.5rem;
+  }
+  .wb-chooser {
+    padding: 0 0 1.25rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--music-rule);
+    .wb-section-heading {
+      margin-bottom: 0.5rem;
+      gap: 0.5rem;
+    }
+    h2 {
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .workbench-hint {
+      margin-bottom: 0.5rem;
+    }
+    .workbench-disclosure {
+      margin-bottom: 0;
+    }
+    select {
+      min-height: 44px;
+      max-width: 100%;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--music-rule);
+      border-radius: 3px;
+      background: var(--music-surface);
+      color: var(--music-ink);
+    }
+  }
+  .wb-menu-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 1rem;
+    label {
+      display: grid;
+      gap: 0.25rem;
+      margin: 0;
+    }
+  }
+  .wb-selection-feedback {
+    font-size: 0.875rem;
+    color: var(--music-muted);
+    &:not(:empty) {
+      margin: 0.75rem 0;
+    }
+  }
+  #wb-chord-transpose {
+    display: block;
+    margin: 0.75rem 0 0;
+    select {
+      margin-left: 0.5rem;
+    }
+  }
+  .wb-inspect-label {
+    margin: 0 0 0.5rem;
+    color: var(--music-muted);
+    font-size: 0.875rem;
+  }
+  .wb-inspector-actions {
+    margin: 1rem 0 1.5rem;
+  }
+  .wb-inspector-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-areas: "left right" "theory right";
+    align-items: start;
+    gap: 1.5rem;
+    .wb-recipe {
+      grid-area: left;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    .wb-right-hand {
+      grid-area: right;
+      min-width: 0;
+    }
+    .wb-theory {
+      grid-area: theory;
+      margin: 0;
+      padding-top: 1rem;
+      min-width: 0;
+    }
+    h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+  }
+  .wb-right-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px;
+    gap: 1rem;
+    .wb-map {
+      text-align: center;
+    }
+  }
+  .wb-sequence-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.5rem 0 1rem;
+  }
+  .wb-relationship {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+  .wb-fifths summary {
+    color: var(--music-muted);
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .wb-theory-grid {
+    overflow-wrap: anywhere;
+  }
   .wb-play-actions {
     display: flex;
     flex-wrap: wrap;
@@ -614,6 +756,13 @@
     color: var(--music-muted);
   }
   @media (max-width: 760px) {
+    .wb-inspector-grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "left" "right" "theory";
+    }
+    .wb-right-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
     .wb-representations {
       grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
@@ -672,8 +821,8 @@ html[data-theme="dark"] .music-notebook {
   --music-surface: #292521;
   --music-ink: #f2eade;
   --music-muted: #c0b2a2;
-  --music-accent: #f1a4a5;
-  --music-on-accent: #291619;
+  --music-accent: #c7a66a;
+  --music-on-accent: #211d16;
   --music-rule: #65594c;
 }
 

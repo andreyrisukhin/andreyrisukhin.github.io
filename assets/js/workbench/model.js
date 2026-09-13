@@ -172,8 +172,18 @@ window.WorkbenchModel = (function () {
         chords: chords,
         key: Number.isInteger(item.key) && item.key >= 0 && item.key < 12 ? item.key : null,
         bpm: Number.isFinite(item.bpm) && item.bpm >= 40 && item.bpm <= 200 ? item.bpm : 96,
+        mode: item.mode === "progression" || chords.length > 1 ? "progression" : "chord",
+        index: Number.isInteger(item.index) ? Math.max(0, Math.min(item.index, chords.length - 1)) : 0,
       };
     });
+  }
+
+  function functionInKey(model, key) {
+    if (model.roman) return model.roman;
+    var degree = ["I", "♭II", "II", "♭III", "III", "IV", "♯IV", "V", "♭VI", "VI", "♭VII", "VII"][mod(model.root - key)];
+    var suffix = model.suffix || "";
+    if (/^(m(?!aj)|dim)/.test(suffix)) degree = degree.toLowerCase();
+    return degree + ({ m: "", M: "", m7: "7", dim: "°", dim7: "°7", m7b5: "ø7" }[suffix] ?? suffix);
   }
 
   function recipes(model) {
@@ -231,6 +241,7 @@ window.WorkbenchModel = (function () {
     voices: voices,
     savedItems: savedItems,
     recipes: recipes,
+    functionInKey: functionInKey,
     fromName: fromName,
     fromNotes: fromNotes,
     fromSuffix: fromSuffix,
