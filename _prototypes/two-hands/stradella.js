@@ -3,32 +3,34 @@ window.PrototypeStradella = (function () {
   "use strict";
   const M = window.Music;
   const mod = window.WorkbenchModel.mod;
-  const columns = [0, 7, 2, 9];
-  const rows = [
-    { id: "counter", label: "Counterbass" },
-    { id: "bass", label: "Bass" },
-    { id: "M", label: "Major" },
-    { id: "m", label: "Minor" },
-    { id: "7", label: "Seventh" },
-    { id: "d7", label: "Diminished" },
+  const roots = [0, 7, 2, 9];
+  // Player-facing orientation: counterbass is nearest the hand, at the right.
+  const columns = [
+    { id: "d7", label: "Diminished seventh", short: "Dim. 7th" },
+    { id: "7", label: "Seventh", short: "7th" },
+    { id: "m", label: "Minor", short: "Minor" },
+    { id: "M", label: "Major", short: "Major" },
+    { id: "bass", label: "Bass", short: "Bass" },
+    { id: "counter", label: "Counterbass", short: "Counter bass" },
   ];
 
   function layout() {
-    return rows.flatMap((row, r) =>
-      columns.map((root, c) => {
-        const bass = r < 2;
-        const pc = mod(root + (row.id === "counter" ? 4 : 0));
+    return columns.flatMap((column, c) =>
+      roots.map((root, r) => {
+        const bass = column.id === "bass" || column.id === "counter";
+        const pc = mod(root + (column.id === "counter" ? 4 : 0));
         const label =
-          row.id === "counter" ? window.Tonal.Note.transpose(M.asciiNoteName(root), "3M").replace(/#/g, "♯").replace(/b/g, "♭") : M.noteName(pc);
-        const notes = bass ? [pc] : window.StradellaData.BUTTONS[row.id].map((interval) => mod(root + interval));
+          column.id === "counter" ? window.Tonal.Note.transpose(M.asciiNoteName(root), "3M").replace(/#/g, "♯").replace(/b/g, "♭") : M.noteName(pc);
+        const notes = bass ? [pc] : window.StradellaData.BUTTONS[column.id].map((interval) => mod(root + interval));
         return {
-          id: row.id + "-" + root,
+          id: column.id + "-" + root,
+          kind: column.id,
           row: r,
           column: c,
           root: pc,
           notes,
           label,
-          name: label + " " + row.label.toLowerCase(),
+          name: label + " " + column.label.toLowerCase(),
           // Demonstration registers only; real reed/register combinations vary.
           midis: bass ? [36 + pc] : notes.map((note) => 48 + note).sort((a, b) => a - b),
         };
@@ -40,9 +42,15 @@ window.PrototypeStradella = (function () {
     const recipe = window.WorkbenchModel.recipes(model).find((item) => item.exact);
     if (!recipe) return [];
     const cells = layout();
-    const bass = cells.find((cell) => cell.row === 1 && cell.root === recipe.bass);
+    const bass = cells.find((cell) => cell.kind === "bass" && cell.root === recipe.bass);
     const parts = recipe.parts.map((part) =>
-      cells.find((cell) => cell.row >= 2 && cell.notes.length === part.notes.length && cell.notes.every((note) => part.notes.includes(note)))
+      cells.find(
+        (cell) =>
+          cell.kind !== "bass" &&
+          cell.kind !== "counter" &&
+          cell.notes.length === part.notes.length &&
+          cell.notes.every((note) => part.notes.includes(note))
+      )
     );
     if (!bass || parts.some((part) => !part)) return [];
     return [bass.id, ...parts.map((part) => part.id)];
@@ -51,23 +59,23 @@ window.PrototypeStradella = (function () {
   function mount(container, model) {
     const chosen = selected(model);
     const cells = layout();
-    container.innerHTML = rows
+    container.innerHTML = columns
       .map(
-        (row, r) =>
-          '<div class="stradella-row" style="--row:' +
-          r +
-          '"><span class="row-label">' +
-          M.esc(row.label) +
-          '</span><div class="row-buttons" role="group" aria-label="' +
-          M.esc(row.label) +
+        (column, c) =>
+          '<div class="stradella-column" style="--column:' +
+          c +
+          '"><span class="column-label" aria-hidden="true">' +
+          M.esc(column.short) +
+          '</span><div class="column-buttons" role="group" aria-label="' +
+          M.esc(column.label) +
           '">' +
           cells
-            .filter((cell) => cell.row === r)
+            .filter((cell) => cell.column === c)
             .map(
               (cell) =>
                 '<button type="button" class="hand-key' +
                 (chosen.includes(cell.id) ? " is-selected" : "") +
-                (chosen.includes(cell.id) && cell.row === 1 && cell.root === model.root ? " is-root" : "") +
+                (chosen.includes(cell.id) && cell.kind === "bass" && cell.root === model.root ? " is-root" : "") +
                 '" data-left-id="' +
                 cell.id +
                 '" aria-label="Hear ' +
@@ -75,7 +83,7 @@ window.PrototypeStradella = (function () {
                 '"' +
                 (chosen.includes(cell.id)
                   ? ' aria-description="' +
-                    (cell.row === 1 && cell.root === model.root ? "Chord root. " : "") +
+                    (cell.kind === "bass" && cell.root === model.root ? "Chord root. " : "") +
                     'Part of the displayed left-hand recipe"'
                   : "") +
                 "><span>" +
@@ -108,5 +116,5 @@ window.PrototypeStradella = (function () {
       if (next) container.querySelector('[data-left-id="' + next.id + '"]').focus();
     });
   }
-  return { columns, rows, layout, selected, mount, bind };
+  return { roots, columns, layout, selected, mount, bind };
 })();

@@ -38,28 +38,33 @@
   padding: 8px 4px;
 }
 #left-keyboard {
+  display: flex;
+  gap: 8px;
   width: max-content;
   margin-inline: auto;
 }
-.stradella-row {
+.stradella-column {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  width: 48px;
   align-items: center;
-  margin-bottom: 8px;
 }
-.stradella-row:last-child {
-  margin-bottom: 0;
-}
-.row-label {
-  width: 76px;
-  flex-shrink: 0;
+.column-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 36px;
+  margin-bottom: 12px;
   font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
   color: var(--muted);
 }
-.row-buttons {
+.column-buttons {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  padding-left: calc(var(--row) * 6px);
+  padding-top: calc((5 - var(--column)) * 6px);
 }
 .right-frame #keyboard {
   margin-top: 24px;

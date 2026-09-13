@@ -34,33 +34,78 @@ function test(name, fn) {
   count++;
   console.log("PASS " + name);
 }
-test("six rows and four fifth-related columns have unique coordinates", () => {
+test("six function columns and four fifth-related rows have unique coordinates", () => {
   assert.equal(cells.length, 24);
   assert.equal(new Set(cells.map((cell) => cell.id)).size, 24);
   assert.equal(new Set(cells.map((cell) => cell.row + ":" + cell.column)).size, 24);
-  const columns = json(Left.columns);
-  columns.slice(1).forEach((pc, i) => assert.equal((pc - columns[i] + 12) % 12, 7));
+  const roots = json(Left.roots);
+  roots.slice(1).forEach((pc, i) => assert.equal((pc - roots[i] + 12) % 12, 7));
+  assert.deepEqual(
+    json(Left.columns).map((column) => column.id),
+    ["d7", "7", "m", "M", "bass", "counter"]
+  );
+  assert.deepEqual(
+    cells.filter((cell) => cell.kind === "counter").map((cell) => cell.column),
+    [5, 5, 5, 5]
+  );
+  assert.deepEqual(
+    cells.filter((cell) => cell.kind === "bass").map((cell) => cell.column),
+    [4, 4, 4, 4]
+  );
 });
 test("counterbass is a correctly spelled major third above the bass", () => {
   assert.deepEqual(
-    cells.filter((cell) => cell.row === 0).map((cell) => cell.notes[0]),
+    cells.filter((cell) => cell.kind === "counter").map((cell) => cell.notes[0]),
     [4, 11, 6, 1]
   );
   assert.deepEqual(
-    cells.filter((cell) => cell.row === 0).map((cell) => cell.label),
+    cells.filter((cell) => cell.kind === "counter").map((cell) => cell.label),
     ["E", "B", "F♯", "C♯"]
   );
 });
-test("all chord rows use shared Stradella button voicings", () => {
+test("all chord columns use shared Stradella button voicings", () => {
   cells
-    .filter((cell) => cell.row >= 2)
+    .filter((cell) => cell.kind !== "bass" && cell.kind !== "counter")
     .forEach((cell) => {
-      const quality = Left.rows[cell.row].id;
+      const quality = cell.kind;
       assert.deepEqual(
         cell.notes,
         json(context.StradellaData.BUTTONS[quality]).map((pc) => (pc + cell.root) % 12)
       );
     });
+});
+test("arrow navigation follows the rotated visual coordinates", () => {
+  const listeners = {};
+  let focused = null;
+  const container = {
+    addEventListener: (event, fn) => {
+      listeners[event] = fn;
+    },
+    contains: () => true,
+    querySelector: (selector) => ({
+      focus: () => {
+        focused = selector.match(/data-left-id="([^"]+)"/)[1];
+      },
+    }),
+  };
+  Left.bind(container, { onActivate: () => {} });
+  function move(id, key) {
+    focused = null;
+    listeners.keydown({
+      key,
+      target: { closest: () => ({ dataset: { leftId: id } }) },
+      preventDefault: () => {},
+    });
+    return focused;
+  }
+  assert.equal(move("bass-7", "ArrowRight"), "counter-7");
+  assert.equal(move("bass-7", "ArrowLeft"), "M-7");
+  assert.equal(move("bass-7", "ArrowUp"), "bass-0");
+  assert.equal(move("bass-7", "ArrowDown"), "bass-2");
+  assert.equal(move("counter-7", "ArrowRight"), null);
+  assert.equal(move("d7-7", "ArrowLeft"), null);
+  assert.equal(move("bass-0", "ArrowUp"), null);
+  assert.equal(move("bass-9", "ArrowDown"), null);
 });
 test("Am7 selects A bass and C major with no extra or missing tones", () => {
   const selected = json(Left.selected(Model.fromName("Am7")));

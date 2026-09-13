@@ -18,6 +18,7 @@
 
   Inspector.render(model);
   Left.mount($("left-keyboard"), model);
+  $("left-scroll").scrollLeft = $("left-scroll").scrollWidth;
 
   function describe(cell) {
     if (!cell) return "Point to a left-hand button to see its notes.";
