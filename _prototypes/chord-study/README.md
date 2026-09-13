@@ -12,6 +12,8 @@ There is no build step, service worker, theme framework, or stored user data. Ed
 
 The separate [progression prototype](../progression-study/README.md) reuses this stylesheet and `inspector.js`. The shared inspector renders notes, bass recipes, and the keyboard; each screen owns its selection and playback controls.
 
+`buttons.css` supplies the common button appearance for both previews and the [two-hand prototype](../two-hands/README.md). Instrument layouts stay separate.
+
 ## Review scope
 
 - One input row, followed by one chord heading.

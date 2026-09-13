@@ -338,63 +338,6 @@ h2 {
   gap: var(--bayan-gap);
   margin-bottom: calc((var(--bayan-size) + var(--bayan-gap)) * var(--bayan-column) / 3);
 }
-.bayan-key {
-  --button-face: #f5f1e7;
-  --button-ink: #292923;
-  --button-edge: #c6c1b4;
-  --button-hatch: #8b8679;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 var(--bayan-size);
-  width: var(--bayan-size);
-  height: var(--bayan-size);
-  padding: 0;
-  border-radius: 50%;
-  border-color: var(--button-edge);
-  background: var(--button-face);
-  color: var(--button-ink);
-  font-size: 14px;
-  line-height: 1.2;
-}
-/* Key color follows pitch class; crosshatching separately indicates selection. */
-.bayan-key:is([data-pc="1"], [data-pc="3"], [data-pc="6"], [data-pc="8"], [data-pc="10"]) {
-  --button-face: #343832;
-  --button-ink: #f5f1e7;
-  --button-edge: #62675c;
-  --button-hatch: #91978b;
-}
-.bayan-key.is-selected,
-.legend .legend-tone {
-  background-image: repeating-linear-gradient(45deg, transparent 0 4px, var(--button-hatch) 4px 5px, transparent 5px 8px),
-    repeating-linear-gradient(-45deg, transparent 0 4px, var(--button-hatch) 4px 5px, transparent 5px 8px);
-}
-.bayan-key.is-selected > span {
-  padding: 1px 3px;
-  border-radius: 2px;
-  background: var(--button-face);
-}
-.bayan-key.is-root {
-  box-shadow:
-    inset 0 0 0 3px var(--button-face),
-    inset 0 0 0 5px var(--button-ink);
-}
-.bayan-key:where(:hover:not(:disabled)) {
-  outline: 1px solid var(--accent);
-  outline-offset: 3px;
-}
-.bayan-key:focus-visible {
-  outline: 2px dashed var(--accent);
-  outline-offset: 3px;
-}
-.bayan-key.is-sounding {
-  outline: 3px solid var(--accent);
-  outline-offset: 3px;
-}
-.bayan-key:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
 .legend {
   display: flex;
   justify-content: center;

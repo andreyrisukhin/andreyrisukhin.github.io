@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Two-hand study · Layout prototype</title>
+    <link rel="stylesheet" href="../chord-study/style.css" />
+    <link rel="stylesheet" href="../chord-study/buttons.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="../../assets/js/vendor/tonal.min.js"></script>
+    <script defer src="../../assets/js/music/common.js"></script>
+    <script defer src="../../assets/js/music/chord-name.js"></script>
+    <script defer src="../../assets/js/music/stradella-data.js"></script>
+    <script defer src="../../assets/js/music/audio.js"></script>
+    <script defer src="../../assets/js/workbench/model.js"></script>
+    <script defer src="../../assets/js/music/bayan-keyboard.js"></script>
+    <script defer src="../../assets/js/workbench/player.js"></script>
+    <script defer src="../../assets/js/workbench/diagrams.js"></script>
+    <script defer src="../chord-study/inspector.js"></script>
+    <script defer src="stradella.js"></script>
+    <script defer src="hands.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <p>Bayan notebook <span class="breadcrumb">/ Two-hand study</span></p>
+        <button id="theme" class="text-button" type="button" aria-pressed="false">Dark mode</button>
+      </header>
+      <main>
+        <article aria-labelledby="chord-name">
+          <header class="chord-heading">
+            <div>
+              <h1 id="chord-name">Am7</h1>
+              <p id="chord-description">A minor seventh</p>
+            </div>
+            <div class="playback">
+              <button id="play" class="play-button" type="button">
+                <span aria-hidden="true">▶</span> <span id="play-label">Hear both hands</span>
+              </button>
+              <p>Synthesized tones, not bayan registers</p>
+            </div>
+          </header>
+          <section class="notes-overview" aria-labelledby="notes-heading">
+            <div class="section-heading">
+              <h2 id="notes-heading">Chord tones</h2>
+              <span>Shared by both hands</span>
+            </div>
+            <div id="staff" class="staff-scroll" tabindex="0" role="region" aria-label="Chord-tone notation"></div>
+          </section>
+          <section class="button-detail" aria-labelledby="detail-heading">
+            <h2 id="detail-heading">Button tones</h2>
+            <p id="button-detail">Point to a left-hand button to see its notes.</p>
+          </section>
+          <div class="hands">
+            <section class="left-hand" aria-labelledby="left-heading">
+              <div class="section-heading">
+                <h2 id="left-heading">Left hand</h2>
+                <span>Stradella bass</span>
+              </div>
+              <div class="keyboard-frame left-frame">
+                <p class="direction">Columns in fifths → · Near bellows at top</p>
+                <div
+                  id="left-scroll"
+                  class="left-scroll"
+                  tabindex="0"
+                  role="region"
+                  aria-label="Stradella button map, scroll horizontally on small screens"
+                >
+                  <div id="left-keyboard"></div>
+                </div>
+                <p class="left-scroll-hint">Scroll sideways for the full excerpt →</p>
+              </div>
+              <p class="keyboard-help">Hover, focus, or tap a button to inspect its tones.</p>
+            </section>
+            <section class="right-hand" aria-labelledby="keyboard-heading">
+              <div class="section-heading">
+                <h2 id="keyboard-heading">Right hand</h2>
+                <span>B-system</span>
+              </div>
+              <div class="keyboard-frame right-frame">
+                <p class="direction">Higher notes ↑</p>
+                <div id="keyboard"></div>
+              </div>
+              <p class="keyboard-help">Tap a note to hear it in the displayed octave.</p>
+            </section>
+          </div>
+          <div class="legend" aria-hidden="true">
+            <span><i class="legend-tone"></i> Selected</span><span><i class="legend-root"></i> Root</span>
+          </div>
+          <section class="hand-recipe" aria-labelledby="recipe-heading">
+            <h2 id="recipe-heading">Left-hand recipe</h2>
+            <p id="recipe" class="recipe"></p>
+            <p id="recipe-detail" class="recipe-detail"></p>
+          </section>
+          <p id="audio-status" role="status" hidden></p>
+          <p id="change-status" class="sr-only" role="status"></p>
+          <p id="button-status" class="sr-only" role="status"></p>
+        </article>
+      </main>
+      <footer>Layout prototype. <a href="../chord-study/">Chord study</a> · <a href="../progression-study/">Progression study</a></footer>
+      <noscript>This prototype needs JavaScript to draw the instruments.</noscript>
+    </div>
+  </body>
+</html>
