@@ -39,7 +39,8 @@ test("six function columns and four fifth-related rows have unique coordinates",
   assert.equal(new Set(cells.map((cell) => cell.id)).size, 24);
   assert.equal(new Set(cells.map((cell) => cell.row + ":" + cell.column)).size, 24);
   const roots = json(Left.roots);
-  roots.slice(1).forEach((pc, i) => assert.equal((pc - roots[i] + 12) % 12, 7));
+  assert.deepEqual(roots, [9, 2, 7, 0]);
+  roots.slice(1).forEach((pc, i) => assert.equal((roots[i] - pc + 12) % 12, 7));
   assert.deepEqual(
     json(Left.columns).map((column) => column.id),
     ["d7", "7", "m", "M", "bass", "counter"]
@@ -56,11 +57,11 @@ test("six function columns and four fifth-related rows have unique coordinates",
 test("counterbass is a correctly spelled major third above the bass", () => {
   assert.deepEqual(
     cells.filter((cell) => cell.kind === "counter").map((cell) => cell.notes[0]),
-    [4, 11, 6, 1]
+    [1, 6, 11, 4]
   );
   assert.deepEqual(
     cells.filter((cell) => cell.kind === "counter").map((cell) => cell.label),
-    ["E", "B", "F♯", "C♯"]
+    ["C♯", "F♯", "B", "E"]
   );
 });
 test("all chord columns use shared Stradella button voicings", () => {
@@ -74,7 +75,7 @@ test("all chord columns use shared Stradella button voicings", () => {
       );
     });
 });
-test("arrow navigation follows the rotated visual coordinates", () => {
+test("arrow navigation follows the reflected visual coordinates", () => {
   const listeners = {};
   let focused = null;
   const container = {
@@ -100,12 +101,12 @@ test("arrow navigation follows the rotated visual coordinates", () => {
   }
   assert.equal(move("bass-7", "ArrowRight"), "counter-7");
   assert.equal(move("bass-7", "ArrowLeft"), "M-7");
-  assert.equal(move("bass-7", "ArrowUp"), "bass-0");
-  assert.equal(move("bass-7", "ArrowDown"), "bass-2");
+  assert.equal(move("bass-7", "ArrowUp"), "bass-2");
+  assert.equal(move("bass-7", "ArrowDown"), "bass-0");
   assert.equal(move("counter-7", "ArrowRight"), null);
   assert.equal(move("d7-7", "ArrowLeft"), null);
-  assert.equal(move("bass-0", "ArrowUp"), null);
-  assert.equal(move("bass-9", "ArrowDown"), null);
+  assert.equal(move("bass-9", "ArrowUp"), null);
+  assert.equal(move("bass-0", "ArrowDown"), null);
 });
 test("Am7 selects A bass and C major with no extra or missing tones", () => {
   const selected = json(Left.selected(Model.fromName("Am7")));

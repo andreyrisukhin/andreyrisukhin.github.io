@@ -3,7 +3,7 @@ window.PrototypeStradella = (function () {
   "use strict";
   const M = window.Music;
   const mod = window.WorkbenchModel.mod;
-  const roots = [0, 7, 2, 9];
+  const roots = [9, 2, 7, 0];
   // Player-facing orientation: counterbass is nearest the hand, at the right.
   const columns = [
     { id: "d7", label: "Diminished seventh", short: "Dim. 7th" },

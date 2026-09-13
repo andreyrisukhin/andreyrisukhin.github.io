@@ -8,7 +8,7 @@ The diagrams share button appearance through `chord-study/buttons.css`, not musi
 
 ## Musical model
 
-- Six columns, from right to left: counterbass (nearest the hand), bass, major, minor, seventh, diminished seventh. The four fundamental rows run downward in fifths: C, G, D, A. Counterbass notes sit a major third above their row’s fundamental.
+- Six columns, from right to left: counterbass (nearest the hand), bass, major, minor, seventh, diminished seventh. The four fundamental rows are A, D, G, C from top to bottom, so fifths run upward. Each row slants upward from right to left. Counterbass notes sit a major third above their row’s fundamental.
 - The selected recipe comes from the existing model: A bass plus C major, producing A + C/E/G. The root ring marks A bass on the left and A4 on the right.
 - Chord-button tones use `StradellaData.BUTTONS`, including the project’s three-note seventh/diminished conventions. Actual reed/register combinations vary.
 - The left-hand audio uses illustrative bass/chord registers. The notation is a shared pitch-class reference in the right-hand octave, not a transcription of every sounding left-hand reed.
@@ -27,10 +27,11 @@ No editing, persistence, or integration into the production workbench.
 
 The first pass put the button-tone explanation below both diagrams. It now sits directly above them; the notation was tightened and narrow screens gained an explicit horizontal-scroll hint. The panels align at their headings and edges on desktop.
 
-The left-hand diagram was then rotated clockwise into the requested player-facing orientation. Function columns now run from counterbass on the right to diminished seventh on the left, while button IDs, pitches, crosshatching, root rings, and linked-note behavior remain unchanged.
+The left-hand diagram was rotated and then reflected vertically into the requested player-facing orientation. Counterbass remains on the right, the slant rises toward the left, and C sits below G below D below A. Button IDs, pitches, crosshatching, root rings, and linked-note behavior remain unchanged.
 
-- Eight unit checks cover the rotated Stradella coordinates and arrow navigation, counterbass spelling, shared chord-button voicings, the Am7 recipe, demonstration registers, unavailable recipes, and selected/root markup.
+- Eight unit checks cover the reflected Stradella coordinates and arrow navigation, counterbass spelling, shared chord-button voicings, the Am7 recipe, demonstration registers, unavailable recipes, and selected/root markup.
 - Chromium on Linux: all 24 left-hand buttons linked the correct pitch classes at 320, 390, 850, and 1440px in both themes. No page overflow, unchanged 48px targets and selection, and label contrast of at least 10.59:1.
+- After reflection, screen coordinates confirmed A/D/G/C top to bottom and the upward right-to-left slant at all four widths in both themes. Arrow navigation, left-only playback, both-hand playback, and Escape passed again; the desktop dark-mode Axe scan had no violations or incomplete checks.
 - Hover does not play audio. Keyboard focus overrides stale hover. Left-hand C major played C3/E3/G3 without claiming that the linked high notes were sounding; both-hand playback used the selected recipe and exact right-hand voicing.
 - Right-hand playback, Escape, immediate play/stop, and clearing old links passed. After rotation, arrow navigation and both-hand playback were rechecked. Axe reported no violations; the narrow-screen scan had an incomplete contrast check for a partially clipped, horizontally scrollable column label.
 - The earlier chord and progression screenshots remained byte-identical after extracting shared button CSS.
