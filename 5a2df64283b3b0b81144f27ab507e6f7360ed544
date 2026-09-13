@@ -1,0 +1,31 @@
+_prototypes/two-hands/hands.js
+  d6ab7c7ab3cb561b 1-24,26-140
+_prototypes/progression-study/index.html
+  d6ab7c7ab3cb561b 11
+_prototypes/two-hands/index.html
+  d6ab7c7ab3cb561b 1-107
+_prototypes/chord-study/buttons.css
+  d6ab7c7ab3cb561b 1-58
+_prototypes/two-hands/style.css
+  d6ab7c7ab3cb561b 1-124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "5a2df64283b3b0b81144f27ab507e6f7360ed544",
+  "prompts": {
+    "d6ab7c7ab3cb561b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "c9d789d1-eb2e-49b4-af10-cc4aa7207822",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 436,
+      "total_deletions": 6,
+      "accepted_lines": 429,
+      "overriden_lines": 1
+    }
+  }
+}
