@@ -7,7 +7,6 @@
   --muted: #69695f;
   --rule: #d5d3c9;
   --accent: #765e2d;
-  --tint: #ede4d1;
   --on-accent: #fffdf8;
   --error: #a02b20;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -24,7 +23,6 @@
   --muted: #b3b5a9;
   --rule: #4e5146;
   --accent: #d0b575;
-  --tint: #3a3527;
   --on-accent: #20211e;
   --error: #f3a99a;
 }
@@ -341,10 +339,9 @@ h2 {
   margin-bottom: calc((var(--bayan-size) + var(--bayan-gap)) * var(--bayan-column) / 3);
 }
 .bayan-key {
-  --button-face: #f5f1e7;
-  --button-ink: #292923;
-  --button-edge: #c6c1b4;
-  --button-mark: #765e2d;
+  --button-face: var(--key);
+  --button-ink: var(--ink);
+  --key-dot: #f5f1e7;
   position: relative;
   display: flex;
   align-items: center;
@@ -354,45 +351,53 @@ h2 {
   height: var(--bayan-size);
   padding: 0;
   border-radius: 50%;
-  border-color: var(--button-edge);
+  border-color: var(--rule);
   background: var(--button-face);
   color: var(--button-ink);
   font-size: 14px;
   line-height: 1.2;
 }
-/* Pitch class, not the displayed spelling, determines the instrument's key color. */
+.bayan-key > span {
+  transform: translateY(-3px);
+}
+/* Pitch class, not spelling, determines this small orientation cue. */
 .bayan-key:is([data-pc="1"], [data-pc="3"], [data-pc="6"], [data-pc="8"], [data-pc="10"]) {
-  --button-face: #343832;
-  --button-ink: #f5f1e7;
-  --button-edge: #62675c;
-  --button-mark: #d0b575;
+  --key-dot: #343832;
+}
+.bayan-key::before {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  top: calc(50% + 10px);
+  left: calc(50% - 3px);
+  width: 6px;
+  height: 6px;
+  border: 1px solid #86877a;
+  border-radius: 50%;
+  background: var(--key-dot);
+  pointer-events: none;
 }
 .bayan-key.is-selected {
-  border: 2px solid var(--button-mark);
+  --button-face: var(--ink);
+  --button-ink: var(--paper);
+  border: 2px solid var(--ink);
 }
 .bayan-key.is-root {
   box-shadow:
     inset 0 0 0 3px var(--button-face),
-    inset 0 0 0 4px var(--button-mark);
+    inset 0 0 0 4px var(--button-ink);
 }
 .bayan-key:where(:hover:not(:disabled)) {
   outline: 1px solid var(--accent);
   outline-offset: 3px;
 }
-.bayan-key:focus-visible,
+.bayan-key:focus-visible {
+  outline: 2px dashed var(--accent);
+  outline-offset: 3px;
+}
 .bayan-key.is-sounding {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
-}
-.bayan-key.is-sounding::after {
-  content: "";
-  position: absolute;
-  bottom: 6px;
-  left: calc(50% - 2px);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--button-mark);
 }
 .bayan-key:disabled {
   opacity: 0.3;
@@ -414,14 +419,14 @@ h2 {
 .legend i {
   width: 16px;
   height: 16px;
-  border: 2px solid var(--accent);
+  border: 2px solid var(--ink);
   border-radius: 50%;
-  background: var(--tint);
+  background: var(--ink);
 }
 .legend .legend-root {
   box-shadow:
-    inset 0 0 0 2px var(--tint),
-    inset 0 0 0 3px var(--accent);
+    inset 0 0 0 2px var(--ink),
+    inset 0 0 0 3px var(--paper);
 }
 #audio-status {
   color: var(--error);
