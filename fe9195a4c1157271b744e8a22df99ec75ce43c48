@@ -1,0 +1,29 @@
+_prototypes/chord-study/index.html
+  d6ab7c7ab3cb561b 1-110
+_prototypes/chord-study/style.css
+  d6ab7c7ab3cb561b 1-472
+_prototypes/chord-study/study.js
+  d6ab7c7ab3cb561b 1-140
+_prototypes/chord-study/README.md
+  d6ab7c7ab3cb561b 1-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "fe9195a4c1157271b744e8a22df99ec75ce43c48",
+  "prompts": {
+    "d6ab7c7ab3cb561b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "c9d789d1-eb2e-49b4-af10-cc4aa7207822",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 777,
+      "total_deletions": 15,
+      "accepted_lines": 762,
+      "overriden_lines": 0
+    }
+  }
+}
