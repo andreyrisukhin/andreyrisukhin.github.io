@@ -1,0 +1,154 @@
+/* Only the progression frame. The approved inspector stylesheet is shared. */
+.progression-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(240px, 0.85fr);
+  gap: 48px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.sequence-heading,
+.sequence-controls,
+.step-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sequence-heading {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.sequence-heading > p:first-child {
+  font-size: 18px;
+  line-height: 1.35;
+}
+.sequence-heading span,
+.sequence-timing {
+  color: var(--muted);
+  font-size: 14px;
+}
+.sequence-heading span {
+  margin-left: 8px;
+}
+.sequence-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+.sequence-step {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: baseline;
+  gap: 4px;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 12px;
+  text-align: left;
+  position: relative;
+}
+.step-name {
+  font-size: 24px;
+  line-height: 1.3;
+}
+.step-function,
+.step-number {
+  font-size: 12px;
+  color: var(--muted);
+}
+.step-number {
+  display: none;
+}
+.sequence-step[aria-current="step"] {
+  background: var(--surface);
+  border-color: var(--ink);
+  box-shadow: inset 0 -3px var(--ink);
+}
+.sequence-step.is-playing::after {
+  content: "▶";
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  font-size: 12px;
+  color: var(--accent);
+}
+.step-navigation {
+  gap: 12px;
+}
+.step-navigation button {
+  border: 0;
+  padding: 8px 0;
+  font-size: 14px;
+}
+.step-navigation button:hover:not(:disabled) {
+  color: var(--accent);
+}
+.step-navigation button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+#step-position {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.transition {
+  min-width: 0;
+}
+.transition-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 16px 0 0;
+}
+.transition-facts dt {
+  color: var(--muted);
+  font-size: 14px;
+}
+.transition-facts dd {
+  margin: 4px 0 0;
+}
+.transition-facts small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+#transition-note {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 16px;
+}
+footer a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+@media (max-width: 720px) {
+  .progression-overview {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: 16px;
+    gap: 24px;
+  }
+  .sequence-steps {
+    gap: 8px;
+  }
+  .step-name {
+    font-size: 18px;
+  }
+  .transition {
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+  }
+}
+@media (max-width: 360px) {
+  .step-navigation button span {
+    display: none;
+  }
+  .step-navigation button {
+    min-width: 44px;
+  }
+  .step-navigation {
+    gap: 4px;
+  }
+}

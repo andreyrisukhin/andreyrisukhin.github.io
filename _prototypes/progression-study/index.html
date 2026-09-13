@@ -6,7 +6,8 @@
     <meta name="robots" content="noindex" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
-    <title>Chord study · Layout prototype</title>
+    <title>Progression study · Layout prototype</title>
+    <link rel="stylesheet" href="../chord-study/style.css" />
     <link rel="stylesheet" href="style.css" />
     <script defer src="../../assets/js/vendor/tonal.min.js"></script>
     <script defer src="../../assets/js/music/common.js"></script>
@@ -17,40 +18,68 @@
     <script defer src="../../assets/js/music/bayan-keyboard.js"></script>
     <script defer src="../../assets/js/workbench/player.js"></script>
     <script defer src="../../assets/js/workbench/diagrams.js"></script>
-    <script defer src="inspector.js"></script>
-    <script defer src="study.js"></script>
+    <script defer src="../chord-study/inspector.js"></script>
+    <script defer src="progression.js"></script>
   </head>
   <body>
     <div class="page">
       <header class="masthead">
-        <p>Bayan notebook <span class="breadcrumb">/ Chord study</span></p>
+        <p>Bayan notebook <span class="breadcrumb">/ Progression study</span></p>
         <button id="theme" class="text-button" type="button" aria-pressed="false">Dark mode</button>
       </header>
-
       <main>
-        <section class="selection" aria-label="Choose a chord">
-          <form id="chord-form">
-            <label for="chord-input">Choose a chord</label>
-            <div class="input-row">
-              <input
-                id="chord-input"
-                name="chord"
-                value="Am7"
-                placeholder="e.g. Am7"
-                autocomplete="off"
-                spellcheck="false"
-                required
-                aria-describedby="input-help input-error"
-              />
-              <button class="primary" type="submit">Show chord</button>
+        <div class="progression-overview">
+          <section class="sequence" aria-label="Progression in G major">
+            <div class="sequence-heading">
+              <p>ii–V–I <span>in G major</span></p>
+              <p class="sequence-timing">96 BPM · 4 beats per chord</p>
             </div>
-            <p id="input-help" class="examples">
-              Try <button type="button" data-chord="Am7">Am7</button><button type="button" data-chord="Cmaj7">Cmaj7</button
-              ><button type="button" data-chord="D7">D7</button><button type="button" data-chord="F#m7b5">F♯m7♭5</button>
-            </p>
-            <p id="input-error" class="error" role="alert" hidden></p>
-          </form>
-        </section>
+            <ol class="sequence-steps">
+              <li>
+                <button type="button" class="sequence-step" data-step="0" aria-current="step">
+                  <span class="step-number">01</span><span class="step-name">Am7</span><span class="step-function">ii7</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="sequence-step" data-step="1">
+                  <span class="step-number">02</span><span class="step-name">D7</span><span class="step-function">V7</span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="sequence-step" data-step="2">
+                  <span class="step-number">03</span><span class="step-name">Gmaj7</span><span class="step-function">Imaj7</span>
+                </button>
+              </li>
+            </ol>
+            <div class="sequence-controls">
+              <div class="step-navigation" role="group" aria-label="Step navigation">
+                <button id="previous" type="button" aria-label="Previous chord" disabled>← <span>Previous</span></button>
+                <p id="step-position">1 of 3</p>
+                <button id="next" type="button" aria-label="Next chord"><span>Next</span> →</button>
+              </div>
+              <button id="play-sequence" class="play-button" type="button" aria-label="Play all chords from the beginning">
+                <span aria-hidden="true">▶</span> <span id="sequence-play-label">Play all</span>
+              </button>
+            </div>
+          </section>
+          <section class="transition" aria-labelledby="transition-heading">
+            <div class="section-heading">
+              <h2 id="transition-heading">Next change</h2>
+              <span id="transition-route">Am7 → D7</span>
+            </div>
+            <dl class="transition-facts">
+              <div>
+                <dt>Common tones</dt>
+                <dd id="common-tones"></dd>
+              </div>
+              <div>
+                <dt>Root movement</dt>
+                <dd id="root-movement"></dd>
+              </div>
+            </dl>
+            <p id="transition-note"></p>
+          </section>
+        </div>
 
         <article aria-labelledby="chord-name">
           <header class="chord-heading">
@@ -63,7 +92,6 @@
               <p>Synthesized tone</p>
             </div>
           </header>
-
           <div class="inspector">
             <div class="reading-column">
               <section class="notes" aria-labelledby="notes-heading">
@@ -73,7 +101,6 @@
                 </div>
                 <div id="staff" class="staff-scroll" tabindex="0" role="region" aria-label="Staff notation; scroll for wider chords"></div>
               </section>
-
               <section class="bass" aria-labelledby="bass-heading">
                 <div class="section-heading">
                   <h2 id="bass-heading">Left hand</h2>
@@ -83,7 +110,6 @@
                 <p id="recipe-detail" class="recipe-detail"></p>
               </section>
             </div>
-
             <section class="right-hand" aria-labelledby="keyboard-heading">
               <div class="section-heading">
                 <h2 id="keyboard-heading">Right hand</h2>
@@ -93,8 +119,7 @@
                 <p class="direction">Higher notes ↑</p>
                 <div id="keyboard"></div>
                 <div class="legend" aria-hidden="true">
-                  <span><i class="legend-tone"></i> Chord tone</span>
-                  <span><i class="legend-root"></i> Root</span>
+                  <span><i class="legend-tone"></i> Chord tone</span><span><i class="legend-root"></i> Root</span>
                 </div>
               </div>
               <p class="keyboard-help">Crosshatching marks chord tones. Tap a note to hear it.</p>
@@ -104,7 +129,7 @@
           <p id="change-status" class="sr-only" role="status"></p>
         </article>
       </main>
-      <footer>Layout prototype. No saved data.</footer>
+      <footer>Layout prototype. <a href="../chord-study/">Compare the chord screen</a>.</footer>
       <noscript>This prototype needs JavaScript to draw the notes and keyboard.</noscript>
     </div>
   </body>

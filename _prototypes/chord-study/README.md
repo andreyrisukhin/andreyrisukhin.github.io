@@ -10,6 +10,8 @@ python3 -m http.server 8877 --bind 127.0.0.1 --directory /home/risuka/repos/andr
 
 There is no build step, service worker, theme framework, or stored user data. Edit `style.css` and refresh. Shared music modules supply real chord data, notation, keyboard geometry, and synthesized audio. The prototype does not load the workbench controller.
 
+The separate [progression prototype](../progression-study/README.md) reuses this stylesheet and `inspector.js`. The shared inspector renders notes, bass recipes, and the keyboard; each screen owns its selection and playback controls.
+
 ## Review scope
 
 - One input row, followed by one chord heading.
