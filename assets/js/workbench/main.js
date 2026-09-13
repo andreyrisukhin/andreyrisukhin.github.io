@@ -295,7 +295,7 @@
       '</div><p class="music-small">Read left to right. Focus or hover a note to find it on the buttons.</p></section>' +
       '<section class="wb-map" aria-label="Bayan pitch map"><h3>Right hand · B-system</h3>' +
       Diagrams.keyboard(model) +
-      '<p class="music-small">Rotated pitch map. Three semitones along a row, one between rows. Press a button to hear it.</p></section></div>' +
+      '<p class="music-small">Higher notes at the top. Outlined buttons are this voicing; the double ring marks its root. Press a button to hear it.</p></section></div>' +
       recipe(model);
     html += keyBar();
     html += '<details class="workbench-disclosure wb-theory"' + (state.theory ? " open" : "") + "><summary>Theory &amp; other readings</summary>";
@@ -700,6 +700,7 @@
     }
     if (e.key === "Escape") Player.stop();
   });
+  BayanKeyboard.bind(result, {});
   ["pointerover", "focusin"].forEach(function (event) {
     root.addEventListener(event, function (e) {
       var el = e.target.closest("[data-pc], [data-pcs]");

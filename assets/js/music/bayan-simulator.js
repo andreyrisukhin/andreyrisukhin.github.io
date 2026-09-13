@@ -2,8 +2,6 @@
   "use strict";
 
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-  const BAYAN_COLS = 3;
-  const BAYAN_COL_STEP = 3;
   const KEY_SEQUENCE = ["q", "a", "z", "w", "s", "x", "e", "d", "c", "r", "f", "v", "t", "g", "b", "y", "h", "n", "u", "j", "m", "i", "k", ",", "o"];
   const MANIFEST_URL = "/assets/music/bayan-simulator/manifest.json";
 
@@ -119,10 +117,10 @@
   }
 
   function flashButton(note) {
-    const btn = el.keyboard.querySelector(`[data-note="${note}"]`);
+    const btn = el.keyboard.querySelector(`[data-midi="${note}"]`);
     if (!btn) return;
-    btn.classList.add("is-flashing");
-    window.setTimeout(() => btn.classList.remove("is-flashing"), 220);
+    btn.classList.add("is-sounding");
+    window.setTimeout(() => btn.classList.remove("is-sounding"), 220);
   }
 
   function selectedNotes() {
@@ -134,11 +132,7 @@
     const notes = selectedNotes();
     el.readout.textContent = notes.length ? notes.map(midiToName).join(" ") : "no notes selected";
     el.range.textContent = `range: ${midiToName(low)} to ${midiToName(high)}`;
-    el.keyboard.querySelectorAll(".bayan-sim-button").forEach((btn) => {
-      const note = Number(btn.dataset.note);
-      btn.classList.toggle("is-active", state.selected.has(note));
-      btn.classList.toggle("is-root", notes[0] === note);
-    });
+    BayanKeyboard.update(el.keyboard, { selected: notes, root: notes[0] });
   }
 
   function toggleNote(note) {
@@ -157,29 +151,15 @@
 
   function buildKeyboard() {
     const [low, high] = currentRange();
-    const winLow = low - 6;
-    const winHigh = high + 12;
-    const rows = Math.ceil((winHigh - winLow + 1) / BAYAN_COL_STEP);
-    const keyByNote = new Map(KEY_SEQUENCE.map((key, index) => [low + index, key]));
-    el.keyboard.innerHTML = "";
-
-    for (let col = 0; col < BAYAN_COLS; col++) {
-      const column = document.createElement("div");
-      column.className = `bayan-sim-col bayan-sim-col-${col}`;
-      for (let row = 0; row < rows; row++) {
-        const note = winLow + col + BAYAN_COL_STEP * row;
-        if (note > winHigh) continue;
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "bayan-sim-button";
-        button.dataset.note = String(note);
-        if (note < low || note > high) button.classList.add("is-out-of-range");
-        button.innerHTML = `<span>${midiToName(note)}</span>${keyByNote.has(note) ? `<kbd>${keyByNote.get(note)}</kbd>` : ""}`;
-        button.addEventListener("click", () => toggleNote(note));
-        column.appendChild(button);
-      }
-      el.keyboard.appendChild(column);
-    }
+    BayanKeyboard.mount(el.keyboard, {
+      low,
+      high,
+      selected: selectedNotes(),
+      root: selectedNotes()[0],
+      shortcuts: Object.fromEntries(KEY_SEQUENCE.map((key, index) => [low + index, key])),
+      toggle: true,
+      action: "Select or play",
+    });
   }
 
   function setMode(mode) {
@@ -245,6 +225,7 @@
   }
 
   function wire() {
+    BayanKeyboard.bind(el.keyboard, { onActivate: toggleNote });
     [el.velocity, el.duration, el.gain, el.rollDelay].forEach((input) => {
       input.addEventListener("input", () => {
         el.velocityOut.value = el.velocity.value;

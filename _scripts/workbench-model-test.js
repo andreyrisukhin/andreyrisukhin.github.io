@@ -17,9 +17,15 @@ const sandbox = {
 sandbox.window = sandbox;
 sandbox.self = sandbox;
 vm.createContext(sandbox);
-["vendor/tonal.min.js", "music/common.js", "music/chord-name.js", "music/stradella-data.js", "workbench/model.js", "workbench/diagrams.js"].forEach(
-  (file) => vm.runInContext(fs.readFileSync(path.join(root, "assets/js", file), "utf8"), sandbox)
-);
+[
+  "vendor/tonal.min.js",
+  "music/common.js",
+  "music/chord-name.js",
+  "music/stradella-data.js",
+  "music/bayan-keyboard.js",
+  "workbench/model.js",
+  "workbench/diagrams.js",
+].forEach((file) => vm.runInContext(fs.readFileSync(path.join(root, "assets/js", file), "utf8"), sandbox));
 const Model = sandbox.WorkbenchModel;
 const json = (value) => JSON.parse(JSON.stringify(value));
 let cases = 0;

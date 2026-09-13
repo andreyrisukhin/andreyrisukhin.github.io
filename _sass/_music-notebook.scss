@@ -474,34 +474,7 @@
       fill: var(--music-accent);
     }
   }
-  .wb-keyboard {
-    display: grid;
-    grid-template-columns: repeat(var(--wb-columns), 44px);
-    gap: 8px 4px;
-    padding: 4px 16px 4px 4px;
-    width: max-content;
-  }
-  .wb-key {
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 50%;
-    border: 1px solid var(--music-rule);
-    color: var(--music-muted);
-    background: var(--music-paper);
-    font-size: 0.75rem;
-    small {
-      font-size: 0.75rem;
-      margin-left: 2px;
-    }
-    &.in-chord {
-      background: var(--music-accent);
-      border-color: var(--music-accent);
-      color: var(--music-on-accent);
-    }
-  }
-  .wb-note.is-linked,
-  .wb-key.is-linked {
+  .wb-note.is-linked {
     outline: 2px solid var(--music-accent);
     outline-offset: 3px;
   }

@@ -43,6 +43,7 @@ const PRECACHE_URLS = [
   '/assets/css/bootstrap.min.css',
 
   '/assets/js/music/common.js',
+  '/assets/js/music/bayan-keyboard.js',
   '/assets/js/music/audio.js',
   '/assets/js/music/chord-name.js',
   '/assets/js/music/stradella-data.js',

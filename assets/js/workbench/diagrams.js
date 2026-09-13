@@ -55,41 +55,22 @@ window.WorkbenchDiagrams = (function () {
   }
   function keyboard(model) {
     var voices = Model.voices(model);
-    var base = Math.floor(voices[0].midi / 12) * 12;
-    var max = Math.max(base + 23, voices[voices.length - 1].midi);
-    var columns = Math.ceil((max - base + 1) / 3);
-    var html =
-      '<div class="wb-keyboard-scroll" tabindex="0" role="group" aria-label="B-system pitch map, rotated view. Scroll for higher notes.">' +
-      '<div class="wb-keyboard" style="--wb-columns:' +
-      columns +
-      '">';
-    for (var row = 2; row >= 0; row--) {
-      for (var col = 0; col < columns; col++) {
-        var midi = base + col * 3 + row,
-          pc = midi % 12;
-        var voice = voices.find(function (v) {
-          return v.midi === midi;
-        });
-        var name = voice ? voice.name.replace(/b/g, "♭").replace(/#/g, "♯") : M.noteName(pc);
-        var octave = voice ? voice.octave : Math.floor(midi / 12) - 1;
-        html +=
-          '<button type="button" class="wb-key' +
-          (model.notes.indexOf(pc) >= 0 ? " in-chord" : "") +
-          '" data-midi="' +
-          midi +
-          '" data-pc="' +
-          pc +
-          '" aria-label="Hear ' +
-          M.esc(name) +
-          octave +
-          '"><span>' +
-          M.esc(name) +
-          "</span><small>" +
-          octave +
-          "</small></button>";
-      }
-    }
-    return html + "</div></div>";
+    var labels = {};
+    voices.forEach(function (v) {
+      labels[v.midi] = v.name.replace(/b/g, "♭").replace(/#/g, "♯") + v.octave;
+    });
+    var rootVoice = voices.find(function (v) {
+      return v.pc === model.root;
+    });
+    return BayanKeyboard.html({
+      low: Math.max(0, voices[0].midi - 3),
+      high: Math.min(127, Math.max(voices[0].midi + 14, voices[voices.length - 1].midi + 3)),
+      selected: voices.map(function (v) {
+        return v.midi;
+      }),
+      root: rootVoice ? rootVoice.midi : null,
+      labels: labels,
+    });
   }
   return { staff: staff, keyboard: keyboard };
 })();
