@@ -1,0 +1,25 @@
+_prototypes/two-hands/stradella.js
+  d6ab7c7ab3cb561b 6-14,18-21,23-24,26-27,33,45,47-53,62,64-70,73,78,86,119
+_prototypes/two-hands/README.md
+  d6ab7c7ab3cb561b 7,11,22,30-32,35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "19cd2c04cc2e8acac2b364bd250bd4192ec2c252",
+  "prompts": {
+    "d6ab7c7ab3cb561b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "c9d789d1-eb2e-49b4-af10-cc4aa7207822",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 47,
+      "total_deletions": 37,
+      "accepted_lines": 45,
+      "overriden_lines": 0
+    }
+  }
+}
