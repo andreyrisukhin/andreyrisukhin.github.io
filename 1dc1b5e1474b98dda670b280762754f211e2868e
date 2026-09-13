@@ -1,0 +1,33 @@
+assets/js/workbench/main.js
+  d6ab7c7ab3cb561b 14-15,20-26,43,48,53-54,57-65,72,83,94-95,97,100-103,105-110,112-114,119-203,207,286,291-293,302,308-348,404-406,410-418,421-429,441-442,444-445,462,467,471-475,482-484,487-490,497-500,516-517,524-528,533,540-543,551-553,594-598,623-624,649,682-683,707-708,710,712,771,784-838,850-853,863-867,876,895,900-907,920,988-989,997-1021
+_includes/music-workbench.liquid
+  d6ab7c7ab3cb561b 2-4,6-13,15-36,38-85,101-104,106,134
+assets/js/workbench/session.js
+  d6ab7c7ab3cb561b 1-81
+_sass/_music-notebook.scss
+  d6ab7c7ab3cb561b 317-458,759-765,824-825
+MUSIC_REDESIGN_NOTES.md
+  d6ab7c7ab3cb561b 8,12,17-34,51-52,62,64,69,77-78,82,89
+_sass/_bayan-keyboard.scss
+  d6ab7c7ab3cb561b 62-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "1dc1b5e1474b98dda670b280762754f211e2868e",
+  "prompts": {
+    "d6ab7c7ab3cb561b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "c9d789d1-eb2e-49b4-af10-cc4aa7207822",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 750,
+      "total_deletions": 200,
+      "accepted_lines": 704,
+      "overriden_lines": 0
+    }
+  }
+}
