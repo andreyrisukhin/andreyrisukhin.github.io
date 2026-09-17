@@ -1,5 +1,5 @@
 /* Shared notation and chord rendering; no selection or playback ownership. */
-window.PrototypeChordInspector = (function () {
+window.WorkbenchNotation = (function () {
   "use strict";
   const Model = window.WorkbenchModel;
   const M = window.Music;
@@ -26,10 +26,11 @@ window.PrototypeChordInspector = (function () {
     notation.style.minWidth = width + "px";
     const tones = document.createElement("div");
     tones.className = "tones";
+    const detail = model.detail || { notes: voices.map((v) => v.name), intervals: voices.map((_, i) => (i ? "Note " + (i + 1) : "Bass")) };
     tones.innerHTML = voices
       .map((v) => {
-        const index = model.detail.notes.findIndex((n) => window.Tonal.Note.chroma(n) === v.pc);
-        const degree = index < 0 ? "Bass" : model.detail.intervals[index];
+        const index = detail.notes.findIndex((n) => window.Tonal.Note.chroma(n) === v.pc);
+        const degree = index < 0 ? "Bass" : detail.intervals[index];
         return (
           '<div class="tone"><span>' +
           M.esc(degree === "1" ? "Root" : degree) +
@@ -51,12 +52,12 @@ window.PrototypeChordInspector = (function () {
   function render(model, range = {}) {
     $("chord-name").textContent = pretty(model.name);
     const chord = window.Tonal.Chord.get(model.name.split("/")[0]);
-    $("chord-description").textContent = chord.type ? pretty(chord.tonic) + " " + chord.type : chord.notes.length + " chord tones";
+    $("chord-description").textContent = chord.type ? pretty(chord.tonic) + " " + chord.type : model.notes.length + " selected notes";
     const voices = Model.voices(model);
     renderNotation($("staff"), model);
     window.BayanKeyboard.mount($("keyboard"), {
       low: range.low ?? Math.max(0, voices[0].midi - 3),
-      high: range.high ?? Math.min(127, Math.max(voices[0].midi + 11, voices[voices.length - 1].midi + 1)),
+      high: range.high ?? Math.min(127, Math.max(voices[0].midi + 11, ...voices.map((v) => v.midi + 1))),
       selected: voices.map((v) => v.midi),
       root: voices.find((v) => v.pc === model.root)?.midi,
       labels: Object.fromEntries(voices.map((v) => [v.midi, pretty(v.name) + v.octave])),

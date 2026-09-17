@@ -53,6 +53,12 @@ const PRECACHE_URLS = [
   '/assets/js/workbench/session.js',
   '/assets/js/workbench/player.js',
   '/assets/js/workbench/diagrams.js',
+  '/assets/js/workbench/harmony.js',
+  '/assets/js/workbench/notation.js',
+  '/assets/js/workbench/stradella.js',
+  '/assets/js/workbench/voicings.js',
+  '/assets/js/workbench/hands.js',
+  '/assets/js/workbench/composer.js',
   '/assets/js/workbench/main.js',
 
   '/assets/js/blues/main.js',

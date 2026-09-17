@@ -17,6 +17,7 @@
     <script defer src="../../assets/js/music/stradella-data.js"></script>
     <script defer src="../../assets/js/music/audio.js"></script>
     <script defer src="../../assets/js/workbench/model.js"></script>
+    <script defer src="../../assets/js/workbench/session.js"></script>
     <script defer src="../../assets/js/music/bayan-keyboard.js"></script>
     <script defer src="../../assets/js/workbench/player.js"></script>
     <script defer src="../../assets/js/workbench/diagrams.js"></script>
@@ -24,7 +25,7 @@
     <script defer src="../two-hands/stradella.js?v=2"></script>
     <script defer src="../two-hands/voicings.js"></script>
     <script defer src="../two-hands/inspector.js?v=2"></script>
-    <script defer src="progression.js?v=2"></script>
+    <script defer src="progression.js?v=3"></script>
   </head>
   <body>
     <div class="page">
@@ -36,26 +37,14 @@
         <div class="progression-overview">
           <section class="sequence" aria-label="Progression in G major">
             <div class="sequence-heading">
-              <p>ii–V–I <span>in G major</span></p>
+              <p><strong id="sequence-name">ii–V–I</strong> <span>in G major</span></p>
               <p class="sequence-timing">96 BPM · 4 beats per chord</p>
             </div>
-            <ol class="sequence-steps">
-              <li>
-                <button type="button" class="sequence-step" data-step="0" aria-current="step">
-                  <span class="step-number">01</span><span class="step-name">Am7</span><span class="step-function">ii7</span>
-                </button>
-              </li>
-              <li>
-                <button type="button" class="sequence-step" data-step="1">
-                  <span class="step-number">02</span><span class="step-name">D7</span><span class="step-function">V7</span>
-                </button>
-              </li>
-              <li>
-                <button type="button" class="sequence-step" data-step="2">
-                  <span class="step-number">03</span><span class="step-name">Gmaj7</span><span class="step-function">Imaj7</span>
-                </button>
-              </li>
-            </ol>
+            <ol id="sequence-steps" class="sequence-steps"></ol>
+            <div id="empty-sequence" hidden>
+              <h1>New progression</h1>
+              <p>Add a chord to begin a progression.</p>
+            </div>
             <div class="sequence-controls">
               <div class="step-navigation" role="group" aria-label="Step navigation">
                 <button id="previous" type="button" aria-label="Previous chord" disabled>← <span>Previous</span></button>
@@ -66,13 +55,38 @@
                 <span aria-hidden="true">▶</span> <span id="sequence-play-label">Play all</span>
               </button>
             </div>
+            <p id="sequence-warning" class="sequence-warning" hidden></p>
+            <button id="edit-toggle" class="text-button" type="button" aria-expanded="false" aria-controls="progression-editor">
+              Edit progression
+            </button>
+            <section id="progression-editor" class="progression-editor" aria-labelledby="editor-heading" hidden>
+              <div class="section-heading"><h2 id="editor-heading">Edit progression</h2></div>
+              <p id="edit-target"></p>
+              <form id="chord-form" novalidate>
+                <label for="chord-input">Chord name</label>
+                <input id="chord-input" type="text" autocomplete="off" spellcheck="false" aria-describedby="edit-help input-error" />
+                <p id="edit-help">One chord, such as Am7, D7, or Cmaj7. Enter adds it to the end.</p>
+                <p id="input-error" class="error" role="alert" hidden></p>
+                <div class="edit-actions">
+                  <button id="add-chord" class="primary" type="submit">Add to end</button>
+                  <button id="replace-chord" type="button">Replace selected</button>
+                </div>
+              </form>
+              <div class="edit-actions" role="group" aria-label="Arrange selected chord">
+                <button id="move-earlier" type="button">Move earlier</button>
+                <button id="move-later" type="button">Move later</button>
+                <button id="remove-chord" type="button">Remove</button>
+              </div>
+              <p class="edit-help">Voicing choices move with each step. Edits reset on reload.</p>
+            </section>
+            <p id="edit-status" class="sr-only" role="status"></p>
           </section>
           <section class="transition" aria-labelledby="transition-heading">
             <div class="section-heading">
               <h2 id="transition-heading">Next change</h2>
               <span id="transition-route">Am7 → D7</span>
             </div>
-            <dl class="transition-facts">
+            <dl id="transition-facts" class="transition-facts">
               <div>
                 <dt>Common tones</dt>
                 <dd id="common-tones"></dd>
@@ -86,7 +100,7 @@
           </section>
         </div>
 
-        <article aria-labelledby="chord-name">
+        <article id="chord-inspector" aria-labelledby="chord-name">
           <header class="chord-heading">
             <div>
               <h1 id="chord-name">Am7</h1>

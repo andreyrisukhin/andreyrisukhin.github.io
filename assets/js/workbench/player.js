@@ -9,6 +9,7 @@ window.WorkbenchPlayer = (function () {
   var muted = false;
   var running = false;
   var onStop = function () {};
+  var stopListeners = new Set();
 
   function stop() {
     generation++;
@@ -24,6 +25,9 @@ window.WorkbenchPlayer = (function () {
     });
     active = [];
     onStop();
+    stopListeners.forEach(function (listener) {
+      listener();
+    });
   }
 
   function note(ctx, midi, time, duration) {
@@ -117,6 +121,12 @@ window.WorkbenchPlayer = (function () {
     },
     onStop: function (fn) {
       onStop = fn;
+    },
+    subscribeStop: function (fn) {
+      stopListeners.add(fn);
+      return function () {
+        stopListeners.delete(fn);
+      };
     },
   };
 })();

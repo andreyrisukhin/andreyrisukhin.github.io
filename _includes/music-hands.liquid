@@ -1,0 +1,81 @@
+<article id="chord-inspector" class="composer-hands" aria-labelledby="chord-name">
+  <header class="chord-heading">
+    <div>
+      <h2 id="chord-name">Am7</h2>
+      <p id="chord-description"></p>
+    </div>
+    <div class="playback">
+      <button id="play" type="button" class="play-button">Hear both hands</button>
+      <button id="hand-stop" type="button" disabled>Stop</button>
+      <p>Synthesized tones, not bayan registers</p>
+    </div>
+  </header>
+  <div class="tone-overviews">
+    <section class="notes-overview" aria-labelledby="notes-heading">
+      <div class="section-heading"><h3 id="notes-heading">Selected chord</h3></div>
+      <p class="notation-caption">Right-hand voicing</p>
+      <div id="staff" class="staff-scroll" tabindex="0" role="region" aria-label="Selected chord notation"></div>
+    </section>
+    <section class="button-inspection" aria-labelledby="detail-heading">
+      <div class="section-heading">
+        <h3 id="detail-heading">Button inspection</h3>
+        <button id="clear-inspection" class="text-button" type="button" disabled>Clear</button>
+      </div>
+      <p id="button-name" class="notation-caption">Nothing inspected</p>
+      <div id="button-staff" class="staff-scroll"></div>
+      <p id="button-detail">The selected chord stays unchanged.</p>
+      <p class="inspection-help">Pitch reference only; left-hand audio uses lower octaves.</p>
+    </section>
+  </div>
+  <section class="hand-recipe" aria-labelledby="recipe-heading">
+    <div class="section-heading">
+      <h3 id="recipe-heading">Left-hand voicing</h3>
+      <button id="hear-left" class="play-button" type="button">Hear left hand</button>
+    </div>
+    <div class="voicing-controls">
+      <div>
+        <label for="voicing">Chord buttons</label
+        ><select id="voicing" aria-describedby="voicing-help"></select>
+      </div>
+      <div>
+        <label for="bass-choice">Bass / inversion</label
+        ><select id="bass-choice" aria-describedby="voicing-help"></select>
+      </div>
+    </div>
+    <p id="recipe" class="recipe"></p>
+    <p id="recipe-detail" class="recipe-detail"></p>
+    <p id="voicing-help" class="inspection-help">Changes this step’s left hand only. The chord and right-hand voicing stay unchanged.</p>
+  </section>
+  <div class="hands">
+    <section class="left-hand" aria-labelledby="left-heading">
+      <div class="section-heading">
+        <h3 id="left-heading">Left hand</h3>
+        <span>Stradella bass</span>
+      </div>
+      <div class="keyboard-frame left-frame">
+        <p class="direction">Fifths run upward · Counterbass nearest the hand →</p>
+        <div id="left-scroll" class="left-scroll" tabindex="0" role="region" aria-label="Stradella button map, scroll horizontally on small screens">
+          <div id="left-keyboard"></div>
+        </div>
+        <p class="left-scroll-hint">Scroll sideways for all six columns ↔</p>
+      </div>
+      <p class="keyboard-help">Hover, focus, or tap a button to inspect its tones.</p>
+    </section>
+    <section class="right-hand" aria-labelledby="keyboard-heading">
+      <div class="section-heading">
+        <h3 id="keyboard-heading">Right hand</h3>
+        <span>B-system</span>
+      </div>
+      <div class="keyboard-frame right-frame">
+        <p class="direction">Higher notes ↑</p>
+        <div id="keyboard"></div>
+      </div>
+      <p class="keyboard-help">Tap a note to hear it in the displayed octave.</p>
+    </section>
+  </div>
+  <div class="legend" aria-hidden="true">
+    <span><i class="legend-tone"></i> Selected</span><span><i class="legend-root"></i> Root</span>
+  </div>
+  <p id="change-status" class="sr-only" role="status"></p>
+  <p id="button-status" class="sr-only" role="status"></p>
+</article>

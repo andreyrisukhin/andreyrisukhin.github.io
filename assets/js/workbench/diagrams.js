@@ -3,8 +3,8 @@ window.WorkbenchDiagrams = (function () {
   var M = window.Music;
   var Model = window.WorkbenchModel;
   var LETTERS = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
-  function staff(model) {
-    var voices = Model.voices(model);
+  function staff(model, voices) {
+    voices = voices || Model.voices(model);
     var steps = voices.map(function (v) {
       return LETTERS[v.name[0]] + (v.octave - 4) * 7 - 2;
     });
@@ -13,7 +13,9 @@ window.WorkbenchDiagrams = (function () {
     var bottom = height - 36;
     var width = Math.max(260, 58 + voices.length * 48);
     var html =
-      '<svg class="wb-staff" role="group" aria-label="Chord tones in ascending pitch order" style="min-width:' +
+      '<svg class="wb-staff" role="group" aria-label="' +
+      (model.voicing === "bass-octave" ? "Chord tones in chosen order" : "Chord tones in ascending pitch order") +
+      '" style="min-width:' +
       width +
       'px" viewBox="0 0 ' +
       width +
@@ -64,7 +66,15 @@ window.WorkbenchDiagrams = (function () {
     });
     return BayanKeyboard.html({
       low: Math.max(0, voices[0].midi - 3),
-      high: Math.min(127, Math.max(voices[0].midi + 14, voices[voices.length - 1].midi + 3)),
+      high: Math.min(
+        127,
+        Math.max(
+          voices[0].midi + 14,
+          ...voices.map(function (v) {
+            return v.midi + 3;
+          })
+        )
+      ),
       selected: voices.map(function (v) {
         return v.midi;
       }),

@@ -144,4 +144,23 @@ test("all supported catalog chords survive a save roundtrip", () => {
     assert.deepEqual(json(Model.restore(Model.entry(model)).notes), json(model.notes), c.suffix);
   });
 });
+test("picked voicing survives storage and uses the same MIDI on staff and keyboard", () => {
+  const picked = { ...Model.fromName("C/E"), notes: [4, 0, 7], voicing: "bass-octave", handChoice: { voicing: "standard", bass: 4 } };
+  const restored = Model.restore(Model.entry(picked));
+  assert.equal(restored.voicing, "bass-octave");
+  assert.deepEqual(json(restored.handChoice), picked.handChoice);
+  assert.deepEqual(json(Model.voices(restored).map((v) => v.midi)), [64, 72, 67]);
+  const staff = sandbox.WorkbenchDiagrams.staff(restored);
+  assert.ok(staff.includes("chosen order"));
+  const keys = sandbox.WorkbenchDiagrams.keyboard(restored);
+  for (const midi of [64, 72, 67]) assert.ok(keys.includes('data-midi="' + midi + '"'));
+  assert.equal(Model.transpose(restored, 2).voicing, "bass-octave");
+  assert.deepEqual(json(Model.transpose(restored, 2).notes), [6, 2, 9]);
+});
+test("malformed optional voicing metadata cannot change a restored model", () => {
+  const entry = Model.entry(Model.fromName("D7"));
+  const restored = Model.restore({ ...entry, voicing: "unknown", handChoice: { voicing: {}, bass: 99 } });
+  assert.equal(restored.voicing, undefined);
+  assert.equal(restored.handChoice, undefined);
+});
 console.log(cases + " model tests passed");

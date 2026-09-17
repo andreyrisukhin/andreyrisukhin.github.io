@@ -3,6 +3,8 @@
     <button type="button" data-view="chord" aria-pressed="true">Chord / notes</button>
     <button type="button" data-view="progression" aria-pressed="false">Progression</button>
   </div>
+  <p id="wb-draft-status" class="music-small" role="status">Your current practice is kept in this browser.</p>
+  {% include music-composer.liquid %}
   <section class="wb-chooser" aria-labelledby="wb-choose-title">
     <div class="wb-section-heading">
       <h2 id="wb-choose-title">Choose material</h2>
@@ -66,12 +68,12 @@
       >Transpose selection
       <select id="wb-transpose-root"></select
     ></label>
-    <details id="wb-progression-library" class="workbench-disclosure" hidden>
-      <summary>Load a progression or exercise</summary>
-      <p class="music-small">Loading replaces the current sequence. Save it first if you want to keep it.</p>
-      <div id="workbench-library" class="workbench-hint"></div>
-    </details>
   </section>
+  <details id="wb-progression-library" class="workbench-disclosure" hidden>
+    <summary>Load a progression or exercise</summary>
+    <p class="music-small">Loading replaces the current sequence. Save it first if you want to keep it.</p>
+    <div id="workbench-library" class="workbench-hint"></div>
+  </details>
   <p id="workbench-announcement" class="sr-only" role="status" aria-live="polite"></p>
   <section id="wb-progression-view" aria-label="Progression study" hidden>
     <div id="wb-sequence"></div>
@@ -135,4 +137,10 @@
 <script src="{{ '/assets/js/music/bayan-keyboard.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/player.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/diagrams.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/harmony.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/notation.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/stradella.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/voicings.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/hands.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/composer.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/main.js' | relative_url }}"></script>

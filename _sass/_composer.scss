@@ -1,0 +1,108 @@
+/* Reviewed prototype styles are scoped to the integrated progression view. */
+.music-notebook .progression-composer {
+  --paper: var(--music-paper);
+  --surface: var(--music-surface);
+  --key: var(--music-surface);
+  --ink: var(--music-ink);
+  --muted: var(--music-muted);
+  --rule: var(--music-rule);
+  --accent: var(--music-accent);
+  --on-accent: var(--music-on-accent);
+  --error: var(--music-accent);
+  min-width: 0;
+  color: var(--ink);
+  font:
+    16px/1.5 -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  @import "composer-base", "composer-chooser", "composer-hands", "composer-buttons";
+
+  h2,
+  h3 {
+    font-family: inherit;
+  }
+  .chord-heading h2 {
+    font:
+      40px/1.2 Georgia,
+      serif;
+    overflow-wrap: anywhere;
+  }
+  .composer-hand-drawer {
+    margin: 20px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .composer-hand-drawer > summary {
+    font-size: 18px;
+  }
+  .composer-transport {
+    margin-top: 16px;
+  }
+  .composer-transport input[type="number"] {
+    width: 80px;
+    display: inline-block;
+  }
+  .composer-transport input[type="checkbox"] {
+    width: auto;
+    height: auto;
+  }
+  .composer-hands .tone-overviews .staff-scroll {
+    height: auto;
+    min-height: 208px;
+  }
+  .composer-hands .is-sounding {
+    outline-offset: 3px;
+  }
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 24px;
+  }
+  .candidate {
+    top: 88px;
+    scroll-margin-top: 88px;
+  }
+  .source-tabs {
+    scroll-margin-top: 88px;
+  }
+  #chooser-heading,
+  #chord-name {
+    scroll-margin-top: 88px;
+  }
+  .composer-jump {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 14px;
+    color: var(--ink);
+    text-decoration: underline;
+  }
+  .playback {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 1;
+    max-width: 100%;
+  }
+  .playback p {
+    flex-basis: 100%;
+  }
+  :is(.bayan-key, .hand-key) > span {
+    color: var(--button-ink);
+  }
+  @media (max-width: 1100px) {
+    .workspace {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .candidate {
+      position: static;
+    }
+  }
+  @media (max-width: 900px) {
+    padding-bottom: 76px;
+    .mobile-candidate {
+      z-index: 100;
+    }
+  }
+}

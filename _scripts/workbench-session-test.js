@@ -108,4 +108,62 @@ test("adding degrees from another key recomputes their function in this progress
   assert.equal(s.state.items[3].name, "Dm7");
   assert.equal(M.functionInKey(s.state.items[3], 7), "v7");
 });
+test("browser drafts round-trip both documents, minor analysis and picked order", () => {
+  const s = scope.WorkbenchSession.create();
+  const chord = M.fromName("C/E");
+  chord.notes = [4, 0, 7];
+  chord.voicing = "bass-octave";
+  chord.handChoice = { voicing: "standard", bass: 4 };
+  s.set([chord], { mode: "progression", key: 9, keyMode: "minor", gap: 0 });
+  s.state.bpm = 132;
+  s.state.loop = true;
+  s.switchView("chord");
+  s.set([M.fromName("F#m7")]);
+  const saved = s.snapshot();
+  const restored = scope.WorkbenchSession.create();
+  restored.restore(saved);
+  assert.equal(restored.state.items[0].name, "F#m7");
+  restored.switchView("progression");
+  assert.equal(restored.state.keyMode, "minor");
+  assert.equal(restored.state.keyTonic, "A");
+  assert.equal(restored.state.gap, 0);
+  assert.equal(restored.state.bpm, 132);
+  assert.equal(restored.state.loop, true);
+  assert.deepEqual(json(restored.state.items[0].notes), [4, 0, 7]);
+  assert.deepEqual(json(M.voices(restored.state.items[0]).map((v) => v.midi)), [64, 72, 67]);
+  assert.deepEqual(json(restored.state.items[0].handChoice), chord.handChoice);
+  saved.documents.progression.items[0].notes[0] = 9;
+  assert.equal(restored.state.items[0].notes[0], 4);
+});
+test("empty progressions survive draft recovery without changing views", () => {
+  const s = scope.WorkbenchSession.create();
+  s.set([], { mode: "progression", key: 7, keyMode: "minor" });
+  const restored = scope.WorkbenchSession.create();
+  restored.restore(s.snapshot());
+  assert.equal(restored.state.mode, "progression");
+  assert.equal(restored.state.items.length, 0);
+  assert.equal(restored.state.index, 0);
+  assert.equal(restored.state.gap, 0);
+});
+test("corrupt drafts are rejected atomically rather than overwriting valid state", () => {
+  const s = scope.WorkbenchSession.create();
+  const before = s.snapshot();
+  for (const corrupt of [null, {}, { ...before, version: 99 }, { ...before, mode: "other" }]) {
+    assert.throws(() => s.restore(corrupt));
+    assert.deepEqual(json(s.snapshot()), json(before));
+  }
+  const corrupt = json(before);
+  corrupt.documents.progression.items[0].notes = [99];
+  assert.throws(() => s.restore(corrupt));
+  assert.deepEqual(json(s.snapshot()), json(before));
+});
+test("saved practice retains minor mode, loop, tonic spelling and insertion gap", () => {
+  const item = M.savedItems(
+    JSON.stringify([{ name: "Minor practice", chords: [M.entry(M.fromName("Dbm"))], key: 1, keyTonic: "Db", keyMode: "minor", loop: true, gap: 0 }])
+  )[0];
+  assert.equal(item.keyMode, "minor");
+  assert.equal(item.keyTonic, "Db");
+  assert.equal(item.loop, true);
+  assert.equal(item.gap, 0);
+});
 console.log(cases + " view-state tests passed");

@@ -103,7 +103,10 @@ window.WorkbenchModel = (function () {
   }
 
   function entry(model) {
-    return { name: model.name, notes: model.notes.slice(), root: model.root, suffix: model.suffix, roman: model.roman || "" };
+    var value = { name: model.name, notes: model.notes.slice(), root: model.root, suffix: model.suffix, roman: model.roman || "" };
+    if (model.voicing === "bass-octave") value.voicing = model.voicing;
+    if (model.handChoice) value.handChoice = { voicing: model.handChoice.voicing, bass: model.handChoice.bass };
+    return value;
   }
 
   function restore(value) {
@@ -122,6 +125,17 @@ window.WorkbenchModel = (function () {
       model = fromNotes(value.notes);
     model.notes = value.notes.slice();
     model.roman = typeof value.roman === "string" ? value.roman : "";
+    if (value.voicing === "bass-octave") model.voicing = value.voicing;
+    if (
+      value.handChoice &&
+      typeof value.handChoice.voicing === "string" &&
+      value.handChoice.voicing.length < 100 &&
+      Number.isInteger(value.handChoice.bass) &&
+      value.handChoice.bass >= 0 &&
+      value.handChoice.bass < 12
+    ) {
+      model.handChoice = { voicing: value.handChoice.voicing, bass: value.handChoice.bass };
+    }
     return model;
   }
 
@@ -137,6 +151,7 @@ window.WorkbenchModel = (function () {
       shifted.name += "/" + M.asciiNoteName(notes[0]);
     }
     shifted.roman = model.roman || "";
+    if (model.voicing === "bass-octave") shifted.voicing = model.voicing;
     return shifted;
   }
 
@@ -146,7 +161,9 @@ window.WorkbenchModel = (function () {
     var previous = 59;
     return model.notes.map(function (pc) {
       var midi = 60 + pc;
-      while (midi < previous) midi += 12;
+      if (model.voicing === "bass-octave") {
+        if (pc < model.notes[0]) midi += 12;
+      } else while (midi < previous) midi += 12;
       previous = midi;
       var name = ((model.detail && model.detail.notes) || []).find(function (n) {
         return T.Note.chroma(n) === pc;
@@ -171,6 +188,11 @@ window.WorkbenchModel = (function () {
         name: item.name,
         chords: chords,
         key: Number.isInteger(item.key) && item.key >= 0 && item.key < 12 ? item.key : null,
+        keyMode: item.keyMode === "minor" ? "minor" : "major",
+        keyTonic: typeof item.keyTonic === "string" && T.Note.chroma(item.keyTonic) === item.key ? item.keyTonic : null,
+        gap: Number.isInteger(item.gap) ? Math.max(0, Math.min(item.gap, chords.length)) : chords.length,
+        loop: item.loop === true,
+        sound: item.sound === "hands" ? "hands" : "chords",
         bpm: Number.isFinite(item.bpm) && item.bpm >= 40 && item.bpm <= 200 ? item.bpm : 96,
         mode: item.mode === "progression" || chords.length > 1 ? "progression" : "chord",
         index: Number.isInteger(item.index) ? Math.max(0, Math.min(item.index, chords.length - 1)) : 0,

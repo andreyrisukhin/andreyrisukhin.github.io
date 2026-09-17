@@ -1,0 +1,288 @@
+<div id="workbench-composer" class="progression-composer" hidden>
+  <section class="document" aria-labelledby="sequence-heading">
+    <div class="section-top">
+      <h2 id="sequence-heading">Your progression</h2>
+      <div class="actions">
+        <button id="undo" type="button" disabled>Undo</button>
+        <button id="redo" type="button" disabled>Redo</button>
+        <button id="hear-progression" class="primary" type="button">Hear progression</button>
+        <button id="stop" type="button" disabled>Stop</button>
+        <a class="composer-jump" href="#chooser-heading">Choose chords ↓</a>
+      </div>
+    </div>
+    <div class="key-settings">
+      <div class="fields">
+        <label
+          >Analyze in
+          <select id="key-tonic"></select
+        ></label>
+        <label
+          >Mode
+          <select id="key-mode">
+            <option value="major">Major</option>
+            <option value="minor">Minor</option>
+          </select></label
+        >
+        <p class="helper">Changes the explanation, not the notes.</p>
+      </div>
+      <details class="transpose-options">
+        <summary>Transpose notes…</summary>
+        <div class="fields">
+          <label
+            >New tonic
+            <select id="transpose-tonic"></select
+          ></label>
+          <button id="transpose" type="button">Transpose</button>
+        </div>
+        <p class="helper">Moves every chord by the same interval. Keeps the mode.</p>
+      </details>
+    </div>
+    <div
+      id="sequence-scroll"
+      class="sequence-scroll"
+      tabindex="0"
+      role="region"
+      aria-label="Progression and insertion positions, scroll horizontally"
+    >
+      <div id="sequence" class="sequence"></div>
+    </div>
+    <div class="sequence-bottom">
+      <p id="position-hint" class="helper"></p>
+      <div class="actions" role="group" aria-label="Arrange selected chord">
+        <button id="earlier" type="button">Move earlier</button>
+        <button id="later" type="button">Move later</button>
+        <button id="remove" type="button">Remove</button>
+      </div>
+    </div>
+    <div class="fields composer-transport">
+      <label>Tempo <input id="composer-bpm" type="number" min="40" max="200" value="96"> BPM</label>
+      <label><input id="composer-loop" type="checkbox"> Loop</label>
+      <label
+        >Progression sound
+        <select id="composer-sound">
+          <option value="chords">Chord sketches</option>
+          <option value="hands">Both hands</option>
+        </select>
+      </label>
+    </div>
+    <p id="hands-warning" class="helper" hidden></p>
+  </section>
+
+  <section class="function-study" aria-labelledby="function-heading">
+    <div>
+      <p id="function-chord" class="eyebrow"></p>
+      <h2 id="function-heading">What is this chord doing?</h2>
+      <p id="function-copy"></p>
+      <p id="function-outside" class="helper"></p>
+    </div>
+    <div class="listening">
+      <p class="eyebrow">Test it by ear</p>
+      <div id="function-listening" class="listening-actions"></div>
+      <p class="helper">Possible tonal roles, not rules. Melody, rhythm, and style can change the reading.</p>
+    </div>
+  </section>
+  <details class="composer-hand-drawer" open>
+    <summary>Play this chord on the bayan</summary>
+    {% include music-hands.liquid %}
+  </details>
+
+  <div class="workspace">
+    <section class="chooser" aria-labelledby="chooser-heading">
+      <div class="section-top">
+        <h2 id="chooser-heading" tabindex="-1">Find a chord</h2>
+        <span class="helper">Browsing leaves the progression untouched.</span>
+      </div>
+      <div class="source-tabs" role="tablist" aria-label="Choose harmony by">
+        <button id="tab-key" type="button" role="tab" aria-selected="true" aria-controls="panel-key">In a key</button>
+        <button id="tab-matrix" type="button" role="tab" aria-selected="false" aria-controls="panel-matrix" tabindex="-1">Matrix</button>
+        <button id="tab-type" type="button" role="tab" aria-selected="false" aria-controls="panel-type" tabindex="-1">Type</button>
+        <button id="tab-notes" type="button" role="tab" aria-selected="false" aria-controls="panel-notes" tabindex="-1">Pick notes</button>
+        <button id="tab-transitions" type="button" role="tab" aria-selected="false" aria-controls="panel-transitions" tabindex="-1">
+          Transitions
+        </button>
+        <button id="tab-patterns" type="button" role="tab" aria-selected="false" aria-controls="panel-patterns" tabindex="-1">Patterns</button>
+      </div>
+      <section id="panel-key" class="source-panel" role="tabpanel" aria-labelledby="tab-key" tabindex="0">
+        <div class="fields">
+          <label
+            >Chord size
+            <select id="chord-size">
+              <option value="sevenths">Sevenths</option>
+              <option value="triads">Triads</option>
+            </select></label
+          >
+          <label id="collection-field" hidden
+            >Minor collection
+            <select id="minor-collection">
+              <option value="natural">Natural minor</option>
+              <option value="harmonic">Harmonic minor</option>
+              <option value="melodic">Melodic minor (ascending)</option>
+            </select></label
+          >
+        </div>
+        <p id="key-summary" class="source-description"></p>
+        <div id="key-chords" class="chord-grid"></div>
+        <details class="more-harmony">
+          <summary>Borrowed colors and applied dominants</summary>
+          <p class="helper">These reach outside the main collection. The label describes their source or possible target.</p>
+          <div id="extra-chords" class="chord-grid"></div>
+        </details>
+      </section>
+      <section id="panel-matrix" class="source-panel" role="tabpanel" aria-labelledby="tab-matrix" tabindex="0" hidden>
+        <div class="fields">
+          <label
+            >Root
+            <select id="matrix-root"></select
+          ></label>
+          <label
+            >Catalog
+            <select id="matrix-scope">
+              <option value="common">Common types</option>
+              <option value="all">Full Tonal catalog</option>
+            </select></label
+          >
+        </div>
+        <p class="source-description">Keep the root. Compare the color. This catalog is independent of left-hand button recipes.</p>
+        <div
+          id="matrix-scroll"
+          class="table-scroll"
+          tabindex="0"
+          role="region"
+          aria-label="Chord quality and extension matrix, scroll horizontally"
+        >
+          <table id="matrix"></table>
+        </div>
+      </section>
+      <section id="panel-type" class="source-panel" role="tabpanel" aria-labelledby="tab-type" tabindex="0" hidden>
+        <form id="type-form">
+          <label for="chord-text">Chord or progression</label>
+          <textarea
+            id="chord-text"
+            rows="3"
+            placeholder="Am7 D7 Gmaj7"
+            spellcheck="false"
+            autocomplete="off"
+            autocapitalize="off"
+            aria-describedby="type-help type-error"
+          ></textarea>
+          <p id="type-help" class="helper">
+            C F G means three major chords. Roman numerals work too; numbers 1–7 choose scale-degree sevenths. In minor, ♭III, ♭VI, and ♭VII refer to
+            the natural-minor roots.
+          </p>
+          <div class="actions">
+            <button class="primary" type="submit">Preview</button>
+            <button type="button" data-text="ii7 V7 Imaj7 in G major">ii–V–I</button>
+            <button type="button" data-text="iiø7 V7 i in A minor">Minor cadence</button>
+          </div>
+          <p id="type-error" class="error" role="alert" hidden></p>
+        </form>
+      </section>
+      <section id="panel-notes" class="source-panel" role="tabpanel" aria-labelledby="tab-notes" tabindex="0" hidden>
+        <p class="source-description">
+          Pick notes to add them below. The first is the bass. Move, replace, or remove notes to try a different order.
+        </p>
+        <div id="note-picker" class="note-picker" role="group" aria-label="Pitch classes"></div>
+        <section class="picked-notes" aria-labelledby="picked-heading">
+          <div class="section-top">
+            <h3 id="picked-heading">Your notes, in order</h3>
+            <div class="actions">
+              <button id="hear-picked" type="button" disabled>Hear chord</button>
+              <button id="hear-picked-order" type="button" disabled>Hear in order</button>
+              <button id="picked-stop" type="button" disabled>Stop</button>
+            </div>
+          </div>
+          <p id="picked-empty" class="helper">Choose a note above to begin.</p>
+          <div
+            id="picked-staff"
+            class="staff-scroll"
+            tabindex="0"
+            role="region"
+            aria-label="Picked notes on a staff, scroll horizontally"
+            hidden
+          ></div>
+          <ol id="picked-order" class="picked-order" aria-label="Edit selected notes in order"></ol>
+          <p id="picked-help" class="helper" hidden>
+            Tap a staff note to edit it. Pitches stay within one octave above the first note; changing the order does not set a rhythm.
+          </p>
+        </section>
+        <div class="fields">
+          <label
+            >Bass
+            <select id="note-bass" disabled></select></label
+          ><button id="clear-notes" type="button">Clear notes</button>
+        </div>
+        <p id="notes-summary" class="helper"></p>
+        <div id="note-matches" class="chord-grid"></div>
+      </section>
+      <section id="panel-transitions" class="source-panel" role="tabpanel" aria-labelledby="tab-transitions" tabindex="0" hidden>
+        <p id="transition-anchor" class="source-description"></p>
+        <div class="circle-layout">
+          <div>
+            <label
+              >Circle chord quality
+              <select id="circle-quality">
+                <option value="7">Dominant seventh</option>
+                <option value="">Major</option>
+                <option value="m">Minor</option>
+                <option value="maj7">Major seventh</option>
+                <option value="m7">Minor seventh</option>
+              </select></label
+            >
+            <div id="circle" class="circle" role="group" aria-label="Choose a chord root on the circle of fifths"></div>
+          </div>
+          <div class="circle-explanation">
+            <h3>Root motion, not a ranking</h3>
+            <p>Neighbors are a perfect fifth apart. Click a root to prepare a chord, not to change the key.</p>
+            <p id="circle-path" class="helper"></p>
+          </div>
+        </div>
+        <label
+          >Compare relationships
+          <select id="relation">
+            <option value="resolve">Fourth-up targets</option>
+            <option value="common">Keep common tones</option>
+            <option value="bass">Move the bass by step</option>
+            <option value="color">Same root, different color</option>
+          </select></label
+        >
+        <p id="relation-help" class="helper"></p>
+        <div id="related-chords" class="chord-grid"></div>
+      </section>
+      <section id="panel-patterns" class="source-panel" role="tabpanel" aria-labelledby="tab-patterns" tabindex="0" hidden>
+        <p class="source-description">Start with a musical idea. Preview the phrase, then insert it at the chosen gap.</p>
+        <div id="patterns" class="pattern-list"></div>
+      </section>
+    </section>
+
+    <aside id="candidate" class="candidate" aria-labelledby="candidate-heading" tabindex="-1">
+      <p class="eyebrow">On the scratchpad</p>
+      <h2 id="candidate-heading">Nothing chosen yet</h2>
+      <p id="candidate-notes"></p>
+      <p id="candidate-analysis"></p>
+      <p id="candidate-origin" class="helper"></p>
+      <div class="actions audition-actions">
+        <button id="hear-candidate" type="button" disabled>Hear candidate</button>
+        <button id="candidate-stop" type="button" disabled>Stop</button>
+      </div>
+      <div class="destination">
+        <label
+          >Add it by
+          <select id="intent">
+            <option value="insert">Inserting at the gap</option>
+            <option value="replace">Replacing the selected chord</option>
+          </select></label
+        >
+        <p id="candidate-destination" class="helper"></p>
+        <p id="candidate-route"></p>
+        <button id="hear-context" type="button" disabled>Hear between neighbors</button>
+        <p id="candidate-relation" class="helper"></p>
+      </div>
+      <button id="commit" class="primary" type="button" disabled>Insert candidate</button>
+      <p id="commit-help" class="helper"></p>
+      <a class="composer-jump" href="#chord-name">Inspect selected chord ↑</a>
+    </aside>
+  </div>
+  <a id="mobile-candidate" class="mobile-candidate" href="#candidate" hidden>Review candidate</a>
+  <p id="audio-status" role="status" class="audio-status">Synthesized chord sketches, not instrument voicings. No sound until you press Hear.</p>
+  <p id="announcement" class="sr-only" role="status"></p>
+</div>

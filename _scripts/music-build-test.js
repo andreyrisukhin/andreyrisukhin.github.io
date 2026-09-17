@@ -37,6 +37,11 @@ for (const route of routes) {
   }
 }
 const html = fs.readFileSync(path.join(site, "music/index.html"), "utf8");
+assert.ok(html.includes('id="workbench-composer"'), "Production includes the progression composer");
+assert.ok(html.includes('id="left-keyboard"'), "Production includes the approved hand view");
+assert.ok(!/src="[^"]*_prototypes\//.test(html), "Production has no prototype script dependencies");
+const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+assert.equal(new Set(ids).size, ids.length, "Integrated page has no duplicate element IDs");
 const precache = vm.runInNewContext(fs.readFileSync(path.join(site, "sw.js"), "utf8") + "\nPRECACHE_URLS;", {
   self: { addEventListener() {} },
 });

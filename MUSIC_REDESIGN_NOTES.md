@@ -4,23 +4,29 @@ Branch: `design/bayan-notebook`. The source audit is in [MUSIC_DESIGN_AUDIT.md](
 
 ## What changed
 
-- `/music/` now opens a playable Am7, not a directory of tools. Music has a direct navigation item and a homepage entry.
+- `/music/` opens the progression workspace, initially Am7 → D7 → Gmaj7, or recovers the last local draft. Music has a direct navigation item and a homepage entry.
 - The shared music layout uses paper, ink, and lacquer colors. Dark mode uses a muted brass accent, not pink. Explore, Practice, Play, and Read link to existing material.
 - Notes, staff notation, B-system buttons, Stradella recipes, and sound describe the same musical object. Focus and hover connect the representations.
 - Progressions retain the selected chord during transposition. Playback supports chords, upward rolls, tempo, looping, mute, and stop. Sound starts only after an explicit action.
 - Saved practice keeps its notes, inversions, key, and tempo in this browser. JSON backups append rather than replace the library. Shared links contain musical state, not saved names or the library.
-- Type, Chord menu, and Pick notes sit together in the selection area, above a shared Left hand, Right hand, and Theory inspector. Wide notation and reference tables scroll within the page. The footer and update notice no longer cover content.
+- Progression offers In a key, Matrix, Type, Pick notes, Transitions, and Patterns. The approved two-hand diagrams sit with the sequence and function explanations. Chord / notes retains its earlier direct-entry inspector. Wide notation and reference tables scroll within the page.
 - The existing service worker caches the workbench and page shell. The installable app uses the notebook name and colors.
 
 ## Compatibility and boundaries
 
 ### Two explicit study views
 
-Chord / notes and Progression keep separate selections, keys, drafts, and playback settings while the page is open. Switching views stops playback without discarding either document. A sequence typed in Chord / notes offers an explicit action to open Progression; the parser never changes the view on its own.
+Chord / notes and Progression keep separate selections, keys, and playback settings. Switching views stops playback without discarding either document. Both documents recover after reload from `musicWorkbenchDraft`; named copies remain in the existing `musicWorkbenchSetlist` library. Invalid draft data is retained rather than overwritten. A sequence typed in Chord / notes offers an explicit action to open Progression.
 
-In Progression, typing or picking material prepares a candidate. Add appends it; Replace changes only the selected step. Steps can be moved or removed. The view remains Progression with one chord or no chords. Selecting a step opens the shared inspector, with key-relative chord labels, root movement, and common tones from the preceding step. These are observations about pitches, not inferred song sections or durations. Playback still uses four beats per chord.
+In Progression, browsing prepares a candidate. Hear it alone or between its actual neighbors, then insert at a `+` gap or replace one selected step. Move/remove and undo/redo work down to an empty sequence. Undo history lasts for the current page session and survives switching to Chord / notes; reload restores the current document, not its history. Uncommitted candidates and picker drafts are not saved.
 
-Saved entries and share links retain the view and selected step. Older entries and links still load, using their chord count only for migration.
+Typed `C F G` means three chords in the composer. Note collections belong in Pick notes. Its staff and ordered editor preserve bass, pitch order, and a bounded octave through insertion, saving, transposition, and playback. Each pitch class appears once.
+
+Major/minor analysis is separate from transposition. Function explanations consider the current chord and its neighbors, not an inferred song structure. Wheel root and quality changes update comparisons immediately; comparison candidates never move the wheel anchor. Selecting a progression step resets that anchor.
+
+The hand inspector retains the approved Stradella orientation, independent button inspection, practical voicing choices, and fixed-across-sequence right-hand range. Left-hand choices belong to individual chord steps and survive moves, history, saving, and sharing. Transposition resets left-hand choices for the new pitches. Chord sketches remain available when the visible left-hand excerpt cannot play a chord; both-hand progression playback is disabled rather than silently skipping it.
+
+Saved entries and share links retain the view, selected step, insertion gap, analysis mode, tempo, loop, sound mode, and ordered notes. Older entries and links still load. A shared link imports once and removes its musical query parameters, so reloading after edits recovers the new draft rather than re-importing the original link. Playback never starts on load.
 
 ### Shared vertical B-system renderer
 
@@ -36,7 +42,7 @@ All earlier music routes remain available, including `/music/workbench/`. Existi
 
 Audio is synthesized with Web Audio, not sampled from an accordion. Recipes show whether their pitch set is exact, which tones are missing or extra, and when a stack is theoretical rather than ergonomic. Registers and omitted chord tones vary by instrument.
 
-The notation draft renders ABC but does not infer harmony. URL imports are explicitly unsupported. No personal recordings, artwork, or current practice activity were invented.
+The notation draft renders ABC but does not infer harmony. Arbitrary song-link imports remain unsupported. No personal recordings, artwork, or current practice activity were invented.
 
 The notebook palette is scoped to music pages. The rest of the site retains its theme; its deliberate changes are the direct Music entry and non-fixed footer.
 
@@ -50,12 +56,37 @@ node _scripts/workbench-model-test.js
 node _scripts/workbench-player-test.js
 node _scripts/bayan-keyboard-test.js
 node _scripts/workbench-session-test.js
+node _scripts/progression-composer-test.js
+node _scripts/two-hands-prototype-test.js --production
 JEKYLL_ENV=production bundle exec jekyll build
 node _scripts/music-build-test.js
 node --check _site/sw.js
 ```
 
 The local build used `.build-venv/bin` on `PATH` for its Python dependencies. Check the build log for YAML and Liquid exceptions as well as the exit status.
+
+### Composer integration, September 16
+
+Production code lives under `assets/js/workbench/` and `_includes/music-composer.liquid`, not under `_prototypes/`. Promoted styles are scoped to `.progression-composer`; the prototype pages remain available as design references.
+
+- 159 music regressions passed, plus the same 20 hand-diagram/voicing cases against the promoted production modules.
+- Production build passed with existing Sass and Rails deprecation warnings. Checks cover 14 music routes, 554 local links/assets, 19 cached workbench dependencies, and duplicate IDs.
+- The 215-assertion composer browser check passed inside `/music/` at 320, 390, 768, and 1440px in both themes.
+- The integration browser check passed 31 assertions across editing and reload: shared hand selection, exact picked notes, independent chord-view editing, history, draft recovery, named saves, and link contents.
+- A shared-link import retained subsequent edits after reload. Invalid links preserved the recovered draft. Corrupt draft storage remained untouched and did not affect named saved practice.
+- 26 real-oscillator checks covered picked-note timing, candidate/context pitches, saved tempo, both-hand inversion pitches, synchronized step inspection, all Stop controls, and unsupported-hand warnings.
+- Axe reported no violations in Pick notes and Transitions, including the hand inspector, at 390 and 1440px in settled light/dark themes. Arrow glyphs and clipped content left contrast checks incomplete. Theme animations must finish before scanning.
+- An actual network-blocked reload recovered the draft, drew all 36 left-hand buttons, updated wheel comparisons, and played synthesized sound. An uncached request failed as expected; browser errors remained empty.
+
+For the integrated preview, serve `_site` on forwarded port 4173:
+
+```sh
+python3 -m http.server 4173 --bind 127.0.0.1 --directory _site
+```
+
+Open **http://localhost:4173/music/** with the Mac → Piglab SSH tunnel connected. Port 5173 can continue serving the standalone prototypes.
+
+### Earlier workbench validation
 
 Results:
 

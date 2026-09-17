@@ -11,6 +11,14 @@
   var input = document.getElementById("workbench-input");
   var result = document.getElementById("workbench-result");
   var KEY = "musicWorkbenchSetlist";
+  var DRAFT_KEY = "musicWorkbenchDraft";
+  var composer,
+    composerNeedsLoad = true,
+    draftError = "",
+    initializing = true;
+  var H = window.ComposerHarmony,
+    Hands = window.WorkbenchHands;
+  var leftRoots = [11, 4, 9, 2, 7, 0];
   var session = WorkbenchSession.create();
   var state = Object.assign(session.state, {
     saved: [],
@@ -39,6 +47,181 @@
   function current() {
     return state.items[state.index];
   }
+  function persistDraft() {
+    if (initializing || draftError) return;
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(session.snapshot()));
+      document.getElementById("wb-draft-status").textContent =
+        "Current practice kept in this browser. Save a named copy below to keep another version.";
+    } catch (_) {
+      draftError = "Draft recovery is unavailable. Keep this tab open and export named practice before leaving.";
+      document.getElementById("wb-draft-status").textContent = draftError;
+    }
+  }
+  function composerState() {
+    return {
+      chords: state.items,
+      selected: state.index,
+      gap: state.gap,
+      key: { tonic: H.roots.includes(state.keyTonic) ? state.keyTonic : H.roots[state.key], mode: state.keyMode || "major" },
+    };
+  }
+  function acceptComposer(next) {
+    state.items = next.chords;
+    state.index = next.selected;
+    state.key = window.Tonal.Note.chroma(next.key.tonic);
+    state.keyTonic = next.key.tonic;
+    state.keyMode = next.key.mode;
+    state.gap = next.gap;
+    state.degrees = null;
+    state.label = "";
+    render();
+    persistDraft();
+  }
+  function renderHands(next) {
+    var chord = next.chords[next.selected];
+    document.getElementById("chord-inspector").hidden = !chord;
+    if (chord) {
+      var midis = next.chords.flatMap(function (item) {
+        return Model.voices(item).map(function (voice) {
+          return voice.midi;
+        });
+      });
+      Hands.render(
+        chord,
+        {
+          left: leftRoots,
+          right: {
+            low: Math.max(0, Math.floor((Math.min(...midis) - 1) / 3) * 3),
+            high: Math.min(127, Math.ceil((Math.max(...midis) + 2) / 3) * 3 - 1),
+          },
+        },
+        chord.handChoice
+      );
+    }
+    var unavailable = next.chords.flatMap(function (item, i) {
+      return Hands.performance(item, leftRoots, item.handChoice).midis.length ? [] : ["step " + (i + 1) + " (" + item.name + ")"];
+    });
+    var warning = document.getElementById("hands-warning");
+    warning.hidden = !unavailable.length;
+    warning.textContent = unavailable.length
+      ? "Both-hand playback unavailable for " +
+        unavailable.join(", ") +
+        ". No playable left-hand voicing in this excerpt. Chord sketches and right-hand notes still work."
+      : "";
+    document.getElementById("hear-progression").disabled =
+      !next.chords.length || (document.getElementById("composer-sound").value === "hands" && unavailable.length > 0);
+  }
+  function playbackControls(playing) {
+    ["stop", "candidate-stop", "picked-stop", "hand-stop"].forEach(function (id) {
+      document.getElementById(id).disabled = !playing;
+    });
+  }
+  async function auditionHand(sound) {
+    if (!sound.midis.length) return;
+    var started = Player.play([sound.midis], {
+      onError: announce,
+      onStep: function () {
+        Hands.markSounding(sound);
+      },
+    });
+    playbackControls(true);
+    if (!(await started)) playbackControls(false);
+  }
+  async function playComposer() {
+    var hands = document.getElementById("composer-sound").value === "hands";
+    var sounds = state.items.map(function (chord) {
+      return hands
+        ? Hands.performance(chord, leftRoots, chord.handChoice)
+        : {
+            midis: Model.voices(chord).map(function (v) {
+              return v.midi;
+            }),
+            rightMidis: Model.voices(chord).map(function (v) {
+              return v.midi;
+            }),
+            leftIds: [],
+          };
+    });
+    if (
+      !sounds.length ||
+      sounds.some(function (sound) {
+        return !sound.midis.length;
+      })
+    )
+      return;
+    var started = Player.play(
+      sounds.map(function (sound) {
+        return sound.midis;
+      }),
+      {
+        bpm: state.bpm,
+        loop: state.loop,
+        progression: true,
+        onError: announce,
+        onStep: function (index) {
+          state.index = index;
+          composer.select(index, true);
+          Hands.markSounding(sounds[index]);
+          document.getElementById("audio-status").textContent = "Hearing " + state.items[index].name + (hands ? ", both hands." : ", chord sketch.");
+        },
+      }
+    );
+    playbackControls(true);
+    if (!(await started)) playbackControls(false);
+  }
+  function syncComposer() {
+    if (!composer) {
+      composer = window.ProgressionComposer.mount(document.getElementById("workbench-composer"), {
+        onChange: acceptComposer,
+        onRender: renderHands,
+        onPlayback: playbackControls,
+        bpm: function () {
+          return state.bpm;
+        },
+        playProgression: playComposer,
+      });
+      Hands.bind(auditionHand, function (choice) {
+        composer.setHandChoice(choice);
+      });
+      document.getElementById("play").addEventListener("click", function () {
+        var chord = current();
+        if (chord) auditionHand(Hands.performance(chord, leftRoots, chord.handChoice));
+      });
+      document.getElementById("hand-stop").addEventListener("click", function () {
+        Player.stop();
+      });
+      document.getElementById("composer-sound").addEventListener("change", function (event) {
+        Player.stop();
+        state.sound = event.target.value;
+        renderHands(composer.state);
+        persistDraft();
+      });
+      document.getElementById("composer-bpm").addEventListener("change", function (event) {
+        Player.stop();
+        state.bpm = Math.max(40, Math.min(200, Number(event.target.value) || 96));
+        event.target.value = state.bpm;
+        persistDraft();
+      });
+      document.getElementById("composer-loop").addEventListener("change", function (event) {
+        Player.stop();
+        state.loop = event.target.checked;
+        persistDraft();
+      });
+      Player.subscribeStop(function () {
+        playbackControls(false);
+        Hands.markSounding();
+      });
+    }
+    document.getElementById("composer-sound").value = state.sound || "chords";
+    if (composerNeedsLoad) {
+      composerNeedsLoad = false;
+      composer.load(composerState());
+      state.items = composer.state.chords;
+    }
+    document.getElementById("composer-bpm").value = state.bpm;
+    document.getElementById("composer-loop").checked = state.loop;
+  }
   function setInputFromState() {
     state.input = state.items
       .map(function (m) {
@@ -51,7 +234,10 @@
     Player.stop();
     options = options || {};
     session.set(items, options);
+    if (state.mode === "progression") composerNeedsLoad = true;
     if (options.bpm) state.bpm = options.bpm;
+    if (options.loop !== undefined) state.loop = options.loop;
+    if (options.sound !== undefined) state.sound = options.sound === "hands" ? "hands" : "chords";
     input.removeAttribute("aria-invalid");
     document.getElementById("workbench-share-result").hidden = true;
     if (options.syncInput) {
@@ -64,6 +250,7 @@
       feedback("");
     }
     render();
+    persistDraft();
     announce(current() ? current().name + (state.items.length > 1 ? ", progression of " + state.items.length + " chords." : ".") : "");
   }
 
@@ -152,6 +339,7 @@
     Player.stop();
     state.input = input.value;
     session.switchView(mode);
+    // The progression controller keeps its history while the chord view is open.
     state.candidate = [];
     state.source = "type";
     state.picked = [];
@@ -161,8 +349,10 @@
     render();
     if (state.mode === "progression" && input.value.trim()) classify(input.value);
     announce(mode === "progression" ? "Progression view. Choose a step to inspect." : "Chord and notes view.");
+    persistDraft();
   }
   function setSource(source) {
+    Player.stop();
     state.source = source;
     state.candidate = [];
     feedback("");
@@ -479,9 +669,17 @@
         return true;
       });
     }
-    result.innerHTML = model ? chordCard(model) : '<p class="wb-empty">Choose material to inspect its left hand, right hand, and theory.</p>';
-    document.getElementById("wb-sequence").innerHTML = progression();
-    document.getElementById("wb-progression-view").hidden = state.mode !== "progression";
+    var isProgression = state.mode === "progression";
+    root.querySelector(".wb-chooser").hidden = isProgression;
+    document.getElementById("workbench-composer").hidden = !isProgression;
+    result.innerHTML = isProgression
+      ? ""
+      : model
+        ? chordCard(model)
+        : '<p class="wb-empty">Choose material to inspect its left hand, right hand, and theory.</p>';
+    document.getElementById("wb-sequence").innerHTML = "";
+    document.getElementById("wb-progression-view").hidden = true;
+    if (isProgression) syncComposer();
     document.getElementById("workbench-transport").hidden = !model;
     document.getElementById("workbench-save-options").hidden = !model;
     document.getElementById("workbench-bpm").value = state.bpm;
@@ -619,6 +817,11 @@
           .join(" · "),
       chords: state.items.map(Model.entry),
       key: state.key,
+      keyMode: state.keyMode,
+      keyTonic: state.keyTonic,
+      gap: state.gap,
+      loop: state.loop,
+      sound: state.sound,
       bpm: state.bpm,
       mode: state.mode,
       index: state.index,
@@ -644,6 +847,11 @@
     var url = new URL(root.dataset.musicHome, location.origin);
     url.searchParams.set("chords", JSON.stringify(state.items.map(Model.entry)));
     url.searchParams.set("key", String(state.key));
+    url.searchParams.set("keyMode", state.keyMode || "major");
+    url.searchParams.set("tonic", state.keyTonic || H.roots[state.key]);
+    url.searchParams.set("gap", String(state.gap));
+    url.searchParams.set("loop", state.loop ? "1" : "0");
+    url.searchParams.set("sound", state.sound || "chords");
     url.searchParams.set("step", String(state.index));
     url.searchParams.set("bpm", String(state.bpm));
     url.searchParams.set("view", state.mode);
@@ -682,12 +890,24 @@
         mode: params.get("view") === "progression" || items.length > 1 ? "progression" : "chord",
         bpm: Number.isFinite(bpm) && bpm >= 40 && bpm <= 200 ? bpm : 96,
         key: params.has("key") && Number.isInteger(key) && key >= 0 && key < 12 ? key : items[0].root,
+        keyMode: params.get("keyMode"),
+        keyTonic: params.get("tonic"),
+        gap: params.has("gap") ? Number(params.get("gap")) : items.length,
+        loop: params.get("loop") === "1",
+        sound: params.get("sound"),
         index: Number.isInteger(step) && step >= 0 ? step : 0,
       });
+      // Consume the import once: reloading after edits must recover the draft,
+      // not replace it again with the original shared progression.
+      var currentUrl = new URL(location.href);
+      ["chords", "key", "keyMode", "tonic", "step", "bpm", "view", "gap", "loop", "sound"].forEach(function (key) {
+        currentUrl.searchParams.delete(key);
+      });
+      history.replaceState(null, "", currentUrl);
       return true;
     } catch (_) {
-      classify("Am7");
-      announce("This shared link is invalid. Showing the default chord instead.");
+      render();
+      announce("This shared link is invalid. Your current practice has not been changed.");
       return true;
     }
   }
@@ -772,6 +992,7 @@
   }
 
   root.addEventListener("click", function (e) {
+    if (e.target.closest(".progression-composer")) return;
     var el = e.target.closest("button");
     var note = e.target.closest("[data-midi]");
     if (note) {
@@ -900,6 +1121,11 @@
       return selectItems(item.chords.map(Model.restore), {
         label: item.name,
         key: item.key,
+        keyMode: item.keyMode,
+        keyTonic: item.keyTonic,
+        gap: item.gap,
+        loop: item.loop,
+        sound: item.sound,
         bpm: item.bpm,
         mode: item.mode,
         index: item.index,
@@ -923,6 +1149,7 @@
     }
   });
   root.addEventListener("keydown", function (e) {
+    if (e.target.closest(".progression-composer")) return;
     var note = e.target.closest("g[data-midi]");
     if (note && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
@@ -933,12 +1160,14 @@
   BayanKeyboard.bind(result, {});
   ["pointerover", "focusin"].forEach(function (event) {
     root.addEventListener(event, function (e) {
+      if (e.target.closest(".progression-composer")) return;
       var el = e.target.closest("[data-pc], [data-pcs]");
       if (el) highlight(el.dataset.pcs ? el.dataset.pcs.split(",").map(Number) : [Number(el.dataset.pc)]);
     });
   });
   ["pointerout", "focusout"].forEach(function (event) {
     root.addEventListener(event, function (e) {
+      if (e.target.closest(".progression-composer")) return;
       if (e.target.closest("[data-pc], [data-pcs]")) highlight([]);
     });
   });
@@ -968,6 +1197,7 @@
   });
   input.addEventListener("input", function () {
     classify(input.value);
+    persistDraft();
   });
   document.getElementById("workbench-play").addEventListener("click", function () {
     if (Player.isPlaying()) Player.stop();
@@ -977,10 +1207,12 @@
     state.bpm = Math.max(40, Math.min(200, Number(e.target.value) || 96));
     e.target.value = state.bpm;
     Player.stop();
+    persistDraft();
   });
   document.getElementById("workbench-loop").addEventListener("change", function (e) {
     state.loop = e.target.checked;
     Player.stop();
+    persistDraft();
   });
   document.getElementById("workbench-save").addEventListener("click", saveCurrent);
   document.getElementById("workbench-share").addEventListener("click", share);
@@ -992,6 +1224,10 @@
     if (e.key === KEY) {
       readSaved();
       renderSaved();
+    }
+    if (e.key === DRAFT_KEY) {
+      draftError = "Current practice changed in another tab. Reload to use that version; this tab has not overwritten it.";
+      document.getElementById("wb-draft-status").textContent = draftError;
     }
   });
   var roots = M.NOTES.map(function (name, pc) {
@@ -1023,5 +1259,26 @@
   readSaved();
   renderSaved();
   renderLibrary();
-  if (!restoreLink()) classify(input.value || "Am7");
+  var recovered = false;
+  try {
+    var draft = localStorage.getItem(DRAFT_KEY);
+    if (draft) {
+      session.restore(JSON.parse(draft));
+      recovered = true;
+    }
+  } catch (_) {
+    draftError = "The practice draft could not be read. Existing data has not been changed; named saved practice remains separate.";
+  }
+  if (!restoreLink()) {
+    if (!recovered) {
+      session.switchView("progression");
+      state.index = 1;
+      state.gap = 2;
+    }
+    input.value = state.input;
+    render();
+  }
+  initializing = false;
+  if (draftError) document.getElementById("wb-draft-status").textContent = draftError;
+  else persistDraft();
 })();

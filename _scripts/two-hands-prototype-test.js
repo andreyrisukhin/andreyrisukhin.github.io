@@ -16,20 +16,21 @@ const context = {
 context.window = context;
 context.self = context;
 vm.createContext(context);
+const production = process.argv.includes("--production");
 [
   "assets/js/vendor/tonal.min.js",
   "assets/js/music/common.js",
   "assets/js/music/chord-name.js",
   "assets/js/music/stradella-data.js",
   "assets/js/workbench/model.js",
-  "_prototypes/two-hands/stradella.js",
-  "_prototypes/two-hands/voicings.js",
-  "_prototypes/two-hands/inspector.js",
+  production ? "assets/js/workbench/stradella.js" : "_prototypes/two-hands/stradella.js",
+  production ? "assets/js/workbench/voicings.js" : "_prototypes/two-hands/voicings.js",
+  production ? "assets/js/workbench/hands.js" : "_prototypes/two-hands/inspector.js",
 ].forEach((file) => vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context));
-const Left = context.PrototypeStradella;
+const Left = production ? context.WorkbenchStradella : context.PrototypeStradella;
 const Model = context.WorkbenchModel;
-const Hands = context.PrototypeHandInspector;
-const Voicings = context.PrototypeVoicings;
+const Hands = production ? context.WorkbenchHands : context.PrototypeHandInspector;
+const Voicings = production ? context.WorkbenchVoicings : context.PrototypeVoicings;
 const json = (value) => JSON.parse(JSON.stringify(value));
 const cells = json(Left.layout());
 let count = 0;

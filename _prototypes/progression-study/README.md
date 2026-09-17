@@ -1,22 +1,31 @@
 # Progression-study layout prototype
 
-Open `http://localhost:8877/_prototypes/progression-study/` with the repository-root preview server running. No build step.
+Open `http://localhost:5173/_prototypes/progression-study/`. No build step. Start the server from the repository root:
 
-This fixed sequence studies Am7 → D7 → Gmaj7 in G major. Select a chord directly or use previous/next. Left/right arrows, Home, and End also work when a step button has focus. Left-hand voicings can be changed independently for each step.
+```sh
+python3 -m http.server 5173 --bind 127.0.0.1
+```
+
+Port 5173 is included in the Mac’s existing Piglab SSH forwards, unlike 8876 and 8877. Keep `ssh piglab` or `ssh piglab-lan` connected while browsing. If 5173 is occupied, check the other forwarded ports (4173 and 8080) instead of replacing another service or exposing a public listener.
+
+The starting sequence is Am7 → D7 → Gmaj7 in G major. Select a chord directly or use previous/next. Left/right arrows, Home, and End also work when a step button has focus. Left-hand voicings can be changed independently for each step.
+
+Open “Edit progression” to add, replace, remove, or move a chord earlier/later. Enter adds one chord to the end. Choices move with their step, including duplicate chord names; replacement starts with the new chord’s default voicing. Removing every chord leaves an empty progression ready for new input. “Done editing” hides the controls; Escape closes them when focus is inside the editor. All edits reset on reload.
 
 “Play all” plays both hands from the beginning, at 96 BPM with four beats per chord. Selecting a step stops playback. “Hear both hands” plays the current chord’s recipe and right-hand voicing. Auditioning a button interrupts the sequence. Stop, Escape, and page visibility changes cancel playback.
 
-The transition section looks ahead to the next chord. At the last step, it shows the arrival from D7 to Gmaj7 instead of inventing a return to Am7. Common tones are pitch classes, not a promise that these ascending voicings hold the same octave.
+The transition section looks ahead to the next chord. At the last step, it shows the arrival from the preceding chord instead of inventing a return to the beginning. Common tones are pitch classes, not a promise that these ascending voicings hold the same octave. A single chord has no transition.
 
 ## Boundaries
 
 - Uses the approved button stylesheet and shared `PrototypeHandInspector`. Selected-chord notation and complete button inspection remain independent; the original chord screen keeps its existing layout and behavior.
 - Ivory/charcoal key faces, selected-key crosshatching, clear note labels, and the root ring remain unchanged.
-- The right-hand keyboard uses one fixed C4–A♭5 window across all steps. The left-hand map stays B/E/A/D/G/C from top to bottom, extending the original excerpt to include B minor. Both maps retain their coordinates through chord changes.
+- The right-hand keyboard uses one shared window across all steps, initially C4–A♭5. Editing can resize that window to fit the new sequence; selecting steps cannot. The left-hand map stays B/E/A/D/G/C from top to bottom, extending the original excerpt to include B minor.
 - Defaults: Am7 uses A bass + C major; D7 uses D bass + D seventh; Gmaj7 uses G bass + B minor. The D7 button intentionally omits A, its fifth. D bass + A diminished seventh remains an optional full-pitch alternative.
 - Both-hand playback uses illustrative low-register left-hand voices and the exact displayed right-hand voices. Button inspection shows all tones with harmonic spelling, but its notation is only a pitch reference. Left-only audio does not mark the high reference notes as sounding.
-- Progression-specific CSS remains confined to the strip, step controls, and transition section. Hand and inspection layouts come from `two-hands/style.css`.
-- No chord editing, saving, importing, key changes, tempo controls, or looping in this review pass.
+- Progression-specific CSS remains confined to the strip, editing/step controls, and transition section. Hand and inspection layouts come from `two-hands/style.css`.
+- Reuses `WorkbenchSession` for add/replace/remove/move, with prototype-only voicing choices keyed by chord identity. Up to 128 chords; no saving, importing, key changes, tempo controls, or looping.
+- A valid chord without a playable left-hand voicing remains inspectable. Its two-hand audio and “Play all” are disabled with an explanation, rather than silently omitting a step. Individual right-hand notes can still be auditioned.
 - No service worker, stored data, or changes to the production music pages.
 
 Review the reading order and the distinction between selecting a chord and following the progression before integration.
@@ -52,3 +61,12 @@ Chord-button combinations and bass/inversions have separate selectors. Choices s
 - All 24 available combination/inversion choices across the three steps passed at 320, 390, 768, and 1440px in both themes. Maps and right-hand selection stayed fixed; inspection stayed independent.
 - Actual oscillator pitches matched standard D7, the fuller D7 alternative, and a complete sequence with different choices and inversions at every step.
 - Native keyboard selection retained focus. Changing a voicing stopped sequence playback. Axe reported no violations in tested desktop and mobile screens; arrow/accidental checks and a partially clipped scrollable label remained incomplete.
+
+## Editing checkpoint
+
+- 17 controller tests cover edits, duplicate-step choices, empty/single-chord states, unavailable voicings, keyboard navigation, focus recovery, shared ranges, transition spelling, playback order, audition stopping, and draft protection. Run `node _scripts/progression-prototype-test.js`.
+- The 64 shared session/model/player/renderer/two-hand tests pass. Production files are unchanged; no Jekyll build is needed for this standalone prototype.
+- Chromium checks at 320, 390, 768, and 1440px in both themes passed: edits, recovery from invalid input, retained voicings, fixed map coordinates during selection, button inspection, endpoint navigation, and no page overflow.
+- Actual oscillator pitches and visual step order matched D7 → Am7 → Gmaj7 → Em7, including the moved D7’s fuller voicing over F♯ counterbass. Playback stopped without stale highlights.
+- Editing stops playback. Typing cancels the sequence before a later step can overwrite the draft.
+- Axe reported no violations in the tested desktop, mobile, and empty states after fixing the empty state’s missing page heading. Contrast checks for arrow glyphs and partially clipped scrollable column labels remain incomplete.

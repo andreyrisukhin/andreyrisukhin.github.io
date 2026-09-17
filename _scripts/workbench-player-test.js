@@ -95,7 +95,18 @@ const P = sandbox.WorkbenchPlayer;
     false
   );
   assert.ok(message.includes("unavailable"));
-  console.log("7 player lifecycle tests passed");
+  let legacy = 0,
+    first = 0,
+    second = 0;
+  P.onStop(() => legacy++);
+  const off = P.subscribeStop(() => first++);
+  P.subscribeStop(() => second++);
+  P.stop();
+  assert.deepEqual([legacy, first, second], [1, 1, 1], "all mounted views receive stop");
+  off();
+  P.stop();
+  assert.deepEqual([legacy, first, second], [2, 1, 2], "unsubscribe keeps the other views and original handler");
+  console.log("9 player lifecycle tests passed");
 })().catch((err) => {
   console.error(err);
   process.exitCode = 1;
