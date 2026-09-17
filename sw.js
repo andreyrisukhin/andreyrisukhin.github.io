@@ -1,4 +1,4 @@
-/* Music Assistant service worker.
+/* Bayan notebook service worker.
  * Scope: /music/. Other routes pass through to the network.
  * Cache key embeds the Jekyll build time so each rebuild invalidates the
  * precache; the browser refetches sw.js on every PWA launch and the new
@@ -6,12 +6,14 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1789237755';
+const VERSION = '1789628055';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
 const PRECACHE_URLS = [
   '/music/',
+  '/music/workbench/',
+  '/music/scales/',
   '/music/build/',
   '/music/blues/',
   '/music/chord-recognizer/',
@@ -28,13 +30,32 @@ const PRECACHE_URLS = [
   '/assets/img/pwa/apple-touch-icon-180.png',
 
   '/assets/js/vendor/tonal.min.js',
+  '/assets/js/vendor/abcjs-basic-min.js',
   '/assets/js/vendor/soundfont-player.min.js',
   '/assets/js/vendor/opensheetmusicdisplay.min.js',
+  '/assets/js/theme.js',
+  '/assets/js/vanilla-back-to-top.min.js',
+  '/assets/js/bootstrap.bundle.min.js',
+  '/assets/css/bootstrap.min.css',
 
   '/assets/js/music/common.js',
+  '/assets/js/music/bayan-keyboard.js',
+  '/assets/js/music/audio.js',
   '/assets/js/music/chord-name.js',
   '/assets/js/music/stradella-data.js',
   '/assets/js/music/stradella-recipe.js',
+  '/assets/js/workbench/classify.js',
+  '/assets/js/workbench/model.js',
+  '/assets/js/workbench/session.js',
+  '/assets/js/workbench/player.js',
+  '/assets/js/workbench/diagrams.js',
+  '/assets/js/workbench/harmony.js',
+  '/assets/js/workbench/notation.js',
+  '/assets/js/workbench/stradella.js',
+  '/assets/js/workbench/voicings.js',
+  '/assets/js/workbench/hands.js',
+  '/assets/js/workbench/composer.js',
+  '/assets/js/workbench/main.js',
 
   '/assets/js/blues/main.js',
   '/assets/js/chord-recognizer/main.js',
@@ -116,14 +137,9 @@ function isPrecached(url) {
 function isMusicAsset(url) {
   if (url.origin !== self.location.origin) return false;
   return (
-    url.pathname.startsWith('/assets/js/music/') ||
-    url.pathname.startsWith('/assets/js/blues/') ||
-    url.pathname.startsWith('/assets/js/chord-recognizer/') ||
-    url.pathname.startsWith('/assets/js/stradella/') ||
-    url.pathname.startsWith('/assets/js/music-build/') ||
-    url.pathname.startsWith('/assets/js/music-exercises/') ||
-    url.pathname.startsWith('/assets/js/sheet-music/') ||
-    url.pathname.startsWith('/assets/js/vendor/') ||
+    // Include the page shell, not only music modules. A music page must still
+    // initialize its theme, navigation, and controls when opened offline.
+    /^\/assets\/(js|css|fonts|webfonts)\//.test(url.pathname) ||
     url.pathname.startsWith('/assets/music/') ||
     url.pathname.startsWith('/assets/img/pwa/')
   );
@@ -169,7 +185,8 @@ async function cacheFirst(request, cacheName) {
 
 async function staleWhileRevalidate(request, cacheName) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
+  // Jekyll appends a content hash to shell assets. The precache uses bare paths.
+  const cached = await cache.match(request, { ignoreSearch: isPrecached(new URL(request.url)) });
   const network = fetch(request)
     .then((res) => {
       if (res && res.ok) cache.put(request, res.clone()).catch(() => undefined);

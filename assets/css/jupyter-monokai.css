@@ -1,4 +1,12 @@
 /* Derived from https://github.com/dunovank/jupyter-themes/blob/master/jupyterthemes/styles/compiled/monokai.css */
+div#notebook {
+  font-family: sans-serif;
+  font-size: 13pt;
+  line-height: 170%;
+  color: #f8f8f0;
+  -webkit-font-smoothing: antialiased !important;
+  padding-top: 25px !important;
+}
 
 body,
 div.body {
@@ -90,9 +98,23 @@ input[type="checkbox"] {
   font-size: 18px;
 }
 
+ul#tabs a {
+  font-family: sans-serif;
+  font-size: 13.5pt;
+  font-weight: normal;
+  font-style: normal;
+  text-shadow: none !important;
+}
+
 .nav > li.disabled > a,
 .nav > li.disabled > a:hover {
   color: #75715e;
+}
+
+div#notebook {
+  font-family: sans-serif;
+  font-size: 13pt;
+  padding-top: 4px;
 }
 
 .container {
@@ -208,6 +230,13 @@ body > #header .header-bar {
   background: rgba(93, 92, 82, 0.25);
   border-color: rgba(93, 92, 82, 0.25);
   transition: 200ms ease;
+}
+
+.dropdown-menu .divider {
+  height: 1px;
+  margin: 0px 0px;
+  overflow: hidden;
+  background-color: rgba(93, 92, 82, 0.5);
 }
 
 .dropdown-menu > .disabled > a,
@@ -438,6 +467,7 @@ h6,
 pre,
 code,
 form,
+legend,
 input,
 button,
 textarea,
@@ -474,7 +504,7 @@ kbd {
   white-space: pre-wrap;
 }
 
-
+.well code,
 code {
   font-family: monospace, monospace;
   font-size: 11pt !important;
@@ -575,6 +605,16 @@ video {
   vertical-align: middle;
   align-content: center;
   margin-left: 20%;
+}
+
+
+.well {
+  background-color: #2f2f2f;
+  border: 1px solid #2f2f2f;
+  color: #f8f8f0;
+  border-radius: 2px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 
 

@@ -30,14 +30,14 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/teaching/";
               },
-            },{id: "dropdown-music",
-              title: "music",
-              description: "",
-              section: "Dropdown",
-              handler: () => {
-                window.location.href = "/music/";
-              },
-            },{id: "dropdown-ditherer",
+            },{id: "nav-bayan-workbench",
+          title: "Bayan workbench",
+          description: "Explore a chord as notes, buttons, notation, and sound.",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/music/";
+          },
+        },{id: "dropdown-ditherer",
               title: "ditherer",
               description: "",
               section: "Dropdown",
