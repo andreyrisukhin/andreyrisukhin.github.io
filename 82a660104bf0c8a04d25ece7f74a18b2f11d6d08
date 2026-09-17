@@ -1,0 +1,63 @@
+_prototypes/progression-compose/harmony.js
+  a93e0090089d7169 1-510
+_prototypes/progression-compose/index.html
+  a93e0090089d7169 1-310
+_scripts/progression-composer-test.js
+  a93e0090089d7169 1-367
+_prototypes/progression-study/README.md
+  a93e0090089d7169 3,5-9,11,13,17,23,26-28,64-72
+_prototypes/progression-compose/README.md
+  a93e0090089d7169 1-74
+_scripts/workbench-composer-browser-check.js
+  a93e0090089d7169 1-91
+_prototypes/progression-study/index.html
+  a93e0090089d7169 20,28,40,43-47,58-82,89,103
+assets/js/workbench/session.js
+  a93e0090089d7169 5,23-29,54-56,61,71,78,86,88-132
+assets/js/workbench/stradella.js
+  a93e0090089d7169 1-113
+_scripts/progression-prototype-test.js
+  a93e0090089d7169 1-322
+_prototypes/progression-compose/composer.js
+  a93e0090089d7169 1-741
+_includes/music-workbench.liquid
+  a93e0090089d7169 6-7,72-76,140-145
+_prototypes/progression-study/progression.js
+  a93e0090089d7169 1,9-11,14-22,26-39,41-55,60,62-77,79-85,92,94-108,110-150,154,157,159-160,177,189,214-215,224,226-228,240-276,279-281,283-295,298-303,308-312,319,323
+_includes/music-composer.liquid
+  a93e0090089d7169 1-288
+assets/js/workbench/main.js
+  a93e0090089d7169 14-21,50-224,237,239-240,253,342,352,355,672-682,820-824,850-854,893-897,900-906,909-910,995,1124-1128,1152,1163,1170,1200,1210,1215,1228-1230,1262-1283
+MUSIC_REDESIGN_NOTES.md
+  a93e0090089d7169 7,12,19,21,23,25-29,45,59-60,68-89
+_sass/_composer.scss
+  a93e0090089d7169 1-108
+_scripts/progression-composer-browser-check.js
+  a93e0090089d7169 1-255
+assets/js/workbench/diagrams.js
+  a93e0090089d7169 6-7,16-18,69-77
+assets/js/workbench/composer.js
+  a93e0090089d7169 1-774
+assets/js/workbench/model.js
+  a93e0090089d7169 106-109,128-138,154,164-166,191-195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "82a660104bf0c8a04d25ece7f74a18b2f11d6d08",
+  "prompts": {
+    "a93e0090089d7169": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "33d0589c-8a5d-49ed-b109-e5e0c19cb781",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 5984,
+      "total_deletions": 1472,
+      "accepted_lines": 4627,
+      "overriden_lines": 0
+    }
+  }
+}
