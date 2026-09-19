@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" data-revision="half-cells-2">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="data:," />
+    <title>Chord canvas · Half cells</title>
+    <link rel="stylesheet" href="style.css?v=half-cells-2" />
+    <script defer src="../../assets/js/vendor/tonal.min.js"></script>
+    <script defer src="../../assets/js/music/common.js"></script>
+    <script defer src="../../assets/js/workbench/model.js"></script>
+    <script defer src="board.js?v=half-cells-2"></script>
+    <script defer src="canvas.js?v=half-cells-2"></script>
+  </head>
+  <body>
+    <main id="canvas" tabindex="-1" aria-label="Chord canvas" aria-describedby="instructions">
+      <h1 class="sr-only">Chord canvas</h1>
+      <p id="instructions" class="sr-only">
+        Type a chord and press Enter. Click anywhere to add another. Drag chords to arrange them. Arrow keys choose a neighboring cell; Shift and
+        arrow keys move a chord. Enter edits a selected chord. Delete removes it. Drag empty space to pan.
+      </p>
+      <div id="world">
+        <div id="tiles"></div>
+        <div id="landing" aria-hidden="true" hidden></div>
+        <form id="editor" class="cell seed" autocomplete="off">
+          <label class="sr-only" for="chord-input">Chord name</label>
+          <input
+            id="chord-input"
+            placeholder="Type a chord"
+            maxlength="40"
+            spellcheck="false"
+            autocapitalize="off"
+            autocorrect="off"
+            enterkeyhint="done"
+            aria-describedby="error"
+          />
+          <span class="entry-hint" aria-hidden="true">↵</span>
+          <p id="error" role="alert" hidden></p>
+        </form>
+      </div>
+    </main>
+    <aside id="tools" aria-label="Canvas controls" hidden>
+      <button id="undo" type="button" aria-label="Undo" title="Undo (Ctrl / ⌘ Z)" disabled>↶</button>
+      <button id="redo" type="button" aria-label="Redo" title="Redo (Ctrl / ⌘ Shift Z)" disabled>↷</button>
+      <button id="home" type="button" aria-label="Center canvas" title="Center canvas">⌖</button>
+      <button id="help-toggle" type="button" aria-label="Canvas help" aria-expanded="false" aria-controls="help">?</button>
+    </aside>
+    <section id="help" aria-label="Canvas help" hidden>
+      <p>Click anywhere. Type a chord. Enter to fill.</p>
+      <p>Drop a chord onto another to squeeze them into two halves, 2 beats each. Drop on the left or right to choose the order.</p>
+      <p>Drag a half out to separate them into full 4-beat cells again. Each space holds at most two chords for now.</p>
+      <p>Drag the paper to pan. Scroll or use a trackpad, too.</p>
+      <p>Double-click a tile to edit. Arrow keys choose a cell; Shift + arrows move it.</p>
+      <p>Colors follow the root around the circle of fifths; chord quality changes the shade.</p>
+      <p>This is a scratch canvas. Reload starts fresh.</p>
+    </section>
+    <p id="status" class="sr-only" role="status"></p>
+    <noscript>This experiment needs JavaScript to recognize chords.</noscript>
+  </body>
+</html>
