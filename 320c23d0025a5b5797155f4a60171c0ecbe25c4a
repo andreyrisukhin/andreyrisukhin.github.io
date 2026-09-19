@@ -1,0 +1,48 @@
+_prototypes/chord-canvas/canvas.js
+  a93e0090089d7169 1-449
+_prototypes/chord-canvas/style.css
+  a93e0090089d7169 1-287
+_scripts/chord-canvas-test.js
+  a93e0090089d7169 1-217
+_scripts/chord-canvas-browser-check.js
+  a93e0090089d7169 1-124
+_prototypes/chord-canvas/board.js
+  a93e0090089d7169 1-149
+_prototypes/chord-canvas/index.html
+  a93e0090089d7169 1-61
+_prototypes/chord-canvas/README.md
+  529bf6774be9bd17 1-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "320c23d0025a5b5797155f4a60171c0ecbe25c4a",
+  "prompts": {
+    "529bf6774be9bd17": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "4779ffe6-9d13-43ff-9b2d-2d99dc38bf3c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 149,
+      "total_deletions": 7,
+      "accepted_lines": 149,
+      "overriden_lines": 0
+    },
+    "a93e0090089d7169": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "33d0589c-8a5d-49ed-b109-e5e0c19cb781",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 451,
+      "total_deletions": 56,
+      "accepted_lines": 3406,
+      "overriden_lines": 0
+    }
+  }
+}
