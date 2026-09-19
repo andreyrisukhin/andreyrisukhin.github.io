@@ -1,0 +1,97 @@
+// Only the creative routes load this sheet. Music keeps its instrument palette.
+.creative-paper {
+  --paper: var(--music-paper, #faf7f0);
+  --paper-ink: var(--music-ink, #29251f);
+  --paper-muted: var(--music-muted, #72665c);
+  --paper-accent: var(--music-accent, #80533f);
+  --paper-rule: var(--music-rule, #d6cbbd);
+  --wash-blue: #688d96;
+  --wash-rose: #b57a6b;
+  --wash-gold: #c5a467;
+  --ink-wash: 0;
+  --global-bg-color: var(--paper);
+  --global-card-bg-color: var(--paper);
+  --global-text-color: var(--paper-ink);
+  --global-text-color-light: var(--paper-muted);
+  --global-theme-color: var(--paper-accent);
+  --global-hover-color: var(--paper-accent);
+  --global-divider-color: var(--paper-rule);
+  background-color: var(--paper);
+  color: var(--paper-ink);
+  isolation: isolate;
+
+  &.music-notebook {
+    --global-card-bg-color: var(--music-surface);
+  }
+
+  > .container {
+    position: relative;
+  }
+
+  h1,
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 400;
+  }
+}
+
+html[data-theme="dark"] .creative-paper:not(.music-notebook) {
+  --paper: #191e24;
+  --paper-ink: #eee9df;
+  --paper-muted: #bbb3a8;
+  --paper-accent: #dbb696;
+  --paper-rule: #4a4d50;
+  --wash-blue: #729ba6;
+  --wash-rose: #ac817f;
+  --wash-gold: #a49475;
+}
+
+.creative-wash {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--ink-wash);
+  transition: opacity 6s ease;
+
+  span {
+    position: absolute;
+    width: 75vw;
+    height: 90vh;
+    filter: blur(30px);
+    border-radius: 43% 57% 62% 38% / 55% 36% 64% 45%;
+    background: radial-gradient(ellipse, var(--wash-blue), transparent 68%);
+    opacity: 0.2;
+    top: 5%;
+    left: -50%;
+  }
+
+  span:nth-child(2) {
+    background: radial-gradient(ellipse, var(--wash-rose), transparent 68%);
+    top: 35%;
+    left: 75%;
+  }
+
+  span:nth-child(3) {
+    background: radial-gradient(ellipse, var(--wash-gold), transparent 68%);
+    top: 75%;
+    left: -25%;
+  }
+}
+
+.creative-paper:has(.kata-practice.is-still) .creative-wash {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .creative-wash {
+    transition: none;
+  }
+}
+
+@media print {
+  .creative-wash {
+    display: none;
+  }
+}

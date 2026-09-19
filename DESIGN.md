@@ -8,6 +8,15 @@ Planned menu, motion, and palette work lives in [`SITE_DESIGN_REFRESH_PLAN.md`](
 
 ## Core principles
 
+### Creative pages: paper and ink
+
+Music, ditherer, and kata may gather soft watercolor washes as the reader interacts.
+Keep this treatment off the homepage, writing, and other non-creative pages.
+Music retains its instrument palette. Kata steps sit above a slowly drifting
+landscape, with stars, fractured plains, and a distant campfire for Sleep Form.
+Only the scenery fades; text remains legible. Keep navigation stationary, pause
+step motion on hover or focus, offer a motion toggle, and honor reduced motion.
+
 ### 1. Images need room to breathe
 
 Pictures lose impact when crammed against text. A photo separated from the surrounding paragraphs by clear vertical space reads as deliberate; a photo flush against text reads as filler.

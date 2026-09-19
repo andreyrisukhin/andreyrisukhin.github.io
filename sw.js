@@ -38,6 +38,7 @@ const PRECACHE_URLS = [
   '/assets/js/vendor/soundfont-player.min.js',
   '/assets/js/vendor/opensheetmusicdisplay.min.js',
   '/assets/js/theme.js',
+  '/assets/js/creative-paper.js',
   '/assets/js/vanilla-back-to-top.min.js',
   '/assets/js/bootstrap.bundle.min.js',
   '/assets/css/bootstrap.min.css',
@@ -75,6 +76,7 @@ const PRECACHE_URLS = [
   '/assets/js/sheet-music/dev-annotator.css',
 
   '/assets/css/main.css',
+  '/assets/css/creative.css',
 ];
 
 const RUNTIME_CDN_HOSTS = [

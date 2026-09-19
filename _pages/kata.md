@@ -14,90 +14,49 @@ description: "Breath and motion recipes for quick resets."
   </p>
 </div>
 
-{% assign kata_recipes = site.data.kata.recipes %}
+<div class="kata-practice" data-kata-practice data-scene="morning">
+  <div class="kata-toolbar">
+    <nav class="kata-nav" aria-label="Kata recipes" hidden>
+      {% for recipe in site.data.kata.recipes %}
+        <button type="button" data-kata-toggle="{{ recipe.id }}" aria-controls="{{ recipe.id }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+          {{ recipe.title }}
+        </button>
+      {% endfor %}
+    </nav>
+    <button type="button" class="kata-motion" data-kata-motion aria-pressed="false" hidden>Pause motion</button>
+  </div>
 
-<nav class="kata-nav" aria-label="Kata recipes">
-  {% for recipe in kata_recipes %}
-    <button type="button" data-kata-toggle="{{ recipe.id }}" aria-pressed="false">
-      {{ recipe.title }}
-    </button>
-  {% endfor %}
-</nav>
-
-<div class="kata-recipes">
-  {% for recipe in kata_recipes %}
-    <section id="{{ recipe.id }}" class="kata-recipe" data-kata-recipe>
-      <img src="{{ recipe.image | relative_url }}" alt="{{ recipe.image_alt }}">
-      <div>
-        <h2>{{ recipe.title }}</h2>
-        <p class="kata-summary">
-          <button class="kata-toggle" type="button" aria-expanded="false">
-            {{ recipe.summary }}
-          </button>
-        </p>
-        <div class="kata-detail">
+  <div class="kata-landscape">
+    {% include kata-scene.liquid %}
+    <div class="kata-recipes">
+      {% for recipe in site.data.kata.recipes %}
+        <section id="{{ recipe.id }}" class="kata-recipe" data-kata-recipe data-scene="{% if recipe.id == 'night-soften' %}night{% else %}morning{% endif %}" aria-labelledby="{{ recipe.id }}-title">
+          <header class="kata-recipe-header">
+            <p class="kata-eyebrow">{% if recipe.id == 'night-soften' %}Beneath the stars{% else %}With the first light{% endif %}</p>
+            <h2 id="{{ recipe.id }}-title">{{ recipe.title }}</h2>
+            <p class="kata-summary">{{ recipe.summary }}</p>
+            <p class="kata-hint">Open a step. Take your time.</p>
+          </header>
           <ol class="kata-steps">
             {% for item in recipe.details %}
-              {% assign detail_label = item.label | default: item %}
-              {% assign detail_text = item.detail %}
-              <li>
-                <span class="kata-detail-label">{{ detail_label }}</span>
-                {% if detail_text %}
-                  <span class="kata-detail-text">: {{ detail_text }}</span>
-                {% endif %}
+              <li style="--step: {{ forloop.index0 }}">
+                <details class="kata-step">
+                  <summary>
+                    <span class="kata-step-number" aria-hidden="true">0{{ forloop.index }}</span>
+                    <span>{{ item.label | default: item }}</span>
+                    <span class="kata-step-mark" aria-hidden="true">+</span>
+                  </summary>
+                  {% if item.detail %}<p>{{ item.detail }}</p>{% endif %}
+                </details>
               </li>
             {% endfor %}
           </ol>
-        </div>
-        {% if recipe.tip %}
-          <p class="kata-tips">Cue: {{ recipe.tip }}</p>
-        {% endif %}
-      </div>
-    </section>
-  {% endfor %}
+          {% if recipe.tip %}<p class="kata-tips">Cue: {{ recipe.tip }}</p>{% endif %}
+        </section>
+      {% endfor %}
+    </div>
+    <p class="kata-scene-caption" aria-hidden="true"><span class="kata-caption-morning">A little light. A little room to breathe.</span><span class="kata-caption-night">The shattered plains. A fire still burning.</span></p>
+  </div>
 </div>
 
-<script>
-  (() => {
-    const buttons = Array.from(document.querySelectorAll("[data-kata-toggle]"));
-    const sections = new Map(
-      Array.from(document.querySelectorAll("[data-kata-recipe]")).map((section) => [
-        section.id,
-        section,
-      ])
-    );
-
-    buttons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const targetId = button.getAttribute("data-kata-toggle");
-        const section = sections.get(targetId);
-        if (!section) return;
-
-        const isActive = button.classList.toggle("is-active");
-        button.setAttribute("aria-pressed", String(isActive));
-        section.classList.toggle("is-visible", isActive);
-        if (!isActive) {
-          section.classList.remove("is-expanded");
-          const toggle = section.querySelector(".kata-toggle");
-          if (toggle) toggle.setAttribute("aria-expanded", "false");
-        }
-      });
-    });
-
-    sections.forEach((section) => {
-      const toggle = section.querySelector(".kata-toggle");
-      if (!toggle) return;
-
-      toggle.addEventListener("click", (event) => {
-        event.stopPropagation();
-        const isExpanded = section.classList.toggle("is-expanded");
-        toggle.setAttribute("aria-expanded", String(isExpanded));
-      });
-
-      section.addEventListener("click", () => {
-        const isExpanded = section.classList.toggle("is-expanded");
-        toggle.setAttribute("aria-expanded", String(isExpanded));
-      });
-    });
-  })();
-</script>
+<script defer src="{{ '/assets/js/kata.js' | relative_url | bust_file_cache }}"></script>

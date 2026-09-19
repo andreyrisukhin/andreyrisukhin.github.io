@@ -1,3 +1,7 @@
+{% assign creative_page = false %}
+{% if page.url contains '/music/' or page.url == '/ditherer/' or page.url == '/kata/' %}
+  {% assign creative_page = true %}
+{% endif %}
 <!doctype html>
 <html lang="{{ site.lang }}">
   <!-- Head -->
@@ -13,10 +17,17 @@
       <meta http-equiv="refresh" content="3; url={{ redirect }}">
     {% endif %}
     {% include head.liquid %}
+    {% if creative_page %}
+      <link rel="stylesheet" href="{{ '/assets/css/creative.css' | relative_url | bust_css_cache }}">
+      <script defer src="{{ '/assets/js/creative-paper.js' | relative_url | bust_file_cache }}"></script>
+    {% endif %}
   </head>
 
   <!-- Body -->
-  <body class="{% if page.url contains '/music/' %}music-notebook{% endif %} {% if site.navbar_fixed %}fixed-top-nav{% endif %} {% if site.footer_fixed %}fixed-bottom-footer{% else %}sticky-bottom-footer{% endif %}">
+  <body class="{% if creative_page %}creative-paper{% endif %} {% if page.url contains '/music/' %}music-notebook{% endif %} {% if site.navbar_fixed %}fixed-top-nav{% endif %} {% if site.footer_fixed %}fixed-bottom-footer{% else %}sticky-bottom-footer{% endif %}">
+    {% if creative_page %}
+      <div class="creative-wash" aria-hidden="true"><span></span><span></span><span></span></div>
+    {% endif %}
     <!-- Header -->
     {% include header.liquid %}
 
