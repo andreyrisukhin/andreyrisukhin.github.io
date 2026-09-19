@@ -73,20 +73,16 @@ input {
 .tile.long-name {
   font-size: 18px;
 }
-.tile.half,
-#landing.half {
-  width: 68px;
+.tile.compact {
   border-radius: 10px;
-}
-.tile.half {
   padding: 8px 4px 24px;
   font-size: 18px;
 }
-.tile.half.long-name {
+.tile.compact.long-name {
   font-size: 14px;
 }
-.tile.half::after {
-  content: "2 beats";
+.tile::after {
+  content: attr(data-label);
   position: absolute;
   bottom: 10px;
   left: 0;
@@ -94,8 +90,51 @@ input {
   font-size: 12px;
   letter-spacing: 0;
 }
-.tile.merge-preview::after {
-  opacity: 0.65;
+.tile {
+  padding-bottom: 24px;
+}
+.tile.empty {
+  border: 1px dashed #a99e8f;
+  box-shadow: none;
+  color: #655d54;
+}
+.tile.empty::before {
+  background: #f5f2ec80;
+}
+.tile.tiny {
+  padding: 0;
+  min-width: 0;
+  border-radius: 4px;
+}
+.tile.tiny .chord-name,
+.tile.tiny::after {
+  visibility: hidden;
+}
+.divider {
+  position: absolute;
+  width: 24px;
+  height: 104px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+.divider::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 20%;
+  height: 60%;
+  border-left: 2px solid #8c7c66;
+  opacity: 0;
+}
+.divider:hover::before,
+.divider:focus-visible::before {
+  opacity: 1;
+}
+.divider:focus-visible {
+  outline: 2px solid #645a4e;
+  border-radius: 4px;
 }
 .tile:focus-visible,
 .tile.selected {
@@ -196,6 +235,9 @@ input {
   right: max(20px, env(safe-area-inset-right));
   bottom: max(20px, env(safe-area-inset-bottom));
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: calc(100% - 32px);
   gap: 2px;
   padding: 4px;
   border: 1px solid #e4dfd6;
@@ -211,6 +253,10 @@ input {
   font-size: 24px;
   cursor: pointer;
 }
+#tools #zoom-fit {
+  width: 54px;
+  font-size: 14px;
+}
 #tools button:hover {
   background: #eee9e1;
 }
@@ -221,7 +267,8 @@ input {
 #tools button:focus-visible {
   outline: 2px solid #645a4e;
 }
-#help {
+#help,
+#settings {
   position: fixed;
   bottom: 88px;
   right: 20px;
@@ -235,6 +282,86 @@ input {
   box-shadow: 0 8px 30px #302c2810;
   font-size: 14px;
   line-height: 1.5;
+}
+#selection {
+  position: fixed;
+  left: 16px;
+  top: max(16px, env(safe-area-inset-top));
+  width: min(380px, calc(100% - 32px));
+  max-height: 45%;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid #e4dfd6;
+  border-radius: 12px;
+  background: #faf9f6f5;
+  font-size: 14px;
+}
+#selection-label {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#selection button,
+#settings button,
+#selection input,
+#settings input,
+#settings select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 8px;
+  border: 1px solid #c5beb3;
+  border-radius: 6px;
+  background: #faf9f6;
+  font-size: 16px;
+  color: #302c28;
+}
+#selection button:disabled {
+  opacity: 0.5;
+}
+#split-value {
+  width: 170px;
+}
+#meter-top {
+  width: 70px;
+}
+#split-form {
+  margin-top: 12px;
+}
+#split-help,
+#split-error {
+  margin: 8px 0 0;
+  line-height: 1.4;
+}
+#split-error {
+  color: #a42b2b;
+}
+#settings label {
+  display: block;
+  margin: 12px 0 6px;
+}
+#settings label:first-child {
+  margin-top: 0;
+}
+@media (max-width: 460px) {
+  #tools {
+    display: grid;
+    grid-template-columns: repeat(4, 44px);
+    right: 16px;
+    bottom: 16px;
+    gap: 0;
+  }
+  #tools #zoom-fit {
+    width: 44px;
+  }
+  #help,
+  #settings {
+    bottom: 120px;
+  }
 }
 .sr-only {
   position: absolute;

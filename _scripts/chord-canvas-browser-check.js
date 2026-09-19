@@ -1,6 +1,7 @@
 (function () {
   const $ = (id) => document.getElementById(id);
   const tiles = () => Array.from(document.querySelectorAll(".tile"));
+  const chordName = (el) => el.querySelector(".chord-name").textContent;
   const key = (name, options = {}) =>
     document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: name, bubbles: true, cancelable: true, ...options }));
   const type = (value) => {
@@ -8,117 +9,96 @@
     $("chord-input").dispatchEvent(new Event("input", { bubbles: true }));
   };
   const submit = () => $("editor").requestSubmit();
+  const select = (tile) => {
+    tile.click();
+    key("Escape");
+  };
+  const split = (value) => {
+    $("split-toggle").click();
+    $("split-value").value = value;
+    $("split-form").requestSubmit();
+  };
   let checks = 0;
   const assert = (value, message) => {
     if (!value) throw new Error(message);
     checks++;
   };
-  assert(document.documentElement.dataset.revision === "half-cells-2", "The fresh half-cell prototype is loaded");
-  assert(
-    Array.from(document.querySelectorAll('script[src^="board.js"], script[src^="canvas.js"], link[href^="style.css"]')).every(
-      (el) => new URL(el.src || el.href).searchParams.get("v") === document.documentElement.dataset.revision
-    ),
-    "Drag logic and styles use the same cache-busting revision"
-  );
-  assert(tiles().length === 0 && $("tools").hidden, "The canvas starts blank with no toolbar or example chords");
+  assert(document.documentElement.dataset.revision === "fractions-1", "The versioned fractional prototype is loaded");
+  assert(tiles().length === 0 && $("tools").hidden, "Starts blank without a toolbar");
   const rect = $("editor").getBoundingClientRect();
-  assert(Math.abs(rect.x + rect.width / 2 - innerWidth / 2) < 1, "Initial cell is horizontally centered");
-  assert(Math.abs(rect.y + rect.height / 2 - innerHeight / 2) < 1, "Initial cell is vertically centered");
-  assert(getComputedStyle($("editor")).animationDuration === "3.6s", "Initial cell slowly pulses");
+  assert(Math.abs(rect.x + rect.width / 2 - innerWidth / 2) < 1, "Seed is horizontally centered");
+  assert(Math.abs(rect.y + rect.height / 2 - innerHeight / 2) < 1, "Seed is vertically centered");
+  assert(getComputedStyle($("editor")).animationDuration === "3.6s", "Seed gently pulses");
+  type("bad chord");
   submit();
-  assert(!$("editor").hidden && tiles().length === 0, "Empty Enter keeps the seed available");
-  type("nonsense");
-  submit();
-  assert(tiles().length === 0 && $("chord-input").getAttribute("aria-invalid") === "true", "Invalid text stays editable, never creates a tile");
+  assert($("chord-input").getAttribute("aria-invalid") === "true" && !tiles().length, "Invalid chord keeps the draft");
   key("Escape");
-  assert(!$("editor").hidden && !$("chord-input").value && $("error").hidden, "Escape returns to the empty seed");
+  assert(!$("editor").hidden && !$("chord-input").value, "Escape restores the seed");
   type("Am7");
   submit();
   const first = tiles()[0];
-  assert(first.textContent === "Am7" && $("editor").hidden, "Enter replaces the editor with a chord tile");
-  assert(!!first.style.getPropertyValue("--fill"), "The committed tile has chord-based color");
-  assert(document.activeElement === first && !$("tools").hidden, "Commit selects the tile and reveals minimal controls");
-  key("ArrowRight");
-  assert(!$("editor").hidden && $("editor").style.left === "160px", "Arrow key opens a neighboring empty cell");
-  type("D7");
-  submit();
-  const second = tiles()[1];
-  assert(
-    tiles().length === 2 && first.style.getPropertyValue("--fill") !== second.style.getPropertyValue("--fill"),
-    "Different roots get different colors"
-  );
-  key("Enter");
-  assert($("chord-input").value === "D7", "Enter edits the selected tile");
-  type("F#7/C#");
-  submit();
-  assert(second.textContent === "F#7/C#" && tiles().length === 2, "Editing replaces rather than duplicates");
-  key("ArrowDown", { shiftKey: true });
-  assert(second.style.top === "120px" && second.style.left === "160px", "Shift-arrow moves a whole tile");
-  key("z", { ctrlKey: true });
-  assert(second.style.top === "0px", "Keyboard undo restores a moved tile");
-  key("z", { ctrlKey: true, shiftKey: true });
-  assert(second.style.top === "120px", "Keyboard redo restores the move");
+  assert(first.dataset.duration === "1" && chordName(first) === "Am7", "New chord occupies a whole measure");
+  split("3");
+  assert(tiles().length === 3 && tiles().every((el) => el.dataset.duration === "1/3"), "Split into thirds uses exact fractions");
+  assert(tiles().filter((el) => el.classList.contains("empty")).length === 2, "New split spans start empty");
+  const second = tiles()[1],
+    third = tiles()[2];
   second.focus();
   key("Enter");
-  type("Em7");
+  type("D7");
+  submit();
+  assert(chordName(second) === "D7" && second.dataset.duration === "1/3", "Typing in an empty span preserves its duration");
+  select(first);
+  split("2:1");
+  assert(first.dataset.duration === "2/9", "Weighted split scales the target span only");
+  assert(
+    second.dataset.duration === "1/3" && second.dataset.start === "1/3" && third.dataset.start === "2/3",
+    "Neighbor durations and starts are unchanged"
+  );
+  const count = tiles().length;
+  split("0:1");
+  assert(!$("split-error").hidden && tiles().length === count, "Invalid ratios reject atomically");
   key("Escape");
-  assert(second.textContent === "F#7/C#" && !second.hidden, "Cancelling an edit leaves the original visible");
+  first.focus();
+  key("z", { ctrlKey: true });
+  assert(first.dataset.duration === "1/3" && tiles().length === 3, "Undo restores the unsplit target");
+  key("z", { ctrlKey: true, shiftKey: true });
+  assert(first.dataset.duration === "2/9" && tiles().length === 4, "Redo restores weighted subdivision");
+  select(second);
   key("Delete");
-  assert(tiles().length === 1, "Delete removes a selected chord");
-  $("undo").click();
-  assert(tiles().length === 2 && tiles()[1].textContent === "F#7/C#", "Undo restores deleted content");
-  tiles()[1].focus();
-  key("ArrowLeft");
+  assert(second.classList.contains("empty") && second.dataset.duration === "1/3", "Delete leaves an empty timed span");
+  key("z", { ctrlKey: true });
+  assert(chordName(second) === "D7", "Undo restores a cleared chord");
+  select(first);
+  $("zoom-fit").click();
+  assert(Number($("zoom-fit").textContent.replace("×", "")) >= 4, "Zoom to span makes small subdivisions editable");
+  assert(document.querySelectorAll(".divider:not([hidden])").length >= 1, "Zoom reveals duration dividers");
+  const divider = document.querySelector('.divider[data-left="' + first.dataset.id + '"]:not([hidden])');
+  const beforeSecondStart = second.dataset.start,
+    beforeThirdStart = third.dataset.start;
+  divider.focus();
+  key("ArrowRight");
+  assert(first.dataset.duration !== "2/9", "Keyboard divider adjustment changes the adjacent pair");
+  assert(second.dataset.start === beforeSecondStart && third.dataset.start === beforeThirdStart, "Divider resizing does not shift later spans");
+  key("z", { ctrlKey: true });
+  assert(first.dataset.duration === "2/9", "Divider resize is one undo step");
+  $("settings-toggle").click();
+  $("meter-top").value = "6";
+  $("meter-bottom").value = "8";
+  $("meter-form").requestSubmit();
+  assert(first.dataset.duration === "2/9" && second.dataset.label === "2 eighth-notes", "Meter changes duration labels but not fractions");
+  key("Escape");
+  select(first);
+  key("Enter");
   type('"><img src=x onerror=alert(1)>');
   submit();
-  assert(!document.querySelector("img") && tiles().length === 2, "Untrusted input cannot create HTML or a tile");
+  assert(!document.querySelector("img") && $("chord-input").getAttribute("aria-invalid") === "true", "Draft cannot create markup");
   key("Escape");
+  assert(chordName(first) === "Am7", "Cancelling preserves the chord identity");
   $("help-toggle").click();
-  assert(!$("help").hidden && $("help-toggle").getAttribute("aria-expanded") === "true", "Help is available without filling the canvas");
+  assert(!$("help").hidden, "Help remains available");
   key("Escape");
-  assert($("help").hidden, "Escape closes help");
-  const restored = tiles()[1];
-  restored.focus();
-  key("ArrowUp", { shiftKey: true });
-  key("ArrowLeft", { shiftKey: true });
-  assert(tiles().length === 2 && tiles().every((t) => t.classList.contains("half")), "Moving onto a chord squeezes both into halves");
-  assert(first.style.left === "-38px" && restored.style.left === "38px" && restored.style.top === "0px", "Halves occupy one grid space in order");
-  assert(
-    tiles().every((t) => t.dataset.beats === "2" && t.getAttribute("aria-label").includes("2 beats")),
-    "Both halves represent two beats"
-  );
-  key("z", { ctrlKey: true });
-  assert(
-    tiles().every((t) => t.dataset.beats === "4"),
-    "Undo restores separate four-beat cells"
-  );
-  key("z", { ctrlKey: true, shiftKey: true });
-  assert(
-    tiles().every((t) => t.dataset.beats === "2"),
-    "Redo restores the subdivision"
-  );
-  restored.focus();
-  key("Enter");
-  assert($("chord-input").value === "F#7/C#" && !first.hidden, "Editing a half targets only that chord");
-  type("F#maj7/C#");
-  submit();
-  assert(
-    restored.textContent === "F#maj7/C#" && restored.dataset.beats === "2" && first.textContent === "Am7",
-    "Half edits retain their duration and neighbor"
-  );
-  key("ArrowLeft");
-  assert(document.activeElement === first, "Left arrow navigates to the other half");
-  key("ArrowRight");
-  assert(document.activeElement === restored, "Right arrow returns to the second half");
-  key("ArrowDown", { shiftKey: true });
-  assert(tiles().every((t) => t.dataset.beats === "4") && restored.style.top === "120px", "Pulling a half out expands both chords");
-  key("z", { ctrlKey: true });
-  restored.focus();
-  key("Delete");
-  assert(tiles().length === 1 && first.dataset.beats === "4", "Deleting a half expands its remaining partner");
-  $("undo").click();
-  assert(tiles().length === 2 && tiles().every((t) => t.dataset.beats === "2"), "Undo restores the deleted half and the subdivision");
-  assert(document.documentElement.scrollWidth === innerWidth, "The canvas does not overflow horizontally");
-  assert(document.documentElement.scrollHeight <= innerHeight, "The canvas does not add document scrolling");
+  assert(document.documentElement.scrollWidth === innerWidth, "No horizontal document overflow");
+  assert(document.documentElement.scrollHeight <= innerHeight, "No vertical document overflow");
   return { result: "passed", checks, width: innerWidth };
 })();

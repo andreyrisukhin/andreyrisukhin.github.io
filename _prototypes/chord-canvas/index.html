@@ -1,27 +1,29 @@
 <!doctype html>
-<html lang="en" data-revision="half-cells-2">
+<html lang="en" data-revision="fractions-1">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <link rel="icon" href="data:," />
-    <title>Chord canvas · Half cells</title>
-    <link rel="stylesheet" href="style.css?v=half-cells-2" />
+    <title>Chord canvas · Subdivisions</title>
+    <link rel="stylesheet" href="style.css?v=fractions-1" />
     <script defer src="../../assets/js/vendor/tonal.min.js"></script>
     <script defer src="../../assets/js/music/common.js"></script>
     <script defer src="../../assets/js/workbench/model.js"></script>
-    <script defer src="board.js?v=half-cells-2"></script>
-    <script defer src="canvas.js?v=half-cells-2"></script>
+    <script defer src="fractions.js?v=fractions-1"></script>
+    <script defer src="board.js?v=fractions-1"></script>
+    <script defer src="canvas.js?v=fractions-1"></script>
   </head>
   <body>
     <main id="canvas" tabindex="-1" aria-label="Chord canvas" aria-describedby="instructions">
       <h1 class="sr-only">Chord canvas</h1>
       <p id="instructions" class="sr-only">
         Type a chord and press Enter. Click anywhere to add another. Drag chords to arrange them. Arrow keys choose a neighboring cell; Shift and
-        arrow keys move a chord. Enter edits a selected chord. Delete removes it. Drag empty space to pan.
+        arrow keys move a chord. Enter edits a selected chord. Delete leaves an empty timed span. Drag empty space to pan.
       </p>
       <div id="world">
         <div id="tiles"></div>
+        <div id="dividers"></div>
         <div id="landing" aria-hidden="true" hidden></div>
         <form id="editor" class="cell seed" autocomplete="off">
           <label class="sr-only" for="chord-input">Chord name</label>
@@ -44,16 +46,71 @@
       <button id="undo" type="button" aria-label="Undo" title="Undo (Ctrl / ⌘ Z)" disabled>↶</button>
       <button id="redo" type="button" aria-label="Redo" title="Redo (Ctrl / ⌘ Shift Z)" disabled>↷</button>
       <button id="home" type="button" aria-label="Center canvas" title="Center canvas">⌖</button>
+      <button id="zoom-out" type="button" aria-label="Zoom out in time">−</button>
+      <button id="zoom-fit" type="button" aria-label="Zoom to selected span" title="Zoom to selected span">1×</button>
+      <button id="zoom-in" type="button" aria-label="Zoom in time">+</button>
+      <button id="settings-toggle" type="button" aria-label="Meter and snapping" aria-expanded="false" aria-controls="settings">⋯</button>
       <button id="help-toggle" type="button" aria-label="Canvas help" aria-expanded="false" aria-controls="help">?</button>
     </aside>
+    <aside id="selection" aria-label="Selected span" hidden>
+      <p id="selection-label"></p>
+      <div class="actions">
+        <button id="edit" type="button">Edit</button>
+        <button id="split-toggle" type="button" aria-expanded="false" aria-controls="split-form">Split…</button>
+        <button id="remove" type="button">Clear chord</button>
+        <button id="clear-measure" type="button" hidden>Remove empty measure</button>
+      </div>
+      <form id="split-form" hidden>
+        <label for="split-value">Equal parts or ratio</label>
+        <div class="actions">
+          <input id="split-value" value="2" placeholder="3 or 2:1" maxlength="300" aria-describedby="split-help split-error" />
+          <button type="submit">Split</button>
+        </div>
+        <p id="split-help">2–64 parts, or weights such as 2:1 or 1/2:1/3. New spans start empty.</p>
+        <p id="split-error" role="alert" hidden></p>
+      </form>
+    </aside>
+    <section id="settings" aria-label="Meter and snapping" hidden>
+      <form id="meter-form">
+        <label for="meter-top">Meter</label>
+        <div class="actions">
+          <input id="meter-top" type="number" min="1" max="32" value="4" aria-label="Meter numerator" required />
+          <span>/</span>
+          <select id="meter-bottom" aria-label="Meter denominator">
+            <option>2</option>
+            <option selected>4</option>
+            <option>8</option>
+            <option>16</option>
+          </select>
+          <button type="submit">Apply</button>
+        </div>
+      </form>
+      <label for="snap">Divider snap, parts of the adjacent pair</label>
+      <select id="snap">
+        <option value="auto">Musical fractions</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="12">12</option>
+        <option value="16">16</option>
+        <option value="32">32</option>
+        <option value="64">64</option>
+      </select>
+      <p>Meter changes duration labels, not the fraction of a measure occupied by each chord.</p>
+    </section>
     <section id="help" aria-label="Canvas help" hidden>
       <p>Click anywhere. Type a chord. Enter to fill.</p>
-      <p>Drop a chord onto another to squeeze them into two halves, 2 beats each. Drop on the left or right to choose the order.</p>
-      <p>Drag a half out to separate them into full 4-beat cells again. Each space holds at most two chords for now.</p>
+      <p>Drop onto a chord to split just that span in half. Drop onto an empty span to fill it. Neighbors keep their timing.</p>
+      <p>Select a span and choose Split… for thirds, fifths, or a ratio such as 2:1. Moving or clearing a chord leaves an empty timed span.</p>
+      <p>Drag a divider to resize its two neighbors. Focus a divider and use arrow keys for keyboard resizing.</p>
+      <p>Use + or Zoom to selected span to work on small subdivisions. Select any span with Tab, even when it is too narrow to click.</p>
       <p>Drag the paper to pan. Scroll or use a trackpad, too.</p>
       <p>Double-click a tile to edit. Arrow keys choose a cell; Shift + arrows move it.</p>
       <p>Colors follow the root around the circle of fifths; chord quality changes the shade.</p>
-      <p>This is a scratch canvas. Reload starts fresh.</p>
+      <p>Empty canvas is untimed space; outlined empty spans belong to a measure. This is a scratch canvas. Reload starts fresh.</p>
     </section>
     <p id="status" class="sr-only" role="status"></p>
     <noscript>This experiment needs JavaScript to recognize chords.</noscript>

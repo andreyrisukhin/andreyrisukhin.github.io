@@ -3,103 +3,183 @@
   var $ = function (id) {
     return document.getElementById(id);
   };
+  var F = window.ChordFractions,
+    board = window.ChordCanvasBoard.create();
   var canvas = $("canvas"),
     world = $("world"),
     tiles = $("tiles"),
     editor = $("editor"),
     input = $("chord-input");
-  var board = window.ChordCanvasBoard.create();
-  var pitchX = 160,
-    pitchY = 120;
-  var pan = { x: 0, y: 0 },
-    draft = { x: 0, y: 0 },
+  var zoom = 1,
+    pan = { x: 0, y: 0 },
+    draft = null,
     selected = null,
     gesture = null,
     space = false;
   var lastPoint = { x: innerWidth / 2, y: innerHeight / 2 };
+  var zero = F.make(0, 1),
+    one = F.make(1, 1);
   function announce(text) {
     $("status").textContent = text;
   }
-  function position(node, x, y) {
-    node.style.left = x + "px";
-    node.style.top = y + "px";
+  function node(id) {
+    return tiles.querySelector('[data-id="' + id + '"]');
   }
-  function place(node, cell) {
-    var offset = cell.slot === 0 ? -38 : cell.slot === 1 ? 38 : 0;
-    position(node, cell.x * pitchX + offset, cell.y * pitchY);
+  function geometry(cell) {
+    var start = F.number(cell.start || zero),
+      duration = F.number(cell.duration || one);
+    var span = 144 * zoom * duration,
+      gap = Math.min(8, span * 0.1);
+    return { x: cell.x * 160 * zoom - 72 * zoom + (start + duration / 2) * 144 * zoom, y: cell.y * 120, width: Math.max(0.01, span - gap) };
   }
-  function byId(id) {
-    return board.all().find(function (cell) {
-      return cell.id === id;
-    });
+  function place(el, cell, fixedWidth) {
+    var g = geometry(cell);
+    el.style.left = g.x + "px";
+    el.style.top = g.y + "px";
+    el.style.width = (fixedWidth || g.width) + "px";
+    el.classList.toggle("compact", !fixedWidth && g.width < 100);
+    el.classList.toggle("tiny", !fixedWidth && g.width < 52);
   }
   function view() {
     world.style.transform = "translate(" + pan.x + "px," + pan.y + "px)";
   }
   function point(x, y) {
-    var rect = world.getBoundingClientRect();
-    var column = Math.round((x - rect.left) / pitchX);
-    return { x: column, y: Math.round((y - rect.top) / pitchY), side: x - rect.left < column * pitchX ? 0 : 1 };
+    var rect = world.getBoundingClientRect(),
+      local = x - rect.left;
+    var column = Math.round(local / (160 * zoom));
+    return {
+      x: column,
+      y: Math.round((y - rect.top) / 120),
+      fraction: Math.max(0, Math.min(1, (local - column * 160 * zoom + 72 * zoom) / (144 * zoom))),
+    };
   }
   function reveal(cell) {
-    var x = innerWidth / 2 + pan.x + cell.x * pitchX;
-    var y = innerHeight / 2 + pan.y + cell.y * pitchY;
+    var g = geometry(cell),
+      x = innerWidth / 2 + pan.x + g.x,
+      y = innerHeight / 2 + pan.y + g.y;
     var height = window.visualViewport ? window.visualViewport.height : innerHeight;
-    var side = $("error").hidden ? 88 : 112;
-    var bottom = $("error").hidden ? 88 : 156;
+    var side = Math.min(innerWidth / 2, Math.max($("error").hidden ? 88 : 112, draft ? 88 : g.width / 2 + 12)),
+      bottom = $("error").hidden ? 130 : 180;
     pan.x += Math.max(side - x, 0) + Math.min(innerWidth - side - x, 0);
-    pan.y += Math.max(72 - y, 0) + Math.min(height - bottom - y, 0);
+    pan.y += Math.max(100 - y, 0) + Math.min(height - bottom - y, 0);
     view();
   }
-  function tileNode(id) {
-    return tiles.querySelector('[data-id="' + id + '"]');
+  function durationLabel(cell) {
+    var meter = board.meter,
+      units = F.mul(cell.duration, F.make(meter.numerator, 1));
+    return meter.denominator === 4
+      ? F.text(units) + " beats"
+      : F.text(units) + " " + { 2: "half", 8: "eighth", 16: "sixteenth" }[meter.denominator] + "-notes";
   }
-  function render() {
-    var all = board.all();
+  function panels() {
+    var cell = board.get(selected);
+    $("selection").hidden = !cell || !!draft || !!gesture;
+    if (cell) {
+      $("selection-label").textContent = (cell.name || "Empty span") + " · " + F.text(cell.duration) + " measure · " + durationLabel(cell);
+      $("edit").textContent = cell.name ? "Edit" : "Type chord";
+      $("remove").disabled = cell.name === null;
+      $("clear-measure").hidden = board.all().some(function (c) {
+        return c.x === cell.x && c.y === cell.y && c.name !== null;
+      });
+    }
+    $("undo").disabled = !board.canUndo;
+    $("redo").disabled = !board.canRedo;
+    $("tools").hidden = !board.all().length && !board.canRedo;
+    $("zoom-fit").textContent = zoom + "×";
+    $("zoom-out").disabled = zoom <= 1;
+    $("zoom-in").disabled = zoom >= 64;
+    $("meter-top").value = board.meter.numerator;
+    $("meter-bottom").value = board.meter.denominator;
+  }
+  function render(overrides) {
+    var all = board.all().map(function (cell) {
+      return Object.assign(cell, overrides && overrides.get(cell.id));
+    });
     var ids = new Set(
-      all.map(function (c) {
-        return String(c.id);
+      all.map(function (cell) {
+        return String(cell.id);
       })
     );
     Array.from(tiles.children).forEach(function (el) {
       if (!ids.has(el.dataset.id)) el.remove();
     });
     all.forEach(function (cell) {
-      var el = tileNode(cell.id);
+      var el = node(cell.id);
       if (!el) {
         el = document.createElement("button");
         el.type = "button";
         el.className = "cell tile";
         el.dataset.id = cell.id;
+        var name = document.createElement("span");
+        name.className = "chord-name";
+        el.appendChild(name);
         tiles.appendChild(el);
       }
-      if (el.textContent !== cell.name) el.textContent = cell.name;
-      el.dataset.beats = cell.slot === null ? "4" : "2";
-      el.dataset.slot = cell.slot === null ? "full" : String(cell.slot);
-      el.title = cell.name + " · " + el.dataset.beats + " beats";
+      var text = cell.name || "+";
+      if (el.firstChild.textContent !== text) el.firstChild.textContent = text;
+      el.dataset.duration = F.text(cell.duration);
+      el.dataset.start = F.text(cell.start);
+      el.dataset.measure = cell.x + "," + cell.y;
+      el.dataset.label = durationLabel(cell);
       el.setAttribute(
         "aria-label",
-        cell.name +
+        (cell.name || "Empty span") +
           ", " +
-          el.dataset.beats +
-          " beats, column " +
+          F.text(cell.duration) +
+          " measure, " +
+          durationLabel(cell) +
+          ", column " +
           cell.x +
           ", row " +
           cell.y +
-          (cell.slot === null ? "" : cell.slot === 0 ? ", first half" : ", second half") +
-          ". Double-click or Enter to edit."
+          ". Enter to edit."
       );
+      el.title = el.getAttribute("aria-label");
+      el.classList.toggle("empty", cell.name === null);
       el.classList.toggle("selected", cell.id === selected);
-      el.classList.toggle("long-name", cell.name.length > 8);
-      el.classList.toggle("half", cell.slot !== null);
-      el.classList.remove("merge-preview");
+      el.classList.toggle("long-name", !!cell.name && cell.name.length > 8);
       el.hidden = !!draft && draft.id === cell.id;
-      el.style.setProperty("--fill", cell.fill);
+      el.style.setProperty("--fill", cell.fill || "#f5f2ec");
       place(el, cell);
     });
-    $("undo").disabled = !board.canUndo;
-    $("redo").disabled = !board.canRedo;
-    $("tools").hidden = !all.length && !board.canRedo;
+    renderDividers(all);
+    panels();
+  }
+  function renderDividers(all) {
+    var valid = new Set();
+    all.forEach(function (right, i) {
+      var left = all[i - 1];
+      if (!left || left.x !== right.x || left.y !== right.y) return;
+      var key = left.id + "-" + right.id;
+      valid.add(key);
+      var el = $("dividers").querySelector('[data-key="' + key + '"]');
+      if (!el) {
+        el = document.createElement("div");
+        el.className = "divider";
+        el.dataset.key = key;
+        el.tabIndex = 0;
+        el.setAttribute("role", "slider");
+        el.setAttribute("aria-orientation", "horizontal");
+        $("dividers").appendChild(el);
+      }
+      el.dataset.left = left.id;
+      el.dataset.right = right.id;
+      el.style.left = right.x * 160 * zoom - 72 * zoom + F.number(right.start) * 144 * zoom + "px";
+      el.style.top = right.y * 120 + "px";
+      var percent = 100 * F.number(F.div(left.duration, F.add(left.duration, right.duration)));
+      el.setAttribute("aria-label", "Duration divider between " + (left.name || "empty span") + " and " + (right.name || "empty span"));
+      el.setAttribute("aria-valuemin", "0");
+      el.setAttribute("aria-valuemax", "100");
+      el.setAttribute("aria-valuenow", String(Math.round(percent)));
+      el.setAttribute("aria-valuetext", durationLabel(left) + " then " + durationLabel(right));
+      el.hidden =
+        !!draft ||
+        !!(gesture && gesture.kind === "tile") ||
+        (Math.min(geometry(left).width, geometry(right).width) < 44 && el !== document.activeElement && !(gesture && gesture.capture === el));
+    });
+    Array.from($("dividers").children).forEach(function (el) {
+      if (!valid.has(el.dataset.key)) el.remove();
+    });
   }
   function hideEditor() {
     draft = null;
@@ -109,21 +189,28 @@
     input.removeAttribute("aria-invalid");
   }
   function open(cell, value, focus) {
-    draft = { x: cell.x, y: cell.y, id: cell.id };
-    selected = null;
+    draft = Object.assign({ start: zero, duration: one }, cell);
+    selected = cell.id || null;
     editor.hidden = false;
-    place(editor, draft);
+    place(editor, draft, 144);
     input.value = value || "";
     input.removeAttribute("aria-invalid");
     $("error").hidden = true;
     editor.classList.toggle("seed", !board.all().length && !input.value);
     editor.classList.toggle("has-text", !!input.value);
+    closePanels();
     render();
     reveal(draft);
     if (focus !== false) {
       input.focus({ preventScroll: true });
       input.select();
     }
+  }
+  function choose(cell) {
+    selected = cell.id;
+    closePanels();
+    render();
+    node(cell.id).focus({ preventScroll: true });
   }
   function commit() {
     if (!draft) return true;
@@ -142,43 +229,47 @@
       return false;
     }
     hideEditor();
-    selected = cell.id;
-    render();
-    tileNode(cell.id).focus({ preventScroll: true });
-    announce(cell.name + " placed. Click anywhere to add another.");
+    choose(board.get(cell.id));
+    announce(cell.name + " placed.");
     return true;
   }
-  function choose(cell) {
-    selected = cell.id;
-    render();
-    tileNode(cell.id).focus({ preventScroll: true });
+  function closePanels() {
+    ["help", "settings", "split-form"].forEach(function (id) {
+      $(id).hidden = true;
+    });
+    ["help-toggle", "settings-toggle", "split-toggle"].forEach(function (id) {
+      $(id).setAttribute("aria-expanded", "false");
+    });
+    $("split-error").hidden = true;
   }
   function cancel() {
     if (gesture) {
-      finishGesture(true);
+      finish(true);
       return;
     }
     if (draft) {
-      var cell = byId(draft.id);
+      var cell = board.get(draft.id);
       hideEditor();
       render();
       if (cell) choose(cell);
       else canvas.focus({ preventScroll: true });
       if (!board.all().length) open({ x: 0, y: 0 }, "", false);
     }
-    $("help").hidden = true;
-    $("help-toggle").setAttribute("aria-expanded", "false");
+    closePanels();
   }
   function history(direction) {
+    if (gesture) return;
     if (draft && input.value) {
       cancel();
       return;
     }
     hideEditor();
+    closePanels();
     board[direction]();
-    selected = null;
+    selected = board.get(selected) ? selected : null;
     render();
-    canvas.focus({ preventScroll: true });
+    if (selected) node(selected).focus({ preventScroll: true });
+    else canvas.focus({ preventScroll: true });
     if (!board.all().length) open({ x: 0, y: 0 }, "", false);
     announce(direction === "undo" ? "Undone." : "Redone.");
   }
@@ -199,37 +290,64 @@
   tiles.addEventListener("dblclick", function (e) {
     var el = e.target.closest(".tile");
     if (!el || !commit()) return;
-    var cell = board.all().find(function (c) {
-      return c.id === Number(el.dataset.id);
-    });
+    var cell = board.get(Number(el.dataset.id));
     open(cell, cell.name);
   });
   tiles.addEventListener("click", function (e) {
     var el = e.target.closest(".tile");
     if (e.detail !== 0 || !el || !commit()) return;
-    var cell = board.all().find(function (c) {
-      return c.id === Number(el.dataset.id);
-    });
+    var cell = board.get(Number(el.dataset.id));
     open(cell, cell.name);
   });
+  canvas.addEventListener("focusin", function (e) {
+    var tile = e.target.closest(".tile"),
+      divider = e.target.closest(".divider");
+    if ((!tile && !divider) || draft || gesture) return;
+    var cell = board.get(Number(tile ? tile.dataset.id : divider.dataset.left));
+    if (tile && selected !== cell.id) {
+      selected = cell.id;
+      closePanels();
+      render();
+    }
+    requestAnimationFrame(function () {
+      if (document.activeElement !== e.target || draft || gesture) return;
+      // Native Tab must not create a second, invisible scroll offset in the canvas.
+      canvas.scrollLeft = 0;
+      canvas.scrollTop = 0;
+      reveal(board.get(cell.id) || cell);
+    });
+  });
+  function snap(value) {
+    var parts = Number($("snap").value);
+    return parts ? F.make(Math.max(1, Math.min(parts - 1, Math.round(value * parts))), parts) : F.snap(value);
+  }
+  function resizePreview(left, right, ratio) {
+    var plan = board.resizePlan(left.id, right.id, ratio);
+    if (!plan) return;
+    var overrides = new Map();
+    overrides.set(left.id, { duration: plan.left });
+    overrides.set(right.id, { start: F.add(left.start, plan.left), duration: plan.right });
+    render(overrides);
+    announce(
+      durationLabel(Object.assign({}, left, { duration: plan.left })) + " + " + durationLabel(Object.assign({}, right, { duration: plan.right }))
+    );
+  }
   canvas.addEventListener("pointerdown", function (e) {
-    if (gesture || e.target.closest("#editor") || (e.button !== 0 && e.button !== 1)) return;
-    var el = e.target.closest(".tile");
-    if (!commit()) return;
+    if (gesture || e.target.closest("#editor") || (e.button !== 0 && e.button !== 1) || !commit()) return;
     e.preventDefault();
-    var cell =
-      el && !space && e.button !== 1
-        ? board.all().find(function (c) {
-            return c.id === Number(el.dataset.id);
-          })
-        : null;
+    var divider = e.target.closest(".divider"),
+      el = e.target.closest(".tile"),
+      cell = el && board.get(Number(el.dataset.id));
+    var kind = !space && e.button !== 1 ? (divider ? "resize" : cell ? (cell.name === null ? "empty" : "tile") : "pan") : "pan";
     if (cell) choose(cell);
     else {
       selected = null;
+      closePanels();
       render();
       canvas.focus({ preventScroll: true });
     }
     gesture = {
+      kind: kind,
       id: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
@@ -238,88 +356,107 @@
       cell: cell,
       moved: false,
       panOnly: space || e.button === 1,
+      capture: divider || el || canvas,
     };
-    gesture.capture = cell ? tileNode(cell.id) : canvas;
+    if (kind === "resize") {
+      gesture.left = board.get(Number(divider.dataset.left));
+      gesture.right = board.get(Number(divider.dataset.right));
+      gesture.ratio = F.div(gesture.left.duration, F.add(gesture.left.duration, gesture.right.duration));
+      divider.focus({ preventScroll: true });
+    }
     gesture.capture.setPointerCapture(e.pointerId);
+    panels();
   });
-  canvas.addEventListener("pointermove", function (e) {
-    lastPoint = { x: e.clientX, y: e.clientY };
+  function updateGesture(e) {
     if (!gesture || gesture.id !== e.pointerId) return;
-    var dx = e.clientX - gesture.startX,
-      dy = e.clientY - gesture.startY;
-    if (Math.hypot(dx, dy) > 5) gesture.moved = true;
-    if (!gesture.moved) return;
-    if (gesture.cell) {
-      var cell = gesture.cell,
-        el = tileNode(cell.id);
-      render();
-      el.classList.add("dragging");
-      var offset = cell.slot === 0 ? -38 : cell.slot === 1 ? 38 : 0;
-      var x = cell.x * pitchX + offset + dx;
-      var column = Math.round(x / pitchX);
-      gesture.target = { x: column, y: Math.round(cell.y + dy / pitchY), side: x < column * pitchX ? 0 : 1 };
-      var target = gesture.target;
-      var plan = board.destination(cell.id, target.x, target.y, target.side);
-      var merging = plan.kind === "merge";
-      el.classList.toggle("half", cell.slot !== null || merging);
-      position(el, x, cell.y * pitchY + dy);
-      if (merging) {
-        var other = board.at(target.x, target.y),
-          otherNode = tileNode(other.id);
-        otherNode.classList.add("half", "merge-preview");
-        place(otherNode, { x: target.x, y: target.y, slot: 1 - plan.side });
-      }
+    var g = gesture,
+      dx = e.clientX - g.startX,
+      dy = e.clientY - g.startY;
+    if (Math.hypot(dx, dy) > 5) g.moved = true;
+    if (!g.moved) return;
+    if (g.kind === "resize") {
+      var total = F.number(F.add(g.left.duration, g.right.duration));
+      g.ratio = snap((F.number(g.left.duration) * 144 * zoom + dx) / (total * 144 * zoom));
+      resizePreview(g.left, g.right, g.ratio);
+    } else if (g.kind === "tile") {
+      var cell = g.cell,
+        rect = world.getBoundingClientRect(),
+        geo = geometry(cell);
+      var destination = point(rect.left + geo.x + dx, rect.top + geo.y + dy);
+      var target = board.at(destination.x, destination.y, destination.fraction);
+      var side = target && destination.fraction < F.number(F.add(target.start, F.div(target.duration, F.make(2, 1)))) ? 0 : 1;
+      var plan = board.destination(cell.id, destination.x, destination.y, target && target.id, side);
+      g.target = { x: destination.x, y: destination.y, id: target && target.id, side: side };
+      g.plan = plan;
+      var overrides = new Map();
+      if (plan.kind === "squeeze")
+        overrides.set(target.id, { start: side === 0 ? F.add(target.start, plan.duration) : target.start, duration: plan.duration });
+      render(overrides);
+      var moving = node(cell.id);
+      moving.classList.add("dragging");
+      if (plan.duration) moving.style.width = geometry({ x: 0, y: 0, duration: plan.duration }).width + "px";
+      moving.style.left = geo.x + dx + "px";
+      moving.style.top = geo.y + dy + "px";
+      $("landing").hidden = plan.kind === "same";
       $("landing").classList.toggle("blocked", plan.kind === "blocked");
-      $("landing").classList.toggle("half", merging || plan.kind === "reorder");
-      $("landing").dataset.note = plan.kind === "blocked" ? "Already two halves" : merging ? "2 beats + 2 beats" : "";
-      place($("landing"), { x: target.x, y: target.y, slot: merging || plan.kind === "reorder" ? plan.side : null });
-      $("landing").hidden = false;
+      $("landing").dataset.note =
+        plan.kind === "squeeze"
+          ? F.text(plan.duration) + " + " + F.text(plan.duration) + " measure"
+          : plan.kind === "blocked"
+            ? plan.message
+            : plan.kind === "fill"
+              ? "Fill empty span"
+              : "Keep duration";
+      place($("landing"), { x: destination.x, y: destination.y, start: plan.start || zero, duration: plan.duration || one });
     } else {
-      pan.x = gesture.panX + dx;
-      pan.y = gesture.panY + dy;
+      pan.x = g.panX + dx;
+      pan.y = g.panY + dy;
       canvas.classList.add("panning");
       view();
     }
+  }
+  canvas.addEventListener("pointermove", function (e) {
+    lastPoint = { x: e.clientX, y: e.clientY };
+    updateGesture(e);
   });
-  function finishGesture(abort, e) {
+  function finish(abort, e) {
     if (!gesture) return;
+    if (!abort && e) updateGesture(e);
     var g = gesture;
     gesture = null;
     if (g.capture.hasPointerCapture(g.id)) g.capture.releasePointerCapture(g.id);
     canvas.classList.remove("panning");
     $("landing").hidden = true;
-    if (g.cell) {
-      tileNode(g.cell.id).classList.remove("dragging");
+    if (g.kind === "tile") {
+      node(g.cell.id).classList.remove("dragging");
       if (!abort && g.moved && g.target) {
-        move(g.cell, g.target);
+        board.move(g.cell.id, g.target.x, g.target.y, g.target.id, g.target.side);
+        announce(g.plan.kind === "blocked" ? g.plan.message : "Placed. Other spans keep their timing.");
       }
+      render();
+    } else if (g.kind === "resize") {
+      if (!abort && g.moved) board.resize(g.left.id, g.right.id, g.ratio);
       render();
     } else if (abort) {
       pan.x = g.panX;
       pan.y = g.panY;
       view();
+      render();
     } else if (!g.moved && !g.panOnly && e) {
-      var cell = point(e.clientX, e.clientY),
-        existing = board.at(cell.x, cell.y, cell.side);
-      if (existing) choose(existing);
-      else open(cell);
-    }
+      var location = point(e.clientX, e.clientY),
+        cell = board.at(location.x, location.y, location.fraction);
+      if (cell) choose(cell);
+      else open(location);
+    } else render();
   }
   canvas.addEventListener("pointerup", function (e) {
-    if (gesture && e.pointerId === gesture.id) finishGesture(false, e);
+    if (gesture && gesture.id === e.pointerId) finish(false, e);
   });
-  function move(cell, target) {
-    var plan = board.destination(cell.id, target.x, target.y, target.side);
-    board.move(cell.id, target.x, target.y, target.side);
-    if (plan.kind === "blocked") announce("This space already has two halves. Move to another space.");
-    else if (plan.kind === "merge") announce("Squeezed together. Two chords, two beats each.");
-    else announce("Moved " + cell.name + ".");
-  }
-  canvas.addEventListener("pointercancel", function () {
-    finishGesture(true);
+  canvas.addEventListener("pointercancel", function (e) {
+    if (gesture && gesture.id === e.pointerId) finish(true);
   });
-  canvas.addEventListener("lostpointercapture", function () {
-    finishGesture(true);
+  canvas.addEventListener("lostpointercapture", function (e) {
+    if (gesture && gesture.id === e.pointerId) finish(true);
   });
   canvas.addEventListener(
     "wheel",
@@ -334,6 +471,17 @@
     },
     { passive: false }
   );
+  function setZoom(value) {
+    if (gesture) return;
+    var anchor = draft || board.get(selected) || { x: 0, y: 0, start: zero, duration: one },
+      previous = geometry(anchor).x;
+    zoom = Math.max(1, Math.min(64, value));
+    pan.x += previous - geometry(anchor).x;
+    render();
+    if (draft) place(editor, draft, 144);
+    view();
+    reveal(anchor);
+  }
   document.addEventListener("keydown", function (e) {
     if (e.isComposing) return;
     if (e.key === "Escape") {
@@ -342,68 +490,89 @@
       return;
     }
     if (gesture) return;
-    var editing = e.target === input;
+    var typing = e.target.matches("input, select, textarea");
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
-      if (editing && input.value) return;
+      if (typing && e.target.value) return;
       e.preventDefault();
       history(e.shiftKey ? "redo" : "undo");
       return;
     }
-    if (editing || e.ctrlKey || e.metaKey || e.altKey || e.target.closest("#tools, #help")) return;
+    if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+    var divider = e.target.closest(".divider");
+    if (divider && ["ArrowLeft", "ArrowRight", "Home", "End"].indexOf(e.key) >= 0) {
+      e.preventDefault();
+      var left = board.get(Number(divider.dataset.left)),
+        right = board.get(Number(divider.dataset.right));
+      var parts = Number($("snap").value) || 16;
+      var ratio = F.number(F.div(left.duration, F.add(left.duration, right.duration)));
+      var step = e.key === "ArrowLeft" ? -1 : 1;
+      var nextRatio = e.key === "Home" ? 1 / parts : e.key === "End" ? (parts - 1) / parts : (Math.round(ratio * parts) + step) / parts;
+      board.resize(left.id, right.id, F.make(Math.max(1, Math.min(parts - 1, Math.round(nextRatio * parts))), parts));
+      render();
+      return;
+    }
+    if (e.target.closest("#tools, #selection, #help, #settings")) return;
     if (e.key === " ") {
       e.preventDefault();
       space = true;
       return;
     }
-    var focused = e.target.closest(".tile");
-    var cell = board.all().find(function (c) {
-      return c.id === (focused ? Number(focused.dataset.id) : selected);
-    });
+    if (e.key === "+" || e.key === "=" || e.key === "-") {
+      e.preventDefault();
+      setZoom(e.key === "-" ? zoom / 2 : zoom * 2);
+      return;
+    }
+    var focused = e.target.closest(".tile"),
+      cell = board.get(focused ? Number(focused.dataset.id) : selected);
     var delta = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (delta) {
       e.preventDefault();
-      var origin = cell || { x: 0, y: 0 };
-      var next = { x: origin.x + delta[0], y: origin.y + delta[1] };
-      if (cell && e.shiftKey) {
-        next.side = delta[0] > 0 ? 0 : 1;
-        move(cell, next);
+      var origin = cell || { x: 0, y: 0 },
+        location = { x: origin.x + delta[0], y: origin.y + delta[1] };
+      var fraction = cell ? F.number(F.add(cell.start, F.div(cell.duration, F.make(2, 1)))) : 0;
+      var target = board.at(location.x, location.y, delta[0] < 0 ? 1 : delta[0] > 0 ? 0 : fraction);
+      if (e.shiftKey && cell && cell.name) {
+        board.move(cell.id, location.x, location.y, target && target.id, delta[0] > 0 ? 0 : 1);
         render();
-        reveal(next);
-      } else {
-        if (cell && cell.slot !== null && ((delta[0] === 1 && cell.slot === 0) || (delta[0] === -1 && cell.slot === 1))) {
-          next = { x: cell.x, y: cell.y, side: 1 - cell.slot };
-        } else next.side = delta[0] < 0 ? 1 : delta[0] > 0 ? 0 : cell && cell.slot;
-        var neighbor = board.at(next.x, next.y, next.side);
-        if (neighbor) {
-          choose(neighbor);
-          reveal(neighbor);
-        } else open(next);
+        reveal(board.get(cell.id));
+        return;
       }
+      if (cell && delta[0]) {
+        var members = board.all().filter(function (c) {
+          return c.x === cell.x && c.y === cell.y;
+        });
+        var neighbor =
+          members[
+            members.findIndex(function (c) {
+              return c.id === cell.id;
+            }) + delta[0]
+          ];
+        if (neighbor) target = neighbor;
+      }
+      if (target) {
+        choose(target);
+        reveal(target);
+      } else open(location);
     } else if (cell && (e.key === "Delete" || e.key === "Backspace")) {
       e.preventDefault();
       board.remove(cell.id);
-      selected = null;
       render();
-      canvas.focus({ preventScroll: true });
-      if (!board.all().length) open({ x: 0, y: 0 }, "", false);
-      announce("Chord removed.");
+      announce("Chord cleared. Its duration stays empty.");
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (cell) open(cell, cell.name);
-      else {
-        var location = point(lastPoint.x, lastPoint.y);
-        var existing = board.at(location.x, location.y, location.side);
-        if (existing) open(existing, existing.name);
-        else open(location);
-      }
+      var location = point(lastPoint.x, lastPoint.y),
+        target = cell || board.at(location.x, location.y, location.fraction);
+      open(target || location, target && target.name);
     } else if (/^[A-Ga-g]$/.test(e.key)) {
       e.preventDefault();
-      var target = point(lastPoint.x, lastPoint.y);
-      if (board.at(target.x, target.y)) {
-        target = cell ? { x: cell.x + 1, y: cell.y } : target;
-        while (board.at(target.x, target.y)) target.x++;
+      var location = point(lastPoint.x, lastPoint.y),
+        target = board.at(location.x, location.y, location.fraction);
+      if (target && target.name) {
+        location = { x: cell ? cell.x + 1 : location.x + 1, y: cell ? cell.y : location.y };
+        while (board.at(location.x, location.y)) location.x++;
+        target = null;
       }
-      open(target, e.key);
+      open(target || location, e.key);
       input.setSelectionRange(1, 1);
     }
   });
@@ -412,7 +581,7 @@
   });
   window.addEventListener("blur", function () {
     space = false;
-    finishGesture(true);
+    finish(true);
   });
   $("undo").addEventListener("click", function () {
     history("undo");
@@ -421,26 +590,76 @@
     history("redo");
   });
   $("home").addEventListener("click", function () {
-    var all = board.all();
-    var anchor = draft ||
-      all.find(function (c) {
-        return c.id === selected;
-      }) ||
-      all[0] || { x: 0, y: 0 };
-    pan.x = -anchor.x * pitchX;
-    pan.y = -anchor.y * pitchY;
+    var anchor = draft || board.get(selected) || board.all()[0] || { x: 0, y: 0 },
+      g = geometry(anchor);
+    pan.x = -g.x;
+    pan.y = -g.y;
     view();
   });
-  $("help-toggle").addEventListener("click", function () {
-    $("help").hidden = !$("help").hidden;
-    this.setAttribute("aria-expanded", String(!$("help").hidden));
+  $("zoom-in").addEventListener("click", function () {
+    setZoom(zoom * 2);
+  });
+  $("zoom-out").addEventListener("click", function () {
+    setZoom(zoom / 2);
+  });
+  $("zoom-fit").addEventListener("click", function () {
+    var cell = board.get(selected);
+    setZoom(cell ? Math.pow(2, Math.ceil(Math.log2(1 / F.number(cell.duration)))) : 1);
+  });
+  $("edit").addEventListener("click", function () {
+    var cell = board.get(selected);
+    if (cell) open(cell, cell.name);
+  });
+  $("remove").addEventListener("click", function () {
+    board.remove(selected);
+    render();
+  });
+  $("clear-measure").addEventListener("click", function () {
+    var cell = board.get(selected);
+    if (!cell) return;
+    if (board.clearMeasure(cell.x, cell.y)) {
+      selected = null;
+      render();
+      canvas.focus({ preventScroll: true });
+    }
+    if (!board.all().length) open({ x: 0, y: 0 }, "", false);
+  });
+  [
+    ["help-toggle", "help"],
+    ["settings-toggle", "settings"],
+    ["split-toggle", "split-form"],
+  ].forEach(function (pair) {
+    $(pair[0]).addEventListener("click", function () {
+      var show = $(pair[1]).hidden;
+      closePanels();
+      $(pair[1]).hidden = !show;
+      this.setAttribute("aria-expanded", String(show));
+      if (show && pair[1] === "split-form") {
+        $("split-value").focus();
+        $("split-value").select();
+      }
+    });
+  });
+  $("split-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!board.split(selected, $("split-value").value)) {
+      $("split-error").textContent = "Use 2–64 equal parts or positive ratios such as 2:1. Maximum 256 spans per measure.";
+      $("split-error").hidden = false;
+      return;
+    }
+    closePanels();
+    choose(board.get(selected));
+    reveal(board.get(selected));
+    announce("Span divided. Other timings are unchanged.");
+  });
+  $("meter-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    board.setMeter(Number($("meter-top").value), Number($("meter-bottom").value));
+    render();
+    announce("Meter changed. Fractions are unchanged.");
   });
   function resize() {
-    var cell =
-      draft ||
-      board.all().find(function (c) {
-        return c.id === selected;
-      });
+    var cell = draft || board.get(selected);
     if (cell) reveal(cell);
   }
   window.addEventListener("resize", resize);
