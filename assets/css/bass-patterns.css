@@ -79,9 +79,53 @@
   fill: var(--music-accent);
   stroke: var(--music-accent);
 }
+.bp-interactive-score {
+  border: 1px solid var(--music-rule);
+  border-radius: 6px;
+  margin: 8px 0;
+  padding: 0;
+  background: var(--music-surface);
+}
+.bp-interactive-score svg {
+  display: block;
+}
+.bp-empty-note {
+  opacity: 0.2;
+}
+.bp-staff-overlay rect {
+  cursor: crosshair;
+  touch-action: none;
+}
+.bp-staff-overlay rect:focus-visible {
+  outline: none;
+  stroke: var(--music-accent);
+  stroke-width: 0.8;
+}
+.bp-note-preview {
+  fill: var(--music-accent);
+  stroke: var(--music-accent);
+  stroke-width: 0.7;
+  opacity: 0.65;
+}
+#bp-staff-hint {
+  min-height: 4.5em;
+}
+.bp-music-tools [aria-pressed="true"] {
+  border-color: var(--music-accent);
+  box-shadow: inset 0 -3px var(--music-accent);
+}
+.bass-patterns .bp-repeat {
+  flex-direction: row;
+  align-items: center;
+  min-height: 44px;
+}
+.bp-repeat input {
+  min-height: auto;
+}
 .bp-card {
   border-block-end: 1px solid var(--music-rule);
   padding: 20px 0;
+  scroll-margin-top: 100px;
 }
 .bp-card h2 {
   font-size: 24px;
