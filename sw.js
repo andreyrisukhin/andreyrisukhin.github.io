@@ -64,6 +64,7 @@ const PRECACHE_URLS = [
   '/assets/js/bass-patterns/model.js',
   '/assets/js/bass-patterns/storage.js',
   '/assets/js/bass-patterns/player.js',
+  '/assets/js/bass-patterns/staff.js',
   '/assets/js/bass-patterns/main.js',
   '/assets/css/bass-patterns.css',
 

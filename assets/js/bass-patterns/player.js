@@ -57,11 +57,12 @@ window.BassPatternPlayer = (function () {
       if (ticket !== generation) return false;
       let index = 0,
         next = ctx.currentTime + 0.04;
+      const count = pattern.steps.length * (pattern.repeat ? 2 : 1);
       function schedule() {
         if (ticket !== generation) return;
-        while (index < pattern.steps.length && next < ctx.currentTime + 0.2) {
-          const step = pattern.steps[index],
-            stepIndex = index,
+        while (index < count && next < ctx.currentTime + 0.2) {
+          const stepIndex = index % pattern.steps.length,
+            step = pattern.steps[stepIndex],
             duration = step.ticks * secondsPerTick;
           window.BassPatterns.pitches(step).forEach((pitch) => note(ctx, pitch.midi, next, Math.max(0.03, duration * 0.9)));
           timers.push(
@@ -75,7 +76,7 @@ window.BassPatternPlayer = (function () {
           next += duration;
           index++;
         }
-        if (index === pattern.steps.length && ctx.currentTime >= next) stop();
+        if (index === count && ctx.currentTime >= next) stop();
       }
       schedule();
       interval = setInterval(schedule, 25);

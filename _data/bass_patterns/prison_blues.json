@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "title": "Prison Blues",
+  "meter": [6, 8],
+  "keyFifths": -3,
+  "repeat": true,
+  "steps": [
+    { "ticks": 18, "presses": [], "notes": [{ "midi": 48, "name": "C" }] },
+    {
+      "ticks": 6,
+      "presses": [],
+      "chord": "Cm",
+      "notes": [
+        { "midi": 60, "name": "C" },
+        { "midi": 63, "name": "Eb" },
+        { "midi": 67, "name": "G" }
+      ]
+    },
+    { "ticks": 6, "presses": [], "notes": [] },
+    { "ticks": 6, "presses": [], "notes": [{ "midi": 48, "name": "C" }] },
+    { "ticks": 18, "presses": [], "notes": [{ "midi": 46, "name": "Bb" }] },
+    {
+      "ticks": 6,
+      "presses": [],
+      "chord": "Eb",
+      "notes": [
+        { "midi": 58, "name": "Bb" },
+        { "midi": 63, "name": "Eb" },
+        { "midi": 67, "name": "G" }
+      ]
+    },
+    { "ticks": 6, "presses": [], "notes": [] },
+    { "ticks": 6, "presses": [], "notes": [{ "midi": 46, "name": "Bb" }] },
+    { "ticks": 6, "presses": [], "notes": [{ "midi": 44, "name": "Ab" }] },
+    { "ticks": 6, "presses": [], "notes": [] },
+    { "ticks": 6, "presses": [], "notes": [] },
+    { "ticks": 9, "presses": [], "notes": [{ "midi": 44, "name": "Ab" }] },
+    { "ticks": 9, "presses": [], "notes": [{ "midi": 43, "name": "G" }] },
+    { "ticks": 12, "presses": [], "notes": [] },
+    { "ticks": 6, "presses": [], "notes": [] },
+    { "ticks": 6, "presses": [], "notes": [{ "midi": 43, "name": "G" }] },
+    { "ticks": 6, "presses": [], "notes": [{ "midi": 45, "name": "A" }] },
+    { "ticks": 6, "presses": [], "notes": [{ "midi": 47, "name": "B" }] }
+  ]
+}

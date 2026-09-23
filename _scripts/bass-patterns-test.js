@@ -120,10 +120,111 @@ test("cross-bar rests split but do not acquire ties", () => {
   assert.ok(score.abc.includes("z12 | z4"));
   assert.ok(!score.abc.includes("-"));
 });
+test("engraved ranges map bar-start notes, chords, rests, and tied continuations to their steps", () => {
+  const p = M.validate(JSON.parse(fs.readFileSync(path.join(root, "_data/bass_patterns/prison_blues.json"), "utf8")));
+  for (const pattern of [p, { ...M.empty(), meter: [3, 4], steps: [{ ticks: 48, presses: M.examples[0].steps[0].presses }] }]) {
+    const score = M.score(pattern);
+    score.segments.forEach((segment) => {
+      for (const leading of [0, 1]) {
+        const element = { el_type: "note", startChar: segment.start - leading, endChar: segment.end + 1 };
+        assert.equal(M.segmentForElement(score, element), segment);
+      }
+      assert.equal(M.segmentForElement(score, { el_type: "bar", startChar: segment.start - 1, endChar: segment.end }), undefined);
+      assert.equal(M.segmentForElement(score, { el_type: "note", startChar: segment.end, endChar: segment.end + 1 }), undefined);
+    });
+    assert.equal(M.segmentForElement(score, { el_type: "note" }), undefined);
+  }
+});
 test("arbitrary titles cannot inject ABC directives", () => {
   const p = M.clone(M.examples[0]);
   p.title = "\nK:D\n%%staffscale 999";
   assert.ok(!M.score(p).abc.includes("999"));
+});
+test("direct staff pitches preserve octave and enharmonic spelling in BP2", () => {
+  const p = {
+    ...M.empty(),
+    version: 2,
+    steps: [
+      {
+        ticks: 18,
+        presses: [],
+        notes: [
+          { midi: 47, name: "Cb" },
+          { midi: 60, name: "B#" },
+        ],
+      },
+      { ticks: 6, presses: [], notes: [] },
+      M.clone(M.examples[0].steps[0]),
+    ],
+  };
+  assert.match(M.encode(p), /^BP2\./);
+  assert.deepEqual(json(M.decode(M.encode(p))), json(p));
+  assert.deepEqual(json(M.pitches(p.steps[0])), p.steps[0].notes);
+  assert.ok(M.score(p).abc.includes("[_C,^B,]6"));
+  assert.equal(M.staffPosition({ midi: 47, name: "Cb" }), 21);
+  assert.equal(M.staffPosition({ midi: 60, name: "B#" }), 27);
+});
+test("staff positions and accidentals round-trip across bass and treble octaves", () => {
+  for (let position = 7; position <= 41; position++)
+    for (const alt of [-1, 0, 1]) {
+      const note = M.staffNote(position, alt);
+      assert.equal(M.staffPosition(note), position);
+      assert.equal(sandbox.Tonal.Note.midi(note.name + Math.floor(position / 7)), note.midi);
+    }
+  assert.deepEqual(json(M.staffNote(18)), { midi: 43, name: "G" });
+  assert.deepEqual(json(M.staffNote(26, -1)), { midi: 56, name: "Ab" });
+});
+test("staff notes reject conflicting buttons, invalid pitch/spelling, duplicates, and too many tones", () => {
+  const base = { ...M.empty(), version: 2, steps: [{ ticks: 12, presses: [], notes: [{ midi: 48, name: "C" }] }] };
+  for (const change of [
+    (p) => (p.steps[0].notes[0].midi = 200),
+    (p) => (p.steps[0].notes[0].name = "D"),
+    (p) => (p.steps[0].notes[0].name = "<script>"),
+    (p) => p.steps[0].notes.push(p.steps[0].notes[0]),
+    (p) => (p.steps[0].notes = Array(13).fill(p.steps[0].notes[0])),
+    (p) => p.steps[0].presses.push({ root: 0, kind: "bass", finger: 4 }),
+  ]) {
+    const p = M.clone(base);
+    change(p);
+    assert.throws(() => M.validate(p));
+  }
+});
+test("mixed new notes and legacy buttons persist without altering assigned fingers", () => {
+  const legacy = M.decode(M.encode(M.examples[0]));
+  legacy.steps[0].presses[0].finger = 4;
+  const p = M.clone(legacy);
+  p.version = 2;
+  p.steps.push({ ticks: 12, presses: [], notes: [{ midi: 61, name: "Db" }] });
+  const mem = memory(),
+    store = S.create(() => mem);
+  store.read();
+  assert.equal(store.write({ version: 1, draft: p, saved: [{ id: "old", pattern: legacy }], active: null }), true);
+  const restored = S.create(() => mem).read();
+  assert.deepEqual(json(restored.draft), json(p));
+  assert.deepEqual(json(restored.saved[0].pattern), json(legacy));
+  assert.equal(M.encode(restored.saved[0].pattern).slice(0, 4), "BP1.");
+});
+test("Prison Blues retains four 6/8 bars, source octaves, chord labels, naturals, and repeat", () => {
+  const p = M.validate(JSON.parse(fs.readFileSync(path.join(root, "_data/bass_patterns/prison_blues.json"), "utf8")));
+  assert.deepEqual(json(M.decode(M.encode(p))), json(p));
+  assert.deepEqual(json(p.meter), [6, 8]);
+  assert.equal(p.keyFifths, -3);
+  assert.equal(p.repeat, true);
+  assert.equal(p.steps.length, 18);
+  assert.equal(
+    p.steps.reduce((total, step) => total + step.ticks, 0),
+    144
+  );
+  const score = M.score(p);
+  assert.equal(score.incomplete, 0);
+  assert.equal(new Set(score.segments.map((s) => s.bar)).size, 4);
+  assert.match(score.abc, /K:Eb clef=bass/);
+  assert.match(score.abc, /"Cm"\[CEG\]2/);
+  assert.match(score.abc, /"Eb"\[B,EG\]2/);
+  assert.match(score.abc, /=A,,2 =B,,2 :\|\s*$/);
+  assert.deepEqual(json(M.pitches(p.steps[1]).map((n) => n.midi)), [60, 63, 67]);
+  assert.deepEqual(json(M.pitches(p.steps[5]).map((n) => n.midi)), [58, 63, 67]);
+  assert.deepEqual(json(p.steps.slice(-3).map((s) => M.pitches(s)[0].midi)), [43, 45, 47]);
 });
 function memory() {
   let raw = null;

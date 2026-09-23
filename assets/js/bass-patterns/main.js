@@ -4,12 +4,18 @@
     Player = window.BassPatternPlayer,
     $ = (id) => document.getElementById("bp-" + id);
   const store = window.BassPatternStorage.create(() => window.localStorage);
-  let notebook = store.read() || { version: 1, draft: M.clone(M.examples[0]), saved: [], active: null };
+  const imported = M.validate(JSON.parse($("imported").textContent));
+  M.examples.push(imported);
+  let notebook = store.read() || { version: 1, draft: M.clone(imported), saved: [], active: null };
   let selected = notebook.draft.steps.length ? 0 : -1,
     past = [],
     future = [],
     lastWritten = true;
   let playingButton = null;
+  let entryTicks = notebook.draft.steps[0]?.ticks || 12,
+    accidental = 0,
+    mode = "note",
+    selectedNote = 0;
   const labels = { bass: "Bass", counter: "Counterbass", M: "Major", m: "Minor", 7: "Seventh", d7: "Diminished seventh" };
   function announce(text) {
     $("status").textContent = text;
@@ -25,7 +31,7 @@
     return lastWritten;
   }
   function snapshot() {
-    return M.clone({ pattern: notebook.draft, selected, active: notebook.active });
+    return M.clone({ pattern: notebook.draft, selected, selectedNote, entryTicks, active: notebook.active });
   }
   function remember() {
     past.push(snapshot());
@@ -44,8 +50,10 @@
       selected = Math.min(selected, valid.steps.length - 1);
       persist();
       render();
+      return true;
     } catch (error) {
       announce(error.message);
+      return false;
     }
   }
   function restore(direction) {
@@ -58,6 +66,8 @@
     notebook.draft = state.pattern;
     notebook.active = state.active;
     selected = state.selected;
+    selectedNote = state.selectedNote;
+    entryTicks = state.entryTicks;
     persist();
     render();
     announce(direction === "undo" ? "Undone." : "Redone.");
@@ -89,12 +99,18 @@
     notebook.draft = valid;
     notebook.active = active;
     selected = valid.steps.length ? 0 : -1;
+    selectedNote = 0;
+    entryTicks = valid.steps[0]?.ticks || 12;
     persist();
     render();
     announce("Pattern loaded. Undo restores the previous pattern.");
   }
   function select(index) {
     selected = index;
+    if (notebook.draft.steps[index]) {
+      entryTicks = notebook.draft.steps[index].ticks;
+      selectedNote = Math.max(0, Math.min(selectedNote, M.pitches(notebook.draft.steps[index]).length - 1));
+    } else selectedNote = 0;
     render();
   }
   function durationLabel(ticks) {
@@ -112,10 +128,18 @@
   }
   function renderEditor() {
     const step = notebook.draft.steps[selected];
+    if (step) {
+      entryTicks = step.ticks;
+      const note = M.pitches(step)[selectedNote];
+      if (note) accidental = window.Tonal.Note.get(note.name).alt;
+    }
     $("editor").hidden = !step;
+    $("duration").value = entryTicks;
+    $("accidental").value = accidental;
+    $("remove").disabled = !step;
+    ["note", "rest", "chord"].forEach((name) => $(name + "-mode").setAttribute("aria-pressed", String(mode === name)));
     if (!step) return;
     $("step-title").textContent = "Step " + (selected + 1);
-    $("duration").value = step.ticks;
     $("earlier").disabled = selected === 0;
     $("later").disabled = selected === notebook.draft.steps.length - 1;
     $("duplicate").disabled = notebook.draft.steps.length >= 128;
@@ -149,7 +173,7 @@
     });
     if (!step.presses.length) {
       const rest = document.createElement("p");
-      rest.textContent = "Rest";
+      rest.textContent = M.pitches(step).length ? "Staff notes. Buttons unassigned." : "Rest";
       $("presses").append(rest);
     }
   }
@@ -179,7 +203,7 @@
         (line.staff || []).forEach((staff) =>
           staff.voices.forEach((voice) =>
             voice.forEach((element) => {
-              const segment = score.segments.find((part) => part.start === element.startChar);
+              const segment = M.segmentForElement(score, element);
               if (segment)
                 (element.abselem?.elemset || []).forEach((node) => {
                   node.setAttribute?.("data-bp-step", segment.step);
@@ -219,9 +243,100 @@
   }
   function renderScore() {
     if (!$("workspace").open) return;
-    const score = drawScore($("score"), notebook.draft, select, selected);
-    $("measure-status").textContent = !score ? "" : score.incomplete ? "Last measure is incomplete." : "Complete measures.";
+    window.BassPatternStaff.mount($("score"), notebook.draft, {
+      selected,
+      note: selectedNote,
+      ticks: entryTicks,
+      accidental,
+      mode,
+      hint: (text) => {
+        $("staff-hint").textContent = text;
+      },
+      select: (index, note) => {
+        selectedNote = note;
+        select(index);
+        focusStaff(index);
+      },
+      write: writeNote,
+      key: staffKey,
+    });
+    const score = M.score(notebook.draft);
+    $("measure-status").textContent = !notebook.draft.steps.length ? "" : score.incomplete ? "Last measure is incomplete." : "";
     $("play-draft").disabled = !notebook.draft.steps.length;
+  }
+  function focusStaff(index) {
+    $("score").querySelector(`[data-bp-slot="${index}"]`)?.focus({ preventScroll: true });
+  }
+  function writeNote(index, position, noteIndex = 0, action = mode) {
+    const old = notebook.draft.steps[index];
+    const notes = old ? M.pitches(old) : [];
+    const previous = notes[noteIndex];
+    const alt = action === "move" && previous ? window.Tonal.Note.get(previous.name).alt : accidental;
+    const note = M.staffNote(position, alt);
+    if (action === "rest") notes.length = 0;
+    else if (action === "chord") {
+      if (!notes.some((candidate) => candidate.midi === note.midi)) notes.push(note);
+    } else if (notes.length) notes[Math.min(noteIndex, notes.length - 1)] = note;
+    else notes.push(note);
+    if (old && JSON.stringify(notes) === JSON.stringify(M.pitches(old))) {
+      select(index);
+      focusStaff(index);
+      return;
+    }
+    const changed = edit((p) => {
+      p.version = 2;
+      while (p.steps.length <= index) p.steps.push({ ticks: entryTicks, presses: [] });
+      p.steps[index] = { ticks: p.steps[index].ticks, presses: [], notes };
+    });
+    selectedNote = Math.max(
+      0,
+      M.pitches(notebook.draft.steps[index] || { presses: [] }).findIndex((n) => n.midi === note.midi)
+    );
+    select(Math.min(index, notebook.draft.steps.length - 1));
+    focusStaff(selected);
+    if (changed && old?.presses.length) announce("Staff notes changed. Button assignments cleared for this step; Undo restores them.");
+  }
+  function removeNote() {
+    if (!notebook.draft.steps[selected]) return;
+    edit((p) => {
+      const notes = M.pitches(p.steps[selected]);
+      if (notes.length > 1) {
+        notes.splice(selectedNote, 1);
+        p.version = 2;
+        p.steps[selected] = { ticks: p.steps[selected].ticks, presses: [], notes };
+      } else p.steps.splice(selected, 1);
+    });
+    selectedNote = 0;
+    focusStaff(Math.max(0, selected));
+  }
+  function staffKey(event, index, noteIndex) {
+    const notes = notebook.draft.steps[index] ? M.pitches(notebook.draft.steps[index]) : [];
+    const note = notes[noteIndex] || notes[0] || { midi: 48, name: "C" };
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      const target = Math.max(0, Math.min(notebook.draft.steps.length, index + (event.key === "ArrowLeft" ? -1 : 1)));
+      select(target);
+      focusStaff(target);
+    } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
+      writeNote(index, M.staffPosition(note) + (event.key === "ArrowUp" ? 1 : -1), noteIndex, "move");
+    } else if (!event.ctrlKey && !event.metaKey && /^[a-g]$/i.test(event.key)) {
+      event.preventDefault();
+      writeNote(index, Math.floor(M.staffPosition(note) / 7) * 7 + "CDEFGAB".indexOf(event.key.toUpperCase()), noteIndex);
+    } else if (event.key === "Delete" || event.key === "Backspace") {
+      event.preventDefault();
+      selected = index;
+      removeNote();
+    } else if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      if (index >= notebook.draft.steps.length) writeNote(index, 21);
+      else if (event.key === " ") play(notebook.draft, $("play-draft"), $("score"));
+      else select(index);
+    } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+      event.preventDefault();
+      restore(event.shiftKey ? "redo" : "undo");
+      focusStaff(Math.max(0, selected));
+    }
   }
   function openEditor() {
     $("workspace").open = true;
@@ -273,18 +388,23 @@
     $("collection").replaceChildren();
     const entries = notebook.saved
       .map((entry) => ({ ...entry, example: false }))
-      .concat(M.examples.map((pattern, i) => ({ id: "example:" + i, pattern, example: true })));
+      .concat(
+        M.examples
+          .map((pattern, i) => ({ id: "example:" + i, pattern, example: true }))
+          .sort((a, b) => Number(b.pattern === imported) - Number(a.pattern === imported))
+      );
     entries.forEach((entry) => {
       const card = document.createElement("article");
       card.className = "bp-card";
       card.dataset.patternId = entry.id;
+      if (entry.example && entry.pattern === imported) card.id = "bp-prison-blues";
       const toolbar = document.createElement("div");
       toolbar.className = "bp-toolbar";
       const title = document.createElement("h2");
       title.textContent = entry.pattern.title || "Untitled pattern";
       const tag = document.createElement("span");
       tag.className = "bp-small";
-      tag.textContent = entry.example ? "Example" : "Saved";
+      tag.textContent = entry.example ? (entry.pattern === imported ? "From MusicXML · 6/8 · Repeat twice" : "Example") : "Saved";
       const staff = document.createElement("div");
       staff.className = "bp-score";
       function control(text, action) {
@@ -326,6 +446,7 @@
     $("title").value = notebook.draft.title;
     $("meter-top").value = notebook.draft.meter[0];
     $("meter-bottom").value = notebook.draft.meter[1];
+    $("repeat").checked = !!notebook.draft.repeat;
     $("undo").disabled = !past.length;
     $("redo").disabled = !future.length;
     $("add").disabled = $("add-rest").disabled = notebook.draft.steps.length >= 128;
@@ -337,7 +458,7 @@
       button.dataset.step = i;
       button.id = "bp-step-" + i;
       button.setAttribute("aria-pressed", String(i === selected));
-      button.setAttribute("aria-label", "Step " + (i + 1) + ", " + durationLabel(step.ticks) + (step.presses.length ? "" : " rest"));
+      button.setAttribute("aria-label", "Step " + (i + 1) + ", " + durationLabel(step.ticks) + (M.pitches(step).length ? "" : " rest"));
       button.textContent = String(i + 1);
       const duration = document.createElement("small");
       duration.textContent = durationLabel(step.ticks);
@@ -358,6 +479,12 @@
     select(Math.min(selected + 1, notebook.draft.steps.length - 1));
   }
   M.durations.forEach(([ticks, name]) => $("duration").append(option(ticks, name)));
+  $("repeat").addEventListener("change", () =>
+    edit((p) => {
+      p.version = 2;
+      p.repeat = $("repeat").checked;
+    })
+  );
   $("title").addEventListener("input", () =>
     edit((p) => {
       p.title = $("title").value;
@@ -372,11 +499,32 @@
       $("meter-bottom").value = notebook.draft.meter[1];
     })
   );
-  $("duration").addEventListener("change", () =>
-    edit((p) => {
-      p.steps[selected].ticks = Number($("duration").value);
+  $("duration").addEventListener("change", () => {
+    entryTicks = Number($("duration").value);
+    if (notebook.draft.steps[selected])
+      edit((p) => {
+        p.steps[selected].ticks = entryTicks;
+      });
+    else render();
+  });
+  ["note", "rest", "chord"].forEach((name) =>
+    $(name + "-mode").addEventListener("click", () => {
+      mode = name;
+      render();
+      $("staff-hint").textContent =
+        name === "chord"
+          ? "Click above or below a note to add a chord tone."
+          : name === "rest"
+            ? "Click a staff position to place a rest."
+            : "Click a pale rest to add a note. Drag notes to change pitch.";
     })
   );
+  $("accidental").addEventListener("change", () => {
+    accidental = Number($("accidental").value);
+    const note = notebook.draft.steps[selected] && M.pitches(notebook.draft.steps[selected])[selectedNote];
+    if (note) writeNote(selected, M.staffPosition(note), selectedNote, "note");
+    else render();
+  });
   $("steps").addEventListener("click", (e) => {
     const button = e.target.closest("[data-step]");
     if (button) select(Number(button.dataset.step));
@@ -391,12 +539,18 @@
         kind: $("kind-" + i).value,
         finger: $("finger-" + i).value === "" ? null : Number($("finger-" + i).value),
       };
+      delete p.steps[selected].notes;
+      delete p.steps[selected].chord;
     });
     render();
   });
   $("presses").addEventListener("click", (e) => {
     const button = e.target.closest("[data-remove]");
-    if (button) edit((p) => p.steps[selected].presses.splice(Number(button.dataset.remove), 1));
+    if (button)
+      edit((p) => {
+        p.steps[selected].presses.splice(Number(button.dataset.remove), 1);
+        delete p.steps[selected].chord;
+      });
   });
   $("add-button").addEventListener("click", () =>
     edit((p) => {
@@ -406,6 +560,8 @@
         .flatMap((root) => ["M", "bass", "counter", "m", "7", "d7"].map((kind) => ({ root, kind, finger: null })))
         .find((b) => !used.includes(M.button(b).id));
       step.presses.push(candidate);
+      delete step.notes;
+      delete step.chord;
     })
   );
   $("add").addEventListener("click", () => add(false));
@@ -414,7 +570,7 @@
     edit((p) => p.steps.splice(selected + 1, 0, M.clone(p.steps[selected])));
     select(selected + 1);
   });
-  $("remove").addEventListener("click", () => edit((p) => p.steps.splice(selected, 1)));
+  $("remove").addEventListener("click", removeNote);
   [
     ["earlier", -1],
     ["later", 1],

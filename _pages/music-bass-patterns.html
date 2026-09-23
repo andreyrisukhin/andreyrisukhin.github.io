@@ -11,9 +11,8 @@ description: A notebook for the left hand.
     <button type="button" id="bp-new">New bassline</button>
     <label>Tempo <input id="bp-tempo" type="number" min="40" max="240" value="96" aria-label="Tempo in quarter notes per minute" /></label>
   </div>
-  <div id="bp-collection" aria-label="Bassline collection"></div>
-  <details id="bp-workspace">
-    <summary>Edit bassline</summary>
+  <details id="bp-workspace" open>
+    <summary>Staff editor</summary>
     <div class="bp-toolbar">
       <label
         >Pattern
@@ -51,32 +50,50 @@ description: A notebook for the left hand.
         ></label
       >
     </div>
-    <div id="bp-score" class="bp-score" aria-label="Bass staff"></div>
-    <p id="bp-measure-status" class="bp-small"></p>
-    <div id="bp-steps" class="bp-steps" role="group" aria-label="Pattern steps"></div>
-    <div class="bp-toolbar">
-      <button type="button" id="bp-add">Next step</button>
-      <button type="button" id="bp-add-rest">Add rest</button>
+    <div class="bp-toolbar bp-music-tools" aria-label="Staff tools">
+      <button type="button" id="bp-note-mode" aria-pressed="true">Note</button>
+      <button type="button" id="bp-rest-mode" aria-pressed="false">Rest</button>
+      <button type="button" id="bp-chord-mode" aria-pressed="false">Chord</button>
+      <label
+        >Duration
+        <select id="bp-duration"></select
+      ></label>
+      <label
+        >Accidental
+        <select id="bp-accidental">
+          <option value="0">♮ Natural</option>
+          <option value="-1">♭ Flat</option>
+          <option value="1">♯ Sharp</option>
+        </select></label
+      >
+      <button type="button" id="bp-remove">Delete</button>
       <button type="button" id="bp-play-draft">Play</button>
+      <label class="bp-repeat"><input id="bp-repeat" type="checkbox" /> Repeat twice</label>
     </div>
-    <section id="bp-editor" class="bp-editor" aria-labelledby="bp-step-title" hidden>
+    <p id="bp-staff-hint" class="bp-small">Click a pale rest to add a note. Drag notes to change pitch. Chord adds notes at the same time.</p>
+    <div id="bp-score" class="bp-score bp-interactive-score" aria-label="Bass staff"></div>
+    <p id="bp-measure-status" class="bp-small"></p>
+    <details>
+      <summary>Button assignments and step order</summary>
+      <div id="bp-steps" class="bp-steps" role="group" aria-label="Pattern steps"></div>
       <div class="bp-toolbar">
-        <h2 id="bp-step-title">Step</h2>
-        <label
-          >Duration
-          <select id="bp-duration"></select
-        ></label>
-        <button type="button" id="bp-duplicate">Duplicate</button>
-        <button type="button" id="bp-earlier">Earlier</button>
-        <button type="button" id="bp-later">Later</button>
-        <button type="button" id="bp-remove">Remove step</button>
+        <button type="button" id="bp-add">Next step</button>
+        <button type="button" id="bp-add-rest">Add rest</button>
       </div>
-      <div id="bp-presses"></div>
-      <button type="button" id="bp-add-button">Add button</button>
-      <p class="bp-small">Finger: 1 thumb, 2 index, 3 middle, 4 ring, 5 little. Leave unassigned when you are still deciding.</p>
-    </section>
+      <section id="bp-editor" class="bp-editor" aria-labelledby="bp-step-title" hidden>
+        <div class="bp-toolbar">
+          <h2 id="bp-step-title">Step</h2>
+          <button type="button" id="bp-duplicate">Duplicate</button>
+          <button type="button" id="bp-earlier">Earlier</button>
+          <button type="button" id="bp-later">Later</button>
+        </div>
+        <div id="bp-presses"></div>
+        <button type="button" id="bp-add-button">Add button</button>
+        <p class="bp-small">Finger: 1 thumb, 2 index, 3 middle, 4 ring, 5 little. Leave unassigned when you are still deciding.</p>
+      </section>
+    </details>
   </details>
-  <p class="bp-small">Staff pitches use illustrative bass/chord registers. Actual octaves depend on your instrument’s reeds and register.</p>
+  <div id="bp-collection" aria-label="Bassline collection"></div>
   <p id="bp-status" class="bp-small" role="status"></p>
 </section>
 <noscript><p>The pattern editor needs JavaScript.</p></noscript>
@@ -90,4 +107,8 @@ description: A notebook for the left hand.
 <script src="{{ '/assets/js/bass-patterns/model.js' | relative_url | bust_file_cache }}"></script>
 <script src="{{ '/assets/js/bass-patterns/storage.js' | relative_url | bust_file_cache }}"></script>
 <script src="{{ '/assets/js/bass-patterns/player.js' | relative_url | bust_file_cache }}"></script>
+<script src="{{ '/assets/js/bass-patterns/staff.js' | relative_url | bust_file_cache }}"></script>
+<script id="bp-imported" type="application/json">
+  {{ site.data.bass_patterns.prison_blues | jsonify | replace: '<', '\u003c' }}
+</script>
 <script src="{{ '/assets/js/bass-patterns/main.js' | relative_url | bust_file_cache }}"></script>
