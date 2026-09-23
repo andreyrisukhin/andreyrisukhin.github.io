@@ -66,7 +66,13 @@
           })
           .catch(function () {});
         var refreshing = false;
+        var hadController = !!navigator.serviceWorker.controller;
         navigator.serviceWorker.addEventListener('controllerchange', function () {
+          // First installation does not need a reload, especially during editing.
+          if (!hadController) {
+            hadController = true;
+            return;
+          }
           if (refreshing) return;
           refreshing = true;
           window.location.reload();

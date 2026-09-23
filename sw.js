@@ -6,7 +6,7 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1789628055';
+const VERSION = '1790139228';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
@@ -19,6 +19,7 @@ const PRECACHE_URLS = [
   '/music/chord-recognizer/',
   '/music/stradella/',
   '/music/exercises/',
+  '/music/bass-patterns/',
   '/music/chords/',
   '/music/intervals/',
   '/music/songs/',
@@ -56,6 +57,11 @@ const PRECACHE_URLS = [
   '/assets/js/workbench/hands.js',
   '/assets/js/workbench/composer.js',
   '/assets/js/workbench/main.js',
+  '/assets/js/bass-patterns/model.js',
+  '/assets/js/bass-patterns/storage.js',
+  '/assets/js/bass-patterns/player.js',
+  '/assets/js/bass-patterns/main.js',
+  '/assets/css/bass-patterns.css',
 
   '/assets/js/blues/main.js',
   '/assets/js/chord-recognizer/main.js',
