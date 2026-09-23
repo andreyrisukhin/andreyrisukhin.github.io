@@ -14,6 +14,10 @@ keywords: Andrey Bayan, bayandrey, accordion, stradella bass, bayan, music theor
 <section class="music-shelf" id="practice-notebook" aria-labelledby="practice-title">
   <h2 id="practice-title">From the practice notebook</h2>
   <div class="music-shelf-grid">
+    <a class="music-shelf-item" href="{{ '/music/bass-patterns/' | relative_url }}">
+      <span>Bass patterns <span aria-hidden="true">↗</span></span>
+      <span class="music-small">Write a left-hand pattern, assign fingers, and keep a copyable pattern code.</span>
+    </a>
     <a class="music-shelf-item" href="{{ '/music/exercises/' | relative_url }}">
       <span>Two notes, changing harmony <span aria-hidden="true">↗</span></span>
       <span class="music-small">Reno di Bono’s cycle-of-fifths turnaround. Keep the right hand still; let the bass change its meaning.</span>

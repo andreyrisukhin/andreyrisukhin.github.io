@@ -1,0 +1,93 @@
+---
+layout: music
+title: Bass patterns
+permalink: /music/bass-patterns/
+description: A notebook for the left hand.
+---
+
+<link rel="stylesheet" href="{{ '/assets/css/bass-patterns.css' | relative_url | bust_file_cache }}" />
+<section class="bass-patterns" id="bass-patterns" aria-label="Bass pattern notebook">
+  <div class="bp-toolbar">
+    <button type="button" id="bp-new">New bassline</button>
+    <label>Tempo <input id="bp-tempo" type="number" min="40" max="240" value="96" aria-label="Tempo in quarter notes per minute" /></label>
+  </div>
+  <div id="bp-collection" aria-label="Bassline collection"></div>
+  <details id="bp-workspace">
+    <summary>Edit bassline</summary>
+    <div class="bp-toolbar">
+      <label
+        >Pattern
+        <select id="bp-library"></select
+      ></label>
+      <button type="button" id="bp-save">Save</button>
+      <button type="button" id="bp-copy">Copy</button>
+      <button type="button" id="bp-load">Load</button>
+      <button type="button" id="bp-undo" disabled>Undo</button>
+      <button type="button" id="bp-redo" disabled>Redo</button>
+    </div>
+    <form id="bp-code-form" class="bp-code" hidden>
+      <label for="bp-code">Pattern code</label>
+      <textarea id="bp-code" rows="3" maxlength="65536" spellcheck="false" placeholder="BP1.…"></textarea>
+      <div class="bp-toolbar">
+        <button type="submit">Load code</button>
+        <button type="button" id="bp-code-close">Close</button>
+      </div>
+      <p id="bp-code-error" role="alert" hidden></p>
+    </form>
+    <p id="bp-storage-error" role="status" hidden></p>
+    <button type="button" id="bp-replace-save" hidden>Use this notebook’s browser save</button>
+    <div class="bp-meta">
+      <label>Title <input id="bp-title" maxlength="80" value="Untitled pattern" /></label>
+      <label
+        >Meter
+        <span class="bp-meter"
+          ><input id="bp-meter-top" type="number" min="1" max="12" value="4" aria-label="Meter numerator" /> <span>/</span
+          ><select id="bp-meter-bottom" aria-label="Meter denominator">
+            <option>2</option>
+            <option selected>4</option>
+            <option>8</option>
+            <option>16</option>
+          </select></span
+        ></label
+      >
+    </div>
+    <div id="bp-score" class="bp-score" aria-label="Bass staff"></div>
+    <p id="bp-measure-status" class="bp-small"></p>
+    <div id="bp-steps" class="bp-steps" role="group" aria-label="Pattern steps"></div>
+    <div class="bp-toolbar">
+      <button type="button" id="bp-add">Next step</button>
+      <button type="button" id="bp-add-rest">Add rest</button>
+      <button type="button" id="bp-play-draft">Play</button>
+    </div>
+    <section id="bp-editor" class="bp-editor" aria-labelledby="bp-step-title" hidden>
+      <div class="bp-toolbar">
+        <h2 id="bp-step-title">Step</h2>
+        <label
+          >Duration
+          <select id="bp-duration"></select
+        ></label>
+        <button type="button" id="bp-duplicate">Duplicate</button>
+        <button type="button" id="bp-earlier">Earlier</button>
+        <button type="button" id="bp-later">Later</button>
+        <button type="button" id="bp-remove">Remove step</button>
+      </div>
+      <div id="bp-presses"></div>
+      <button type="button" id="bp-add-button">Add button</button>
+      <p class="bp-small">Finger: 1 thumb, 2 index, 3 middle, 4 ring, 5 little. Leave unassigned when you are still deciding.</p>
+    </section>
+  </details>
+  <p class="bp-small">Staff pitches use illustrative bass/chord registers. Actual octaves depend on your instrument’s reeds and register.</p>
+  <p id="bp-status" class="bp-small" role="status"></p>
+</section>
+<noscript><p>The pattern editor needs JavaScript.</p></noscript>
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/vendor/abcjs-basic-min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/stradella.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/audio.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/bass-patterns/model.js' | relative_url | bust_file_cache }}"></script>
+<script src="{{ '/assets/js/bass-patterns/storage.js' | relative_url | bust_file_cache }}"></script>
+<script src="{{ '/assets/js/bass-patterns/player.js' | relative_url | bust_file_cache }}"></script>
+<script src="{{ '/assets/js/bass-patterns/main.js' | relative_url | bust_file_cache }}"></script>
