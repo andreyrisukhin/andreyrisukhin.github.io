@@ -12,6 +12,8 @@
     future = [],
     lastWritten = true;
   let playingButton = null;
+  const defaultSound = { presses: [], notes: [M.staffNote(21)] };
+  let entrySound = M.clone(defaultSound);
   let entryTicks = notebook.draft.steps[0]?.ticks || 12,
     accidental = 0,
     mode = "note",
@@ -31,7 +33,7 @@
     return lastWritten;
   }
   function snapshot() {
-    return M.clone({ pattern: notebook.draft, selected, selectedNote, entryTicks, active: notebook.active });
+    return M.clone({ pattern: notebook.draft, selected, selectedNote, entryTicks, entrySound, active: notebook.active });
   }
   function remember() {
     past.push(snapshot());
@@ -42,6 +44,7 @@
     const next = M.clone(notebook.draft);
     try {
       change(next);
+      next.steps = M.reconcile(next.steps, next.meter);
       const valid = M.validate(next);
       if (JSON.stringify(valid) === JSON.stringify(notebook.draft)) return;
       Player.stop();
@@ -68,6 +71,7 @@
     selected = state.selected;
     selectedNote = state.selectedNote;
     entryTicks = state.entryTicks;
+    entrySound = state.entrySound;
     persist();
     render();
     announce(direction === "undo" ? "Undone." : "Redone.");
@@ -101,6 +105,7 @@
     selected = valid.steps.length ? 0 : -1;
     selectedNote = 0;
     entryTicks = valid.steps[0]?.ticks || 12;
+    entrySound = M.clone(defaultSound);
     persist();
     render();
     announce("Pattern loaded. Undo restores the previous pattern.");
@@ -132,11 +137,14 @@
       entryTicks = step.ticks;
       const note = M.pitches(step)[selectedNote];
       if (note) accidental = window.Tonal.Note.get(note.name).alt;
+      if (M.pitches(step).length) entrySound = M.clone(step);
     }
     $("editor").hidden = !step;
     $("duration").value = entryTicks;
     $("accidental").value = accidental;
     $("remove").disabled = !step;
+    $("pin").disabled = !step;
+    $("pin").setAttribute("aria-pressed", String(!!(step && step.pin !== undefined)));
     ["note", "rest", "chord"].forEach((name) => $(name + "-mode").setAttribute("aria-pressed", String(mode === name)));
     if (!step) return;
     $("step-title").textContent = "Step " + (selected + 1);
@@ -286,7 +294,9 @@
     const changed = edit((p) => {
       p.version = 2;
       while (p.steps.length <= index) p.steps.push({ ticks: entryTicks, presses: [] });
+      const pin = p.steps[index].pin;
       p.steps[index] = { ticks: p.steps[index].ticks, presses: [], notes };
+      if (pin !== undefined) p.steps[index].pin = pin;
     });
     selectedNote = Math.max(
       0,
@@ -303,16 +313,82 @@
       if (notes.length > 1) {
         notes.splice(selectedNote, 1);
         p.version = 2;
+        const pin = p.steps[selected].pin;
         p.steps[selected] = { ticks: p.steps[selected].ticks, presses: [], notes };
+        if (pin !== undefined) p.steps[selected].pin = pin;
       } else p.steps.splice(selected, 1);
     });
     selectedNote = 0;
     focusStaff(Math.max(0, selected));
   }
+  function togglePinned() {
+    const step = notebook.draft.steps[selected];
+    if (!step) {
+      announce("Select a step to lock.");
+      return;
+    }
+    if (step.pin !== undefined) {
+      edit((p) => {
+        delete p.steps[selected].pin;
+      });
+      announce("Step unlocked.");
+      return;
+    }
+    const barTicks = (notebook.draft.meter[0] * 48) / notebook.draft.meter[1];
+    let onset = 0;
+    for (let i = 0; i < selected; i++) onset += notebook.draft.steps[i].ticks;
+    edit((p) => {
+      p.version = 2;
+      p.steps[selected].pin = onset % barTicks;
+    });
+    announce("Step locked to its beat. Earlier edits shift rests instead of this note.");
+  }
+  function chooseMode(name) {
+    mode = name;
+    const step = notebook.draft.steps[selected];
+    if (step && name !== "chord") {
+      const sounded = M.pitches(step).length > 0;
+      if (name === "rest" && sounded) {
+        edit((p) => {
+          const pin = p.steps[selected].pin;
+          p.steps[selected] = { ticks: step.ticks, presses: [] };
+          if (pin !== undefined) p.steps[selected].pin = pin;
+        });
+        announce("Changed to a rest. Note brings back the last selected notes.");
+      } else if (name === "note" && !sounded) {
+        edit((p) => {
+          if (entrySound.notes !== undefined) p.version = 2;
+          const pin = p.steps[selected].pin;
+          p.steps[selected] = { ...M.clone(entrySound), ticks: step.ticks };
+          if (pin !== undefined) p.steps[selected].pin = pin;
+        });
+        announce("Changed to notes. Drag on the staff to change pitch.");
+      }
+    }
+    render();
+    $("staff-hint").textContent =
+      name === "chord"
+        ? "Click above or below a note to add a chord tone."
+        : name === "rest"
+          ? "Selected step is a rest. Click the staff to place more rests. R switches back."
+          : "Click a rest to place a note. Note / Rest changes the selected step; R toggles.";
+  }
   function staffKey(event, index, noteIndex) {
     const notes = notebook.draft.steps[index] ? M.pitches(notebook.draft.steps[index]) : [];
     const note = notes[noteIndex] || notes[0] || { midi: 48, name: "C" };
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === "r") {
+      event.preventDefault();
+      selectedNote = noteIndex;
+      select(index);
+      chooseMode(notes.length ? "rest" : "note");
+      focusStaff(index);
+    } else if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === "l") {
+      event.preventDefault();
+      selectedNote = noteIndex;
+      select(index);
+      togglePinned();
+      focusStaff(index);
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       event.preventDefault();
       const target = Math.max(0, Math.min(notebook.draft.steps.length, index + (event.key === "ArrowLeft" ? -1 : 1)));
       select(target);
@@ -322,7 +398,8 @@
       writeNote(index, M.staffPosition(note) + (event.key === "ArrowUp" ? 1 : -1), noteIndex, "move");
     } else if (!event.ctrlKey && !event.metaKey && /^[a-g]$/i.test(event.key)) {
       event.preventDefault();
-      writeNote(index, Math.floor(M.staffPosition(note) / 7) * 7 + "CDEFGAB".indexOf(event.key.toUpperCase()), noteIndex);
+      mode = "note";
+      writeNote(index, Math.floor(M.staffPosition(note) / 7) * 7 + "CDEFGAB".indexOf(event.key.toUpperCase()), noteIndex, "note");
     } else if (event.key === "Delete" || event.key === "Backspace") {
       event.preventDefault();
       selected = index;
@@ -459,6 +536,8 @@
       button.id = "bp-step-" + i;
       button.setAttribute("aria-pressed", String(i === selected));
       button.setAttribute("aria-label", "Step " + (i + 1) + ", " + durationLabel(step.ticks) + (M.pitches(step).length ? "" : " rest"));
+      if (step.pin !== undefined) button.dataset.pinned = "";
+      else delete button.dataset.pinned;
       button.textContent = String(i + 1);
       const duration = document.createElement("small");
       duration.textContent = durationLabel(step.ticks);
@@ -507,18 +586,8 @@
       });
     else render();
   });
-  ["note", "rest", "chord"].forEach((name) =>
-    $(name + "-mode").addEventListener("click", () => {
-      mode = name;
-      render();
-      $("staff-hint").textContent =
-        name === "chord"
-          ? "Click above or below a note to add a chord tone."
-          : name === "rest"
-            ? "Click a staff position to place a rest."
-            : "Click a pale rest to add a note. Drag notes to change pitch.";
-    })
-  );
+  ["note", "rest", "chord"].forEach((name) => $(name + "-mode").addEventListener("click", () => chooseMode(name)));
+  $("pin").addEventListener("click", togglePinned);
   $("accidental").addEventListener("change", () => {
     accidental = Number($("accidental").value);
     const note = notebook.draft.steps[selected] && M.pitches(notebook.draft.steps[selected])[selectedNote];

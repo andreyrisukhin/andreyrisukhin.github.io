@@ -51,8 +51,10 @@ description: A notebook for the left hand.
       >
     </div>
     <div class="bp-toolbar bp-music-tools" aria-label="Staff tools">
-      <button type="button" id="bp-note-mode" aria-pressed="true">Note</button>
-      <button type="button" id="bp-rest-mode" aria-pressed="false">Rest</button>
+      <button type="button" id="bp-note-mode" aria-pressed="true" title="Change the selected rest to notes. R toggles notes and rests.">Note</button>
+      <button type="button" id="bp-rest-mode" aria-pressed="false" title="Change the selected notes to a rest. R toggles notes and rests.">
+        Rest
+      </button>
       <button type="button" id="bp-chord-mode" aria-pressed="false">Chord</button>
       <label
         >Duration
@@ -66,11 +68,19 @@ description: A notebook for the left hand.
           <option value="1">♯ Sharp</option>
         </select></label
       >
+      <button
+        type="button"
+        id="bp-pin"
+        aria-pressed="false"
+        title="Lock the selected step to its beat. Earlier edits shift rests instead of this note. Press L to toggle."
+      >
+        Lock beat
+      </button>
       <button type="button" id="bp-remove">Delete</button>
       <button type="button" id="bp-play-draft">Play</button>
       <label class="bp-repeat"><input id="bp-repeat" type="checkbox" /> Repeat twice</label>
     </div>
-    <p id="bp-staff-hint" class="bp-small">Click a pale rest to add a note. Drag notes to change pitch. Chord adds notes at the same time.</p>
+    <p id="bp-staff-hint" class="bp-small">Click a pale rest to add a note. Drag notes to change pitch. Chord adds notes at the same time. Lock beat pins the selected step; L toggles it.</p>
     <div id="bp-score" class="bp-score bp-interactive-score" aria-label="Bass staff"></div>
     <p id="bp-measure-status" class="bp-small"></p>
     <details>

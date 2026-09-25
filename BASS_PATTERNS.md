@@ -4,11 +4,25 @@
 Click a pale rest to enter a note at that pitch. Drag a note vertically to change
 its pitch. Use Chord (or Shift-click) to add simultaneous tones, and Rest to place
 silence. Duration and accidental controls also edit the selected note.
+Note and Rest also convert the selected step immediately without changing its
+duration. R toggles between them while the staff has focus. Returning to Note
+reuses the last selected pitches/chord and button assignments (C3 if none were
+selected). In Note mode, clicking any rest places a note at the clicked pitch.
+Typing A–G also changes a rest to a note, even when the Rest tool was active.
 Pale entry slots are not saved or played. The staff scrolls horizontally on small
 screens; its pitch spacing does not shrink to fit the viewport.
 
+Lock beat (or L while the staff has focus) pins the selected step to its current
+position within the measure. When an earlier step's duration later changes, the
+editor holds the pinned step in place by shortening the material immediately
+before it (rests first, then sounding notes) or, when there is not enough room,
+shortening the earlier step itself so the pinned note still fits. The pin travels
+with the step through Note/Rest conversion and chord-tone deletion; deleting the
+step removes its pin. Pinned steps keep an accent stroke on the staff and a dashed
+edge in the step strip.
+
 Arrow keys select steps and move pitches. A–G enters a pitch, Enter fills an empty
-slot, Delete removes the selected chord tone or step, and Space plays/stops.
+slot, L toggles the beat lock, Delete removes the selected chord tone or step, and Space plays/stops.
 Undo/Redo also work with Ctrl/Cmd-Z and Ctrl/Cmd-Shift-Z while the staff has focus.
 Button assignments and step ordering remain in an optional disclosure.
 
@@ -24,6 +38,8 @@ Button assignments and step ordering remain in an optional disclosure.
   Undo restores them. Untouched steps and saved patterns retain their fingers.
   Assigning buttons explicitly replaces that step’s written notes.
 - Notes crossing a barline are tied. Rests split without ties. Incomplete last bars are reported rather than silently padded.
+- Pinned steps (locked beats) live only in version 2 patterns and round-trip through
+  `BP2.` codes without changing how `BP1.` codes decode.
 
 Save keeps a named pattern in this browser; edits also preserve a local draft.
 Saved basslines and three labeled examples appear as separate staff cards with

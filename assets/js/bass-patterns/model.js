@@ -28,6 +28,7 @@ window.BassPatterns = (function () {
         [2, 4, 8, 16].includes(value.meter[1]),
       "Invalid meter."
     );
+    const barTicks = (value.meter[0] * 48) / value.meter[1];
     requireValue(Array.isArray(value.steps) && value.steps.length <= 128, "Use at most 128 steps.");
     const steps = value.steps.map((step) => {
       requireValue(step && durations.some(([ticks]) => ticks === step.ticks), "Invalid step duration.");
@@ -73,6 +74,10 @@ window.BassPatterns = (function () {
           })
           .sort((a, b) => a.midi - b.midi);
       }
+      if (value.version === 2 && step.pin !== undefined) {
+        requireValue(Number.isInteger(step.pin) && step.pin >= 0 && step.pin < barTicks, "Invalid pinned beat.");
+        result.pin = step.pin;
+      }
       return result;
     });
     const pattern = { version: value.version, title: value.title, meter: value.meter.slice(), steps };
@@ -100,7 +105,13 @@ window.BassPatterns = (function () {
         return data;
       }),
     ];
-    if (p.version === 2) compact.push({ keyFifths: p.keyFifths, repeat: p.repeat, chords: p.steps.map((s) => s.chord || null) });
+    if (p.version === 2)
+      compact.push({
+        keyFifths: p.keyFifths,
+        repeat: p.repeat,
+        chords: p.steps.map((s) => s.chord || null),
+        pins: p.steps.map((s) => s.pin ?? null),
+      });
     const bytes = new TextEncoder().encode(JSON.stringify(compact));
     return (
       "BP" +
@@ -126,6 +137,10 @@ window.BassPatterns = (function () {
       );
       const metadata = data[3] || {};
       requireValue(!metadata.chords || (Array.isArray(metadata.chords) && metadata.chords.length === data[2].length), "Invalid chord labels.");
+      requireValue(
+        !metadata.pins || (Array.isArray(metadata.pins) && metadata.pins.length === data[2].length),
+        "Invalid pinned beats."
+      );
       return validate({
         version,
         title: data[0],
@@ -138,6 +153,7 @@ window.BassPatterns = (function () {
             ticks: s[0],
             ...(version === 2 && s[2] !== null ? { notes: s[2] } : {}),
             ...(metadata.chords?.[i] != null ? { chord: metadata.chords[i] } : {}),
+            ...(metadata.pins?.[i] != null ? { pin: metadata.pins[i] } : {}),
             presses: s[1].map((b) => {
               requireValue(Array.isArray(b) && b.length === 3 && Number.isInteger(b[1]), "Invalid button.");
               return { root: b[0], kind: kinds[b[1]], finger: b[2] };
@@ -233,6 +249,89 @@ window.BassPatterns = (function () {
       abc = used === 0 && p.steps.length ? abc.replace(/\|\s*$/, "|]") : abc + (repeatAt === p.steps.length - 1 && p.steps.length ? ":|" : "|]");
     return { abc, segments, incomplete: used, barTicks };
   }
+  // Holds pinned steps at their recorded beat when earlier material shifts.
+  // A pin records the onset in ticks from the start of its measure; reconcile
+  // prefers to pull the beat earlier by shortening the material immediately
+  // before the pinned step (rests first, then notes), and otherwise pushes it
+  // later by inserting rests. Returns a new steps array (unchanged if no pins).
+  function reconcile(steps, meter) {
+    if (!Array.isArray(steps) || !steps.length) return steps;
+    if (!steps.some((s) => s.pin !== undefined)) return steps;
+    const barTicks = (meter[0] * 48) / meter[1];
+    const bySize = [48, 36, 24, 18, 12, 9, 6, 3];
+    const isRest = (s) =>
+      (s.notes === undefined || s.notes.length === 0) && (s.presses === undefined || s.presses.length === 0);
+    // Decompose a multiple-of-3 tick count into valid rest durations.
+    const split = (amount) => {
+      const parts = [];
+      let remaining = amount;
+      for (const t of bySize) while (remaining >= t) {
+        parts.push(t);
+        remaining -= t;
+      }
+      return parts;
+    };
+    // Largest still-valid duration reduction for a step, capped by `need`.
+    const removable = (step, need) => {
+      const floor = isRest(step) ? 0 : 3;
+      let best = 0;
+      for (const target of [floor, ...bySize]) {
+        const removed = step.ticks - target;
+        if (removed > 0 && removed <= need) best = Math.max(best, removed);
+      }
+      return best;
+    };
+    const out = steps.map((s) => ({
+      ...s,
+      presses: s.presses ? s.presses.slice() : s.presses,
+      notes: s.notes ? s.notes.slice() : s.notes,
+    }));
+    const removeInGap = (i, need) => {
+      let gapStart = 0;
+      for (let k = i - 1; k >= 0; k--) if (out[k].pin !== undefined) {
+        gapStart = k + 1;
+        break;
+      }
+      let remaining = need;
+      const plan = [];
+      for (let j = i - 1; j >= gapStart && remaining > 0; j--) {
+        const r = removable(out[j], remaining);
+        if (r <= 0) continue;
+        plan.push({ index: j, newTicks: out[j].ticks - r });
+        remaining -= r;
+      }
+      if (remaining !== 0) return false;
+      for (const p of plan)
+        if (p.newTicks === 0) out.splice(p.index, 1);
+        else out[p.index].ticks = p.newTicks;
+      return true;
+    };
+    const insertInGap = (i, parts) => out.splice(i, 0, ...parts.map((t) => ({ ticks: t, presses: [] })));
+    let guard = 0;
+    let changed = true;
+    while (changed && guard++ < 10000) {
+      changed = false;
+      let onset = 0;
+      for (let i = 0; i < out.length; i++) {
+        if (out[i].pin !== undefined) {
+          const residue = ((onset % barTicks) + barTicks) % barTicks;
+          if (residue !== out[i].pin) {
+            const forward = (((out[i].pin - residue) % barTicks) + barTicks) % barTicks;
+            const backward = (((residue - out[i].pin) % barTicks) + barTicks) % barTicks;
+            if (backward <= forward && removeInGap(i, backward)) {
+              // pulled earlier by shortening preceding material
+            } else {
+              insertInGap(i, split(forward));
+            }
+            changed = true;
+            break;
+          }
+        }
+        onset += out[i].ticks;
+      }
+    }
+    return out;
+  }
   function example(title, meter, roots, chordSteps) {
     return validate({
       version: 1,
@@ -254,5 +353,21 @@ window.BassPatterns = (function () {
     example("Waltz bass", [3, 4], [0, 0, 0], [1, 2]),
     example("Chromatic approach", [4, 4], [0, 4, 6, 7], []),
   ];
-  return { kinds, durations, clone, validate, empty, encode, decode, button, pitches, staffPosition, staffNote, score, segmentForElement, examples };
+  return {
+    kinds,
+    durations,
+    clone,
+    validate,
+    empty,
+    encode,
+    decode,
+    button,
+    pitches,
+    staffPosition,
+    staffNote,
+    score,
+    reconcile,
+    segmentForElement,
+    examples,
+  };
 })();

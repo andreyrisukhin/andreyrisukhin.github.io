@@ -92,6 +92,14 @@
 .bp-empty-note {
   opacity: 0.2;
 }
+.bp-score .bp-pinned-note {
+  stroke: var(--music-accent);
+  stroke-width: 1.4;
+}
+.bp-steps [data-pinned] {
+  border-color: var(--music-accent);
+  border-style: dashed;
+}
 .bp-staff-overlay rect {
   cursor: crosshair;
   touch-action: none;

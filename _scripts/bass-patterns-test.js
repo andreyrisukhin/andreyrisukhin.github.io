@@ -204,6 +204,76 @@ test("mixed new notes and legacy buttons persist without altering assigned finge
   assert.deepEqual(json(restored.saved[0].pattern), json(legacy));
   assert.equal(M.encode(restored.saved[0].pattern).slice(0, 4), "BP1.");
 });
+test("pinned beats round-trip through BP2 codes and reject invalid values", () => {
+  const p = {
+    ...M.empty(),
+    version: 2,
+    meter: [4, 4],
+    steps: [
+      { ticks: 6, presses: [], notes: [{ midi: 48, name: "C" }] },
+      { ticks: 6, presses: [], pin: 6 },
+      { ticks: 12, presses: [], pin: 24 },
+    ],
+  };
+  assert.deepEqual(json(M.decode(M.encode(p))), json(p));
+  const bad = M.clone(p);
+  bad.steps[1].pin = 96; // >= barTicks (48)
+  assert.throws(() => M.validate(bad));
+  const fractional = M.clone(p);
+  fractional.steps[1].pin = 6.5;
+  assert.throws(() => M.validate(fractional));
+});
+test("reconcile holds pinned steps at their measure beat when earlier notes grow", () => {
+  // One bar of 4/4, in sixteenth tiles: [C 8th][rest 8th][G 8th(pin@12)][rest 8th][rest 8th]
+  const steps = [
+    { ticks: 6, presses: [], notes: [{ midi: 48, name: "C" }] },
+    { ticks: 6, presses: [] },
+    { ticks: 6, presses: [], notes: [{ midi: 43, name: "G" }], pin: 12 },
+    { ticks: 6, presses: [] },
+    { ticks: 6, presses: [] },
+  ];
+  // Lengthen the first note from an 8th to a quarter (grow by 6): it must absorb
+  // the rest before the pinned G, leaving the pinned step at beat 12.
+  steps[0].ticks = 12;
+  const out = M.reconcile(steps, [4, 4]);
+  let onset = 0,
+    pinOnset = null;
+  const onsets = out.map((s) => {
+    const o = onset;
+    onset += s.ticks;
+    return o;
+  });
+  out.forEach((s, i) => {
+    if (s.pin !== undefined) pinOnset = onsets[i] % 48;
+  });
+  assert.equal(pinOnset, 12);
+  assert.equal(out.reduce((t, s) => t + s.ticks, 0), 30);
+  assert.equal(out.length, 4); // the absorbed rest collapsed into the grown note
+  assert.equal(out[0].ticks, 12);
+  assert.equal(out[1].pin, 12);
+});
+test("reconcile shortens an earlier note when there is no rest to absorb", () => {
+  // Direct neighbour: [C 8th][G 8th pinned@6][rest]
+  const steps = [
+    { ticks: 6, presses: [], notes: [{ midi: 48, name: "C" }] },
+    { ticks: 6, presses: [], notes: [{ midi: 43, name: "G" }], pin: 6 },
+    { ticks: 6, presses: [] },
+  ];
+  steps[0].ticks = 18; // needs 12 more but only rests sit after the pinned note
+  const out = M.reconcile(steps, [4, 4]);
+  let onset = 0,
+    pinOnset = null;
+  out.forEach((s) => {
+    if (s.pin !== undefined) pinOnset = onset % 48;
+    onset += s.ticks;
+  });
+  assert.equal(pinOnset, 6);
+  assert.equal(out[0].ticks, 6); // capped back from 18 to keep the pin at beat 6
+});
+test("reconcile is a no-op without pins", () => {
+  const steps = M.examples[0].steps;
+  assert.equal(M.reconcile(steps, [4, 4]), steps);
+});
 test("Prison Blues retains four 6/8 bars, source octaves, chord labels, naturals, and repeat", () => {
   const p = M.validate(JSON.parse(fs.readFileSync(path.join(root, "_data/bass_patterns/prison_blues.json"), "utf8")));
   assert.deepEqual(json(M.decode(M.encode(p))), json(p));

@@ -51,6 +51,7 @@ window.BassPatternStaff = (function () {
         el.dataset.bpStep = entry.step;
         el.classList.toggle("bp-active-note", entry.step === options.selected);
         el.classList.toggle("bp-empty-note", entry.step >= length);
+        el.classList.toggle("bp-pinned-note", pattern.steps[entry.step]?.pin !== undefined);
       });
     });
     const overlay = node("g", { class: "bp-staff-overlay" });
@@ -130,7 +131,8 @@ window.BassPatternStaff = (function () {
         hit.releasePointerCapture(event.pointerId);
         const dragged = Math.abs(event.clientY - state.y) > 4,
           position = dragged ? pitchAt(coordinates(event).y) : state.position;
-        if (entry.step < length && !dragged && options.mode === "note" && !state.shift) options.select(entry.step, state.note);
+        if (entry.step < length && M.pitches(pattern.steps[entry.step]).length && !dragged && options.mode === "note" && !state.shift)
+          options.select(entry.step, state.note);
         else options.write(entry.step, position, state.note, state.shift ? "chord" : dragged ? "move" : options.mode);
       });
       hit.addEventListener("keydown", (event) => options.key(event, entry.step, options.note));

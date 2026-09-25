@@ -22,37 +22,6 @@
             if (navigator.storage && navigator.storage.persist) {
               navigator.storage.persist().catch(function () {});
             }
-            function notifyWaiting(worker) {
-              if (!worker) return;
-              if (document.getElementById('pwa-update-toast')) return;
-              var t = document.createElement('div');
-              t.id = 'pwa-update-toast';
-              t.setAttribute('role', 'status');
-              t.className = 'music-update-notice';
-              var text = document.createElement('span');
-              text.textContent = 'A new version is ready.';
-              var refresh = document.createElement('button');
-              refresh.type = 'button';
-              refresh.textContent = 'Refresh';
-              refresh.addEventListener('click', function () {
-                worker.postMessage({ type: 'SKIP_WAITING' });
-              });
-              t.appendChild(text);
-              t.appendChild(refresh);
-              var page = document.querySelector('.music-page');
-              if (page) page.appendChild(t);
-              else document.body.appendChild(t);
-            }
-            if (reg.waiting) notifyWaiting(reg.waiting);
-            reg.addEventListener('updatefound', function () {
-              var w = reg.installing;
-              if (!w) return;
-              w.addEventListener('statechange', function () {
-                if (w.state === 'installed' && navigator.serviceWorker.controller) {
-                  notifyWaiting(w);
-                }
-              });
-            });
             setInterval(
               function () {
                 reg.update().catch(function () {});
