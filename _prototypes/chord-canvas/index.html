@@ -1,18 +1,20 @@
 <!doctype html>
-<html lang="en" data-revision="fractions-1">
+<html lang="en" data-revision="saving-2">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <link rel="icon" href="data:," />
     <title>Chord canvas · Subdivisions</title>
-    <link rel="stylesheet" href="style.css?v=fractions-1" />
+    <link rel="stylesheet" href="style.css?v=saving-2" />
     <script defer src="../../assets/js/vendor/tonal.min.js"></script>
     <script defer src="../../assets/js/music/common.js"></script>
     <script defer src="../../assets/js/workbench/model.js"></script>
-    <script defer src="fractions.js?v=fractions-1"></script>
-    <script defer src="board.js?v=fractions-1"></script>
-    <script defer src="canvas.js?v=fractions-1"></script>
+    <script defer src="fractions.js?v=saving-2"></script>
+    <script defer src="document.js?v=saving-2"></script>
+    <script defer src="storage.js?v=saving-2"></script>
+    <script defer src="board.js?v=saving-2"></script>
+    <script defer src="canvas.js?v=saving-2"></script>
   </head>
   <body>
     <main id="canvas" tabindex="-1" aria-label="Chord canvas" aria-describedby="instructions">
@@ -42,6 +44,26 @@
         </form>
       </div>
     </main>
+    <aside id="file-controls" aria-label="Canvas files">
+      <button id="file-toggle" type="button" aria-expanded="false" aria-controls="files">File</button>
+      <span id="save-indicator" role="status"></span>
+    </aside>
+    <section id="files" aria-label="Save, load, and copy" hidden>
+      <div class="actions">
+        <button id="download" type="button">Save</button>
+        <button id="load" type="button">Load</button>
+        <button id="copy" type="button" title="Copy canvas as JSON">Copy</button>
+      </div>
+      <input id="load-file" type="file" accept=".json,application/json" aria-label="Open canvas JSON file" hidden />
+      <p id="save-status" hidden></p>
+      <div id="save-recovery" hidden>
+        <div class="actions">
+          <button id="load-browser" type="button">Load browser save</button>
+          <button id="replace-save" type="button">Use this canvas</button>
+        </div>
+      </div>
+      <p id="file-message" role="status"></p>
+    </section>
     <aside id="tools" aria-label="Canvas controls" hidden>
       <button id="undo" type="button" aria-label="Undo" title="Undo (Ctrl / ⌘ Z)" disabled>↶</button>
       <button id="redo" type="button" aria-label="Redo" title="Redo (Ctrl / ⌘ Shift Z)" disabled>↷</button>
@@ -110,7 +132,8 @@
       <p>Drag the paper to pan. Scroll or use a trackpad, too.</p>
       <p>Double-click a tile to edit. Arrow keys choose a cell; Shift + arrows move it.</p>
       <p>Colors follow the root around the circle of fifths; chord quality changes the shade.</p>
-      <p>Empty canvas is untimed space; outlined empty spans belong to a measure. This is a scratch canvas. Reload starts fresh.</p>
+      <p>Empty canvas is untimed space; outlined empty spans belong to a measure.</p>
+      <p>Committed chords autosave in this browser. File offers Save, Load, and Copy for JSON backups. Ctrl / ⌘ S downloads the canvas.</p>
     </section>
     <p id="status" class="sr-only" role="status"></p>
     <noscript>This experiment needs JavaScript to recognize chords.</noscript>

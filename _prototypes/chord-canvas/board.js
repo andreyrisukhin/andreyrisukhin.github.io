@@ -101,6 +101,32 @@ window.ChordCanvasBoard = (function () {
     return {
       all: all,
       at: at,
+      document: function () {
+        return {
+          format: "chord-canvas",
+          version: 1,
+          meter: clone(meter),
+          cells: cells.map(function (cell) {
+            return { id: cell.id, x: cell.x, y: cell.y, duration: clone(cell.duration), name: cell.name };
+          }),
+        };
+      },
+      load: function (value, initial) {
+        var document = window.ChordCanvasDocument.validate(value);
+        var restored = document.cells.map(function (cell) {
+          return Object.assign(cell, { fill: cell.name === null ? null : color(window.WorkbenchModel.fromName(cell.name)) });
+        });
+        if (initial) {
+          past = [];
+          future = [];
+        } else remember();
+        cells = restored;
+        meter = document.meter;
+        cells.forEach(function (cell) {
+          nextId = Math.max(nextId, cell.id + 1);
+        });
+        return document.view;
+      },
       get: function (id) {
         return (
           all().find(function (cell) {

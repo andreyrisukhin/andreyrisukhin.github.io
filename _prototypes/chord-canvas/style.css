@@ -268,7 +268,8 @@ input {
   outline: 2px solid #645a4e;
 }
 #help,
-#settings {
+#settings,
+#files {
   position: fixed;
   bottom: 88px;
   right: 20px;
@@ -282,6 +283,36 @@ input {
   box-shadow: 0 8px 30px #302c2810;
   font-size: 14px;
   line-height: 1.5;
+}
+#file-controls {
+  position: fixed;
+  left: 16px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 12px;
+}
+#save-indicator {
+  padding: 4px;
+  background: #faf9f6;
+}
+#files {
+  left: 16px;
+  right: auto;
+  width: max-content;
+  max-width: min(320px, calc(100% - 32px));
+  padding: 8px;
+  z-index: 5;
+}
+#file-message:empty {
+  display: none;
+}
+#files p {
+  margin: 8px 0 0;
+}
+#file-toggle.warning {
+  border-color: #a42b2b;
 }
 #selection {
   position: fixed;
@@ -308,6 +339,8 @@ input {
 }
 #selection button,
 #settings button,
+#files button,
+#file-toggle,
 #selection input,
 #settings input,
 #settings select {
@@ -359,8 +392,10 @@ input {
     width: 44px;
   }
   #help,
-  #settings {
+  #settings,
+  #files {
     bottom: 120px;
+    max-height: calc(100% - 140px);
   }
 }
 .sr-only {

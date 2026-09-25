@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const root = path.resolve(__dirname, "..");
-const sandbox = {};
+const sandbox = { TextEncoder };
 sandbox.window = sandbox;
 sandbox.self = sandbox;
 vm.createContext(sandbox);
@@ -13,6 +13,8 @@ vm.createContext(sandbox);
   "assets/js/music/common.js",
   "assets/js/workbench/model.js",
   "_prototypes/chord-canvas/fractions.js",
+  "_prototypes/chord-canvas/document.js",
+  "_prototypes/chord-canvas/storage.js",
   "_prototypes/chord-canvas/board.js",
 ].forEach((file) => vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), sandbox));
 const Board = sandbox.ChordCanvasBoard,
@@ -43,7 +45,17 @@ function test(name, fn) {
 test("prototype assets use one cache revision", () => {
   const html = fs.readFileSync(path.join(root, "_prototypes/chord-canvas/index.html"), "utf8");
   const revision = html.match(/data-revision="([^"]+)"/)[1];
-  ["style.css", "fractions.js", "board.js", "canvas.js"].forEach((asset) => assert.ok(html.includes('"' + asset + "?v=" + revision + '"')));
+  ["style.css", "fractions.js", "document.js", "storage.js", "board.js", "canvas.js"].forEach((asset) =>
+    assert.ok(html.includes('"' + asset + "?v=" + revision + '"'))
+  );
+});
+test("file controls have simple Save, Load, and Copy titles", () => {
+  const html = fs.readFileSync(path.join(root, "_prototypes/chord-canvas/index.html"), "utf8");
+  assert.match(html, /<button id="download" type="button">Save<\/button>/);
+  assert.match(html, /<button id="load" type="button">Load<\/button>/);
+  assert.match(html, /<button id="copy"[^>]*>Copy<\/button>/);
+  const panel = html.match(/<section id="files"[\s\S]*?<\/section>/)[0];
+  assert.equal((panel.match(/<p/g) || []).length, 2, "Only dynamic feedback, no explanatory paragraphs");
 });
 test("fractions reduce and serialize exactly", () => {
   assert.deepEqual(json(F.make(4, 12)), { n: "1", d: "3" });
@@ -87,6 +99,48 @@ test("entry accepts chords but invalid input changes nothing", () => {
   assert.equal(b.put(-1, -2, "a-7").name, "Am7");
   assert.equal(b.put(0, 0, "F#7/C#").name, "F#7/C#");
   invariant(b);
+});
+test("minor-seventh aliases share labels and colors without adding an edit", () => {
+  const b = Board.create(),
+    first = b.put(0, 0, "Bmin7");
+  assert.equal(first.name, "Bm7");
+  const edited = b.put(0, 0, "Bmi7", first.id);
+  assert.deepEqual(json(edited), json(first));
+  assert.equal(first.fill, Board.color(sandbox.WorkbenchModel.fromName("Bm7")));
+  b.undo();
+  assert.equal(b.all().length, 0, "Equivalent spelling does not add an undo step");
+  const a = b.put(0, 0, "Amin7"),
+    other = b.put(1, 0, "Bmin7");
+  assert.equal(a.name, "Am7");
+  assert.equal(other.name, "Bm7");
+  assert.notEqual(a.fill, other.fill);
+  invariant(b);
+});
+const aliasPairs = [
+  ["CM", "C"],
+  ["Cmin", "Cm"],
+  ["CM7", "Cmaj7"],
+  ["Cmin7", "Cm7"],
+  ["Cdom", "C7"],
+  ["Csus", "Csus4"],
+  ["C7sus", "C7sus4"],
+  ["C+", "Caug"],
+  ["C°", "Cdim"],
+  ["C°7", "Cdim7"],
+  ["Cø", "Cm7b5"],
+  ["CmM7", "CmMaj7"],
+];
+test("all agreed aliases share canonical tiles without adding redundant history", () => {
+  for (const [alias, canonical] of aliasPairs) {
+    const b = Board.create(),
+      cell = b.put(0, 0, alias);
+    assert.equal(cell.name, canonical);
+    assert.equal(cell.fill, Board.color(sandbox.WorkbenchModel.fromName(canonical)));
+    assert.deepEqual(json(b.put(0, 0, canonical, cell.id)), json(cell));
+    assert.deepEqual(json(b.put(0, 0, alias, cell.id)), json(cell));
+    b.undo();
+    assert.equal(b.all().length, 0, alias + " does not add redundant edits");
+  }
 });
 test("squeeze creates two halves and leaves a source rest", () => {
   const b = Board.create(),
@@ -293,5 +347,279 @@ test("chord colors remain enharmonically consistent", () => {
   const parse = sandbox.WorkbenchModel.fromName;
   assert.equal(Board.color(parse("C#7")), Board.color(parse("Db7")));
   assert.notEqual(Board.color(parse("C")), Board.color(parse("Cm")));
+});
+const Doc = sandbox.ChordCanvasDocument,
+  Storage = sandbox.ChordCanvasStorage;
+function example() {
+  const b = Board.create(),
+    a = b.put(-3, 2, "F#7/C#");
+  b.split(a.id, "1/2:1/3");
+  b.setMeter(6, 8);
+  return Object.assign(b.document(), { view: { zoom: 8, pan: { x: 130, y: -240 }, selected: a.id, snap: "3" } });
+}
+test("loading and saving canonicalizes minor-seventh aliases without changing canvas layout", () => {
+  const value = example();
+  value.cells[0].name = "Bmin7/A";
+  const expected = json(value);
+  expected.cells[0].name = "Bm7/A";
+  assert.deepEqual(json(Doc.parse(JSON.stringify(value))), expected);
+  assert.deepEqual(JSON.parse(Doc.stringify(value)), expected);
+  const restored = Board.create();
+  assert.deepEqual(json(restored.load(value, true)), expected.view);
+  const { view, ...document } = expected;
+  assert.deepEqual(json(restored.document()), document);
+  assert.equal(value.cells[0].name, "Bmin7/A", "Loading does not mutate the source document");
+  invariant(restored);
+});
+test("all agreed aliases normalize on import and export without changing saved layout", () => {
+  for (const [alias, canonical] of aliasPairs) {
+    const value = example();
+    value.cells[0].name = alias + "/G";
+    const expected = json(value);
+    expected.cells[0].name = canonical + "/G";
+    assert.deepEqual(json(Doc.parse(JSON.stringify(value))), expected);
+    assert.deepEqual(JSON.parse(Doc.stringify(value)), expected);
+    const restored = Board.create();
+    assert.deepEqual(json(restored.load(value, true)), expected.view);
+    const { view, ...document } = expected;
+    assert.deepEqual(json(restored.document()), document);
+    assert.equal(value.cells[0].name, alias + "/G", "The source document remains unchanged");
+    invariant(restored);
+  }
+});
+test("files round-trip exact spans, rests, coordinates, meter, and view", () => {
+  const value = example(),
+    restored = Board.create();
+  assert.deepEqual(json(Doc.parse(Doc.stringify(value))), json(value));
+  assert.deepEqual(json(restored.load(value, true)), value.view);
+  const { view, ...document } = value;
+  assert.deepEqual(json(restored.document()), json(document));
+  invariant(restored);
+  assert.equal(restored.canUndo, false);
+  assert.equal(restored.canRedo, false);
+});
+test("file loading is one undo step and discards stale redo", () => {
+  const b = Board.create();
+  b.put(0, 0, "C");
+  const before = json(b.document());
+  b.load(example());
+  const after = json(b.document());
+  b.undo();
+  assert.deepEqual(json(b.document()), before);
+  b.redo();
+  assert.deepEqual(json(b.document()), after);
+  b.undo();
+  b.load(example());
+  assert.equal(b.canRedo, false);
+  invariant(b);
+});
+test("loaded IDs cannot collide with subsequent edits or undo", () => {
+  const b = Board.create(),
+    value = example();
+  value.cells[0].id = 300;
+  value.view.selected = 300;
+  b.load(value);
+  const a = b.put(3, 3, "C");
+  assert.ok(a.id > 300);
+  b.undo();
+  b.undo();
+  b.put(3, 3, "D");
+  assert.ok(b.all()[0].id > a.id);
+});
+test("loading ignores computed and unknown fields without trusting fill or start", () => {
+  const value = example();
+  value.cells[0].fill = "url(https://example.invalid/)";
+  value.cells[0].start = { n: "9", d: "1" };
+  const b = Board.create();
+  b.load(value);
+  assert.ok(b.all()[0].fill.startsWith("hsl("));
+  assert.equal(F.text(b.all()[0].start), "0");
+  value.cells[0].duration.n = "999";
+  assert.equal(F.text(b.all()[0].duration), "3/5");
+});
+test("invalid files never mutate the board or history", () => {
+  const changes = [
+    (v) => {
+      v.version = 2;
+    },
+    (v) => {
+      v.format = "other";
+    },
+    (v) => {
+      v.cells = null;
+    },
+    (v) => {
+      v.cells[0].id = v.cells[1].id;
+    },
+    (v) => {
+      v.cells[0].id = Number.MAX_SAFE_INTEGER;
+    },
+    (v) => {
+      v.cells[0].x = 0.2;
+    },
+    (v) => {
+      v.cells[0].y = Infinity;
+    },
+    (v) => {
+      v.meter.numerator = 0;
+    },
+    (v) => {
+      v.meter.denominator = 3;
+    },
+    (v) => {
+      v.cells[0].name = "<img onerror=alert(1)>";
+    },
+    (v) => {
+      v.cells[0].name = {};
+    },
+    (v) => {
+      v.cells[0].duration.d = "0";
+    },
+    (v) => {
+      v.cells[0].duration.n = "-1";
+    },
+    (v) => {
+      v.cells[0].duration.n = 1;
+    },
+    (v) => {
+      v.cells[0].duration = { n: "1", d: "3" };
+    },
+    (v) => {
+      v.cells[0].duration = { n: "1", d: "1" };
+    },
+    (v) => {
+      v.cells[0].duration.d = "1".repeat(4097);
+    },
+    (v) => {
+      v.view.pan.x = NaN;
+    },
+    (v) => {
+      v.view.zoom = 3;
+    },
+    (v) => {
+      v.view.selected = 123;
+    },
+    (v) => {
+      v.view.snap = "evil";
+    },
+  ];
+  const b = Board.create();
+  b.put(0, 0, "C");
+  const before = json(b.document());
+  for (const change of changes) {
+    const value = example();
+    change(value);
+    assert.throws(() => b.load(value));
+    assert.deepEqual(json(b.document()), before);
+  }
+  b.undo();
+  assert.equal(b.all().length, 0, "Failed loads add no history");
+});
+test("empty files and missing optional views load", () => {
+  const b = Board.create(),
+    value = b.document();
+  b.put(0, 0, "C");
+  assert.equal(b.load(value), null);
+  assert.equal(b.all().length, 0);
+  b.undo();
+  assert.equal(b.all().length, 1);
+});
+test("deep exact fractions survive JSON without float conversion", () => {
+  const b = Board.create(),
+    a = b.put(0, 0, "C");
+  for (let i = 0; i < 80; i++) b.split(a.id, "3");
+  const restored = Board.create();
+  restored.load(Doc.parse(Doc.stringify(b.document())));
+  assert.deepEqual(json(restored.document()), json(b.document()));
+  invariant(restored);
+});
+test("malformed and oversized files reject before loading", () => {
+  assert.throws(() => Doc.parse("{broken"));
+  assert.throws(() => Doc.parse("null"));
+  assert.throws(() => Doc.parse(" ".repeat(Doc.maxBytes + 1)));
+  const value = example();
+  value.cells = Array(4097).fill(value.cells[0]);
+  assert.throws(() => Doc.validate(value));
+  value.cells = Array.from({ length: 257 }, (_, i) => ({ id: i + 1, x: 0, y: 0, name: null, duration: { n: "1", d: "257" } }));
+  value.view = null;
+  assert.throws(() => Doc.validate(value));
+});
+function memoryStorage() {
+  let raw = null,
+    writes = 0;
+  return {
+    getItem: () => raw,
+    setItem: (_, value) => {
+      raw = value;
+      writes++;
+    },
+    get writes() {
+      return writes;
+    },
+  };
+}
+test("autosave restores a document and skips identical writes", () => {
+  const memory = memoryStorage(),
+    store = Storage.create(() => memory),
+    value = example();
+  assert.equal(store.read(), null);
+  assert.equal(store.save(value), true);
+  assert.equal(store.save(value), true);
+  assert.equal(memory.writes, 1);
+  assert.deepEqual(json(Storage.create(() => memory).read()), json(value));
+});
+test("corrupt and newer browser saves remain untouched", () => {
+  for (const raw of ["{broken", JSON.stringify({ ...example(), version: 2 })]) {
+    const memory = memoryStorage();
+    memory.setItem(Storage.key, raw);
+    const store = Storage.create(() => memory);
+    assert.equal(store.read(), null);
+    assert.equal(store.status, "invalid");
+    assert.equal(store.save(example()), false);
+    assert.equal(memory.getItem(Storage.key), raw);
+    assert.equal(store.save(example(), true), true);
+  }
+});
+test("other tabs cannot silently overwrite a changed browser save", () => {
+  const memory = memoryStorage(),
+    a = Storage.create(() => memory),
+    b = Storage.create(() => memory);
+  a.read();
+  b.read();
+  a.save(example());
+  assert.equal(b.save(Board.create().document()), false);
+  assert.equal(b.status, "conflict");
+  assert.equal(Doc.parse(memory.getItem(Storage.key)).cells.length, 2);
+  assert.deepEqual(json(b.read()), json(example()));
+  assert.equal(b.save(Board.create().document()), true);
+});
+test("storage events pause autosave until explicit recovery", () => {
+  const memory = memoryStorage(),
+    store = Storage.create(() => memory);
+  store.read();
+  store.save(example());
+  store.changed(null);
+  assert.equal(store.blocked, true);
+  assert.equal(store.save(example()), false);
+  assert.equal(store.save(example(), true), true);
+  assert.equal(store.blocked, false);
+});
+test("denied storage and quota failures do not prevent JSON export", () => {
+  const denied = Storage.create(() => {
+    throw new Error("denied");
+  });
+  assert.equal(denied.read(), null);
+  assert.equal(denied.save(example()), false);
+  assert.equal(denied.status, "unavailable");
+  const quota = Storage.create(() => ({
+    getItem: () => null,
+    setItem: () => {
+      throw new Error("quota");
+    },
+  }));
+  quota.read();
+  assert.equal(quota.save(example()), false);
+  assert.equal(quota.status, "unavailable");
+  assert.equal(Doc.parse(Doc.stringify(example())).cells.length, 2);
 });
 console.log(count + " chord canvas tests passed");

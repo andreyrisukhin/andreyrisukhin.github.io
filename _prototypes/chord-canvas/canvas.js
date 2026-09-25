@@ -4,7 +4,14 @@
     return document.getElementById(id);
   };
   var F = window.ChordFractions,
-    board = window.ChordCanvasBoard.create();
+    board = window.ChordCanvasBoard.create(),
+    files = window.ChordCanvasDocument,
+    storage = window.ChordCanvasStorage.create(function () {
+      return window.localStorage;
+    }),
+    ready = false,
+    saveTimer = null,
+    fileTicket = 0;
   var canvas = $("canvas"),
     world = $("world"),
     tiles = $("tiles"),
@@ -21,6 +28,107 @@
     one = F.make(1, 1);
   function announce(text) {
     $("status").textContent = text;
+  }
+  function documentValue() {
+    return Object.assign(board.document(), {
+      view: { zoom: zoom, pan: { x: pan.x, y: pan.y }, selected: board.get(selected) ? selected : null, snap: $("snap").value },
+    });
+  }
+  function storageStatus() {
+    var messages = {
+      empty: "",
+      saved: "",
+      unavailable: "Autosave unavailable. Use Save or Copy.",
+      invalid: "Browser save unreadable. It has not been overwritten.",
+      conflict: "Another tab changed the save. Autosave paused.",
+      "too-large": "This canvas exceeds the file limits and was not saved.",
+    };
+    var label = storage.status === "saved" ? "Saved" : storage.status === "empty" ? "" : "Not saved";
+    if ($("save-status").textContent !== messages[storage.status]) $("save-status").textContent = messages[storage.status];
+    $("save-status").hidden = !messages[storage.status];
+    if ($("save-indicator").textContent !== label) $("save-indicator").textContent = label;
+    $("file-toggle").classList.toggle("warning", storage.status !== "saved" && storage.status !== "empty");
+    $("save-recovery").hidden = storage.status === "saved" || storage.status === "empty";
+  }
+  function flushSave(force) {
+    clearTimeout(saveTimer);
+    if (!ready) return true;
+    var saved = storage.save(documentValue(), force);
+    storageStatus();
+    return saved;
+  }
+  function scheduleSave() {
+    if (!ready || gesture) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flushSave, 200);
+  }
+  function hasDraft() {
+    var original = draft && board.get(draft.id);
+    return !!draft && !!input.value.trim() && input.value !== (original && original.name);
+  }
+  function showDocument(value, initial) {
+    finish(true);
+    var savedView = board.load(value, initial);
+    hideEditor();
+    closePanels();
+    selected = savedView ? savedView.selected : (board.all()[0] || {}).id || null;
+    zoom = savedView ? savedView.zoom : 1;
+    pan = savedView ? savedView.pan : { x: 0, y: 0 };
+    $("snap").value = savedView ? savedView.snap : "auto";
+    if (!savedView && selected) {
+      var g = geometry(board.get(selected));
+      pan = { x: -g.x, y: -g.y };
+    }
+    canvas.scrollLeft = canvas.scrollTop = 0;
+    render();
+    view();
+    canvas.focus({ preventScroll: true });
+    if (!board.all().length) open({ x: 0, y: 0 }, "", false);
+  }
+  function confirmLoad() {
+    return (!board.all().length && !hasDraft()) || window.confirm("Replace this canvas? You can undo the load. Unfinished typing will be discarded.");
+  }
+  function download() {
+    if (gesture || !commit()) return;
+    try {
+      var url = URL.createObjectURL(new Blob([files.stringify(documentValue())], { type: "application/json" })),
+        link = document.createElement("a");
+      link.href = url;
+      link.download = "chord-canvas-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () {
+        URL.revokeObjectURL(url);
+      }, 60000);
+      $("file-message").textContent = "Download started.";
+      flushSave();
+    } catch (error) {
+      $("file-message").textContent = error.message;
+    }
+  }
+  async function copy() {
+    if (gesture || !commit()) return;
+    $("files").hidden = false;
+    $("file-toggle").setAttribute("aria-expanded", "true");
+    $("copy").focus({ preventScroll: true });
+    var text;
+    try {
+      text = files.stringify(documentValue());
+    } catch (error) {
+      $("file-message").textContent = error.message;
+      return;
+    }
+    $("copy").disabled = true;
+    try {
+      await navigator.clipboard.writeText(text);
+      $("file-message").textContent = "Copied.";
+      flushSave();
+    } catch (_) {
+      $("file-message").textContent = "Copy unavailable. Use Save instead.";
+    } finally {
+      $("copy").disabled = false;
+    }
   }
   function node(id) {
     return tiles.querySelector('[data-id="' + id + '"]');
@@ -42,6 +150,7 @@
   }
   function view() {
     world.style.transform = "translate(" + pan.x + "px," + pan.y + "px)";
+    scheduleSave();
   }
   function point(x, y) {
     var rect = world.getBoundingClientRect(),
@@ -144,6 +253,7 @@
     });
     renderDividers(all);
     panels();
+    scheduleSave();
   }
   function renderDividers(all) {
     var valid = new Set();
@@ -234,15 +344,16 @@
     return true;
   }
   function closePanels() {
-    ["help", "settings", "split-form"].forEach(function (id) {
+    ["help", "settings", "split-form", "files"].forEach(function (id) {
       $(id).hidden = true;
     });
-    ["help-toggle", "settings-toggle", "split-toggle"].forEach(function (id) {
+    ["help-toggle", "settings-toggle", "split-toggle", "file-toggle"].forEach(function (id) {
       $(id).setAttribute("aria-expanded", "false");
     });
     $("split-error").hidden = true;
   }
   function cancel() {
+    var filesOpen = !$("files").hidden;
     if (gesture) {
       finish(true);
       return;
@@ -256,6 +367,7 @@
       if (!board.all().length) open({ x: 0, y: 0 }, "", false);
     }
     closePanels();
+    if (filesOpen) $("file-toggle").focus({ preventScroll: true });
   }
   function history(direction) {
     if (gesture) return;
@@ -484,6 +596,11 @@
   }
   document.addEventListener("keydown", function (e) {
     if (e.isComposing) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      download();
+      return;
+    }
     if (e.key === "Escape") {
       e.preventDefault();
       cancel();
@@ -511,7 +628,7 @@
       render();
       return;
     }
-    if (e.target.closest("#tools, #selection, #help, #settings")) return;
+    if (e.target.closest("#tools, #selection, #help, #settings, #files, #file-controls")) return;
     if (e.key === " ") {
       e.preventDefault();
       space = true;
@@ -628,12 +745,14 @@
     ["help-toggle", "help"],
     ["settings-toggle", "settings"],
     ["split-toggle", "split-form"],
+    ["file-toggle", "files"],
   ].forEach(function (pair) {
     $(pair[0]).addEventListener("click", function () {
       var show = $(pair[1]).hidden;
       closePanels();
       $(pair[1]).hidden = !show;
       this.setAttribute("aria-expanded", String(show));
+      if (show && pair[1] === "files") $("file-message").textContent = "";
       if (show && pair[1] === "split-form") {
         $("split-value").focus();
         $("split-value").select();
@@ -658,11 +777,74 @@
     render();
     announce("Meter changed. Fractions are unchanged.");
   });
+  $("download").addEventListener("click", download);
+  $("copy").addEventListener("click", copy);
+  $("load").addEventListener("click", function () {
+    $("load-file").click();
+  });
+  $("load-file").addEventListener("change", async function () {
+    var file = this.files[0],
+      ticket = ++fileTicket;
+    this.value = "";
+    if (!file) return;
+    $("file-message").textContent = "Reading file…";
+    try {
+      if (file.size > files.maxBytes) throw new Error("Canvas files must be smaller than 2 MB.");
+      var value = files.parse(await file.text());
+      if (ticket !== fileTicket) return;
+      if (!confirmLoad()) {
+        $("file-message").textContent = "Load cancelled. Canvas unchanged.";
+        return;
+      }
+      showDocument(value, false);
+      flushSave();
+      announce("Canvas loaded. Undo restores the previous canvas.");
+    } catch (error) {
+      if (ticket === fileTicket) $("file-message").textContent = error.message + " Canvas unchanged.";
+    }
+  });
+  $("load-browser").addEventListener("click", function () {
+    if (!confirmLoad()) return;
+    var value = storage.read();
+    storageStatus();
+    if (value) {
+      showDocument(value, false);
+      flushSave();
+      announce("Browser save loaded. Undo restores the previous canvas.");
+    } else $("file-message").textContent = "No readable browser save. Canvas unchanged.";
+  });
+  $("replace-save").addEventListener("click", function () {
+    if (!window.confirm("Replace the browser save with this canvas? Download JSON first if you need both copies.")) return;
+    if (commit()) flushSave(true);
+  });
+  $("snap").addEventListener("change", scheduleSave);
+  window.addEventListener("storage", function (e) {
+    if (e.key !== null && e.key !== window.ChordCanvasStorage.key) return;
+    storage.changed(e.newValue);
+    storageStatus();
+  });
+  window.addEventListener("pagehide", function () {
+    flushSave();
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") flushSave();
+  });
+  window.addEventListener("beforeunload", function (e) {
+    var saved = flushSave();
+    if (hasDraft() || (!saved && board.all().length)) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
   function resize() {
     var cell = draft || board.get(selected);
     if (cell) reveal(cell);
   }
   window.addEventListener("resize", resize);
   if (window.visualViewport) window.visualViewport.addEventListener("resize", resize);
-  open({ x: 0, y: 0 }, "", matchMedia("(pointer: fine)").matches);
+  var restored = storage.read();
+  if (restored) showDocument(restored, true);
+  else open({ x: 0, y: 0 }, "", matchMedia("(pointer: fine)").matches);
+  ready = true;
+  storageStatus();
 })();

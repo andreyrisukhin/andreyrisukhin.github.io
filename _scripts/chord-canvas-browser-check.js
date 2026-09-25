@@ -23,7 +23,7 @@
     if (!value) throw new Error(message);
     checks++;
   };
-  assert(document.documentElement.dataset.revision === "fractions-1", "The versioned fractional prototype is loaded");
+  assert(document.documentElement.dataset.revision === "saving-2", "The versioned saving prototype is loaded");
   assert(tiles().length === 0 && $("tools").hidden, "Starts blank without a toolbar");
   const rect = $("editor").getBoundingClientRect();
   assert(Math.abs(rect.x + rect.width / 2 - innerWidth / 2) < 1, "Seed is horizontally centered");
