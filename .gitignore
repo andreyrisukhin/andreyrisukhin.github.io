@@ -15,3 +15,5 @@ vendor
 .dev-annotations/
 games/golem-demo/target/
 data/songs-inbox/
+.build-venv/
+.factory/

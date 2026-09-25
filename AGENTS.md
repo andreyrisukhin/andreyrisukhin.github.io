@@ -63,3 +63,16 @@ If `vale` is installed in the repo, run it before responding and fold its output
 - Template example posts (`_posts/2015-*` through `_posts/2025-*`) are excluded in `_config.yml`. My posts are dated 2026 onward.
 - The broken-links workflow excludes Liquid-templated pages (`_pages/kata.md`, `terrarium.md`, `golem-demo.md`, `_projects/3_project.md`). If a new page uses Liquid in URLs, add it to that exclude list.
 - `.lycheeignore` covers bot-blocked domains (linkedin, reddit, unsplash, intmath).
+
+## Branches and merging
+
+`main` is the only long-lived branch. GitHub Pages deploys from it, so whatever lands there is public.
+
+- **One task, one short-lived branch.** Name it for the task (`music/tools-hub`, `droid/<task>-<timestamp>`) and work in its own worktree under `~/.factory/worktrees/` or a sibling directory. Do not commit to `main` directly.
+- **Commit before you stop.** End every session with the work committed and pushed to its branch. Uncommitted edits in a checkout are invisible to every other session and are how work gets stranded. Stashes are not storage.
+- **Merge with `bin/merge-to-main`.** It refuses on `main` or with uncommitted tracked changes, merges `origin/main` into the branch, builds the production site, runs `_scripts/*-test.js`, checks Prettier on changed files, then fast-forwards `origin/main` under the shared `droid-integration.lock`. Use `--dry-run` first to see ahead/behind counts and predicted conflicts.
+- **Resolve conflicts on the branch, never on `main`.** When the script stops on a conflict, fix it in the branch worktree, commit the merge, and rerun. No force-pushes to `main`, no rebasing published branches.
+- **Run the browser checks the change touches.** The script runs the Node suites only. For music pages, also run the matching `_scripts/*-browser-check.*` and `*-check.py` scripts against a local build before merging.
+- **Delete merged branches.** After the merge, `git branch -d <branch>` locally and delete the remote branch if one exists. `-d` refuses unmerged work, which is the point.
+- **Two-week rule.** A branch untouched for two weeks gets one of three outcomes: merge it, rebase or restart it on current `main`, or rename it `archive/<name>` and stop maintaining it. Divergence past that point costs more to reconcile than the work is worth.
+- **Unfinished work stays off `main`.** Keep it on its branch until it is ready to ship. The repository is public, so any pushed branch is readable; keep private material out of Git entirely.

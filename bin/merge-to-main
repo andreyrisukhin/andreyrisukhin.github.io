@@ -1,0 +1,157 @@
+#!/bin/bash
+#
+# Merge the current branch into main the one supported way:
+#
+#   1. refuse on main, detached HEAD, or uncommitted tracked changes
+#   2. fetch origin/main and merge it INTO this branch (conflicts get
+#      resolved here, never on main)
+#   3. build the production site, run the Node test suites, and check
+#      Prettier on every file the branch changes
+#   4. under the shared integration lock, confirm origin/main has not moved
+#      and fast-forward it to this branch (plain push, never --force)
+#
+# Run it from the branch's own worktree. See "Branches and merging" in
+# AGENTS.md for the rest of the workflow.
+#
+# Usage: bin/merge-to-main [--dry-run] [--no-push] [--skip-build]
+#
+#   --dry-run     read-only: report ahead/behind and predicted conflicts
+#                 (exits 1 if the merge would conflict)
+#   --no-push     merge origin/main and run the checks, but do not push
+#   --skip-build  skip the Jekyll build and the tests that need _site/
+#
+# Environment: MERGE_REMOTE (default origin), MERGE_TARGET (default main),
+#              MERGE_LOCK_TIMEOUT seconds (default 300).
+
+set -euo pipefail
+
+REMOTE="${MERGE_REMOTE:-origin}"
+TARGET="${MERGE_TARGET:-main}"
+LOCK_TIMEOUT="${MERGE_LOCK_TIMEOUT:-300}"
+DRY_RUN=0
+PUSH=1
+BUILD=1
+
+usage() { sed -n '3,/^$/{s/^# \{0,1\}//;p}' "$0"; }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1 ;;
+    --no-push) PUSH=0 ;;
+    --skip-build) BUILD=0 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "merge-to-main: unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+
+say() { printf '[merge-to-main] %s\n' "$*"; }
+die() { printf '[merge-to-main] error: %s\n' "$*" >&2; exit 1; }
+
+REPO_ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+BRANCH="$(git symbolic-ref --quiet --short HEAD)" \
+  || die "HEAD is detached; check out a named branch first"
+[ "$BRANCH" != "$TARGET" ] \
+  || die "you are on $TARGET; do the work on a short-lived branch"
+[ -z "$(git status --porcelain --untracked-files=no)" ] \
+  || die "uncommitted tracked changes; commit them on $BRANCH first"
+
+untracked="$(git status --porcelain --untracked-files=normal | grep -c '^??' || true)"
+[ "$untracked" -eq 0 ] \
+  || say "note: $untracked untracked path(s) stay local and are not merged"
+
+say "fetching $REMOTE/$TARGET"
+git fetch --quiet "$REMOTE" "$TARGET"
+UPSTREAM="$REMOTE/$TARGET"
+
+ahead="$(git rev-list --count "$UPSTREAM..HEAD")"
+behind="$(git rev-list --count "HEAD..$UPSTREAM")"
+say "$BRANCH is $ahead commit(s) ahead and $behind behind $UPSTREAM"
+[ "$ahead" -gt 0 ] || die "nothing to merge: $BRANCH has no commits beyond $UPSTREAM"
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  status=0
+  if [ "$behind" -eq 0 ]; then
+    say "dry run: $UPSTREAM is already in $BRANCH; checks and a fast-forward push would follow"
+  elif conflicts="$(git merge-tree --write-tree --name-only --no-messages HEAD "$UPSTREAM")"; then
+    say "dry run: $UPSTREAM would merge into $BRANCH cleanly"
+  else
+    say "dry run: merging $UPSTREAM would conflict in:"
+    printf '%s\n' "$conflicts" | tail -n +2 | sed 's/^/  /'
+    status=1
+  fi
+  git diff --stat "$UPSTREAM...HEAD" | tail -n 1
+  exit "$status"
+fi
+
+if [ "$behind" -gt 0 ]; then
+  say "merging $UPSTREAM into $BRANCH"
+  git merge --no-edit "$UPSTREAM" \
+    || die "merge conflicts: resolve them, commit the merge, and rerun bin/merge-to-main"
+fi
+
+if [ "$BUILD" -eq 1 ]; then
+  if [ -z "${BUNDLE_PATH:-}" ] && [ ! -f .bundle/config ] && [ -d vendor/bundle ]; then
+    export BUNDLE_PATH=vendor/bundle
+  fi
+  say "building the production site"
+  JEKYLL_ENV=production bundle exec jekyll build --quiet \
+    || die "Jekyll build failed"
+fi
+
+say "running Node test suites"
+failed=()
+shopt -s nullglob
+for test in _scripts/*-test.js; do
+  if [ "$BUILD" -eq 0 ] && [ "$test" = "_scripts/music-build-test.js" ]; then
+    say "  skip $test (needs a fresh _site/)"
+    continue
+  fi
+  if node "$test" >/tmp/merge-to-main-test.$$ 2>&1; then
+    say "  ok   $test"
+  else
+    say "  FAIL $test"
+    sed 's/^/       /' /tmp/merge-to-main-test.$$ | tail -n 20
+    failed+=("$test")
+  fi
+done
+rm -f /tmp/merge-to-main-test.$$
+[ "${#failed[@]}" -eq 0 ] || die "${#failed[@]} test suite(s) failed"
+
+mapfile -t changed < <(git diff --name-only --diff-filter=ACMR "$UPSTREAM...HEAD")
+if [ "${#changed[@]}" -gt 0 ]; then
+  [ -x node_modules/.bin/prettier ] \
+    || die "Prettier is not installed; run 'npm ci' in $REPO_ROOT"
+  say "checking Prettier on ${#changed[@]} changed file(s)"
+  node_modules/.bin/prettier --check --ignore-unknown --log-level warn "${changed[@]}" \
+    || die "Prettier found unformatted files; run node_modules/.bin/prettier --write on them and commit"
+fi
+
+if [ "$PUSH" -eq 0 ]; then
+  say "checks passed; --no-push given, so $TARGET was not updated"
+  exit 0
+fi
+
+LOCK="$(cd "$(git rev-parse --git-common-dir)" && pwd)/droid-integration.lock"
+exec 9>"$LOCK"
+say "waiting for the integration lock"
+flock -w "$LOCK_TIMEOUT" 9 || die "timed out waiting for $LOCK"
+
+[ "$(git symbolic-ref --quiet --short HEAD)" = "$BRANCH" ] || die "branch changed during checks"
+[ -z "$(git status --porcelain --untracked-files=no)" ] || die "tracked files changed during checks"
+git fetch --quiet "$REMOTE" "$TARGET"
+git merge-base --is-ancestor "$UPSTREAM" HEAD \
+  || die "$UPSTREAM moved during checks; rerun bin/merge-to-main to merge the new commits"
+
+HEAD_SHA="$(git rev-parse HEAD)"
+say "fast-forwarding $UPSTREAM to ${HEAD_SHA:0:8}"
+git push "$REMOTE" "HEAD:refs/heads/$TARGET"
+
+if git show-ref --verify --quiet "refs/heads/$TARGET" \
+  && git fetch --quiet "$REMOTE" "$TARGET:$TARGET" 2>/dev/null; then
+  say "local $TARGET fast-forwarded too"
+fi
+
+say "done. When you no longer need $BRANCH: git branch -d $BRANCH"
