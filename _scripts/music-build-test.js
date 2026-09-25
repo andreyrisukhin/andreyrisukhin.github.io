@@ -20,6 +20,7 @@ const routes = [
   "chord-recognizer/",
   "sheet/cogwork-dancers/",
   "sheet/reclaiming-entropy/",
+  "sheet/reconstructing-more-science/",
 ];
 let links = 0;
 for (const route of routes) {
@@ -36,7 +37,14 @@ for (const route of routes) {
     links++;
   }
 }
-const html = fs.readFileSync(path.join(site, "music/index.html"), "utf8");
+const hub = fs.readFileSync(path.join(site, "music/index.html"), "utf8");
+for (const tool of ["/music/workbench/", "/music/chord-recognizer/", "/music/build/", "/music/songs/", "/music/sheet/reconstructing-more-science/"]) {
+  assert.ok(hub.includes(`href="${tool}"`), "Tools hub links to " + tool);
+}
+assert.ok(!hub.includes('id="workbench-composer"'), "Tools hub stays compact without the workbench");
+assert.ok(hub.includes('id="field-notes"'), "Tools hub keeps the #field-notes anchor");
+assert.ok(hub.includes('"/music/workbench/" + location.search'), "Tools hub forwards old share links to the workbench");
+const html = fs.readFileSync(path.join(site, "music/workbench/index.html"), "utf8");
 assert.ok(html.includes('id="workbench-composer"'), "Production includes the progression composer");
 assert.ok(html.includes('id="left-keyboard"'), "Production includes the approved hand view");
 assert.ok(!/src="[^"]*_prototypes\//.test(html), "Production has no prototype script dependencies");

@@ -107,23 +107,6 @@
   .music-page {
     padding-bottom: 3rem;
   }
-  .music-update-notice {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding: 1rem 0;
-    margin-top: 2rem;
-    border-top: 1px solid var(--music-rule);
-    font-size: 0.875rem;
-    button {
-      border: 1px solid var(--music-rule);
-      border-radius: 3px;
-      background: var(--music-surface);
-      color: var(--music-accent);
-      padding: 0.5rem 1rem;
-    }
-  }
   > .container.mt-5 {
     margin-top: 1.5rem !important;
   }
@@ -192,6 +175,29 @@
   .music-index a {
     display: inline-block;
     padding: 0.5rem 0;
+  }
+  .music-hub-section {
+    margin-top: 1.5rem;
+    scroll-margin-top: 5rem;
+    h2 {
+      margin-bottom: 0.5rem;
+    }
+    .music-landing-grid {
+      margin: 0 0 1rem;
+    }
+  }
+  .music-landing-card {
+    border-radius: 3px;
+    box-shadow: none;
+    padding: 0.75rem 1rem;
+    &:hover {
+      box-shadow: none;
+      transform: none;
+    }
+  }
+  .music-landing-card__title {
+    font-size: 1rem;
+    color: var(--music-accent);
   }
   .workbench {
     border-top: 1px solid var(--music-rule);
@@ -788,6 +794,22 @@
     .music-shelf-grid {
       grid-template-columns: 1fr;
       gap: 0.5rem;
+    }
+    .music-hub-section .music-landing-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .music-hub-section .music-landing-card {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0.5rem 0.75rem;
+    }
+    .music-hub-section .music-landing-card__title {
+      margin: 0;
+    }
+    .music-hub-section .music-landing-card__desc {
+      display: none;
     }
     .workbench-card {
       padding: 1rem;

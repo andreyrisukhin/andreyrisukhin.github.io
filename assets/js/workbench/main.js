@@ -844,7 +844,7 @@
   }
   async function share() {
     if (!current()) return;
-    var url = new URL(root.dataset.musicHome, location.origin);
+    var url = new URL(root.dataset.shareBase, location.origin);
     url.searchParams.set("chords", JSON.stringify(state.items.map(Model.entry)));
     url.searchParams.set("key", String(state.key));
     url.searchParams.set("keyMode", state.keyMode || "major");

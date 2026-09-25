@@ -1,0 +1,126 @@
+---
+layout: music
+title: Bass patterns
+permalink: /music/bass-patterns/
+description: A notebook for the left hand.
+---
+
+<link rel="stylesheet" href="{{ '/assets/css/bass-patterns.css' | relative_url | bust_file_cache }}" />
+<section class="bass-patterns" id="bass-patterns" aria-label="Bass pattern notebook">
+  <div class="bp-toolbar">
+    <button type="button" id="bp-new">New bassline</button>
+    <label>Tempo <input id="bp-tempo" type="number" min="40" max="240" value="96" aria-label="Tempo in quarter notes per minute" /></label>
+  </div>
+  <details id="bp-workspace" open>
+    <summary>Staff editor</summary>
+    <div class="bp-toolbar">
+      <label
+        >Pattern
+        <select id="bp-library"></select
+      ></label>
+      <button type="button" id="bp-save">Save</button>
+      <button type="button" id="bp-copy">Copy</button>
+      <button type="button" id="bp-load">Load</button>
+      <button type="button" id="bp-undo" disabled>Undo</button>
+      <button type="button" id="bp-redo" disabled>Redo</button>
+    </div>
+    <form id="bp-code-form" class="bp-code" hidden>
+      <label for="bp-code">Pattern code</label>
+      <textarea id="bp-code" rows="3" maxlength="65536" spellcheck="false" placeholder="BP1.…"></textarea>
+      <div class="bp-toolbar">
+        <button type="submit">Load code</button>
+        <button type="button" id="bp-code-close">Close</button>
+      </div>
+      <p id="bp-code-error" role="alert" hidden></p>
+    </form>
+    <p id="bp-storage-error" role="status" hidden></p>
+    <button type="button" id="bp-replace-save" hidden>Use this notebook’s browser save</button>
+    <div class="bp-meta">
+      <label>Title <input id="bp-title" maxlength="80" value="Untitled pattern" /></label>
+      <label
+        >Meter
+        <span class="bp-meter"
+          ><input id="bp-meter-top" type="number" min="1" max="12" value="4" aria-label="Meter numerator" /> <span>/</span
+          ><select id="bp-meter-bottom" aria-label="Meter denominator">
+            <option>2</option>
+            <option selected>4</option>
+            <option>8</option>
+            <option>16</option>
+          </select></span
+        ></label
+      >
+    </div>
+    <div class="bp-toolbar bp-music-tools" aria-label="Staff tools">
+      <button type="button" id="bp-note-mode" aria-pressed="true" title="Change the selected rest to notes. R toggles notes and rests.">Note</button>
+      <button type="button" id="bp-rest-mode" aria-pressed="false" title="Change the selected notes to a rest. R toggles notes and rests.">
+        Rest
+      </button>
+      <button type="button" id="bp-chord-mode" aria-pressed="false">Chord</button>
+      <label
+        >Duration
+        <select id="bp-duration"></select
+      ></label>
+      <label
+        >Accidental
+        <select id="bp-accidental">
+          <option value="0">♮ Natural</option>
+          <option value="-1">♭ Flat</option>
+          <option value="1">♯ Sharp</option>
+        </select></label
+      >
+      <button
+        type="button"
+        id="bp-pin"
+        aria-pressed="false"
+        title="Lock the selected step to its beat. Earlier edits shift rests instead of this note. Press L to toggle."
+      >
+        Lock beat
+      </button>
+      <button type="button" id="bp-remove">Delete</button>
+      <button type="button" id="bp-play-draft">Play</button>
+      <label class="bp-repeat"><input id="bp-repeat" type="checkbox" /> Repeat twice</label>
+    </div>
+    <p id="bp-staff-hint" class="bp-small">
+      Click a pale rest to add a note. Drag notes to change pitch. Chord adds notes at the same time. Lock beat pins the selected step; L toggles it.
+    </p>
+    <div id="bp-score" class="bp-score bp-interactive-score" aria-label="Bass staff"></div>
+    <p id="bp-measure-status" class="bp-small"></p>
+    <details>
+      <summary>Button assignments and step order</summary>
+      <div id="bp-steps" class="bp-steps" role="group" aria-label="Pattern steps"></div>
+      <div class="bp-toolbar">
+        <button type="button" id="bp-add">Next step</button>
+        <button type="button" id="bp-add-rest">Add rest</button>
+      </div>
+      <section id="bp-editor" class="bp-editor" aria-labelledby="bp-step-title" hidden>
+        <div class="bp-toolbar">
+          <h2 id="bp-step-title">Step</h2>
+          <button type="button" id="bp-duplicate">Duplicate</button>
+          <button type="button" id="bp-earlier">Earlier</button>
+          <button type="button" id="bp-later">Later</button>
+        </div>
+        <div id="bp-presses"></div>
+        <button type="button" id="bp-add-button">Add button</button>
+        <p class="bp-small">Finger: 1 thumb, 2 index, 3 middle, 4 ring, 5 little. Leave unassigned when you are still deciding.</p>
+      </section>
+    </details>
+  </details>
+  <div id="bp-collection" aria-label="Bassline collection"></div>
+  <p id="bp-status" class="bp-small" role="status"></p>
+</section>
+<noscript><p>The pattern editor needs JavaScript.</p></noscript>
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/vendor/abcjs-basic-min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/stradella.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/audio.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/bass-patterns/model.js' | relative_url | bust_file_cache }}"></script>
+<script src="{{ '/assets/js/bass-patterns/storage.js' | relative_url | bust_file_cache }}"></script>
+<script src="{{ '/assets/js/bass-patterns/player.js' | relative_url | bust_file_cache }}"></script>
+<script src="{{ '/assets/js/bass-patterns/staff.js' | relative_url | bust_file_cache }}"></script>
+<script id="bp-imported" type="application/json">
+  {{ site.data.bass_patterns.prison_blues | jsonify | replace: '<', '\u003c' }}
+</script>
+<script src="{{ '/assets/js/bass-patterns/main.js' | relative_url | bust_file_cache }}"></script>
