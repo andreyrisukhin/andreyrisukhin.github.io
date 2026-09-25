@@ -1,0 +1,94 @@
+<section class="practice-transport" aria-label="Practice playback" aria-busy="true">
+  <div class="practice-main-controls">
+    <button type="button" data-practice-play disabled>Play</button>
+    <button type="button" data-practice-restart disabled>Restart</button>
+    <label class="practice-speed"
+      >Speed
+      <select data-practice-rate disabled>
+        <option value="0.25">25%</option>
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1" selected>100%</option>
+        <option value="1.25">125%</option>
+        <option value="1.5">150%</option>
+      </select>
+    </label>
+    <span data-practice-position>Measure 1</span>
+  </div>
+  <details class="practice-settings">
+    <summary>Passage loop and sound</summary>
+    <div class="practice-settings-grid">
+      <fieldset>
+        <legend>Repeat a passage</legend>
+        <div class="practice-loop-range">
+          <label>From measure <input data-practice-start type="number" min="1" value="1" step="1" disabled></label>
+          <label>Through measure <input data-practice-end type="number" min="1" value="4" step="1" disabled></label>
+        </div>
+        <label class="practice-check"><input data-practice-loop type="checkbox" disabled> Loop these measures</label>
+        <p class="practice-help">The end measure is included. Seeking outside the passage turns the loop off.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Sound</legend>
+        <label
+          >Playback source
+          <select data-practice-mode disabled>
+            <option value="recording">Strings recording</option>
+            <option value="live">Live sound</option>
+          </select>
+        </label>
+        <label data-practice-instrument-label hidden
+          >Instrument
+          <select data-practice-instrument>
+            <option value="accordion">Accordion</option>
+            <option value="church_organ">Church organ</option>
+            <option value="acoustic_grand_piano">Piano</option>
+            <option value="string_ensemble_1">Strings</option>
+          </select>
+        </label>
+        <p class="practice-help">Speed preserves pitch and follows the written tempo changes.</p>
+      </fieldset>
+      <form data-practice-jump class="practice-jump">
+        <label>Go to measure <input data-practice-measure type="number" min="1" step="1" value="1" required disabled></label>
+        <button type="submit" disabled>Go</button>
+      </form>
+      <label class="practice-check"><input data-practice-follow type="checkbox" checked> Follow playback in the score</label>
+    </div>
+  </details>
+  <p data-practice-status class="practice-help" role="status">Loading playback…</p>
+</section>
+<p class="practice-score-help">Tap a note to inspect it or practice from there.</p>
+<dialog id="sheet-inspector" class="sheet-note-inspector" aria-labelledby="sheet-note-title">
+  <header class="sheet-inspector-heading">
+    <div>
+      <p id="sheet-note-location"></p>
+      <h2 id="sheet-note-title">Selected notes</h2>
+    </div>
+    <button type="button" data-inspect-close autofocus>Close</button>
+  </header>
+  <p id="sheet-note-pitches"></p>
+  <div class="sheet-inspector-actions">
+    <button type="button" data-inspect-hear>Hear written notes</button>
+    <button type="button" data-inspect-stop disabled>Stop</button>
+    <button type="button" data-inspect-seek>Start here</button>
+    <button type="button" data-inspect-loop>Loop this measure</button>
+  </div>
+  <p id="sheet-note-context"></p>
+  <div class="sheet-hand-diagrams">
+    <section aria-labelledby="sheet-right-title">
+      <h3 id="sheet-right-title">Written pitches on B-system</h3>
+      <p class="practice-help">Exact written octaves. This map does not assign the notes to a hand.</p>
+      <div id="sheet-right-keyboard"></div>
+    </section>
+    <section aria-labelledby="sheet-left-title">
+      <h3 id="sheet-left-title">Stradella suggestion</h3>
+      <p id="sheet-left-recipe"></p>
+      <p id="sheet-left-detail" class="practice-help"></p>
+      <button type="button" data-inspect-left>Hear suggestion</button>
+      <div class="sheet-left-scroll" tabindex="0" role="region" aria-label="Stradella buttons, scroll sideways for all columns">
+        <div id="sheet-left-keyboard"></div>
+      </div>
+      <p id="sheet-button-detail" class="practice-help">Focus or tap any button to inspect its tones. Audio uses demonstration registers.</p>
+    </section>
+  </div>
+  <p data-inspect-status class="practice-help" role="status"></p>
+</dialog>

@@ -59,6 +59,7 @@ const PRECACHE_URLS = [
   '/assets/js/workbench/stradella.js',
   '/assets/js/workbench/voicings.js',
   '/assets/js/workbench/hands.js',
+  '/assets/js/workbench/chord-grid.js',
   '/assets/js/workbench/composer.js',
   '/assets/js/workbench/main.js',
 
@@ -73,6 +74,10 @@ const PRECACHE_URLS = [
   '/assets/js/sheet-music/osmd-bridge.js',
   '/assets/js/sheet-music/chord-inspector.js',
   '/assets/js/sheet-music/stradella-overlay.js',
+  '/assets/js/sheet-music/practice-timeline.js',
+  '/assets/js/sheet-music/practice-player.js',
+  '/assets/js/sheet-music/practice.js',
+  '/assets/js/sheet-music/practice-inspector.js',
   '/assets/js/sheet-music/dev-annotator.css',
 
   '/assets/css/main.css',

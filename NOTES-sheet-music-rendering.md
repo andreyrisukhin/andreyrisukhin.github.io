@@ -95,7 +95,7 @@ Click a note (without Shift) and a popover appears near the click showing:
 Minimal Node HTTP server, no dependencies, Node 18+ built-ins only:
 
 - `GET  /health` → `{ok, root}`
-- `POST /save`   body `{pathname, pins}` → writes `.dev-annotations/<slug>.json`
+- `POST /save` body `{pathname, pins}` → writes `.dev-annotations/<slug>.json`
 - `GET  /load?pathname=...` → returns `{pathname, updatedAt, pinCount, pins}`
 
 CORS is allowed for `http://localhost:4000` and `http://127.0.0.1:4000`.
@@ -112,6 +112,41 @@ assets/js/sheet-music/
   dev-annotator.{js,css}     shift-click pins, sidebar, sidecar sync
   chord-inspector.js         click-note popover
 .dev-annotations/            git-ignored; <slug>.json per page
+```
+
+## Cogwork Dancers practice reader
+
+The Cogwork Dancers include opts into `practice=true`; other scores keep their
+existing reader and playback. The original MuseScore and MusicXML files are
+unchanged. The page supplies the title and credits instead of displaying the
+MusicXML placeholder title.
+
+- `practice-timeline.js` reads MusicXML durations, voice backups, chords, ties,
+  and tempo directions. This score has no repeats, grace notes, or transposing
+  instruments. The timeline starts at 120 BPM, changes to 160 at measure 20,
+  then to 100 at measure 69. It ends at 137.9 seconds.
+- `practice-player.js` keeps score time separate from playback speed. Inclusive
+  measure loops work with both the strings recording and live soundfonts.
+  The recording is fetched as a complete blob so seeking also works without
+  HTTP Range support and from the service-worker cache. Pause cancels pending
+  playback; switching sources preserves the measure but never starts audio.
+- `practice.js` owns the transport, cursor, optional follow-scroll, and
+  per-piece browser settings under `sheet-practice:<pathname>`.
+- `practice-inspector.js` opens a keyboard-accessible dialog on one note-group
+  activation. It reuses the workbench's B-system and Stradella renderers.
+  Written octaves stay distinct from inferred harmony and suggested bass
+  registers. Inspection pauses the score; closing it stops any audition.
+
+Checks:
+
+```sh
+node _scripts/sheet-practice-test.js
+# After a production Jekyll build:
+node _scripts/music-build-test.js
+# In an isolated browser on the generated page:
+agent-browser eval --stdin < _scripts/sheet-practice-browser-check.js
+# Unlock audio with a real Play click first:
+agent-browser eval --stdin < _scripts/sheet-practice-audio-check.js
 ```
 
 ## References

@@ -223,7 +223,7 @@ test("picked order and voicing survive insert, transpose, undo and redo", () => 
   doc.transpose("A");
   const transposed = json(doc.state);
   const result = doc.state.chords[doc.state.selected];
-  assert.equal(result.name, "DM/F#");
+  assert.equal(result.name, "D/F#");
   assert.deepEqual(json(result.notes), [6, 2, 9]);
   assert.deepEqual(
     Array.from(H.voices(result), (v) => v.midi),
@@ -363,5 +363,120 @@ test("empty state and the 128-chord bound never leave invalid selection position
   assert.equal(doc.commit([model("D")], "insert"), false);
   doc.undo();
   assert.equal(doc.state.chords.length, 0);
+});
+test("inline chords retain sparse grid positions and chronological order", () => {
+  const doc = H.createDocument();
+  assert.equal(doc.putCell(7, model("F#m7")), true);
+  assert.equal(doc.putCell(4, model("C/E")), true);
+  assert.deepEqual(
+    Array.from(doc.state.chords, (chord) => chord.gridCell),
+    [0, 1, 2, 4, 7]
+  );
+  assert.deepEqual(names(doc.state.chords), ["Am7", "D7", "Gmaj7", "C/E", "F#m7"]);
+  assert.equal(doc.state.selected, 3);
+});
+test("editing a tile replaces one chord and undo restores its voicing", () => {
+  const doc = H.createDocument();
+  doc.setHandChoice({ voicing: "standard", bass: 2 });
+  doc.putCell(1, model("Dm7"));
+  assert.equal(doc.state.chords[1].name, "Dm7");
+  assert.equal(doc.state.chords[1].gridCell, 1);
+  assert.equal(doc.state.chords[1].handChoice, undefined);
+  doc.undo();
+  assert.equal(doc.state.chords[1].name, "D7");
+  assert.equal(doc.state.chords[1].handChoice.bass, 2);
+});
+test("moving to occupied cells swaps whole chord identities", () => {
+  const doc = H.createDocument();
+  doc.setHandChoice({ voicing: "standard", bass: 2 });
+  doc.moveToCell(1, 0);
+  assert.deepEqual(names(doc.state.chords), ["D7", "Am7", "Gmaj7"]);
+  assert.equal(doc.state.chords[0].handChoice.bass, 2);
+  assert.equal(doc.state.chords[0].gridCell, 0);
+  doc.undo();
+  assert.deepEqual(names(doc.state.chords), ["Am7", "D7", "Gmaj7"]);
+});
+test("dragging to empty cells reorders playback without introducing rests", () => {
+  const doc = H.createDocument();
+  doc.moveToCell(0, 9);
+  assert.deepEqual(names(doc.state.chords), ["D7", "Gmaj7", "Am7"]);
+  assert.deepEqual(
+    Array.from(doc.state.chords, (chord) => chord.gridCell),
+    [1, 2, 9]
+  );
+  assert.equal(doc.state.selected, 2);
+  doc.move(-1);
+  assert.deepEqual(
+    Array.from(doc.state.chords, (chord) => chord.gridCell),
+    [1, 2, 9]
+  );
+  assert.deepEqual(names(doc.state.chords), ["D7", "Am7", "Gmaj7"]);
+});
+test("removal leaves layout space and undo restores the exact tile", () => {
+  const doc = H.createDocument();
+  doc.remove();
+  assert.deepEqual(
+    Array.from(doc.state.chords, (chord) => chord.gridCell),
+    [0, 2]
+  );
+  doc.undo();
+  assert.deepEqual(
+    Array.from(doc.state.chords, (chord) => chord.gridCell),
+    [0, 1, 2]
+  );
+});
+test("candidate insertion uses open cells before moving later tiles", () => {
+  const doc = H.createDocument();
+  doc.moveToCell(2, 7);
+  doc.setGap(2);
+  doc.commit([model("F"), model("G")], "insert");
+  assert.deepEqual(
+    Array.from(doc.state.chords, (chord) => chord.gridCell),
+    [0, 1, 2, 3, 7]
+  );
+  doc.setGap(1);
+  doc.commit([model("C")], "insert");
+  assert.deepEqual(
+    Array.from(doc.state.chords, (chord) => chord.gridCell),
+    [0, 1, 2, 3, 4, 7]
+  );
+});
+test("layout survives transposition, reload, and history", () => {
+  const doc = H.createDocument();
+  doc.putCell(8, model("C/E"));
+  doc.transpose("A");
+  assert.equal(doc.state.chords[3].gridCell, 8);
+  const restored = H.createDocument();
+  restored.load(json(doc.state));
+  assert.deepEqual(json(restored.state.chords.map(M.entry)), json(doc.state.chords.map(M.entry)));
+  assert.deepEqual(json(restored.state.key), json(doc.state.key));
+  assert.equal(restored.state.selected, doc.state.selected);
+  assert.equal(restored.state.gap, doc.state.gap);
+  doc.undo();
+  assert.equal(doc.state.chords[3].gridCell, 8);
+  doc.undo();
+  assert.equal(doc.state.chords.length, 3);
+});
+test("bad, duplicate, and missing stored cells cannot reorder musical content", () => {
+  const doc = H.createDocument();
+  doc.load({ chords: [{ ...model("C"), gridCell: 8 }, { ...model("D"), gridCell: 1 }, model("E")], key: G, selected: 0 });
+  assert.deepEqual(names(doc.state.chords), ["C", "D", "E"]);
+  assert.deepEqual(
+    Array.from(doc.state.chords, (chord) => chord.gridCell),
+    [8, 9, 10]
+  );
+});
+test("grid limits reject edits atomically but still allow replacement", () => {
+  const doc = H.createDocument();
+  const before = json(doc.state);
+  assert.equal(doc.putCell(-1, model("C")), false);
+  assert.equal(doc.putCell(256, model("C")), false);
+  assert.equal(doc.moveToCell(0, NaN), false);
+  assert.deepEqual(json(doc.state), before);
+  doc.moveToCell(2, 255);
+  doc.setGap(3);
+  assert.equal(doc.commit([model("C")], "insert"), false);
+  assert.equal(doc.putCell(255, model("C")), true);
+  assert.equal(doc.state.chords.at(-1).name, "C");
 });
 console.log(count + " progression composer tests passed");

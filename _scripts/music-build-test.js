@@ -55,6 +55,18 @@ for (const dependency of ["/assets/js/theme.js", "/assets/js/vanilla-back-to-top
   assert.ok(precache.includes(dependency), "Offline page shell includes " + dependency);
 }
 const scales = fs.readFileSync(path.join(site, "music/scales/index.html"), "utf8");
+const sheet = fs.readFileSync(path.join(site, "music/sheet/cogwork-dancers/index.html"), "utf8");
+assert.ok(sheet.includes('class="practice-transport"'), "Cogwork Dancers includes practice controls");
+assert.ok(sheet.includes('id="sheet-inspector"'), "Cogwork Dancers includes accessible note inspection");
+assert.ok(!sheet.includes("/sheet-music/playback.js"), "Practice page does not mount the legacy transport");
+assert.ok(!sheet.includes("/sheet-music/chord-inspector.js"), "Practice page does not mount the legacy click handler");
+const sheetIds = [...sheet.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+assert.equal(new Set(sheetIds).size, sheetIds.length, "Sheet practice has no duplicate IDs");
+for (const file of ["practice-timeline.js", "practice-player.js", "practice.js", "practice-inspector.js"]) {
+  assert.ok(precache.includes("/assets/js/sheet-music/" + file), "Offline cache includes " + file);
+}
+const otherSheet = fs.readFileSync(path.join(site, "music/sheet/reclaiming-entropy/index.html"), "utf8");
+assert.ok(otherSheet.includes("/sheet-music/chord-inspector.js"), "Other sheet retains its existing inspector");
 assert.equal((scales.match(/class="music-table-scroll"/g) || []).length, 4, "All scale tables have scroll regions");
 assert.equal((scales.match(/<table[\s>]/g) || []).length, 4, "Markdown tables render inside their wrappers");
 assert.ok(!html.includes("site-dev-annotator.js"), "Production omits development controls");

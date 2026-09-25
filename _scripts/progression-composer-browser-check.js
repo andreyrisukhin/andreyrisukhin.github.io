@@ -121,7 +121,7 @@
   [...document.querySelectorAll("[data-match]")].find((el) => el.textContent.includes("/E")).click();
   assert($("candidate-notes").textContent === "E · C · G", "Interpretation preserves full chosen order");
   click("commit");
-  assert(names().includes("CM/E"), "Picked interpretation inserts");
+  assert(names().includes("C/E"), "Picked interpretation inserts");
   click("undo");
   assert(names() === baseline, "Undo picked insertion");
   choose('[data-picked-staff="1"]');

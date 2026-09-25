@@ -44,6 +44,7 @@
     if (!btn) return;
     const on = isEnabled();
     btn.setAttribute('data-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-pressed', String(on));
     btn.classList.toggle('is-pressed', on);
     btn.textContent = on ? 'Hide Stradella' : 'Show Stradella';
   }

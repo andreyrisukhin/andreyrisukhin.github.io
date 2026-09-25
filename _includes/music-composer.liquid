@@ -10,6 +10,33 @@
         <a class="composer-jump" href="#chooser-heading">Choose chords ↓</a>
       </div>
     </div>
+    <p id="grid-help" class="helper">Type a chord in any empty cell. Enter or Tab makes a tile and opens the next space. Each tile is 4 beats.</p>
+    <div
+      id="sequence-scroll"
+      class="sequence-scroll chord-grid-scroll"
+      tabindex="0"
+      role="region"
+      aria-label="Chord grid, scroll sideways on small screens"
+    >
+      <div id="sequence" class="sequence chord-grid"></div>
+    </div>
+    <p id="grid-error" class="helper grid-error" role="alert" hidden></p>
+    <div class="grid-footer">
+      <p class="helper">Read left to right, then down. Empty cells are not rests. Drag to move; Shift + arrow keys also works.</p>
+      <button id="grid-more" type="button">More space</button>
+    </div>
+    <details class="grid-insertion">
+      <summary>Insert from the chord chooser</summary>
+      <div id="sequence-gaps" class="grid-gaps" role="group" aria-label="Candidate insertion positions"></div>
+    </details>
+    <div class="sequence-bottom">
+      <p id="position-hint" class="helper"></p>
+      <div class="actions" role="group" aria-label="Arrange selected chord">
+        <button id="earlier" type="button">Move earlier</button>
+        <button id="later" type="button">Move later</button>
+        <button id="remove" type="button">Remove</button>
+      </div>
+    </div>
     <div class="key-settings">
       <div class="fields">
         <label
@@ -36,23 +63,6 @@
         </div>
         <p class="helper">Moves every chord by the same interval. Keeps the mode.</p>
       </details>
-    </div>
-    <div
-      id="sequence-scroll"
-      class="sequence-scroll"
-      tabindex="0"
-      role="region"
-      aria-label="Progression and insertion positions, scroll horizontally"
-    >
-      <div id="sequence" class="sequence"></div>
-    </div>
-    <div class="sequence-bottom">
-      <p id="position-hint" class="helper"></p>
-      <div class="actions" role="group" aria-label="Arrange selected chord">
-        <button id="earlier" type="button">Move earlier</button>
-        <button id="later" type="button">Move later</button>
-        <button id="remove" type="button">Remove</button>
-      </div>
     </div>
     <div class="fields composer-transport">
       <label>Tempo <input id="composer-bpm" type="number" min="40" max="200" value="96"> BPM</label>

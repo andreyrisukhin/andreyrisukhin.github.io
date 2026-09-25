@@ -389,7 +389,16 @@ window.ComposerHarmony = (function () {
   }
 
   function createDocument() {
-    let state = { chords: ["Am7", "D7", "Gmaj7"].map(M.fromName), key: { tonic: "G", mode: "major" }, selected: 1, gap: 2 };
+    function placed(chords) {
+      let previous = -1;
+      return chords.map((chord, index) => {
+        const value = chord.gridCell;
+        const gridCell = Number.isInteger(value) && value > previous && value <= 255 - (chords.length - index - 1) ? value : previous + 1;
+        previous = gridCell;
+        return { ...chord, gridCell };
+      });
+    }
+    let state = { chords: placed(["Am7", "D7", "Gmaj7"].map(M.fromName)), key: { tonic: "G", mode: "major" }, selected: 1, gap: 2 };
     const past = [],
       future = [];
     function save() {
@@ -413,7 +422,7 @@ window.ComposerHarmony = (function () {
         if (chords.some((chord) => !chord) || !roots.includes(next.key.tonic) || !["major", "minor"].includes(next.key.mode))
           throw new Error("Invalid progression.");
         state = {
-          chords,
+          chords: placed(chords),
           key: { ...next.key },
           selected: Math.max(0, Math.min(next.selected || 0, Math.max(0, chords.length - 1))),
           gap: Math.max(0, Math.min(next.gap ?? chords.length, chords.length)),
@@ -435,11 +444,53 @@ window.ComposerHarmony = (function () {
       commit(chords, intent) {
         if (!chords.length || (intent === "replace" && (chords.length !== 1 || !state.chords.length))) return false;
         if (state.chords.length + chords.length - (intent === "replace" ? 1 : 0) > 128) return false;
-        save();
         const index = intent === "replace" ? state.selected : state.gap;
-        state.chords.splice(index, intent === "replace" ? 1 : 0, ...clone(chords));
+        let next = clone(state.chords);
+        if (intent === "replace") {
+          next.splice(index, 1, { ...clone(chords[0]), gridCell: next[index].gridCell });
+        } else {
+          const start = index ? next[index - 1].gridCell + 1 : 0;
+          const inserted = clone(chords).map((chord, offset) => ({ ...chord, gridCell: start + offset }));
+          let previous = start + chords.length - 1;
+          const tail = next.slice(index).map((chord) => {
+            previous = Math.max(previous + 1, chord.gridCell);
+            return { ...chord, gridCell: previous };
+          });
+          next = [...next.slice(0, index), ...inserted, ...tail];
+          if (next[next.length - 1].gridCell >= 256) return false;
+        }
+        save();
+        state.chords = next;
         state.selected = index;
         state.gap = index + chords.length;
+        return true;
+      },
+      putCell(cell, chord) {
+        if (!Number.isInteger(cell) || cell < 0 || cell >= 256 || !chord) return false;
+        const existing = state.chords.findIndex((item) => item.gridCell === cell);
+        if (existing < 0 && state.chords.length >= 128) return false;
+        const value = M.restore(M.entry(chord));
+        if (!value) return false;
+        save();
+        value.gridCell = cell;
+        if (existing >= 0) state.chords[existing] = value;
+        else state.chords.push(value);
+        state.chords.sort((a, b) => a.gridCell - b.gridCell);
+        state.selected = state.chords.indexOf(value);
+        state.gap = state.selected + 1;
+        return true;
+      },
+      moveToCell(index, cell) {
+        if (!Number.isInteger(cell) || cell < 0 || cell >= 256 || !state.chords[index]) return false;
+        const moving = state.chords[index];
+        if (moving.gridCell === cell) return false;
+        save();
+        const other = state.chords.find((chord) => chord.gridCell === cell);
+        if (other) other.gridCell = moving.gridCell;
+        moving.gridCell = cell;
+        state.chords.sort((a, b) => a.gridCell - b.gridCell);
+        state.selected = state.chords.indexOf(moving);
+        state.gap = state.selected + 1;
         return true;
       },
       remove() {
@@ -454,6 +505,9 @@ window.ComposerHarmony = (function () {
         const next = state.selected + delta;
         if (next < 0 || next >= state.chords.length) return;
         save();
+        const fromCell = state.chords[state.selected].gridCell;
+        state.chords[state.selected].gridCell = state.chords[next].gridCell;
+        state.chords[next].gridCell = fromCell;
         const [chord] = state.chords.splice(state.selected, 1);
         state.chords.splice(next, 0, chord);
         state.selected = next;
@@ -474,6 +528,7 @@ window.ComposerHarmony = (function () {
           const name = T.Note.transpose(chord.detail.notes[0], interval);
           const bass = chord.notes[0] === chord.root ? "" : "/" + T.Note.transpose(roots[chord.notes[0]], interval);
           const transposed = M.fromName(name + chord.suffix + bass);
+          transposed.gridCell = chord.gridCell;
           if (chord.voicing === "bass-octave") {
             transposed.notes = chord.notes.map((pc) => M.mod(pc + delta));
             transposed.voicing = chord.voicing;

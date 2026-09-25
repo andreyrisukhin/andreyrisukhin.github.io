@@ -34,6 +34,46 @@ window.ProgressionComposer = {
       $(id).innerHTML = H.roots.map((root) => '<option value="' + root + '">' + H.pretty(root) + "</option>").join("");
     });
     $("matrix-root").value = "C";
+    const grid = window.ChordGrid.mount($("sequence"), {
+      error: $("grid-error"),
+      more: $("grid-more"),
+      describe: (chord) => H.numeral(chord, doc.state.key),
+      onStart(cell) {
+        Player.stop();
+        const index = doc.state.chords.findIndex((chord) => chord.gridCell === cell);
+        if (index >= 0) doc.select(index);
+        else {
+          const following = doc.state.chords.findIndex((chord) => chord.gridCell > cell);
+          doc.setGap(following < 0 ? doc.state.chords.length : following);
+          $("intent").value = "insert";
+        }
+        renderFunction();
+        renderCandidate();
+        options.onRender?.(doc.state);
+        options.onChange?.(doc.state);
+      },
+      onCommit(cell, chord) {
+        if (!doc.putCell(cell, chord)) return false;
+        transitionAnchor = null;
+        afterEdit(chord.name + " added, four beats. Keep typing in the next space.");
+        return true;
+      },
+      onMove(index, cell) {
+        if (doc.moveToCell(index, cell)) {
+          transitionAnchor = null;
+          afterEdit("Chord moved. Playback follows the grid from left to right, then down.");
+        }
+      },
+      onRemove(index) {
+        doc.select(index);
+        doc.remove();
+        afterEdit("Chord removed. Its cell stays available for typing.");
+      },
+      onHistory(action) {
+        doc[action]();
+        afterEdit(action === "undo" ? "Change undone." : "Change restored.");
+      },
+    });
 
     function renderSequence() {
       const { chords, selected: index, gap, key } = doc.state;
@@ -51,29 +91,12 @@ window.ProgressionComposer = {
           'data-gap="' + i + '" aria-label="' + esc(label) + '" aria-pressed="' + (i === gap && $("intent").value === "insert") + '"',
           "gap"
         );
-        if (i === chords.length) break;
-        const reading = H.explain(chords[i], key, chords[i - 1], chords[i + 1]);
-        html += button(
-          '<span class="name">' +
-            esc(H.pretty(chords[i].name)) +
-            '</span><span class="degree">' +
-            esc(reading.roman) +
-            '</span><span class="role">' +
-            esc(reading.role) +
-            "</span>",
-          'data-step="' +
-            i +
-            '" aria-label="' +
-            esc("Step " + (i + 1) + ": " + chords[i].name + ", " + reading.roman) +
-            '"' +
-            (i === index ? ' aria-current="step"' : ""),
-          "sequence-card"
-        );
       }
-      $("sequence").innerHTML = html;
+      $("sequence-gaps").innerHTML = html;
+      grid.render(chords, index);
       $("position-hint").textContent = chords.length
-        ? "Selected: step " + (index + 1) + ". Use + to choose an insertion gap."
-        : "No chords yet. Prepare a candidate below, then insert it.";
+        ? "Selected: step " + (index + 1) + " of " + chords.length + ". Edit its tile to change the chord."
+        : "No chords yet. Click a cell and type the first chord.";
       $("earlier").disabled = !chords.length || index === 0;
       $("later").disabled = !chords.length || index === chords.length - 1;
       $("remove").disabled = $("hear-progression").disabled = !chords.length;
@@ -457,7 +480,7 @@ window.ProgressionComposer = {
       renderSource();
       renderCandidate();
       options.onRender?.(doc.state);
-      if (focused.disabled || !focused.isConnected) {
+      if (focused.disabled || (!focused.isConnected && document.activeElement === document.body)) {
         const target =
           step !== undefined
             ? root.querySelector('[data-step="' + doc.state.selected + '"]')
@@ -535,8 +558,10 @@ window.ProgressionComposer = {
       const el = event.target.closest("button");
       if (!el) return;
       if (el.dataset.step !== undefined) {
+        const cell = Number(el.closest("[data-grid-cell]").dataset.gridCell);
+        if (grid.editing && !grid.commit()) return;
         Player.stop();
-        doc.select(Number(el.dataset.step));
+        doc.select(doc.state.chords.findIndex((chord) => chord.gridCell === cell));
         transitionAnchor = null;
         render();
         options.onChange?.(doc.state);
@@ -605,24 +630,6 @@ window.ProgressionComposer = {
       if (next !== null) {
         event.preventDefault();
         changeSource(sources[next], true);
-      }
-    });
-    $("sequence").addEventListener("keydown", (event) => {
-      const controls = [...$("sequence").querySelectorAll("button")];
-      const index = controls.indexOf(document.activeElement);
-      const next =
-        event.key === "ArrowRight"
-          ? index + 1
-          : event.key === "ArrowLeft"
-            ? index - 1
-            : event.key === "Home"
-              ? 0
-              : event.key === "End"
-                ? controls.length - 1
-                : -1;
-      if (index >= 0 && controls[next]) {
-        event.preventDefault();
-        controls[next].focus();
       }
     });
     $("type-form").addEventListener("submit", (event) => {
@@ -700,6 +707,7 @@ window.ProgressionComposer = {
       })
     );
     $("transpose").addEventListener("click", () => {
+      if (!grid.commit()) return;
       doc.transpose($("transpose-tonic").value);
       afterEdit("Progression notes transposed. The scratchpad stays unchanged.");
     });
@@ -709,13 +717,16 @@ window.ProgressionComposer = {
       renderCandidate();
     });
     $("commit").addEventListener("click", () => {
+      if (!grid.commit()) return;
       if (doc.commit(candidate, $("intent").value)) afterEdit("Candidate added. Undo restores the previous progression.");
+      else announce("No room at that position. Move a tile or choose another insertion gap.");
     });
     [
       ["earlier", -1],
       ["later", 1],
     ].forEach(([id, delta]) =>
       $(id).addEventListener("click", () => {
+        if (!grid.commit()) return;
         doc.move(delta);
         afterEdit("Selected chord moved.");
       })
@@ -726,13 +737,24 @@ window.ProgressionComposer = {
       ["redo", "redo"],
     ].forEach(([id, action]) =>
       $(id).addEventListener("click", () => {
+        if (grid.editing && (id === "undo" || id === "redo")) {
+          const dirty = grid.dirty;
+          grid.cancel();
+          if (dirty) {
+            announce("Typing cancelled. The progression is unchanged.");
+            return;
+          }
+        }
+        if (!grid.commit()) return;
         doc[action]();
         afterEdit(id === "remove" ? "Selected chord removed." : id === "undo" ? "Change undone." : "Change restored.");
       })
     );
-    $("hear-progression").addEventListener("click", () =>
-      options.playProgression ? options.playProgression() : hear(doc.state.chords, { progression: true })
-    );
+    $("hear-progression").addEventListener("click", () => {
+      if (!grid.commit()) return;
+      if (options.playProgression) options.playProgression();
+      else hear(doc.state.chords, { progression: true });
+    });
     $("hear-candidate").addEventListener("click", () => hear(candidate));
     $("hear-context").addEventListener("click", () => hear(H.context(doc.state, candidate, $("intent").value)));
     $("stop").addEventListener("click", () => Player.stop());
@@ -752,6 +774,7 @@ window.ProgressionComposer = {
       },
       load(state) {
         Player.stop();
+        grid.cancel(false);
         doc.load(state);
         candidate = [];
         transitionAnchor = null;

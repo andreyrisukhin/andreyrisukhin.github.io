@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-<div class="music-page">
+<div class="music-page{% if page.sheet_practice %} music-page--sheet-practice{% endif %}">
   <nav class="music-section-nav" aria-label="Music">
     <a
       href="{{ '/music/' | relative_url }}"

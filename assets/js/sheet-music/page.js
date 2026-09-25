@@ -6,6 +6,7 @@
   if (!sheetPage || !container || !status) return;
 
   const url = sheetPage.dataset.musicxmlUrl;
+  const practice = sheetPage.classList.contains("sheet-practice");
 
   if (!window.opensheetmusicdisplay) {
     status.textContent = "OSMD failed to load from CDN.";
@@ -19,8 +20,11 @@
 
   const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
     backend: "svg",
-    drawTitle: true,
-    drawComposer: true,
+    drawTitle: !practice,
+    drawComposer: !practice,
+    drawSubtitle: !practice,
+    drawPartNames: !practice,
+    drawPartAbbreviations: !practice,
     drawChordSymbols: false,
     autoResize: false,
   });
@@ -29,15 +33,17 @@
 
   const renderPreservingScroll = () => {
     const y = window.scrollY;
+    container.dispatchEvent(new CustomEvent("sheet-before-render"));
     osmd.render();
     if (window.scrollY !== y) {
       window.scrollTo({ top: y, behavior: "instant" in window ? "instant" : "auto" });
     }
     watchAndHide();
+    container.dispatchEvent(new CustomEvent("sheet-render"));
   };
 
   const mobileQ = window.matchMedia("(max-width: 768px)");
-  const fitZoom = () => (mobileQ.matches ? 0.4 : 1.0);
+  const fitZoom = () => (mobileQ.matches ? (practice ? 0.8 : 0.4) : 1.0);
   let userZoomed = false;
   let zoom = fitZoom();
   const applyZoom = () => {
@@ -91,8 +97,19 @@
     chordHideObs.observe(container, { childList: true, subtree: true });
   };
 
-  osmd
-    .load(url)
+  const source = practice
+    ? fetch(url)
+        .then((response) => {
+          if (!response.ok) throw new Error("Score could not be downloaded.");
+          return response.text();
+        })
+        .then((xml) => {
+          window.__sheetMusic.xml = new DOMParser().parseFromString(xml, "application/xml");
+          return xml;
+        })
+    : Promise.resolve(url);
+  source
+    .then((xml) => osmd.load(xml))
     .then(() => {
       status.textContent = "";
       if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = false;
@@ -113,7 +130,7 @@
   });
   document.getElementById("osmd-zoom-out").addEventListener("click", () => {
     userZoomed = true;
-    zoom = Math.max(zoom - 0.1, 0.3);
+    zoom = Math.max(zoom - 0.1, practice ? 0.6 : 0.3);
     applyZoom();
   });
   document.getElementById("osmd-zoom-reset").addEventListener("click", () => {
@@ -128,6 +145,7 @@
       sheetPage.classList.toggle("sheet-music-page--focus", on);
       document.documentElement.classList.toggle("sheet-music-focus-open", on);
       focusBtn.setAttribute("data-pressed", on ? "true" : "false");
+      focusBtn.setAttribute("aria-pressed", String(on));
       focusBtn.classList.toggle("is-pressed", on);
       focusBtn.textContent = on ? "Exit focus" : "Focus score";
       lastWidth = 0;
@@ -136,6 +154,7 @@
     focusBtn.addEventListener("click", () => setFocusMode(!sheetPage.classList.contains("sheet-music-page--focus")));
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && sheetPage.classList.contains("sheet-music-page--focus")) {
+        if (document.querySelector("#sheet-inspector[open]")) return;
         setFocusMode(false);
       }
     });

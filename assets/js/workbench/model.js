@@ -3,6 +3,27 @@ window.WorkbenchModel = (function () {
   "use strict";
   var M = window.Music;
   var T = window.Tonal;
+  var CANONICAL_SUFFIX = {
+    major: "",
+    minor: "m",
+    "major seventh": "maj7",
+    "minor seventh": "m7",
+    "dominant seventh": "7",
+    "suspended fourth": "sus4",
+    "suspended fourth seventh": "7sus4",
+    augmented: "aug",
+    diminished: "dim",
+    "diminished seventh": "dim7",
+    "half-diminished": "m7b5",
+    "minor/major seventh": "mMaj7",
+  };
+
+  function canonicalChord(chord) {
+    // Normalize a parsed type, never merge chords just because their pitches match.
+    var suffix = CANONICAL_SUFFIX[chord.type];
+    return suffix === undefined ? chord : T.Chord.getChord(suffix, chord.tonic, chord.bass);
+  }
+
   function mod(n) {
     return ((n % 12) + 12) % 12;
   }
@@ -29,6 +50,7 @@ window.WorkbenchModel = (function () {
     if (parts.length > 2) return null;
     var chord = T.Chord.get(parts[0]);
     if (chord.empty || !chord.tonic) return null;
+    chord = canonicalChord(chord);
     var notes = chord.notes.map(T.Note.chroma);
     if (parts.length === 2) {
       var bass = M.parseNote(parts[1]);
@@ -52,7 +74,9 @@ window.WorkbenchModel = (function () {
       return notes.indexOf(n) === i;
     });
     if (!validNotes(notes)) return null;
-    var candidates = T.Chord.detect(notes.map(M.asciiNoteName));
+    var candidates = T.Chord.detect(notes.map(M.asciiNoteName)).map(function (name) {
+      return canonicalChord(T.Chord.get(name)).symbol;
+    });
     if (roots) {
       var preferred = candidates.findIndex(function (name) {
         var model = fromName(name);
@@ -106,6 +130,7 @@ window.WorkbenchModel = (function () {
     var value = { name: model.name, notes: model.notes.slice(), root: model.root, suffix: model.suffix, roman: model.roman || "" };
     if (model.voicing === "bass-octave") value.voicing = model.voicing;
     if (model.handChoice) value.handChoice = { voicing: model.handChoice.voicing, bass: model.handChoice.bass };
+    if (Number.isInteger(model.gridCell) && model.gridCell >= 0 && model.gridCell < 256) value.gridCell = model.gridCell;
     return value;
   }
 
@@ -126,6 +151,7 @@ window.WorkbenchModel = (function () {
     model.notes = value.notes.slice();
     model.roman = typeof value.roman === "string" ? value.roman : "";
     if (value.voicing === "bass-octave") model.voicing = value.voicing;
+    if (Number.isInteger(value.gridCell) && value.gridCell >= 0 && value.gridCell < 256) model.gridCell = value.gridCell;
     if (
       value.handChoice &&
       typeof value.handChoice.voicing === "string" &&
@@ -152,6 +178,7 @@ window.WorkbenchModel = (function () {
     }
     shifted.roman = model.roman || "";
     if (model.voicing === "bass-octave") shifted.voicing = model.voicing;
+    if (Number.isInteger(model.gridCell)) shifted.gridCell = model.gridCell;
     return shifted;
   }
 

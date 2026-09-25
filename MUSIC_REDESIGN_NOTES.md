@@ -86,6 +86,25 @@ python3 -m http.server 4173 --bind 127.0.0.1 --directory _site
 
 Open **http://localhost:4173/music/** with the Mac → Piglab SSH tunnel connected. Port 5173 can continue serving the standalone prototypes.
 
+### Inline chord grid
+
+Explore’s progression now uses a four-column grid. Click an empty cell and type
+one chord symbol, then press Enter or Tab to commit it and continue typing.
+Edit a tile in place, drag it to another cell, or move it with Shift + arrow
+keys. Dropping onto another chord swaps the two. Escape or Cancel discards
+unfinished typing; Delete removes a focused tile. Document edits remain undoable.
+
+Each tile plays for four beats. Empty cells are editing space, not rests.
+Half/quarter tiles and meter-dependent durations are not implemented yet.
+
+`chord-grid.js` owns the inline editor. `ComposerHarmony` owns placement and
+history. Validated `gridCell` metadata survives drafts, named saves, share
+links, and transposition. Older progressions fill consecutive cells. Narrow
+screens scroll within the grid, retaining the same four-column layout.
+
+Check placement with `_scripts/progression-composer-test.js` and the real UI
+with `_scripts/chord-grid-browser-check.js` in an isolated browser.
+
 ### Earlier workbench validation
 
 Results:
