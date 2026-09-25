@@ -1,3 +1,5 @@
+2026-08-09 - Try Dual Kawase blur for glass/background effects
+
 2026-01-05 - Add PT to Kata section
 
 Add library
