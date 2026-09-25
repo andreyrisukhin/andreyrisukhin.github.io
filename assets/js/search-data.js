@@ -30,9 +30,9 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/teaching/";
               },
-            },{id: "nav-bayan-workbench",
-          title: "Bayan workbench",
-          description: "Explore a chord as notes, buttons, notation, and sound.",
+            },{id: "nav-bayan-notebook",
+          title: "Bayan notebook",
+          description: "Tools, sheets, and references for bayan and harmony.",
           section: "Navigation",
           handler: () => {
             window.location.href = "/music/";

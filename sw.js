@@ -6,7 +6,7 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1790144008';
+const VERSION = '1790315647';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
@@ -24,6 +24,7 @@ const PRECACHE_URLS = [
   '/music/intervals/',
   '/music/songs/',
   '/music/sheet/cogwork-dancers/',
+  '/music/sheet/reconstructing-more-science/',
 
   '/manifest.webmanifest',
   '/assets/img/pwa/icon-192.png',
