@@ -4,8 +4,8 @@ Branch: `design/bayan-notebook`. The source audit is in [MUSIC_DESIGN_AUDIT.md](
 
 ## What changed
 
-- `/music/` opens the progression workspace, initially Am7 → D7 → Gmaj7, or recovers the last local draft. Music has a direct navigation item and a homepage entry.
-- The shared music layout uses paper, ink, and lacquer colors. Dark mode uses a muted brass accent, not pink. Explore, Practice, Play, and Read link to existing material.
+- `/music/` is a compact tools hub: tool cards (workbench, chord recognizer, set-list builder, and the rest), sheets, and references. The progression workspace lives at `/music/workbench/`, initially Am7 → D7 → Gmaj7, or recovers the last local draft. Music has a direct navigation item and a homepage entry.
+- The shared music layout uses paper, ink, and lacquer colors. Dark mode uses a muted brass accent, not pink. Tools, Explore, Practice, Play, and Read link to existing material.
 - Notes, staff notation, B-system buttons, Stradella recipes, and sound describe the same musical object. Focus and hover connect the representations.
 - Progressions retain the selected chord during transposition. Playback supports chords, upward rolls, tempo, looping, mute, and stop. Sound starts only after an explicit action.
 - Saved practice keeps its notes, inversions, key, and tempo in this browser. JSON backups append rather than replace the library. Shared links contain musical state, not saved names or the library.
@@ -38,7 +38,7 @@ Buttons are 48px. Only the actual voiced MIDI notes are outlined, rather than ev
 
 ### Existing tools
 
-All earlier music routes remain available, including `/music/workbench/`. Existing Stradella song storage and share formats are unchanged. The workbench reads the earlier prototype’s saved single-chord entries.
+All earlier music routes remain available. Existing Stradella song storage and share formats are unchanged. New share links open `/music/workbench/`; older `/music/?chords=…` links are forwarded there by the hub. The workbench reads the earlier prototype’s saved single-chord entries.
 
 Audio is synthesized with Web Audio, not sampled from an accordion. Recipes show whether their pitch set is exact, which tones are missing or extra, and when a stack is theoretical rather than ergonomic. Registers and omitted chord tones vary by instrument.
 
@@ -84,7 +84,7 @@ For the integrated preview, serve `_site` on forwarded port 4173:
 python3 -m http.server 4173 --bind 127.0.0.1 --directory _site
 ```
 
-Open **http://localhost:4173/music/** with the Mac → Piglab SSH tunnel connected. Port 5173 can continue serving the standalone prototypes.
+Open **http://localhost:4173/music/workbench/** with the Mac → Piglab SSH tunnel connected. Port 5173 can continue serving the standalone prototypes.
 
 ### Earlier workbench validation
 

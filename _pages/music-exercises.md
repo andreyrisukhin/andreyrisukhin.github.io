@@ -6,6 +6,8 @@ permalink: /music/exercises/
 
 Practice a progression with a right-hand pattern and a theory note. Use the key bar to transpose.
 
+Score exercise: [Reconstructing More Science]({{ '/music/sheet/reconstructing-more-science/' | relative_url }}) from the _Portal 2_ soundtrack, eight bars of two-hand accordion practice in F minor.
+
 <div id="exercises-root" class="exercises-root"></div>
 
 <noscript><p>Playback and transposition need JavaScript. Try the <a href="/music/scales/">scale reference</a> for a printable practice companion.</p></noscript>

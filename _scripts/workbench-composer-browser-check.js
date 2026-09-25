@@ -1,4 +1,4 @@
-// Run in an isolated /music/ page. Set window.workbenchCheckStage = "reload"
+// Run in an isolated /music/workbench/ page. Set window.workbenchCheckStage = "reload"
 // after reloading to verify the edits, saved copy and independent chord document.
 (async () => {
   const $ = (id) => document.getElementById(id);
@@ -81,6 +81,7 @@
   click("#workbench-share");
   const url = new URL($("workbench-share-url").value);
   const shared = JSON.parse(url.searchParams.get("chords"));
+  assert(url.pathname.endsWith("/music/workbench/"), "Share link opens the workbench page");
   assert(shared[2].voicing === "bass-octave" && shared[2].notes.join() === "4,0,7", "Share link includes ordered pitches");
   assert(url.searchParams.get("keyMode") === "minor" && url.searchParams.get("bpm") === "123", "Share link includes analysis and tempo");
   assert(!url.href.includes("Integration"), "Share link excludes saved practice labels");

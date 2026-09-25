@@ -5,7 +5,14 @@ layout: default
   <nav class="music-section-nav" aria-label="Music">
     <a
       href="{{ '/music/' | relative_url }}"
-      {% if page.permalink == '/music/' or page.permalink == '/music/workbench/' %}
+      {% if page.permalink == '/music/' %}
+        aria-current="page"
+      {% endif %}
+      >Tools</a
+    >
+    <a
+      href="{{ '/music/workbench/' | relative_url }}"
+      {% if page.permalink == '/music/workbench/' %}
         aria-current="page"
       {% endif %}
       >Explore</a

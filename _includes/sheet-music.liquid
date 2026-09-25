@@ -1,7 +1,8 @@
 {% assign sheet_slug = include.slug %}
 {% assign sheet_dir = include.asset_dir | default: sheet_slug %}
 {% assign musicxml_path = '/assets/music/sheet-music/' | append: sheet_dir | append: '/' | append: sheet_slug | append: '.musicxml' %}
-{% assign mscz_path = '/assets/music/sheet-music/' | append: sheet_dir | append: '/' | append: sheet_slug | append: '.mscz' %}
+{% assign source_ext = include.source_ext | default: 'mscz' %}
+{% assign source_path = '/assets/music/sheet-music/' | append: sheet_dir | append: '/' | append: sheet_slug | append: '.' | append: source_ext %}
 
 <div
   class="sheet-music-page sheet-music-page--flexoki"
@@ -19,7 +20,7 @@
     <button id="osmd-zoom-in" class="music-share-btn" type="button">+</button>
     <button id="osmd-stradella-toggle" class="music-share-btn" type="button" data-pressed="false">Show Stradella</button>
     <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false">Focus score</button>
-    <a class="music-share-btn" href="{{ mscz_path | relative_url }}" download>Download .mscz</a>
+    <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
     <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
   </div>
 
@@ -27,7 +28,9 @@
   <p id="osmd-status" class="sheet-music-status">Loading score…</p>
 
   <noscript>
-    <p>This page renders sheet music client-side with JavaScript. Download the MusicXML or `.mscz` above to view it in another application.</p>
+    <p>
+      This page renders sheet music client-side with JavaScript. Download the MusicXML or `.{{ source_ext }}` above to view it in another application.
+    </p>
   </noscript>
 </div>
 

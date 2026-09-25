@@ -7,4 +7,4 @@ description: Explore a chord as notes, buttons, notation, and sound.
 
 {% include music-workbench.liquid %}
 
-Visit the [music notebook]({{ '/music/' | relative_url }}) for exercises, arrangements, and field notes.
+See [all music tools]({{ '/music/' | relative_url }}) for the chord recognizer, set lists, exercises, sheets, and references.
