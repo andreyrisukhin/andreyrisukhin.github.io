@@ -247,7 +247,10 @@ test("reconcile holds pinned steps at their measure beat when earlier notes grow
     if (s.pin !== undefined) pinOnset = onsets[i] % 48;
   });
   assert.equal(pinOnset, 12);
-  assert.equal(out.reduce((t, s) => t + s.ticks, 0), 30);
+  assert.equal(
+    out.reduce((t, s) => t + s.ticks, 0),
+    30
+  );
   assert.equal(out.length, 4); // the absorbed rest collapsed into the grown note
   assert.equal(out[0].ticks, 12);
   assert.equal(out[1].pin, 12);

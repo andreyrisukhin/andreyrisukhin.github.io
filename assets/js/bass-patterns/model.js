@@ -137,10 +137,7 @@ window.BassPatterns = (function () {
       );
       const metadata = data[3] || {};
       requireValue(!metadata.chords || (Array.isArray(metadata.chords) && metadata.chords.length === data[2].length), "Invalid chord labels.");
-      requireValue(
-        !metadata.pins || (Array.isArray(metadata.pins) && metadata.pins.length === data[2].length),
-        "Invalid pinned beats."
-      );
+      requireValue(!metadata.pins || (Array.isArray(metadata.pins) && metadata.pins.length === data[2].length), "Invalid pinned beats.");
       return validate({
         version,
         title: data[0],
@@ -259,16 +256,16 @@ window.BassPatterns = (function () {
     if (!steps.some((s) => s.pin !== undefined)) return steps;
     const barTicks = (meter[0] * 48) / meter[1];
     const bySize = [48, 36, 24, 18, 12, 9, 6, 3];
-    const isRest = (s) =>
-      (s.notes === undefined || s.notes.length === 0) && (s.presses === undefined || s.presses.length === 0);
+    const isRest = (s) => (s.notes === undefined || s.notes.length === 0) && (s.presses === undefined || s.presses.length === 0);
     // Decompose a multiple-of-3 tick count into valid rest durations.
     const split = (amount) => {
       const parts = [];
       let remaining = amount;
-      for (const t of bySize) while (remaining >= t) {
-        parts.push(t);
-        remaining -= t;
-      }
+      for (const t of bySize)
+        while (remaining >= t) {
+          parts.push(t);
+          remaining -= t;
+        }
       return parts;
     };
     // Largest still-valid duration reduction for a step, capped by `need`.
@@ -288,10 +285,11 @@ window.BassPatterns = (function () {
     }));
     const removeInGap = (i, need) => {
       let gapStart = 0;
-      for (let k = i - 1; k >= 0; k--) if (out[k].pin !== undefined) {
-        gapStart = k + 1;
-        break;
-      }
+      for (let k = i - 1; k >= 0; k--)
+        if (out[k].pin !== undefined) {
+          gapStart = k + 1;
+          break;
+        }
       let remaining = need;
       const plan = [];
       for (let j = i - 1; j >= gapStart && remaining > 0; j--) {
