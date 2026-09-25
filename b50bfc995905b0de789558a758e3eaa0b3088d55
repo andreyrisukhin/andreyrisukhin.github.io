@@ -1,0 +1,46 @@
+_scripts/kata-browser-check.js
+  529bf6774be9bd17 12-19,23-40,45-48,50-52,56-57,60,63-66,69,72-73,78,80-203
+  a93e0090089d7169 21
+_sass/_kata.scss
+  a93e0090089d7169 325-326
+  529bf6774be9bd17 8,19,23,64-65,70-75,81-82,84-85,89-93,114-118,120-122,127-131,136,140,164,166-168,170-172,175-176,181,184,197-201,209-214,216-220,223-227,229-230,232-238,241-244,247,278,280,295-297,302-313,315,319-324,327-372,375-381,383-395,409-410,412-414
+_pages/kata.md
+  529bf6774be9bd17 17,26-29,43,45-49,53-56,63-64
+assets/js/kata.js
+  529bf6774be9bd17 6-9,14,16-22,29-41,60-81,83-90,102
+_scripts/kata-test.js
+  529bf6774be9bd17 28-43,47-51,55-57,62-65,67-71,74-79,81-82,84,93-108,116,118-132,151-175,218-227,246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "b50bfc995905b0de789558a758e3eaa0b3088d55",
+  "prompts": {
+    "529bf6774be9bd17": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "4779ffe6-9d13-43ff-9b2d-2d99dc38bf3c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 645,
+      "total_deletions": 296,
+      "accepted_lines": 946,
+      "overriden_lines": 0
+    },
+    "a93e0090089d7169": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "33d0589c-8a5d-49ed-b109-e5e0c19cb781",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Andrey Risukhin",
+      "messages": [],
+      "total_additions": 799,
+      "total_deletions": 44,
+      "accepted_lines": 2903,
+      "overriden_lines": 0
+    }
+  }
+}
