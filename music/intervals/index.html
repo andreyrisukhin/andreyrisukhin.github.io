@@ -14,7 +14,7 @@
         "name": "Andrey Risukhin",
         "@context": "https://schema.org"
     }
-  </script> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5"> <link defer rel="stylesheet" href="/assets/css/scholar-icons.css?62b2ac103a88034e6882a5be5f3e2772"> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="/assets/img/favicon.ico?715f6ed7e23cef24080062037ae1eaf4"> <link rel="stylesheet" href="/assets/css/main.css?0d1b79bc0619103fb69bbd2c4b9c03c0"> <link rel="canonical" href="https://andreyrisukhin.github.io/music/intervals/"> <script src="/assets/js/theme.js?a81d82887dd692e91686b43de4542f18"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>
+  </script> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5"> <link defer rel="stylesheet" href="/assets/css/scholar-icons.css?62b2ac103a88034e6882a5be5f3e2772"> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="/assets/img/favicon.ico?715f6ed7e23cef24080062037ae1eaf4"> <link rel="stylesheet" href="/assets/css/main.css?9433e6826ddfdf61b947d6cba20945e4"> <link rel="canonical" href="https://andreyrisukhin.github.io/music/intervals/"> <script src="/assets/js/theme.js?a81d82887dd692e91686b43de4542f18"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>
     initTheme();
   </script> <link rel="manifest" href="/manifest.webmanifest"> <meta name="apple-mobile-web-app-capable" content="yes"> <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <meta name="apple-mobile-web-app-title" content="Bayan"> <meta name="theme-color" content="#faf7f0" media="(prefers-color-scheme: light)"> <meta name="theme-color" content="#201d1a" media="(prefers-color-scheme: dark)"> <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/pwa/apple-touch-icon-180.png"> <script>
     (function () {
@@ -27,37 +27,6 @@
             if (navigator.storage && navigator.storage.persist) {
               navigator.storage.persist().catch(function () {});
             }
-            function notifyWaiting(worker) {
-              if (!worker) return;
-              if (document.getElementById('pwa-update-toast')) return;
-              var t = document.createElement('div');
-              t.id = 'pwa-update-toast';
-              t.setAttribute('role', 'status');
-              t.className = 'music-update-notice';
-              var text = document.createElement('span');
-              text.textContent = 'A new version is ready.';
-              var refresh = document.createElement('button');
-              refresh.type = 'button';
-              refresh.textContent = 'Refresh';
-              refresh.addEventListener('click', function () {
-                worker.postMessage({ type: 'SKIP_WAITING' });
-              });
-              t.appendChild(text);
-              t.appendChild(refresh);
-              var page = document.querySelector('.music-page');
-              if (page) page.appendChild(t);
-              else document.body.appendChild(t);
-            }
-            if (reg.waiting) notifyWaiting(reg.waiting);
-            reg.addEventListener('updatefound', function () {
-              var w = reg.installing;
-              if (!w) return;
-              w.addEventListener('statechange', function () {
-                if (w.state === 'installed' && navigator.serviceWorker.controller) {
-                  notifyWaiting(w);
-                }
-              });
-            });
             setInterval(
               function () {
                 reg.update().catch(function () {});
