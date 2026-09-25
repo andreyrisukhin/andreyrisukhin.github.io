@@ -25,28 +25,63 @@ class Element {
   setAttribute(name, value) {
     this.attributes[name] = value;
   }
+  append(element) {
+    element.parentNode = this;
+  }
+  insertBefore(element, next) {
+    element.parentNode = this;
+    element.nextSibling = next;
+  }
+  showModal() {
+    this.open = true;
+  }
+  close() {
+    this.open = false;
+  }
+  focus() {
+    this.focused = true;
+  }
 }
 
 function mount({ hash = "", reducedMotion = false } = {}) {
+  const stepSets = [6, 5].map((count) => Array.from({ length: count }, () => new Element()));
+  const lists = [new Element(), new Element()];
+  const backs = [new Element(), new Element()];
+  const forwards = [new Element(), new Element()];
+  const stepNavs = [new Element(), new Element()];
   const recipes = ["morning-clear-form", "night-soften"].map((id, i) => {
     const element = new Element({ scene: i ? "night" : "morning" });
     element.id = id;
+    element.querySelectorAll = (selector) => ({ ".kata-step": stepSets[i] })[selector];
+    element.querySelector = (selector) =>
+      ({ ".kata-steps": lists[i], "[data-kata-back]": backs[i], "[data-kata-next]": forwards[i], ".kata-step-nav": stepNavs[i] })[selector];
     return element;
   });
   const buttons = recipes.map((recipe) => new Element({ kataToggle: recipe.id }));
-  const steps = [new Element(), new Element()];
   const nav = new Element();
+  const viewGroup = new Element();
+  const views = ["bounded", "immersive"].map((kataView) => new Element({ kataView }));
+  const immersive = new Element();
+  const home = new Element();
   const motion = new Element();
-  const practice = new Element();
-  practice.querySelectorAll = (selector) => ({ "[data-kata-toggle]": buttons, "[data-kata-recipe]": recipes, ".kata-step": steps })[selector];
-  practice.querySelector = (selector) => ({ "[data-kata-motion]": motion, ".kata-nav": nav })[selector];
+  const practice = new Element({ view: "bounded" });
+  practice.parentNode = home;
+  practice.nextSibling = immersive;
+  practice.querySelectorAll = (selector) => ({ "[data-kata-toggle]": buttons, "[data-kata-recipe]": recipes, "[data-kata-view]": views })[selector];
+  practice.querySelector = (selector) => ({ "[data-kata-motion]": motion, ".kata-nav": nav, ".kata-view": viewGroup })[selector];
   const reduced = new Element();
   reduced.matches = reducedMotion;
+  const window = {
+    location: { hash },
+    matchMedia: () => reduced,
+    scrollY: 400,
+    scrollTo: ({ top }) => (window.scrollY = top),
+  };
   vm.runInNewContext(read("assets/js/kata.js"), {
-    document: { querySelector: () => practice },
-    window: { location: { hash }, matchMedia: () => reduced },
+    document: { querySelector: (selector) => ({ "[data-kata-practice]": practice, "[data-kata-immersive]": immersive })[selector] },
+    window,
   });
-  return { practice, recipes, buttons, steps, motion, nav, reduced };
+  return { practice, recipes, buttons, stepSets, lists, backs, forwards, stepNavs, motion, nav, reduced, views, viewGroup, immersive, home, window };
 }
 
 const app = mount();
@@ -55,7 +90,22 @@ assert.equal(app.recipes[1].hidden, true);
 assert.equal(app.buttons[0].attributes["aria-pressed"], "true");
 assert.equal(app.nav.hidden, false);
 assert.equal(app.motion.hidden, false);
-assert.equal(app.practice.attributes["--scene-depth"], undefined, "Starts with unpainted paper");
+assert.equal(app.viewGroup.hidden, false);
+assert.equal(app.practice.attributes["--scene-depth"], undefined, "Initial render does not develop the painting");
+for (let i = 0; i < 2; i++) {
+  assert.deepEqual(
+    app.stepSets[i].map((step) => step.hidden),
+    app.stepSets[i].map((_, index) => index !== 0),
+    "Starts on one prompt per form"
+  );
+  assert.equal(app.backs[i].attributes["aria-disabled"], "true");
+  assert.equal(app.forwards[i].attributes["aria-disabled"], "false");
+  assert.equal(app.stepNavs[i].hidden, false);
+  assert.equal(app.lists[i].attributes["aria-live"], "polite");
+  assert.equal(app.lists[i].attributes["aria-atomic"], "true");
+}
+app.backs[0].events.click();
+assert.equal(app.practice.attributes["--scene-depth"], undefined, "Back on the first step is a no-op");
 app.buttons[1].events.click();
 assert.equal(app.practice.dataset.scene, "night");
 assert.equal(app.recipes[1].hidden, false);
@@ -63,12 +113,23 @@ assert.equal(app.recipes[0].hidden, true);
 assert.equal(app.buttons[0].attributes["aria-pressed"], "false");
 assert.equal(app.buttons[1].attributes["aria-pressed"], "true");
 assert.equal(app.practice.attributes["--scene-depth"], "0.2");
-app.steps[0].open = true;
-app.steps[0].events.toggle();
+app.forwards[1].events.click();
 assert.equal(app.practice.attributes["--scene-depth"], "0.4");
-app.steps[0].open = false;
-app.steps[0].events.toggle();
-assert.equal(app.practice.attributes["--scene-depth"], "0.4", "Closing does not add paint");
+assert.equal(app.stepSets[1][0].hidden, true);
+assert.equal(app.stepSets[1][1].hidden, false);
+app.backs[1].events.click();
+assert.equal(app.stepSets[1][0].hidden, false, "Back restores the previous prompt");
+for (let i = 0; i < 10; i++) app.forwards[1].events.click();
+assert.equal(app.stepSets[1].filter((step) => !step.hidden).length, 1, "Only one prompt remains visible");
+assert.equal(app.stepSets[1][4].hidden, false, "Next stops at the last prompt");
+assert.equal(app.forwards[1].attributes["aria-disabled"], "true");
+app.buttons[0].events.click();
+assert.equal(app.stepSets[0][0].hidden, false, "Forms have independent progress");
+app.forwards[0].events.click();
+app.buttons[1].events.click();
+assert.equal(app.stepSets[1][4].hidden, false, "Switching forms preserves the current prompt");
+app.buttons[0].events.click();
+assert.equal(app.stepSets[0][1].hidden, false, "Returning to morning preserves its prompt");
 for (let i = 0; i < 12; i++) app.buttons[0].events.click();
 assert.equal(app.practice.attributes["--scene-depth"], "1.0", "Paint remains bounded");
 app.motion.events.click();
@@ -87,6 +148,31 @@ assert.ok(!app.practice.classes.has("is-still"));
 assert.equal(mount({ hash: "#night-soften" }).practice.dataset.scene, "night");
 assert.equal(mount({ hash: "#missing" }).practice.dataset.scene, "morning");
 assert.ok(mount({ reducedMotion: true }).motion.disabled);
+app.buttons[1].events.click();
+app.motion.events.click();
+app.views[1].events.click();
+assert.equal(app.practice.dataset.view, "immersive");
+assert.equal(app.practice.parentNode, app.immersive);
+assert.equal(app.immersive.open, true);
+assert.equal(app.views[1].attributes["aria-pressed"], "true");
+assert.equal(app.views[0].attributes["aria-pressed"], "false");
+assert.ok(app.views[1].focused);
+assert.ok(!app.stepSets[1][4].hidden && app.practice.classes.has("is-still"), "Immersive preserves the current prompt and motion setting");
+app.window.scrollY = 0;
+app.views[0].events.click();
+assert.equal(app.practice.parentNode, app.home);
+assert.equal(app.practice.nextSibling, app.immersive);
+assert.equal(app.immersive.open, false);
+assert.equal(app.practice.dataset.view, "bounded");
+assert.ok(app.views[0].focused);
+assert.equal(app.window.scrollY, 400, "Returning from immersive restores the page position");
+app.views[1].events.click();
+let cancelled = false;
+app.immersive.events.cancel({ preventDefault: () => (cancelled = true) });
+assert.ok(cancelled);
+assert.equal(app.immersive.open, false);
+assert.equal(app.practice.parentNode, app.home, "Escape restores the bounded practice");
+assert.equal(app.practice.dataset.scene, "night", "Changing view keeps the selected form");
 vm.runInNewContext(read("assets/js/kata.js"), { document: { querySelector: () => null } });
 
 const content = new Element();
@@ -129,7 +215,16 @@ if (process.argv[2]) {
   }
   const html = fs.readFileSync(path.join(site, "kata/index.html"), "utf8");
   assert.equal((html.match(/<h1[\s>]/g) || []).length, 1);
-  assert.equal((html.match(/<details class="kata-step"/g) || []).length, 11);
+  assert.equal((html.match(/<li class="kata-step"/g) || []).length, 11);
+  assert.equal((html.match(/data-kata-back/g) || []).length, 2);
+  assert.equal((html.match(/data-kata-next/g) || []).length, 2);
+  assert.ok(!/<li[^>]*class="kata-step"[^>]*\shidden/.test(html), "Every prompt is available without JS");
+  assert.ok(!html.includes("<details"), "Prompts do not need expanding");
+  assert.ok(!html.includes("kata-fog"), "No fog overlays are built");
+  const css = fs.readFileSync(path.join(site, "assets/css/creative.css"), "utf8");
+  assert.ok(!/kata-fog|kata-mist|--scene-haze/.test(css), "Fog styles and animations are removed");
+  assert.ok(html.includes('data-kata-view="immersive"'), "Immersive comparison control is built");
+  assert.ok(html.includes('aria-label="Immersive kata practice"'), "Immersive view has an accessible dialog");
   assert.ok(!/<section[^>]*data-kata-recipe[^>]*\shidden/.test(html), "Both recipes available without JS");
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length, "No duplicate IDs");
@@ -148,4 +243,4 @@ if (process.argv[2]) {
   assert.ok(precache.includes("/assets/css/creative.css"), "Music offline cache includes creative styles");
   assert.ok(precache.includes("/assets/js/creative-paper.js"), "Music offline cache includes creative interactions");
 }
-console.log("Kata selection, disclosures, motion, deep links, bounded ink, and creative route checks passed");
+console.log("Kata selection, prompt navigation, motion, deep links, bounded ink, and creative route checks passed");

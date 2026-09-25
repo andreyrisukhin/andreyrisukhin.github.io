@@ -5,10 +5,10 @@
 
 .kata-practice {
   --scene-depth: 0;
+  --scene-height: clamp(30rem, 85svh, 60rem);
   --scene-paper: #f8f4eb;
   --scene-ink: #353a38;
   --scene-muted: #616a66;
-  --scene-haze: #e1e8dd;
   color: var(--scene-ink);
   margin-bottom: 3rem;
 
@@ -16,12 +16,11 @@
     display: none !important;
   }
 
-  button,
-  summary {
+  button {
     touch-action: manipulation;
   }
 
-  :is(button, summary):focus-visible {
+  button:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 5px;
   }
@@ -62,9 +61,16 @@
   }
 }
 
-.kata-nav {
+.kata-nav,
+.kata-view {
   display: flex;
   gap: 1.75rem;
+}
+
+.kata-view {
+  margin-left: auto;
+  gap: 1rem;
+  font-size: 0.875rem;
 }
 
 .kata-landscape {
@@ -72,14 +78,19 @@
   --global-text-color-light: var(--scene-muted);
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  // Clip the artwork without creating a scroll container for the sticky scene.
+  overflow: clip;
   background: var(--scene-paper);
-  padding: 3rem 2rem 2rem;
+  min-height: var(--scene-height);
+  padding: 0 2rem 2rem;
 }
 
 .kata-scene {
-  position: absolute;
-  inset: 0;
+  position: sticky;
+  top: 4rem;
+  height: var(--scene-height);
+  margin-inline: -2rem;
+  margin-bottom: calc(-1 * var(--scene-height));
   z-index: -1;
   pointer-events: none;
   opacity: calc(0.1 + var(--scene-depth) * 0.65);
@@ -100,38 +111,33 @@
   opacity: 0;
 }
 
-.kata-fog {
-  position: absolute;
-  width: 140%;
-  height: 60%;
-  left: -20%;
-  top: 20%;
-  background: radial-gradient(ellipse at 25% 50%, var(--scene-paper), transparent 58%),
-    radial-gradient(ellipse at 75% 50%, var(--scene-haze), transparent 55%);
-  filter: blur(24px);
-  opacity: 0.7;
-}
+.kata-practice[data-scene="morning"][data-view="bounded"] {
+  .kata-scene {
+    // The source is already mostly blank paper; don't fade its ink away again.
+    opacity: calc(0.85 + var(--scene-depth) * 0.15);
+  }
 
-.kata-fog--near {
-  top: 54%;
-  height: 40%;
-  opacity: 0.45;
+  .kata-painting--dawn {
+    filter: brightness(0.85) contrast(1.6);
+  }
 }
 
 .kata-recipe {
   position: relative;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
+}
+
+.kata-recipes {
+  padding-top: 3rem;
 }
 
 .kata-recipe-header {
   max-width: 34rem;
-  margin: 0 auto 3rem;
+  margin: 0 auto 1.5rem;
   text-align: center;
 }
 
-.kata-eyebrow,
-.kata-hint,
-.kata-scene-caption {
+.kata-eyebrow {
   font-size: 0.875rem;
   color: var(--scene-muted);
 }
@@ -155,24 +161,27 @@
   list-style: none;
   margin: 0 auto;
   padding: 0;
-  max-width: 46rem;
+  max-width: 32rem;
   display: grid;
-  gap: 2rem;
+  gap: 1.5rem;
+  align-content: start;
+}
 
-  li {
-    width: 78%;
-    position: relative;
+.kata-practice.is-ready {
+  .kata-summary {
+    display: none;
   }
 
-  li:nth-child(even) {
-    justify-self: end;
+  .kata-steps {
+    min-height: 14rem;
   }
 }
 
 .kata-step {
-  // The text stays fully opaque; only the landscape fades and drifts.
+  // One small paper backing protects the prompt without covering the landscape.
   position: relative;
   isolation: isolate;
+  padding: 1rem;
 
   &::before {
     content: "";
@@ -185,75 +194,60 @@
     opacity: 0.95;
     pointer-events: none;
   }
-
-  summary {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-    padding: 0.75rem 0.5rem;
-    min-height: 44px;
-    cursor: pointer;
-    list-style: none;
-    line-height: 1.5;
-  }
-
-  summary::-webkit-details-marker {
-    display: none;
-  }
-
-  summary:hover .kata-step-mark {
-    color: var(--scene-ink);
+  h3 {
+    margin: 0 0 0.75rem;
+    color: inherit;
+    font-size: 1.125rem;
+    line-height: 1.35;
   }
 
   p {
     margin: 0;
-    padding: 0.25rem 2.5rem 1rem 3rem;
     line-height: 1.65;
   }
-}
 
-.kata-step-number {
-  font-size: 0.75rem;
-  color: var(--scene-muted);
-  font-variant-numeric: tabular-nums;
-}
+  .kata-step-number {
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--scene-muted);
+    font-variant-numeric: tabular-nums;
+  }
 
-.kata-step-mark {
-  margin-left: auto;
-  color: var(--scene-muted);
-}
-
-.kata-step[open] .kata-step-mark {
-  transform: rotate(45deg);
-}
-
-.kata-tips {
-  text-align: center;
-  margin: 3rem auto 0;
-  max-width: 30rem;
-  color: var(--scene-ink);
-  font-size: 0.875rem;
-}
-
-.kata-scene-caption {
-  text-align: center;
-  margin: 5rem 0 0;
-
-  span {
-    color: inherit;
+  .kata-tips {
+    margin-top: 1rem;
+    color: var(--scene-muted);
+    font-size: 0.875rem;
   }
 }
 
-.kata-caption-night {
-  display: none;
+.kata-step-nav {
+  display: flex;
+  justify-content: space-between;
+  max-width: 32rem;
+  margin: 1rem auto 0;
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: var(--scene-paper);
+    border: 1px solid currentColor;
+    border-radius: 0.25rem;
+    min-width: 5rem;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+
+  button[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: default;
+  }
 }
 
-.kata-practice[data-scene="night"],
-html[data-theme="dark"] .kata-practice {
+.kata-practice[data-scene="night"] {
   --scene-paper: #1c2631;
   --scene-ink: #f0ece3;
   --scene-muted: #bac5ca;
-  --scene-haze: #748d9c;
 
   .kata-painting--night {
     opacity: 1;
@@ -261,16 +255,6 @@ html[data-theme="dark"] .kata-practice {
 
   .kata-painting--dawn {
     opacity: 0;
-  }
-}
-
-.kata-practice[data-scene="night"] {
-  .kata-caption-morning {
-    display: none;
-  }
-
-  .kata-caption-night {
-    display: inline;
   }
 }
 
@@ -284,18 +268,6 @@ html[data-theme="dark"] .kata-practice {
   }
 }
 
-@keyframes kata-mist {
-  0%,
-  100% {
-    transform: translateX(-3%);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translateX(3%);
-    opacity: 0.3;
-  }
-}
-
 @media (prefers-reduced-motion: no-preference) {
   .kata-practice.is-ready {
     .kata-steps li {
@@ -303,17 +275,9 @@ html[data-theme="dark"] .kata-practice {
       animation-delay: calc(var(--step) * -2.3s);
     }
 
-    .kata-fog--far {
-      animation: kata-mist 32s ease-in-out infinite;
-    }
-
-    .kata-fog--near {
-      animation: kata-mist 43s ease-in-out -17s infinite reverse;
-    }
-
-    &.is-still *,
+    &.is-still .kata-steps li,
     .kata-steps li:hover,
-    .kata-steps li:focus-within {
+    .kata-recipe:focus-within .kata-steps li {
       animation-play-state: paused;
     }
   }
@@ -328,26 +292,107 @@ html[data-theme="dark"] .kata-practice {
     margin-inline: -3rem;
     padding-inline: 5rem;
   }
+
+  .kata-scene {
+    margin-inline: -5rem;
+  }
 }
 
 @media (max-width: 600px) {
+  .kata-toolbar {
+    gap: 0.5rem 1rem;
+  }
+
+  .kata-view {
+    margin-left: 0;
+  }
+
+  .kata-motion {
+    margin-left: auto;
+  }
+
   .kata-landscape {
-    padding: 2rem 1rem;
+    padding: 0 1rem 2rem;
     margin-inline: -0.5rem;
   }
 
-  .kata-steps {
-    gap: 1.5rem;
-    li {
-      width: 96%;
-    }
+  .kata-scene {
+    margin-inline: -1rem;
   }
 
-  .kata-step summary {
-    gap: 0.75rem;
+  .kata-recipes {
+    padding-top: 2rem;
   }
-  .kata-step p {
-    padding-inline: 2.5rem 1rem;
+
+  .kata-practice.is-ready .kata-steps {
+    min-height: 18rem;
+  }
+}
+
+.kata-immersive {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: transparent;
+
+  &::backdrop {
+    background: var(--paper, #faf7f0);
+  }
+}
+
+html:has(.kata-immersive[open]),
+body:has(.kata-immersive[open]) {
+  overflow: hidden;
+}
+
+.kata-practice[data-view="immersive"] {
+  --global-text-color: var(--scene-ink);
+  --global-text-color-light: var(--scene-muted);
+  --scene-height: 100svh;
+  isolation: isolate;
+  min-height: 100%;
+  margin: 0;
+  background: var(--scene-paper);
+
+  .kata-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0;
+    padding: 0.75rem max(1.25rem, calc((100% - 66rem) / 2));
+    color: var(--scene-ink);
+    background: color-mix(in srgb, var(--scene-paper) 94%, transparent);
+  }
+
+  .kata-landscape {
+    position: static;
+    isolation: auto;
+    overflow: visible;
+    margin: 0;
+    padding: 0 1.5rem 3rem;
+    background: transparent;
+  }
+
+  .kata-scene {
+    position: fixed;
+    inset: 0;
+    height: 100%;
+    margin: 0;
+    mask-image: none;
+  }
+
+  .kata-recipes {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding-top: 3rem;
   }
 }
 
@@ -361,10 +406,12 @@ html[data-theme="dark"] .kata-practice {
 @media print {
   .kata-scene,
   .kata-toolbar,
-  .kata-scene-caption {
-    display: none;
+  .kata-step-nav {
+    display: none !important;
   }
-  .kata-practice .kata-recipe[hidden] {
+  .kata-practice .kata-recipe[hidden],
+  .kata-practice .kata-step[hidden],
+  .kata-practice .kata-summary {
     display: block !important;
   }
   .kata-practice * {
@@ -379,8 +426,5 @@ html[data-theme="dark"] .kata-practice {
   }
   .kata-step::before {
     display: none;
-  }
-  .kata-step > p {
-    display: block !important;
   }
 }

@@ -78,12 +78,32 @@ browser inspection. The final implementation uses static images, not generated
 video, a canvas simulation, or a runtime image service.
 
 - `_includes/kata-scene.liquid` layers the dawn and night backgrounds.
-- `_sass/_kata.scss` adds the dissolving edges, fog layers, readable ink beneath
+- `_sass/_kata.scss` adds the dissolving edges, readable ink beneath
   the text, and a five-pixel vertical step drift over 14 seconds.
-- Fog layers move and change opacity over 32- and 43-second cycles.
-- `assets/js/kata.js` selects the form and develops the painting as steps open.
+- The bounded painting uses a stable, viewport-sized sticky frame so changing
+  instructions does not resize the image. Immersive mode fills the browser
+  viewport in a modal dialog. Escape returns to the bounded page without losing
+  the current prompt or the motion setting.
+- Morning Form always selects the dawn painting; Sleep Form selects night.
+  The site’s light/dark theme does not override that choice.
+- The CSS fog overlays were removed from both forms and views on September 19, 2026. Mist painted into the source images remains, as do the local paper
+  backdrops behind text.
+- `assets/js/kata.js` selects the form and develops the painting as steps change.
   The scene opacity rises from 0.1 to at most 0.75, with a seven-second transition.
-- Steps use native `details` disclosures. Hover or keyboard focus pauses a step.
+  Bounded dawn starts at 0.85 and develops to full opacity.
+  Its already-pale source gets CSS `brightness(0.85) contrast(1.6)` to strengthen
+  the stone detail without changing the image file. The earlier 0.3–0.9 opacity
+  and 55% fog treatment was still too faint. Only the current prompt has a
+  soft paper backdrop, leaving the rest of the landscape uncovered.
+  Immersive dawn and both night views keep their original image opacity and
+  contrast.
+- One full prompt appears at a time, with Back and Next controls and a step count.
+  Each form remembers its own position while switching forms or views. The
+  controls stop at the first and last steps, with no automatic advance.
+  Updates are announced politely without moving focus away from the controls.
+  The closing cue appears with the final prompt. Without JavaScript, and when
+  printing, every instruction remains available.
+  Hover or focus on its navigation pauses the floating prompt; controls stay stationary.
   The motion control pauses the scene; reduced-motion preferences disable motion.
 - The shared creative-page wash uses CSS gradients. It is separate from the
   generated paintings and loads only for music, ditherer, and kata.
@@ -95,7 +115,7 @@ No image generation happens when someone visits the website.
 
 The implementation was checked with a production Jekyll build, focused Node
 tests, formatting checks, and isolated browser sessions at desktop, 390-pixel,
-and 320-pixel widths. Tests covered form selection, native disclosures, keyboard
+and 320-pixel widths. Tests covered form selection, prompt navigation, keyboard
 input, text visibility, layout overlap, pause/resume, reduced motion, light/dark
 themes, music integration, and exclusion from non-creative pages.
 
