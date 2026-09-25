@@ -6,7 +6,7 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1790352769';
+const VERSION = '1790355361';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
@@ -36,6 +36,7 @@ const PRECACHE_URLS = [
   '/assets/js/vendor/soundfont-player.min.js',
   '/assets/js/vendor/opensheetmusicdisplay.min.js',
   '/assets/js/theme.js',
+  '/assets/js/creative-paper.js',
   '/assets/js/vanilla-back-to-top.min.js',
   '/assets/js/bootstrap.bundle.min.js',
   '/assets/css/bootstrap.min.css',
@@ -56,6 +57,7 @@ const PRECACHE_URLS = [
   '/assets/js/workbench/stradella.js',
   '/assets/js/workbench/voicings.js',
   '/assets/js/workbench/hands.js',
+  '/assets/js/workbench/chord-grid.js',
   '/assets/js/workbench/composer.js',
   '/assets/js/workbench/main.js',
   '/assets/js/bass-patterns/model.js',
@@ -76,9 +78,14 @@ const PRECACHE_URLS = [
   '/assets/js/sheet-music/osmd-bridge.js',
   '/assets/js/sheet-music/chord-inspector.js',
   '/assets/js/sheet-music/stradella-overlay.js',
+  '/assets/js/sheet-music/practice-timeline.js',
+  '/assets/js/sheet-music/practice-player.js',
+  '/assets/js/sheet-music/practice.js',
+  '/assets/js/sheet-music/practice-inspector.js',
   '/assets/js/sheet-music/dev-annotator.css',
 
   '/assets/css/main.css',
+  '/assets/css/creative.css',
 ];
 
 const RUNTIME_CDN_HOSTS = [

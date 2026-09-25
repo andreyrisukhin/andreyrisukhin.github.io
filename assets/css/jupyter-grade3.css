@@ -418,6 +418,21 @@ textarea {
   border: 1px solid #dedede;
 }
 
+.toolbar select,
+.toolbar label {
+  width: auto;
+  vertical-align: middle;
+  margin-right: 0px;
+  margin-bottom: 0px;
+  display: inline;
+  font-size: 92%;
+  margin-left: 10px;
+  padding: 0px;
+  background: #e5e5e5 !important;
+  background-color: #e5e5e5 !important;
+  border: 2px solid #e5e5e5 !important;
+}
+
 ::-webkit-input-placeholder {
   color: #828892;
 }
@@ -467,6 +482,7 @@ h6,
 pre,
 code,
 form,
+fieldset,
 legend,
 input,
 button,
@@ -480,6 +496,36 @@ a {
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: subpixel-antialiased;
   font-weight: 400;
+}
+
+div.cell {
+  padding: 0px;
+  background: #ededed;
+  background-color: #ededed;
+  border: medium solid #ffffff;
+  border-radius: 4px;
+  top: 0;
+}
+
+div.cell.selected {
+  background: #ededed;
+  background-color: #ededed;
+  border: medium solid #ffffff;
+  padding: 0px;
+  border-radius: 5px;
+}
+
+div.cell.selected:before,
+div.cell.selected:before {
+  background: #ededed !important;
+  border: none;
+  border-radius: 3px;
+  position: absolute;
+  display: block;
+  top: 0px;
+  left: 0px;
+  width: 0px;
+  height: 100%;
 }
 
 div.prompt,
@@ -496,6 +542,10 @@ div.prompt,
   text-align: right !important;
   min-width: 11.5ex !important;
   width: 11.5ex !important;
+}
+
+div.cell.selected .prompt {
+  top: 0;
 }
 
 pre,
