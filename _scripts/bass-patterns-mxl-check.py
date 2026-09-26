@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 root = Path(__file__).resolve().parent.parent
-source = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "prison blues bassline.mxl"
+source = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "_scripts" / "fixtures" / "prison-blues-bassline.mxl"
 with zipfile.ZipFile(source) as archive:
     container = ET.fromstring(archive.read("META-INF/container.xml"))
     score_path = next(e.attrib["full-path"] for e in container.iter() if e.tag.endswith("rootfile"))
