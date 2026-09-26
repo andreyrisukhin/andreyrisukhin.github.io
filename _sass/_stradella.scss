@@ -86,10 +86,82 @@
   }
 }
 
+/* Song chart mode: one column per beat, four 4/4 bars per row, and each
+   section starts on a new row. */
+.stradella-setlist.is-chart {
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+
+  .stradella-card.has-label {
+    grid-column-start: 1;
+  }
+
+  .stradella-card__chord {
+    font-size: 1rem;
+  }
+}
+
+.stradella-card__label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--global-theme-color);
+  padding-right: 1.2rem;
+}
+
 @media (max-width: 600px) {
   .stradella-setlist {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .stradella-setlist.is-chart {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+/* ── Song charts (/music/build/) ── */
+
+.song-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.song-chart {
+  border: 1px solid var(--global-divider-color);
+  border-radius: 5px;
+  padding: 0.6rem 0.75rem;
+
+  .music-toggle-group {
+    margin: 0.35rem 0;
+  }
+}
+
+.song-chart__title {
+  font-weight: 700;
+}
+
+.song-chart__meta {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.song-chart__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.song-chart__load-all {
+  font-weight: 700;
+}
+
+.song-charts-status {
+  font-size: 0.85rem;
+  min-height: 1.2em;
+  margin-bottom: 1rem;
 }
 
 /* ── Catalog ── */

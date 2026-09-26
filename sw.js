@@ -75,6 +75,7 @@ const PRECACHE_URLS = [
   '/assets/js/chord-recognizer/main.js',
   '/assets/js/stradella/main.js',
   '/assets/js/music-build/main.js',
+  '/assets/js/music-build/charts.js',
   '/assets/js/music-exercises/main.js',
   '/assets/js/music-songs/main.js',
   '/assets/js/music-songs/sync.js',

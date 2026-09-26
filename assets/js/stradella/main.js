@@ -21,6 +21,7 @@
   var runtime = {
     playing: false,
     currentStep: 0,
+    beat: 0,
     timer: null,
     pendingStart: false,
     audioCtx: null,
@@ -194,7 +195,22 @@
     playPianoNote(semitoneToFreq(semiFromC3), when, duration, gainVal);
   }
 
-  function playEntry(idx) {
+  // Song charts give entries a beat count; the grid then lays out
+  // 4 beats per bar and plain entries default to one bar each.
+  function isChart() {
+    return state.selected.some(function (e) {
+      return typeof e.beats === "number";
+    });
+  }
+
+  function entryBeats(entry, chart) {
+    if (entry && typeof entry.beats === "number" && entry.beats > 0) return entry.beats;
+    return chart ? 4 : 1;
+  }
+
+  // Beat 0 of an entry sounds the bass note (the slash bass if any) plus
+  // the chord; later beats restrike the chord more softly as a pulse.
+  function playEntry(idx, beat) {
     var entry = state.selected[idx];
     if (!entry) return;
     var chord = S.chordById(entry.id);
@@ -204,8 +220,13 @@
     var ctx = ensureAudio();
     var now = ctx.currentTime + 0.01;
     var duration = Math.min((60 / state.bpm) * 0.75, 0.75);
+    var first = !beat;
+    if (first) {
+      var bass = typeof entry.bass === "number" ? entry.bass : entry.key;
+      emitNote(bass - 12, now, duration, 0.12);
+    }
     info.semitones.forEach(function (offset) {
-      emitNote(entry.key + offset, now, duration, 0.12);
+      emitNote(entry.key + offset, now, duration, first ? 0.12 : 0.07);
     });
   }
 
@@ -231,9 +252,15 @@
 
   function advancePlayback() {
     if (!runtime.playing || state.selected.length === 0) return;
-    runtime.currentStep = (runtime.currentStep + 1) % state.selected.length;
-    renderPlaybackOnly();
-    playEntry(runtime.currentStep);
+    runtime.beat += 1;
+    if (runtime.beat >= entryBeats(state.selected[runtime.currentStep], isChart())) {
+      runtime.beat = 0;
+      runtime.currentStep = (runtime.currentStep + 1) % state.selected.length;
+      renderPlaybackOnly();
+      var card = isChart() && document.querySelector("#stradella-setlist .stradella-card.is-current");
+      if (card && card.scrollIntoView) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    playEntry(runtime.currentStep, runtime.beat);
   }
 
   function startPlayback() {
@@ -246,8 +273,9 @@
       runtime.pendingStart = false;
       runtime.playing = true;
       runtime.currentStep = 0;
+      runtime.beat = 0;
       renderPlaybackOnly();
-      playEntry(0);
+      playEntry(0, 0);
       runtime.timer = setInterval(advancePlayback, stepIntervalMs());
       setPlayButtonLabel(true);
     };
@@ -270,6 +298,7 @@
     runtime.playing = false;
     runtime.pendingStart = false;
     runtime.currentStep = 0;
+    runtime.beat = 0;
     renderPlaybackOnly();
     setPlayButtonLabel(false);
   }
@@ -391,6 +420,9 @@
     var el = document.getElementById("stradella-setlist");
     if (!el) return;
 
+    var chart = isChart();
+    el.classList.toggle("is-chart", chart);
+
     if (state.selected.length === 0) {
       el.innerHTML = '<p class="stradella-empty">No chords selected. Use the catalog to add chords.</p>';
       return;
@@ -404,8 +436,17 @@
       var bass = typeof entry.bass === "number" ? entry.bass : null;
       var disabled = !state.hasDim7 && S.usesD7(c) && !c.fallback;
       var current = runtime.playing && runtime.currentStep === i;
-      html += '<div class="stradella-card' + (disabled ? " is-disabled" : "") + (current ? " is-current" : "") + '">';
+      var label = typeof entry.label === "string" && entry.label ? entry.label : null;
+      html +=
+        '<div class="stradella-card' +
+        (disabled ? " is-disabled" : "") +
+        (current ? " is-current" : "") +
+        (label ? " has-label" : "") +
+        '"' +
+        (chart ? ' style="grid-column-end: span ' + Math.max(1, Math.round(entryBeats(entry, true))) + '"' : "") +
+        ">";
       html += '<button class="stradella-card__remove" data-action="remove" data-idx="' + i + '" aria-label="Remove">&#10005;</button>';
+      if (label) html += '<div class="stradella-card__label">' + M.esc(label) + "</div>";
       html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key, bass)) + "</div>";
       if (state.show.recipe) {
         html += '<div class="stradella-card__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7, bass)) + "</div>";
@@ -909,6 +950,8 @@
       if (snap.show && typeof snap.show === "object") state.show = Object.assign({}, state.show, snap.show);
       if (typeof snap.hasDim7 === "boolean") state.hasDim7 = snap.hasDim7;
       if (typeof snap.gridView === "boolean") state.gridView = snap.gridView;
+      if (typeof snap.bpm === "number") state.bpm = Math.max(40, Math.min(200, Math.round(snap.bpm)));
+      if (runtime.playing || runtime.pendingStart) stopPlayback();
       saveState();
       renderAll();
       return true;

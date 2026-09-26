@@ -65,6 +65,7 @@ for (const route of [
   "music/blues",
   "music/exercises",
   "music/stradella",
+  "music/build",
   "music/bayan-simulator",
   "music/sheet/cogwork-dancers",
   "music/sheet/reconstructing-more-science",
@@ -77,6 +78,9 @@ for (const route of [
 for (const dependency of ["/assets/js/theme.js", "/assets/js/vanilla-back-to-top.min.js", "/assets/css/bootstrap.min.css"]) {
   assert.ok(precache.includes(dependency), "Offline page shell includes " + dependency);
 }
+const build = fs.readFileSync(path.join(site, "music/build/index.html"), "utf8");
+assert.ok(build.includes('id="song-charts"') && build.includes('id="stradella-play"'), "Set list builder has song charts and a player");
+assert.ok(/window\.SongChartData = \[\{/.test(build), "Set list builder inlines the song chart data");
 const scales = fs.readFileSync(path.join(site, "music/scales/index.html"), "utf8");
 const sheet = fs.readFileSync(path.join(site, "music/sheet/cogwork-dancers/index.html"), "utf8");
 assert.ok(sheet.includes('class="practice-transport"'), "Cogwork Dancers includes practice controls");

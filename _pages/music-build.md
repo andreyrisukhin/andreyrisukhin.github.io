@@ -33,6 +33,13 @@ Examples: `Am7`, `A-7/G` (jazz minus), `F#-6/A`, `Cmaj9`, `Cdim7`.
 </div>
 <div id="chord-search-status" class="chord-search-status"></div>
 
+## Song charts
+
+Load a whole song or one section into the set list. Each card is sized by beats, four bars to a row.
+
+<div id="song-charts" class="song-charts"></div>
+<div id="song-charts-status" class="song-charts-status" role="status"></div>
+
 ## Set list
 
 <div class="music-share">
@@ -62,6 +69,16 @@ Examples: `Am7`, `A-7/G` (jazz minus), `F#-6/A`, `Cmaj9`, `Cdim7`.
 </div>
 
 <div id="stradella-setlist" class="stradella-setlist"></div>
+
+<div class="stradella-player">
+  <div class="stradella-player__controls">
+    <button type="button" id="stradella-play" class="music-share-btn">▶ Play</button>
+    <label class="stradella-bpm-label">BPM
+      <input type="range" id="stradella-bpm-range" min="40" max="200" value="96">
+      <input type="number" id="stradella-bpm-number" min="40" max="200" value="96">
+    </label>
+  </div>
+</div>
 
 ## Recognize from notes
 
@@ -105,8 +122,14 @@ Click a chord to add it to the set list at the current key.
 <script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/stradella/main.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/tactus/audio.js?v=1' | relative_url }}"></script>
+<script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/stradella/main.js?v=2' | relative_url }}"></script>
 <script src="{{ '/assets/js/chord-recognizer/main.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-build/main.js' | relative_url }}"></script>
+<script>
+  window.SongChartData = {{ site.data.music.song_charts.charts | jsonify }};
+</script>
+<script src="{{ '/assets/js/music-build/charts.js?v=1' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>

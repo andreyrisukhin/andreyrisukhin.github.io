@@ -1,0 +1,70 @@
+{
+  "charts": [
+    {
+      "id": "fly-me-to-the-moon",
+      "title": "Fly Me to the Moon (with rap intro)",
+      "source": "Going Spaceward arrangement",
+      "source_url": "https://youtu.be/O1puRnV6gwE",
+      "bpm": 86,
+      "beats_per_bar": 4,
+      "keys": [{ "label": "C major (recording)", "offset": 0 }],
+      "sections": [
+        {
+          "id": "rap",
+          "label": "Rap intro",
+          "bars": ["Am7", "Dm7", "G7", "C", "F", "Bm7b5", "E7", "Am7", "Dm7", "G7", "C/E", "A7 Gdim7", "Dm7", "G7", "Cmaj9", "E7"]
+        },
+        {
+          "id": "song-1",
+          "label": "Song, first half",
+          "bars": ["Am7", "Dm7", "G7", "Cmaj7", "Fmaj7", "Bm7b5", "E7", "Am7 A7", "Dm7", "G7", "Cmaj7", "Am7", "Dm7", "G7", "C", "E7"]
+        },
+        {
+          "id": "song-2",
+          "label": "Song, second half",
+          "bars": ["Am7", "Dm7", "G7", "Cmaj7", "Fmaj7", "Bm7b5", "E7", "Am7 A7", "Dm7", "G7", "E7", "Am7 A7", "Dm7", "G7", "C", "C"]
+        }
+      ],
+      "form": ["rap", "song-1", "song-2"]
+    },
+    {
+      "id": "rises-the-moon",
+      "title": "Rises the Moon",
+      "source": "Liana Flores (guitar: A minor shapes, capo 1)",
+      "bpm": 137,
+      "beats_per_bar": 4,
+      "keys": [
+        { "label": "B\u266dm (recording pitch)", "offset": 1 },
+        { "label": "Am (guitar shapes, no capo)", "offset": 0 }
+      ],
+      "sections": [
+        {
+          "id": "intro",
+          "label": "Intro",
+          "bars": ["Am7", "Am6", "Am7", "Am6"]
+        },
+        {
+          "id": "verse",
+          "label": "Verse",
+          "bars": ["Am7", "Am6", "Am7", "C7", "Fmaj7", "Fdim7", "Am7", "Am6"]
+        },
+        {
+          "id": "verse-alt",
+          "label": "Verse (Cmaj7 ending)",
+          "bars": ["Am7", "Am6", "Am7", "C7", "Fmaj7", "Fdim7", "Cmaj7", "Cmaj7#5"]
+        },
+        {
+          "id": "chorus",
+          "label": "Chorus",
+          "bars": ["C C7", "Fmaj7", "Fdim7", "C C7", "Fmaj7", "Fdim7", "Am7", "Am6"]
+        },
+        {
+          "id": "ending",
+          "label": "Ending",
+          "bars": ["Fmaj7/A", "Am9"]
+        }
+      ],
+      "form": ["intro", "verse", "verse-alt", "chorus", "verse", "verse-alt", "chorus", "ending"]
+    }
+  ]
+}
