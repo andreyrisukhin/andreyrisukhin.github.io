@@ -25,6 +25,7 @@
   function barEntries(bar, beatsPerBar, offset) {
     var names = String(bar).trim().split(/\s+/);
     var beats = beatsPerBar / names.length;
+    if (beats !== Math.floor(beats)) throw new Error("Bar does not split into whole beats: " + bar);
     return names.map(function (name) {
       var entry = resolveChord(name, offset);
       if (!entry) throw new Error("Unknown chord in song chart: " + name);
@@ -73,7 +74,7 @@
       } else if (chart.source) {
         html += esc(chart.source);
       }
-      html += " \u00b7 " + chart.bpm + " BPM</div>";
+      html += " \u00b7 " + (chart.beats_per_bar || 4) + "/4, " + chart.bpm + " BPM</div>";
       if (chart.keys.length > 1) {
         html += '<div class="music-toggle-group song-chart__keys">';
         chart.keys.forEach(function (k, ki) {
@@ -147,13 +148,13 @@
       var key = chart.keys[keyChoice[ci]];
       try {
         var entries = buildEntries(chart, sectionId ? [sectionId] : null, key.offset);
-        T.loadSnapshot({ selected: entries, bpm: chart.bpm });
+        T.loadSnapshot({ selected: entries, bpm: chart.bpm, meter: chart.beats_per_bar || 4 });
       } catch (err) {
         if (status) status.textContent = "Could not load " + chart.title + ": " + err.message;
         return;
       }
       var hadChords = snapshot.selected && snapshot.selected.length;
-      previous = hadChords ? { selected: snapshot.selected, bpm: snapshot.bpm } : null;
+      previous = hadChords ? { selected: snapshot.selected, bpm: snapshot.bpm, meter: snapshot.meter } : null;
       if (status) {
         var what = sectionId ? sectionById(chart, sectionId).label : "whole song";
         status.innerHTML =

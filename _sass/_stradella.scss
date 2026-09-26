@@ -107,8 +107,8 @@
   }
 }
 
-/* Song chart mode: one column per beat, four 4/4 bars per row, and each
-   section starts on a new row. */
+/* Song chart mode: one column per beat, four bars per row (4/4, or 3/4
+   with .is-waltz), and each section starts on a new row. */
 .stradella-setlist.is-chart {
   grid-template-columns: repeat(16, minmax(0, 1fr));
 
@@ -119,6 +119,10 @@
   .stradella-card__chord {
     font-size: 1rem;
   }
+}
+
+.stradella-setlist.is-chart.is-waltz {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .stradella-card__label {
@@ -137,6 +141,10 @@
 
   .stradella-setlist.is-chart {
     grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+
+  .stradella-setlist.is-chart.is-waltz {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 

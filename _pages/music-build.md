@@ -131,12 +131,12 @@ Click a chord to add it to the set list at the current key.
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/tactus/audio.js?v=1' | relative_url }}"></script>
 <script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/stradella/main.js?v=3' | relative_url }}"></script>
+<script src="{{ '/assets/js/stradella/main.js?v=4' | relative_url }}"></script>
 <script src="{{ '/assets/js/chord-recognizer/main.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-build/main.js' | relative_url }}"></script>
 <script>
   window.SongChartData = {{ site.data.music.song_charts.charts | jsonify }};
 </script>
-<script src="{{ '/assets/js/music-build/charts.js?v=2' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-build/charts.js?v=3' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>

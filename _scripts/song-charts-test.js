@@ -55,10 +55,16 @@ assert.equal(rap[5].id, "hdim7", "Bm7b5 maps to the half-diminished recipe");
 const rises = charts.find((c) => c.id === "rises-the-moon");
 const concert = plain(buildEntries(rises, ["ending"], 1));
 assert.deepEqual(concert, [
-  { id: "maj7", key: 6, bass: 10, beats: 4, label: "Ending" },
-  { id: "m9", key: 10, beats: 4 },
+  { id: "maj7", key: 6, bass: 10, beats: 3, label: "Ending" },
+  { id: "m9", key: 10, beats: 3 },
 ]);
 assert.equal(buildEntries(rises, ["intro"], 0)[0].key, 9, "Am shapes stay in A");
 assert.equal(buildEntries(rises, ["verse-alt"], 1)[7].id, "maj7s5");
+assert.equal(rises.beats_per_bar, 3, "Rises the Moon is a waltz");
+assert.ok(
+  buildEntries(rises, null, 1).every((e) => e.beats === 3),
+  "Every Rises the Moon chord fills a 3/4 bar"
+);
+assert.throws(() => buildEntries({ ...rises, sections: [{ id: "x", label: "X", bars: ["C C7"] }], form: ["x"] }, null, 0), /whole beats/);
 
 console.log(`${charts.length} song charts, ${checked} chord cards resolved`);

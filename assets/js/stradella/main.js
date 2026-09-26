@@ -16,6 +16,7 @@
     hasDim7: true,
     gridView: false,
     bpm: 96,
+    meter: 4,
     voice: "epiano",
   };
 
@@ -74,6 +75,7 @@
       if (typeof s.catalogKey === "number") state.catalogKey = s.catalogKey;
       if (typeof s.hasDim7 === "boolean") state.hasDim7 = s.hasDim7;
       if (typeof s.bpm === "number") state.bpm = Math.max(40, Math.min(200, s.bpm));
+      if (s.meter === 3 || s.meter === 4) state.meter = s.meter;
       if (VOICES.hasOwnProperty(s.voice)) state.voice = s.voice;
       if (Array.isArray(s.selected)) {
         var valid = {};
@@ -216,8 +218,9 @@
     playPianoNote(semitoneToFreq(semiFromC3), when, duration, gainVal);
   }
 
-  // Song charts give entries a beat count; the grid then lays out
-  // 4 beats per bar and plain entries default to one bar each.
+  // Song charts give entries a beat count; the grid then lays out four
+  // bars per row (state.meter beats per bar) and plain entries default
+  // to one bar each.
   function isChart() {
     return state.selected.some(function (e) {
       return typeof e.beats === "number";
@@ -226,7 +229,7 @@
 
   function entryBeats(entry, chart) {
     if (entry && typeof entry.beats === "number" && entry.beats > 0) return entry.beats;
-    return chart ? 4 : 1;
+    return chart ? state.meter : 1;
   }
 
   // Sounds the bass note (the slash bass if any) and the chord, held for
@@ -462,6 +465,7 @@
 
     var chart = isChart();
     el.classList.toggle("is-chart", chart);
+    el.classList.toggle("is-waltz", chart && state.meter === 3);
 
     if (state.selected.length === 0) {
       el.innerHTML = '<p class="stradella-empty">No chords selected. Use the catalog to add chords.</p>';
@@ -1009,6 +1013,7 @@
       if (typeof snap.hasDim7 === "boolean") state.hasDim7 = snap.hasDim7;
       if (typeof snap.gridView === "boolean") state.gridView = snap.gridView;
       if (typeof snap.bpm === "number") state.bpm = Math.max(40, Math.min(200, Math.round(snap.bpm)));
+      if (snap.meter === 3 || snap.meter === 4) state.meter = snap.meter;
       if (runtime.playing || runtime.pendingStart) stopPlayback();
       saveState();
       renderAll();

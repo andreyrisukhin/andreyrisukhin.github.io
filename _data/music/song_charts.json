@@ -32,7 +32,7 @@
       "title": "Rises the Moon",
       "source": "Liana Flores (guitar: A minor shapes, capo 1)",
       "bpm": 137,
-      "beats_per_bar": 4,
+      "beats_per_bar": 3,
       "keys": [
         { "label": "B\u266dm (recording pitch)", "offset": 1 },
         { "label": "Am (guitar shapes, no capo)", "offset": 0 }
@@ -56,7 +56,7 @@
         {
           "id": "chorus",
           "label": "Chorus",
-          "bars": ["C C7", "Fmaj7", "Fdim7", "C C7", "Fmaj7", "Fdim7", "Am7", "Am6"]
+          "bars": ["C", "C7", "Fmaj7", "Fdim7", "C", "C7", "Fmaj7", "Fdim7", "Am7", "Am6"]
         },
         {
           "id": "ending",
