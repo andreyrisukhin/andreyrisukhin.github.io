@@ -81,6 +81,7 @@
       engine.on("transposechange", (n) => {
         if (!osmd.TransposeCalculator) osmd.TransposeCalculator = spellingTransposer(OSMD);
         osmd.Sheet.Transpose = n;
+        restoreWrittenKeys(osmd.Sheet);
         // Key signatures and accidentals are laid out when the graphic
         // sheet is built, so a plain render() would keep the old key.
         osmd.updateGraphic();
@@ -644,6 +645,28 @@
         key.isTransposedBy = halftones;
       },
     };
+  }
+
+  // OSMD transposes the score's own KeyInstructions in place while laying
+  // out measure-start key signatures, but the accidental calculator copies
+  // them earlier and only transposes when the offset is nonzero. Back at
+  // zero it would inherit the previous key and draw naturals on every note,
+  // so reset each key to its written value before rebuilding.
+  function restoreWrittenKeys(sheet) {
+    const restore = (instructions) => {
+      for (const ins of instructions || []) {
+        if (!ins || typeof ins.keyType !== "number" || typeof ins.keyTypeOriginal !== "number") continue;
+        if (ins.keyType !== ins.keyTypeOriginal) ins.Key = ins.keyTypeOriginal;
+        ins.isTransposedBy = 0;
+      }
+    };
+    for (const measure of (sheet && sheet.SourceMeasures) || []) {
+      for (const entry of measure.FirstInstructionsStaffEntries || []) if (entry) restore(entry.Instructions);
+      for (const entry of measure.LastInstructionsStaffEntries || []) if (entry) restore(entry.Instructions);
+      for (const container of measure.VerticalSourceStaffEntryContainers || []) {
+        for (const entry of container.StaffEntries || []) if (entry) restore(entry.Instructions);
+      }
+    }
   }
 
   function readScoreKey(osmd, modeHint) {
