@@ -65,7 +65,10 @@ Measured on 2026-09-26 (gated RMS before the limiter):
 | Workbench                          | synth                     | −28.9 |
 | Blues                              | synth                     | −28.2 |
 | Exercises                          | soundfont (piano)         | −28.4 |
-| Stradella                          | soundfont (piano)         | −27.2 |
+| Stradella (plain set list)         | soundfont (nylon guitar)  | −27.6 |
+| Set list builder chart, e-piano    | soundfont (e-piano)       | −27.7 |
+| Set list builder chart, piano      | soundfont (piano)         | −27.1 |
+| Set list builder chart, guitar     | soundfont (nylon guitar)  | −27.0 |
 | Bayan simulator                    | sample                    | −27.1 |
 
 The Cogwork Dancers recording plays through an `<audio>` element outside the
