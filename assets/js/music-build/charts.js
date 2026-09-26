@@ -114,6 +114,16 @@
     });
     renderCharts(el, charts);
     var status = document.getElementById("song-charts-status");
+    var previous = null;
+
+    if (status) {
+      status.addEventListener("click", function (e) {
+        if (!e.target.closest('[data-action="undo"]') || !previous || !window.StradellaTool) return;
+        window.StradellaTool.loadSnapshot(previous);
+        previous = null;
+        status.textContent = "Restored the previous set list.";
+      });
+    }
 
     el.addEventListener("click", function (e) {
       var btn = e.target.closest("button[data-action]");
@@ -130,18 +140,31 @@
       }
       var T = window.StradellaTool;
       if (!T) return;
-      var current = T.getSnapshot().selected || [];
-      var hasOwnChords = current.some(function (entry) {
-        return typeof entry.beats !== "number";
-      });
-      if (hasOwnChords && !window.confirm("Replace the current set list? Save it as a song first if you want to keep it.")) return;
+      // No confirm(): embedded browsers such as editor previews can refuse
+      // dialogs silently, which made loading look broken. Undo instead.
+      var snapshot = T.getSnapshot();
       var sectionId = btn.getAttribute("data-section");
       var key = chart.keys[keyChoice[ci]];
-      var entries = buildEntries(chart, sectionId ? [sectionId] : null, key.offset);
-      T.loadSnapshot({ selected: entries, bpm: chart.bpm });
+      try {
+        var entries = buildEntries(chart, sectionId ? [sectionId] : null, key.offset);
+        T.loadSnapshot({ selected: entries, bpm: chart.bpm });
+      } catch (err) {
+        if (status) status.textContent = "Could not load " + chart.title + ": " + err.message;
+        return;
+      }
+      var hadChords = snapshot.selected && snapshot.selected.length;
+      previous = hadChords ? { selected: snapshot.selected, bpm: snapshot.bpm } : null;
       if (status) {
         var what = sectionId ? sectionById(chart, sectionId).label : "whole song";
-        status.textContent = "Loaded " + chart.title + " (" + what + ", " + key.label + "). Press Play to hear it.";
+        status.innerHTML =
+          "Loaded " +
+          esc(chart.title) +
+          " (" +
+          esc(what) +
+          ", " +
+          esc(key.label) +
+          "). Press Play to hear it." +
+          (previous ? ' <button type="button" class="music-share-btn" data-action="undo">Undo</button>' : "");
       }
     });
   }

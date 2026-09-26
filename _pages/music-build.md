@@ -137,6 +137,6 @@ Click a chord to add it to the set list at the current key.
 <script>
   window.SongChartData = {{ site.data.music.song_charts.charts | jsonify }};
 </script>
-<script src="{{ '/assets/js/music-build/charts.js?v=1' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-build/charts.js?v=2' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>
