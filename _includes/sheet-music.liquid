@@ -16,6 +16,9 @@
   {% if include.playback_instrument %}
     data-playback-instrument="{{ include.playback_instrument }}"
   {% endif %}
+  {% if include.key_mode %}
+    data-key-mode="{{ include.key_mode }}"
+  {% endif %}
 >
   {% if include.practice %}
     <div class="practice-view-controls">
@@ -77,7 +80,7 @@
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/audio.js?v=1' | relative_url }}"></script>
-<script src="{{ '/assets/js/sheet-music/osmd-bridge.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/sheet-music/osmd-bridge.js?v=2' | relative_url }}"></script>
 <script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
 {% if include.practice %}
   <script src="{{ '/assets/js/music/bayan-keyboard.js' | relative_url }}"></script>
@@ -96,7 +99,8 @@
 <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js?v=2' | relative_url }}"></script>
 {% if include.playback and include.practice != true %}
   <script defer src="{{ '/assets/js/sheet-music/playhead.js?v=1' | relative_url }}"></script>
-  <script defer src="{{ '/assets/js/sheet-music/playback.js?v=6' | relative_url }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/transpose.js?v=1' | relative_url }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/playback.js?v=7' | relative_url }}"></script>
 {% endif %}
 <script src="{{ '/assets/js/vendor/opensheetmusicdisplay.min.js' | relative_url }}"></script>
-<script defer src="{{ '/assets/js/sheet-music/page.js?v=2' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/page.js?v=3' | relative_url }}"></script>

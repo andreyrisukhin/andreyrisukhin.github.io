@@ -13,4 +13,5 @@ converted `.musicxml` live under `/assets/music/sheet-music/reconstructing-more-
   source_ext="mxl"
   playback=true
   playback_instrument="drawbar_organ"
+  key_mode="minor"
 %}

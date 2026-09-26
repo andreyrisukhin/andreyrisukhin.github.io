@@ -72,6 +72,9 @@ const played = fs.readFileSync(path.join(site, "music/sheet/reconstructing-more-
 assert.ok(played.includes('data-playback-instrument="drawbar_organ"'), "Reconstructing More Science defaults to drawbar organ");
 const playheadAt = played.indexOf("/sheet-music/playhead.js");
 assert.ok(playheadAt > 0 && playheadAt < played.indexOf("/sheet-music/playback.js"), "Playback page loads the playhead before the transport");
+const transposeAt = played.indexOf("/sheet-music/transpose.js");
+assert.ok(transposeAt > 0 && transposeAt < played.indexOf("/sheet-music/playback.js"), "Playback page loads key names before the transport");
+assert.ok(played.includes('data-key-mode="minor"'), "Reconstructing More Science names its key as F minor");
 const sheetIds = [...sheet.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
 assert.equal(new Set(sheetIds).size, sheetIds.length, "Sheet practice has no duplicate IDs");
 for (const file of ["practice-timeline.js", "practice-player.js", "practice.js", "practice-inspector.js"]) {

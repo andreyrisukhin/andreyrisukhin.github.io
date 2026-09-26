@@ -6,7 +6,8 @@
  *   (assets/js/vendor/soundfont-player.min.js).
  * - Moves a smooth playhead (playhead.js) from the audio clock.
  * - Renders a transport bar above the score: play/pause, restart, a
- *   measure ruler for seeking, and sound selection.
+ *   measure ruler for seeking, a key stepper that transposes notation and
+ *   sound together (transpose.js), and sound selection.
  * - On coarse-pointer devices, double-tap any chord/measure seeks the
  *   playhead there.
  *
@@ -73,7 +74,19 @@
       console.warn("[playback] no notes scheduled; UI suppressed");
       return;
     }
-    new PlaybackUI(container, engine);
+    const OSMD = window.opensheetmusicdisplay;
+    const canTranspose = !!(window.SheetTranspose && OSMD && OSMD.Pitch && "TransposeCalculator" in osmd && bridge.rerender);
+    new PlaybackUI(container, engine, canTranspose ? { key: readScoreKey(osmd, sheetPage && sheetPage.dataset.keyMode) } : null);
+    if (canTranspose) {
+      engine.on("transposechange", (n) => {
+        if (!osmd.TransposeCalculator) osmd.TransposeCalculator = spellingTransposer(OSMD);
+        osmd.Sheet.Transpose = n;
+        // Key signatures and accidentals are laid out when the graphic
+        // sheet is built, so a plain render() would keep the old key.
+        osmd.updateGraphic();
+        bridge.rerender();
+      });
+    }
 
     const playhead = window.SheetPlayhead ? new window.SheetPlayhead.Playhead(osmd) : null;
     if (playhead) {
@@ -158,6 +171,7 @@
     self.renderedMeasureStarts = [];
     self.renderedTotalSec = 0;
     self.state = "paused";
+    self.transpose = 0;
     self.listeners = {};
 
     self.on = (event, fn) => {
@@ -204,6 +218,17 @@
       if (wasPlaying) self.play();
     };
 
+    // Live notes pick up the offset as they are scheduled, so a change
+    // mid-play is heard within one lookahead window. The rendered file
+    // cannot change key, so transposing switches to the live sound.
+    self.setTranspose = function (semitones) {
+      const n = window.SheetTranspose ? window.SheetTranspose.clamp(semitones) : semitones | 0;
+      if (n === self.transpose) return;
+      self.transpose = n;
+      if (n !== 0 && self.mode === "rendered") self.setMode("live");
+      self._emit("transposechange", n);
+    };
+
     self.setMode = function (mode, opts = {}) {
       if (mode !== "rendered" && mode !== "live") return;
       if (mode === "rendered" && !self.renderedPlayback) return;
@@ -217,6 +242,7 @@
         self.totalSec = self.liveTotalSec;
       } else {
         self._silenceLive();
+        self.setTranspose(0);
         self._loadRenderedTiming().catch((err) => self._emit("loaderror", err));
         if (self.renderedMeasureStarts.length) {
           self.measureStarts = self.renderedMeasureStarts;
@@ -296,7 +322,7 @@
         if (e.startSec > horizonSec) break;
         const when = Math.max(ctx.currentTime + safety, t0 + e.startSec);
         try {
-          self.instrument.play(e.midi, when, {
+          self.instrument.play(e.midi + self.transpose, when, {
             duration: e.durationSec * 0.95,
             gain: 2.0,
           });
@@ -595,6 +621,45 @@
     }
   }
 
+  // Stands in for OSMD's TransposeCalculator (same two methods). OSMD
+  // passes the already-transposed key copy, which still carries
+  // keyTypeOriginal.
+  function spellingTransposer(OSMD) {
+    const T = window.SheetTranspose;
+    const P = OSMD.Pitch;
+    const originalFifths = (key) => (key && typeof key.keyTypeOriginal === "number" ? key.keyTypeOriginal : key ? key.Key : 0);
+    return {
+      transposePitch(pitch, key, halftones) {
+        const step = T.LETTER_HALFTONES.indexOf(pitch.FundamentalNote);
+        if (step < 0 || !halftones) return pitch;
+        const out = T.transposeNote(
+          { step, alter: P.HalfTonesFromAccidental(pitch.Accidental), octave: pitch.Octave },
+          originalFifths(key),
+          halftones
+        );
+        return new P(T.LETTER_HALFTONES[out.step], out.octave, P.AccidentalFromHalfTones(out.alter));
+      },
+      transposeKey(key, halftones) {
+        key.Key = T.transposeFifths(originalFifths(key), halftones);
+        key.isTransposedBy = halftones;
+      },
+    };
+  }
+
+  function readScoreKey(osmd, modeHint) {
+    try {
+      const first = osmd.Sheet.SourceMeasures[0];
+      for (const entry of first.FirstInstructionsStaffEntries || []) {
+        for (const ins of (entry && entry.Instructions) || []) {
+          if (typeof ins.keyType === "number") {
+            return { fifths: ins.keyType, mode: window.SheetTranspose.modeFromOsmd(ins.Mode, modeHint) };
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   function noteToMidi(pitch) {
     try {
       if (typeof pitch.getHalfTone === "function") {
@@ -616,9 +681,11 @@
     restart:
       '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="2.5" height="14" rx="1"/><path d="M19 6.1v11.8a.5.5 0 0 1-.78.41L9.6 12.41a.5.5 0 0 1 0-.82l8.62-5.9a.5.5 0 0 1 .78.41z"/></svg>',
     error: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="10.75" y="5" width="2.5" height="9" rx="1"/><circle cx="12" cy="18" r="1.5"/></svg>',
+    minus: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.75" width="14" height="2.5" rx="1"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.75" width="14" height="2.5" rx="1"/><rect x="10.75" y="5" width="2.5" height="14" rx="1"/></svg>',
   };
 
-  function PlaybackUI(container, engine) {
+  function PlaybackUI(container, engine, transpose) {
     const root = document.createElement("div");
     root.className = "sheet-transport";
     root.setAttribute("data-sheet-playback", "");
@@ -642,16 +709,28 @@
         engine.renderedPlayback
           ? `<label class="sheet-transport__select">
               <span>Audio</span>
-              <select data-pb-mode>
+              <select data-pb-mode title="Audio">
                 <option value="rendered">${engine.renderedPlayback.label}</option>
                 <option value="live">Live sound</option>
               </select>
             </label>`
           : ""
       }
+      ${
+        transpose
+          ? `<div class="sheet-transport__key" role="group" aria-label="Transpose" title="Transpose">
+              <button type="button" class="sheet-transport__step" data-pb-transpose="-1" aria-label="Transpose down a semitone" title="Down a semitone">${ICONS.minus}</button>
+              <button type="button" class="sheet-transport__key-name" data-pb-key-reset>
+                <span data-pb-key-name></span><span class="sheet-transport__key-offset" data-pb-key-offset></span>
+              </button>
+              <button type="button" class="sheet-transport__step" data-pb-transpose="1" aria-label="Transpose up a semitone" title="Up a semitone">${ICONS.plus}</button>
+              <span class="sheet-transport__sr" aria-live="polite" data-pb-key-live></span>
+            </div>`
+          : ""
+      }
       <label class="sheet-transport__select">
         <span>Sound</span>
-        <select data-pb-instrument>
+        <select data-pb-instrument title="Sound">
           ${INSTRUMENT_CHOICES.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
         </select>
       </label>
@@ -732,6 +811,35 @@
     if (mode) mode.addEventListener("change", () => engine.setMode(mode.value));
     instrument.addEventListener("change", () => engine.setInstrumentName(instrument.value));
     clickSeek.addEventListener("click", () => setClickSeek(!clickSeekOn()));
+
+    if (transpose) {
+      const T = window.SheetTranspose;
+      const original = T.describe(transpose.key, 0).name;
+      const keyName = root.querySelector("[data-pb-key-name]");
+      const keyOffset = root.querySelector("[data-pb-key-offset]");
+      const keyReset = root.querySelector("[data-pb-key-reset]");
+      const keyLive = root.querySelector("[data-pb-key-live]");
+      const down = root.querySelector('[data-pb-transpose="-1"]');
+      const up = root.querySelector('[data-pb-transpose="1"]');
+      const renderKey = (n, announce) => {
+        const d = T.describe(transpose.key, n);
+        keyName.textContent = d.name;
+        keyOffset.textContent = d.offset;
+        // aria-disabled rather than disabled keeps keyboard focus on the
+        // button that just reached its limit.
+        keyReset.setAttribute("aria-disabled", String(n === 0));
+        keyReset.title = n === 0 ? "Written key" : `Back to ${original}`;
+        keyReset.setAttribute("aria-label", n === 0 ? `Key: ${d.name}, as written` : `Key: ${d.name}, ${d.offset} semitones. Back to ${original}`);
+        down.setAttribute("aria-disabled", String(n <= -T.RANGE));
+        up.setAttribute("aria-disabled", String(n >= T.RANGE));
+        if (announce) keyLive.textContent = n === 0 ? `${d.name}, as written` : `${d.name}, ${d.offset}`;
+      };
+      down.addEventListener("click", () => engine.setTranspose(engine.transpose - 1));
+      up.addEventListener("click", () => engine.setTranspose(engine.transpose + 1));
+      keyReset.addEventListener("click", () => engine.setTranspose(0));
+      engine.on("transposechange", (n) => renderKey(n, true));
+      renderKey(engine.transpose, false);
+    }
 
     const measureAtClientX = (clientX) => {
       const rect = track.getBoundingClientRect();

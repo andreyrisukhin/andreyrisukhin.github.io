@@ -118,7 +118,7 @@
       osmd.Zoom = zoom;
       renderPreservingScroll();
       lastWidth = container.clientWidth;
-      if (window.__sheetMusic) window.__sheetMusic.register(osmd, container);
+      if (window.__sheetMusic) window.__sheetMusic.register(osmd, container, { rerender: renderPreservingScroll });
     })
     .catch((err) => {
       console.error(err);

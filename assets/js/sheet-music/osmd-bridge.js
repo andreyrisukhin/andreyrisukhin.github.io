@@ -14,9 +14,10 @@
     readyPromise: null,
     _readyResolve: null,
 
-    register(osmd, container) {
+    register(osmd, container, opts = {}) {
       api.osmd = osmd;
       api.container = container;
+      if (typeof opts.rerender === "function") api.rerender = opts.rerender;
       api.ready = true;
       if (api._readyResolve) api._readyResolve(api);
     },
@@ -338,7 +339,7 @@
             for (const note of sve.notes || []) {
               if (!note || note.isRestFlag === true) continue;
               if (note === (ownGn && (ownGn.sourceNote || ownGn.SourceNote))) continue;
-              const p = note.pitch;
+              const p = soundingPitch(note);
               if (!p) continue;
               const ht = typeof p.getHalfTone === "function" ? p.getHalfTone() : null;
               if (ht == null) continue;
@@ -444,11 +445,21 @@
     return baseName + "/" + promotedBassPC;
   }
 
+  // OSMD keeps Note.Pitch as written and stores the transposed pitch in
+  // TransposedPitch, which it does not clear when transposition returns
+  // to zero, so only trust it while the sheet is transposed.
+  function soundingPitch(note) {
+    if (!note) return null;
+    const sheet = api.osmd && (api.osmd.Sheet || api.osmd.sheet);
+    if (sheet && sheet.Transpose && note.TransposedPitch) return note.TransposedPitch;
+    return note.Pitch || note.pitch || null;
+  }
+
   function pitchName(gn) {
     if (!gn) return null;
     const sn = gn.sourceNote || gn.SourceNote;
     if (!sn) return null;
-    const p = sn.Pitch || sn.pitch;
+    const p = soundingPitch(sn);
     if (!p) return null;
     const fund = p.FundamentalNote;
     const letter = NOTE_ENUM_TO_LETTER[fund];
