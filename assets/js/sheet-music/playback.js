@@ -11,7 +11,7 @@
  * - On coarse-pointer devices, double-tap any chord/measure seeks the
  *   playhead there.
  *
- * Depends on: window.opensheetmusicdisplay, window.Soundfont, window.MusicAudio,
+ * Depends on: window.opensheetmusicdisplay, window.Soundfont, window.Tactus.audio,
  *             window.__sheetMusic (assets/js/sheet-music/osmd-bridge.js).
  */
 
@@ -65,7 +65,7 @@
         }
         const now = engine.audioCtx.currentTime;
         for (let i = 0; i < n; i++) {
-          engine.instrument.play(60 + i, now + i * 0.4, { duration: 0.35, gain: 2 });
+          engine.instrument.play(60 + i, now + i * 0.4, { duration: 0.35, gain: 1 });
         }
         console.log("[playbackTest] scheduled %d ascending notes", n);
       };
@@ -187,16 +187,7 @@
     // AudioContext that was first touched after an await). Returns the
     // context so the caller can verify state if it cares.
     self.primeAudio = function () {
-      if (window.MusicAudio) {
-        return window.MusicAudio.ensureContext(self, "audioCtx");
-      }
-      if (!self.audioCtx) {
-        self.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (self.audioCtx.state === "suspended") {
-        const r = self.audioCtx.resume();
-        if (r && typeof r.then === "function") r.catch((err) => console.warn("[playback] resume failed", err));
-      }
+      self.audioCtx = window.Tactus.audio.context();
       return self.audioCtx;
     };
 
@@ -325,7 +316,7 @@
         try {
           self.instrument.play(e.midi + self.transpose, when, {
             duration: e.durationSec * 0.95,
-            gain: 2.0,
+            gain: 1,
           });
         } catch (_) {}
         self._nextEventIdx++;
@@ -341,19 +332,7 @@
 
     self._silenceLive = function () {
       self._stopScheduler();
-      if (window.MusicAudio) {
-        window.MusicAudio.stopInstrument(self.instrument);
-        window.MusicAudio.closeContext(self, "audioCtx");
-      } else {
-        try {
-          self.instrument && self.instrument.stop();
-        } catch (_) {}
-        if (self.audioCtx && self.audioCtx.state !== "closed") {
-          self.audioCtx.close().catch(() => {});
-        }
-        self.audioCtx = null;
-      }
-      self.instrument = null;
+      window.Tactus.audio.stop(self.instrument);
     };
 
     self._silenceRendered = function () {
@@ -466,32 +445,16 @@
     };
 
     self._ensureAudio = async function () {
-      if (window.MusicAudio) {
-        self.audioCtx = window.MusicAudio.ensureContext(self, "audioCtx");
-      } else {
-        if (!self.audioCtx) {
-          self.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (self.audioCtx.state === "suspended") await self.audioCtx.resume();
-      }
+      self.audioCtx = await window.Tactus.audio.resume();
       if (!self.instrument) {
         self._emit("loadingchange", true);
         try {
-          if (window.MusicAudio) {
-            self.instrument = await window.MusicAudio.loadSoundfont(self, {
-              contextKey: "audioCtx",
-              instrumentKey: "instrument",
-              loadingKey: "instrumentLoading",
-              failedKey: "instrumentFailed",
-              name: self.instrumentName,
-              soundfont: "MusyngKite",
-            });
-          } else {
-            self.instrument = await window.Soundfont.instrument(self.audioCtx, self.instrumentName, {
-              soundfont: "MusyngKite",
-            });
+          // The listener may pick another instrument while one is loading.
+          while (!self.instrument) {
+            const name = self.instrumentName;
+            const instrument = await window.Tactus.audio.soundfont(name);
+            if (name === self.instrumentName) self.instrument = instrument;
           }
-          if (!self.instrument) throw new Error("Soundfont instrument unavailable");
         } finally {
           self._emit("loadingchange", false);
         }

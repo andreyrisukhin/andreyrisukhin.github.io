@@ -106,10 +106,7 @@
   }
 
   function ensureAudio() {
-    if (!runtime.audioCtx) {
-      runtime.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (runtime.audioCtx.state === "suspended") runtime.audioCtx.resume();
+    runtime.audioCtx = window.Tactus.audio.context();
     return runtime.audioCtx;
   }
 
@@ -125,12 +122,8 @@
     if (runtime.piano) return Promise.resolve(runtime.piano);
     if (runtime.pianoFailed) return Promise.resolve(null);
     if (runtime.pianoLoading) return runtime.pianoLoading;
-    if (!window.Soundfont) {
-      runtime.pianoFailed = true;
-      return Promise.resolve(null);
-    }
-    var ctx = ensureAudio();
-    runtime.pianoLoading = window.Soundfont.instrument(ctx, "acoustic_grand_piano", { soundfont: "MusyngKite" })
+    runtime.pianoLoading = window.Tactus.audio
+      .soundfont("acoustic_grand_piano")
       .then(function (inst) {
         runtime.piano = inst;
         runtime.pianoLoading = null;
@@ -169,7 +162,7 @@
     filter.frequency.exponentialRampToValueAtTime(Math.max(freq * 2.2, 600), when + duration + release);
 
     master.connect(filter);
-    filter.connect(ctx.destination);
+    filter.connect(window.Tactus.audio.output("piano"));
 
     var stopAt = when + duration + release + 0.05;
     PIANO_PARTIALS.forEach(function (p) {
@@ -191,7 +184,7 @@
       try {
         runtime.piano.play(semiToMidi(semiFromC3), when, {
           duration: duration,
-          gain: Math.min(4, gainVal * 22),
+          gain: Math.min(2, gainVal * 11),
         });
         return;
       } catch (e) {
@@ -212,7 +205,7 @@
     var now = ctx.currentTime + 0.01;
     var duration = Math.min((60 / state.bpm) * 0.75, 0.75);
     info.semitones.forEach(function (offset) {
-      emitNote(entry.key + offset, now, duration, 0.085);
+      emitNote(entry.key + offset, now, duration, 0.12);
     });
   }
 

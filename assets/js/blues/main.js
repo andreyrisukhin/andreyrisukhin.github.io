@@ -72,21 +72,11 @@
 
   var tickTimer = null;
   var audioCtx = null;
-  var audioState = { audioCtx: null };
 
   // ── Chord playback via Web Audio ──
 
   function ensureAudio() {
-    if (window.MusicAudio) {
-      audioCtx = window.MusicAudio.ensureContext(audioState, 'audioCtx');
-      return audioCtx;
-    }
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
+    audioCtx = window.Tactus.audio.context();
     return audioCtx;
   }
 
@@ -115,7 +105,7 @@
       osc.type = 'triangle';
       osc.frequency.value = semitoneToFreq(rootSemitone + offset);
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(window.Tactus.audio.output('synth'));
       gain.gain.setValueAtTime(gainVal, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
       osc.start(now);

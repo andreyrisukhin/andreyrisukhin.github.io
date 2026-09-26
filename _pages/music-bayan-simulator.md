@@ -81,4 +81,5 @@ Explore a B-system bayan layout in the browser. Click buttons or use the compute
 <noscript><p>This interactive tool requires JavaScript.</p></noscript>
 
 <script src="{{ '/assets/js/music/bayan-keyboard.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/music/bayan-simulator.js?v=3' | relative_url }}"></script>
+<script src="{{ '/assets/js/tactus/audio.js?v=1' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/bayan-simulator.js?v=4' | relative_url }}"></script>

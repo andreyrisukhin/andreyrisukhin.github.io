@@ -87,6 +87,12 @@ function harness() {
       this.state = "closed";
       return Promise.resolve();
     }
+    createGain() {
+      return { gain: { value: 1 }, connect() {} };
+    }
+    createDynamicsCompressor() {
+      return { threshold: {}, knee: {}, ratio: {}, attack: {}, release: {}, connect() {} };
+    }
   }
   class Audio {
     constructor() {
@@ -107,7 +113,6 @@ function harness() {
   const w = {
     SheetPracticeTimeline: T,
     AudioContext: Context,
-    MusicAudio: { stopInstrument: (value) => value?.stop() },
     Soundfont: {
       instrument: () => {
         loads++;
@@ -115,6 +120,7 @@ function harness() {
       },
     },
   };
+  vm.runInNewContext(fs.readFileSync(path.join(root, "assets/js/tactus/audio.js"), "utf8"), { self: w });
   vm.runInNewContext(fs.readFileSync(path.join(root, "assets/js/sheet-music/practice-player.js"), "utf8"), {
     window: w,
     Audio,

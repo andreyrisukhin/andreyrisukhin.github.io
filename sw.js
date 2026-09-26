@@ -47,7 +47,7 @@ const PRECACHE_URLS = [
 
   '/assets/js/music/common.js',
   '/assets/js/music/bayan-keyboard.js',
-  '/assets/js/music/audio.js',
+  '/assets/js/tactus/audio.js',
   '/assets/js/music/chord-name.js',
   '/assets/js/music/stradella-data.js',
   '/assets/js/music/stradella-recipe.js',

@@ -1,8 +1,7 @@
 // Local synthesized practice tones; no downloads or audio before a Play action.
 window.BassPatternPlayer = (function () {
   "use strict";
-  const holder = {},
-    voices = new Set();
+  const voices = new Set();
   let generation = 0,
     interval = null,
     timers = [],
@@ -29,11 +28,11 @@ window.BassPatternPlayer = (function () {
     oscillator.type = "triangle";
     oscillator.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
     gain.gain.setValueAtTime(0, when);
-    gain.gain.linearRampToValueAtTime(0.025, when + 0.008);
-    gain.gain.setValueAtTime(0.025, when + duration * 0.7);
+    gain.gain.linearRampToValueAtTime(0.075, when + 0.008);
+    gain.gain.setValueAtTime(0.075, when + duration * 0.7);
     gain.gain.linearRampToValueAtTime(0, when + duration);
     oscillator.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(window.Tactus.audio.output("synth"));
     voices.add(oscillator);
     oscillator.onended = () => {
       oscillator.disconnect();
@@ -52,8 +51,7 @@ window.BassPatternPlayer = (function () {
       secondsPerTick = 60 / bpm / 12;
     stopCallback = options.onStop || (() => {});
     try {
-      const ctx = window.MusicAudio.ensureContext(holder);
-      await ctx.resume();
+      const ctx = await window.Tactus.audio.resume();
       if (ticket !== generation) return false;
       let index = 0,
         next = ctx.currentTime + 0.04;

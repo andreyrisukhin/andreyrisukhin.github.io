@@ -54,10 +54,25 @@ const precache = vm.runInNewContext(fs.readFileSync(path.join(site, "sw.js"), "u
   self: { addEventListener() {} },
 });
 const dependencies = [...html.matchAll(/<script src="([^"]+)"/g)]
-  .map((match) => match[1])
-  .filter((url) => /^\/assets\/js\/(workbench|music|vendor)\//.test(url));
+  .map((match) => match[1].split("?")[0])
+  .filter((url) => /^\/assets\/js\/(workbench|music|tactus|vendor)\//.test(url));
 for (const dependency of dependencies) {
   assert.ok(precache.includes(dependency), "Offline cache includes " + dependency);
+}
+for (const route of [
+  "music/workbench",
+  "music/bass-patterns",
+  "music/blues",
+  "music/exercises",
+  "music/stradella",
+  "music/bayan-simulator",
+  "music/sheet/cogwork-dancers",
+  "music/sheet/reconstructing-more-science",
+]) {
+  const page = fs.readFileSync(path.join(site, route, "index.html"), "utf8");
+  assert.ok(/<script[^>]*\ssrc="\/assets\/js\/tactus\/audio\.js/.test(page), route + " loads the shared audio engine");
+  assert.ok(!page.includes("/assets/js/music/audio.js"), route + " no longer loads the retired audio helper");
+  assert.ok(!/cdn\.jsdelivr\.net\/npm\/soundfont-player/.test(page), route + " uses the vendored soundfont player");
 }
 for (const dependency of ["/assets/js/theme.js", "/assets/js/vanilla-back-to-top.min.js", "/assets/css/bootstrap.min.css"]) {
   assert.ok(precache.includes(dependency), "Offline page shell includes " + dependency);

@@ -23,7 +23,6 @@
   const state = {
     selected: new Set(),
     mode: "build",
-    audio: null,
     instruments: [],
     buffers: new Map(),
     sampleVersion: 1,
@@ -69,12 +68,8 @@
     return currentInstrument()?.noteRange || [54, 78];
   }
 
-  async function ensureAudio() {
-    if (!state.audio) {
-      state.audio = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (state.audio.state === "suspended") await state.audio.resume();
-    return state.audio;
+  function ensureAudio() {
+    return window.Tactus.audio.resume();
   }
 
   async function loadBuffer(instrument) {
@@ -99,7 +94,7 @@
     const level = (Number(el.gain.value) * Number(el.velocity.value)) / 127;
 
     const gain = ctx.createGain();
-    gain.connect(ctx.destination);
+    gain.connect(window.Tactus.audio.output("sample"));
     gain.gain.setValueAtTime(level, start);
     gain.gain.setValueAtTime(level, Math.max(start, start + durationSeconds - 0.05));
     gain.gain.linearRampToValueAtTime(0.0001, start + durationSeconds);

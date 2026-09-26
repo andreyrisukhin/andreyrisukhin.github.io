@@ -42,7 +42,7 @@ window.SheetPracticePlayer = (function () {
     function silence() {
       cancelClock();
       audio?.pause();
-      window.MusicAudio.stopInstrument(instrument);
+      window.Tactus.audio.stop(instrument);
     }
     function pause() {
       const time = now();
@@ -58,8 +58,7 @@ window.SheetPracticePlayer = (function () {
       options.onCursor?.(measureAt(position));
     }
     function ensureContext() {
-      if (!context || context.state === "closed") context = new (window.AudioContext || window.webkitAudioContext)();
-      if (context.state === "suspended") context.resume().catch(() => {});
+      context = window.Tactus.audio.context();
     }
     async function ensureRecording() {
       if (!timingPromise) {
@@ -110,7 +109,7 @@ window.SheetPracticePlayer = (function () {
       ensureContext();
       if (!instrumentPromise) {
         const name = instrumentName;
-        instrumentPromise = window.Soundfont.instrument(context, name, { soundfont: "MusyngKite" });
+        instrumentPromise = window.Tactus.audio.soundfont(name);
         instrumentPromise.catch(() => {
           if (name === instrumentName) instrumentPromise = null;
         });
@@ -155,7 +154,7 @@ window.SheetPracticePlayer = (function () {
           emit();
           return;
         }
-        window.MusicAudio.stopInstrument(instrument);
+        window.Tactus.audio.stop(instrument);
         place(bounds().start);
         if (mode === "live") beginLive();
         else if (audio.paused)
@@ -281,7 +280,6 @@ window.SheetPracticePlayer = (function () {
         pause();
         disposed = true;
         if (audioUrl) URL.revokeObjectURL(audioUrl);
-        context?.close().catch(() => {});
         listeners.clear();
       },
     };

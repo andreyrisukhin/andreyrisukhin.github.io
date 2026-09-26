@@ -23,6 +23,6 @@ Score exercise: [Reconstructing More Science]({{ '/music/sheet/reconstructing-mo
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/music/audio.js?v=1' | relative_url }}"></script>
+<script src="{{ '/assets/js/tactus/audio.js?v=1' | relative_url }}"></script>
 <script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-exercises/main.js' | relative_url }}"></script>

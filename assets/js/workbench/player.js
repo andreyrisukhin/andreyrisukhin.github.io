@@ -2,7 +2,6 @@
 // Context creation only happens after an explicit play action.
 window.WorkbenchPlayer = (function () {
   "use strict";
-  var holder = {};
   var active = [];
   var timers = [];
   var generation = 0;
@@ -36,7 +35,7 @@ window.WorkbenchPlayer = (function () {
     gain.gain.linearRampToValueAtTime(0.035, time + 0.025);
     gain.gain.setValueAtTime(0.035, time + duration * 0.7);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
-    gain.connect(ctx.destination);
+    gain.connect(window.Tactus.audio.output("synth"));
     var oscillator = ctx.createOscillator();
     oscillator.type = "triangle";
     oscillator.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
@@ -59,8 +58,7 @@ window.WorkbenchPlayer = (function () {
     options = options || {};
     var ticket = generation;
     try {
-      var ctx = window.MusicAudio.ensureContext(holder);
-      await ctx.resume();
+      var ctx = await window.Tactus.audio.resume();
       if (ticket !== generation || muted) return false;
       running = true;
       var beat = 60 / (options.bpm || 96);

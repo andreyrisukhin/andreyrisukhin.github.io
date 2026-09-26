@@ -41,10 +41,16 @@ const sandbox = {
     return nextTimer;
   },
   clearTimeout: (id) => timers.delete(id),
-  MusicAudio: {
-    ensureContext: () => {
-      contexts++;
-      return ctx;
+  Tactus: {
+    audio: {
+      resume: () => {
+        contexts++;
+        return ctx.resume().then(() => ctx);
+      },
+      output: (family) => {
+        assert.equal(family, "synth");
+        return {};
+      },
     },
   },
   addEventListener() {},
