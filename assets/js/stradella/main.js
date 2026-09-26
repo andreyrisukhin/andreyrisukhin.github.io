@@ -16,6 +16,15 @@
     hasDim7: true,
     gridView: false,
     bpm: 96,
+    voice: "epiano",
+  };
+
+  // Soundfont voices for playback. `gain` evens out sample levels so each
+  // voice lands near the Tactus loudness target (see TACTUS.md).
+  var VOICES = {
+    epiano: { name: "electric_piano_1", gain: 0.34 },
+    piano: { name: "acoustic_grand_piano", gain: 1.15 },
+    guitar: { name: "acoustic_guitar_nylon", gain: 0.82 },
   };
 
   var runtime = {
@@ -25,9 +34,10 @@
     timer: null,
     pendingStart: false,
     audioCtx: null,
-    piano: null,
-    pianoLoading: null,
-    pianoFailed: false,
+    instrument: null,
+    instrumentVoice: null,
+    voiceLoading: {},
+    voiceFailed: {},
   };
 
   function saveState() {
@@ -64,6 +74,7 @@
       if (typeof s.catalogKey === "number") state.catalogKey = s.catalogKey;
       if (typeof s.hasDim7 === "boolean") state.hasDim7 = s.hasDim7;
       if (typeof s.bpm === "number") state.bpm = Math.max(40, Math.min(200, s.bpm));
+      if (VOICES.hasOwnProperty(s.voice)) state.voice = s.voice;
       if (Array.isArray(s.selected)) {
         var valid = {};
         S.CHORDS.forEach(function (c) {
@@ -119,30 +130,40 @@
     return 440 * Math.pow(2, (semiToMidi(semiFromC3) - 69) / 12);
   }
 
-  function loadPiano() {
-    if (runtime.piano) return Promise.resolve(runtime.piano);
-    if (runtime.pianoFailed) return Promise.resolve(null);
-    if (runtime.pianoLoading) return runtime.pianoLoading;
-    runtime.pianoLoading = window.Tactus.audio
-      .soundfont("acoustic_grand_piano")
-      .then(function (inst) {
-        runtime.piano = inst;
-        runtime.pianoLoading = null;
-        return inst;
-      })
-      .catch(function () {
-        runtime.pianoFailed = true;
-        runtime.pianoLoading = null;
-        return null;
-      });
-    return runtime.pianoLoading;
+  function voiceReady(voice) {
+    return runtime.instrumentVoice === voice || runtime.voiceFailed[voice] || !window.Soundfont;
+  }
+
+  // Resolves once the voice is active; playback falls back to the synth
+  // if its samples fail to load.
+  function loadVoice(voice) {
+    if (runtime.instrumentVoice === voice) return Promise.resolve(runtime.instrument);
+    if (runtime.voiceFailed[voice] || !window.Soundfont) return Promise.resolve(null);
+    if (!runtime.voiceLoading[voice]) {
+      runtime.voiceLoading[voice] = window.Tactus.audio
+        .soundfont(VOICES[voice].name)
+        .then(function (inst) {
+          runtime.voiceLoading[voice] = null;
+          return inst;
+        })
+        .catch(function () {
+          runtime.voiceFailed[voice] = true;
+          runtime.voiceLoading[voice] = null;
+          return null;
+        });
+    }
+    return runtime.voiceLoading[voice].then(function (inst) {
+      if (inst && state.voice === voice) {
+        runtime.instrument = inst;
+        runtime.instrumentVoice = voice;
+      }
+      return inst;
+    });
   }
 
   var PIANO_PARTIALS = [
-    { type: "triangle", mult: 1, amp: 0.45, detune: -3 },
-    { type: "triangle", mult: 1, amp: 0.35, detune: 3 },
-    { type: "sine", mult: 2, amp: 0.22, detune: 0 },
-    { type: "sine", mult: 3, amp: 0.07, detune: 0 },
+    { type: "triangle", mult: 1, amp: 0.7, detune: 0 },
+    { type: "sine", mult: 2, amp: 0.15, detune: 0 },
   ];
 
   function playPianoNote(freq, when, duration, gainVal) {
@@ -159,7 +180,7 @@
     var filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
     filter.Q.value = 0.3;
-    filter.frequency.setValueAtTime(Math.min(freq * 8, 5200), when);
+    filter.frequency.setValueAtTime(Math.min(freq * 4, 2600), when);
     filter.frequency.exponentialRampToValueAtTime(Math.max(freq * 2.2, 600), when + duration + release);
 
     master.connect(filter);
@@ -181,11 +202,11 @@
   }
 
   function emitNote(semiFromC3, when, duration, gainVal) {
-    if (runtime.piano) {
+    if (runtime.instrument) {
       try {
-        runtime.piano.play(semiToMidi(semiFromC3), when, {
+        runtime.instrument.play(semiToMidi(semiFromC3), when, {
           duration: duration,
-          gain: Math.min(2, gainVal * 11),
+          gain: Math.min(2, gainVal * 11 * VOICES[runtime.instrumentVoice].gain),
         });
         return;
       } catch (e) {
@@ -208,9 +229,9 @@
     return chart ? 4 : 1;
   }
 
-  // Beat 0 of an entry sounds the bass note (the slash bass if any) plus
-  // the chord; later beats restrike the chord more softly as a pulse.
-  function playEntry(idx, beat) {
+  // Sounds the bass note (the slash bass if any) and the chord, held for
+  // the entry's beats in a song chart.
+  function playEntry(idx) {
     var entry = state.selected[idx];
     if (!entry) return;
     var chord = S.chordById(entry.id);
@@ -219,14 +240,12 @@
     if (!info || !info.semitones) return;
     var ctx = ensureAudio();
     var now = ctx.currentTime + 0.01;
-    var duration = Math.min((60 / state.bpm) * 0.75, 0.75);
-    var first = !beat;
-    if (first) {
-      var bass = typeof entry.bass === "number" ? entry.bass : entry.key;
-      emitNote(bass - 12, now, duration, 0.12);
-    }
+    var beatSec = 60 / state.bpm;
+    var duration = isChart() ? entryBeats(entry, true) * beatSec * 0.95 : Math.min(beatSec * 0.75, 0.75);
+    var bass = typeof entry.bass === "number" ? entry.bass : entry.key;
+    emitNote(bass - 12, now, duration, 0.12);
     info.semitones.forEach(function (offset) {
-      emitNote(entry.key + offset, now, duration, first ? 0.12 : 0.07);
+      emitNote(entry.key + offset, now, duration, 0.12);
     });
   }
 
@@ -239,7 +258,7 @@
     if (!btn) return;
     var playing = stateVal === true;
     var loading = stateVal === "loading";
-    btn.innerHTML = loading ? "\u2026 Loading piano" : playing ? "\u25A0 Stop" : "\u25B6 Play";
+    btn.innerHTML = loading ? "\u2026 Loading sound" : playing ? "\u25A0 Stop" : "\u25B6 Play";
     btn.classList.toggle("is-playing", playing);
     btn.classList.toggle("is-loading", loading);
     btn.disabled = loading;
@@ -257,37 +276,58 @@
       runtime.beat = 0;
       runtime.currentStep = (runtime.currentStep + 1) % state.selected.length;
       renderPlaybackOnly();
-      var card = isChart() && document.querySelector("#stradella-setlist .stradella-card.is-current");
-      if (card && card.scrollIntoView) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      playEntry(runtime.currentStep);
     }
-    playEntry(runtime.currentStep, runtime.beat);
   }
 
-  function startPlayback() {
+  function startPlayback(fromIdx) {
     if (state.selected.length === 0) return;
     if (runtime.playing) stopPlayback();
     ensureAudio();
+    var start = fromIdx > 0 && fromIdx < state.selected.length ? fromIdx : 0;
 
     var beginTransport = function () {
       if (!runtime.pendingStart) return;
       runtime.pendingStart = false;
       runtime.playing = true;
-      runtime.currentStep = 0;
+      runtime.currentStep = start;
       runtime.beat = 0;
       renderPlaybackOnly();
-      playEntry(0, 0);
+      playEntry(start);
       runtime.timer = setInterval(advancePlayback, stepIntervalMs());
       setPlayButtonLabel(true);
     };
 
-    if (runtime.piano || runtime.pianoFailed || !window.Soundfont) {
-      runtime.pendingStart = true;
+    runtime.pendingStart = true;
+    if (voiceReady(state.voice)) {
       beginTransport();
       return;
     }
-    runtime.pendingStart = true;
     setPlayButtonLabel("loading");
-    loadPiano().then(beginTransport);
+    loadVoice(state.voice).then(beginTransport);
+  }
+
+  // Clicking a card plays from it; while playing it jumps there on a
+  // fresh beat.
+  function playFrom(idx) {
+    if (idx < 0 || idx >= state.selected.length) return;
+    if (!runtime.playing) {
+      startPlayback(idx);
+      return;
+    }
+    clearInterval(runtime.timer);
+    runtime.currentStep = idx;
+    runtime.beat = 0;
+    renderPlaybackOnly();
+    playEntry(idx);
+    runtime.timer = setInterval(advancePlayback, stepIntervalMs());
+  }
+
+  function setVoice(voice) {
+    if (!VOICES.hasOwnProperty(voice)) return;
+    state.voice = voice;
+    saveState();
+    loadVoice(voice);
   }
 
   function stopPlayback() {
@@ -447,7 +487,12 @@
         ">";
       html += '<button class="stradella-card__remove" data-action="remove" data-idx="' + i + '" aria-label="Remove">&#10005;</button>';
       if (label) html += '<div class="stradella-card__label">' + M.esc(label) + "</div>";
-      html += '<div class="stradella-card__chord">' + M.esc(renderChordName(c, key, bass)) + "</div>";
+      html +=
+        '<button type="button" class="stradella-card__chord" data-action="play-from" data-idx="' +
+        i +
+        '" title="Play from here">' +
+        M.esc(renderChordName(c, key, bass)) +
+        "</button>";
       if (state.show.recipe) {
         html += '<div class="stradella-card__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7, bass)) + "</div>";
       }
@@ -830,7 +875,12 @@
     if (setListEl) {
       setListEl.addEventListener("click", function (e) {
         var btn = e.target.closest('[data-action="remove"]');
-        if (!btn) return;
+        if (!btn) {
+          var card = e.target.closest(".stradella-card");
+          var target = card && card.querySelector('[data-action="play-from"]');
+          if (target) playFrom(parseInt(target.getAttribute("data-idx"), 10));
+          return;
+        }
         if (runtime.playing || runtime.pendingStart) stopPlayback();
         removeEntry(parseInt(btn.getAttribute("data-idx"), 10));
         renderAll();
@@ -854,6 +904,14 @@
       playBtn.addEventListener("click", function () {
         if (runtime.playing || runtime.pendingStart) stopPlayback();
         else startPlayback();
+      });
+    }
+
+    var voiceSelect = document.getElementById("stradella-voice");
+    if (voiceSelect) {
+      voiceSelect.value = state.voice;
+      voiceSelect.addEventListener("change", function () {
+        setVoice(voiceSelect.value);
       });
     }
 

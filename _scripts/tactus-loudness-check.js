@@ -49,10 +49,18 @@
       stop: () => click('[data-action="play"]'),
     },
     "/music/stradella/": {
-      warm: () => soundfontReady("acoustic_grand_piano"),
+      warm: () => soundfontReady("electric_piano_1"),
       start: () => {
         // A fresh browser profile has no saved progression; pick three chords.
         [...document.querySelectorAll("button[data-id]")].slice(0, 3).forEach((button) => button.click());
+        click("#stradella-play");
+      },
+      stop: () => click("#stradella-play"),
+    },
+    "/music/build/": {
+      warm: () => soundfontReady("electric_piano_1"),
+      start: () => {
+        click('.song-chart[data-chart="0"] .song-chart__load-all');
         click("#stradella-play");
       },
       stop: () => click("#stradella-play"),

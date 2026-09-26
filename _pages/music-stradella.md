@@ -42,6 +42,13 @@ Example: `Em / C` = press C bass + E minor chord.
 <div class="stradella-player">
   <div class="stradella-player__controls">
     <button type="button" id="stradella-play" class="music-share-btn">▶ Play</button>
+    <label class="stradella-bpm-label">Sound
+      <select id="stradella-voice">
+        <option value="epiano">Electric piano</option>
+        <option value="piano">Piano</option>
+        <option value="guitar">Nylon guitar</option>
+      </select>
+    </label>
     <label class="stradella-bpm-label">BPM
       <input type="range" id="stradella-bpm-range" min="40" max="200" value="96">
       <input type="number" id="stradella-bpm-number" min="40" max="200" value="96">
@@ -67,7 +74,7 @@ Example: `Em / C` = press C bass + E minor chord.
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/tactus/audio.js?v=1' | relative_url }}"></script>
 <script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/stradella/main.js?v=2' | relative_url }}"></script>
+<script src="{{ '/assets/js/stradella/main.js?v=3' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>
 

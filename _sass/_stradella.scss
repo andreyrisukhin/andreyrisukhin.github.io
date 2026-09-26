@@ -29,7 +29,28 @@
   }
 }
 
+.stradella-card {
+  cursor: pointer;
+}
+
+/* The whole card is the tap target, so the chord button skips the
+   notebook's 44px minimum button height. */
+.stradella-setlist .stradella-card__chord {
+  min-height: 0;
+}
+
 .stradella-card__chord {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 1.15rem;
   font-weight: 700;
   line-height: 1.2;
