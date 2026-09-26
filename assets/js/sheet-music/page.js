@@ -27,6 +27,8 @@
     drawPartAbbreviations: !practice,
     drawChordSymbols: false,
     autoResize: false,
+    // Flexoki cyan instead of OSMD's neon green; callers scroll it themselves.
+    cursorsOptions: [{ type: 0, color: "#24837B", alpha: 0.35, follow: false }],
   });
 
   if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = false;

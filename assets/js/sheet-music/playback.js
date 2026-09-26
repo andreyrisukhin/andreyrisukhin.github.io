@@ -4,8 +4,9 @@
  * - Walks the loaded OSMD Sheet once to build a flat note-event schedule.
  * - Synthesizes audio via the already-vendored soundfont-player
  *   (assets/js/vendor/soundfont-player.min.js).
- * - Advances OSMD's built-in cursor in sync so the user can follow along.
- * - Renders a small floating bar with play/pause, seek, restart.
+ * - Moves a smooth playhead (playhead.js) from the audio clock.
+ * - Renders a transport bar above the score: play/pause, restart, a
+ *   measure ruler for seeking, and sound selection.
  * - On coarse-pointer devices, double-tap any chord/measure seeks the
  *   playhead there.
  *
@@ -39,7 +40,9 @@
           }
         : null;
 
-    const engine = new PlaybackEngine(osmd, renderedPlayback);
+    const requestedInstrument = sheetPage && sheetPage.dataset.playbackInstrument;
+    const instrumentName = INSTRUMENT_CHOICES.some(([value]) => value === requestedInstrument) ? requestedInstrument : "church_organ";
+    const engine = new PlaybackEngine(osmd, renderedPlayback, instrumentName);
     window.__playback = engine; // expose for DevTools poking
     console.log(
       "[playback] schedule built: events=%d, measures=%d, totalSec=%.2f, bpm=%d",
@@ -72,9 +75,32 @@
     }
     new PlaybackUI(container, engine);
 
+    const playhead = window.SheetPlayhead ? new window.SheetPlayhead.Playhead(osmd) : null;
+    if (playhead) {
+      let shown = false;
+      const rebuild = () => {
+        playhead.rebuild(engine.measureStarts, engine.totalSec);
+        if (shown) playhead.render(engine.currentSec());
+      };
+      const retime = () => {
+        playhead.retime(engine.measureStarts, engine.totalSec);
+        if (shown) playhead.render(engine.currentSec());
+      };
+      rebuild();
+      container.addEventListener("sheet-render", rebuild);
+      engine.on("timingchange", retime);
+      engine.on("modechange", retime);
+      engine.on("time", (sec) => {
+        shown = true;
+        playhead.render(sec, { follow: engine.state === "playing" });
+      });
+    }
+
     document.addEventListener("keydown", (e) => {
       const t = e.target;
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement) return;
+      // Let focused buttons and links handle Space themselves.
+      if (t instanceof Element && t.closest("button, a, [contenteditable]")) return;
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
         if (engine.mode === "live") engine.primeAudio();
@@ -108,14 +134,14 @@
 
   const CLICK_MODE_KEY = "sheet-playback-click-seek";
   // ── Engine ─────────────────────────────────────────────────────────
-  function PlaybackEngine(osmd, renderedPlayback) {
+  function PlaybackEngine(osmd, renderedPlayback, instrumentName) {
     const self = this;
     self.osmd = osmd;
     self.renderedPlayback = renderedPlayback;
     self.audioCtx = null;
     self.audioEl = null;
     self.instrument = null;
-    self.instrumentName = "church_organ";
+    self.instrumentName = instrumentName || "church_organ";
     self.mode = renderedPlayback ? "rendered" : "live";
     self.renderedReady = false;
     self.renderedLoadPromise = null;
@@ -212,6 +238,7 @@
         return;
       }
       self.state = "playing";
+      self._clockSample = null;
       self._emit("statechange", "playing");
       if (self.mode === "rendered") {
         self._silenceLive();
@@ -329,8 +356,7 @@
       self.playheadSec = 0;
       self.state = "paused";
       self._emit("statechange", "paused");
-      self._emit("positionchange", 1);
-      self._syncCursorTo(1);
+      self._emitPosition(0);
     };
 
     self.seekToMeasure = function (n) {
@@ -339,9 +365,44 @@
       const idx = Math.max(0, Math.min(self.measureStarts.length - 1, (n | 0) - 1));
       self.playheadSec = self.measureStarts[idx] || 0;
       if (self.audioEl) self.audioEl.currentTime = self.playheadSec;
-      self._emit("positionchange", idx + 1);
-      self._syncCursorTo(idx + 1);
+      self._emitPosition(self.playheadSec);
       if (wasPlaying) self.play();
+    };
+
+    self.currentSec = function () {
+      if (self.state !== "playing") return self.playheadSec;
+      let raw;
+      if (self.mode === "rendered" && self.audioEl) raw = self.audioEl.currentTime || 0;
+      else if (self.audioCtx) raw = self.playheadSec + (self.audioCtx.currentTime - self.startedAtCtxTime);
+      else return self.playheadSec;
+      return self._smoothClock(raw);
+    };
+
+    // AudioContext.currentTime and <audio>.currentTime advance in coarse
+    // steps (audio render quanta, media timeupdate), so several frames can
+    // read the same value. Extrapolate from the last change with the frame
+    // clock so the playhead keeps moving between steps.
+    self._clockSample = null;
+    self._smoothClock = function (raw) {
+      const now = performance.now();
+      const last = self._clockSample;
+      if (!last || raw !== last.raw || now - last.at > 250) {
+        self._clockSample = { raw, at: now };
+        return raw;
+      }
+      return raw + (now - last.at) / 1000;
+    };
+
+    // "time" fires every frame for the playhead and progress line;
+    // "positionchange" fires only when the measure changes.
+    self._lastMeasure = 0;
+    self._emitPosition = function (sec) {
+      self._emit("time", sec);
+      const m = self._measureAtSec(sec);
+      if (m !== self._lastMeasure) {
+        self._lastMeasure = m;
+        self._emit("positionchange", m);
+      }
     };
 
     self.seekAtPagePoint = function (pageX, pageY, target) {
@@ -353,13 +414,7 @@
 
     self._tick = function () {
       if (self.state !== "playing") return;
-      const nowSec =
-        self.mode === "rendered" && self.audioEl
-          ? self.audioEl.currentTime || 0
-          : self.playheadSec + (self.audioCtx.currentTime - self.startedAtCtxTime);
-      const m = self._measureAtSec(nowSec);
-      self._emit("positionchange", m);
-      self._syncCursorTo(m);
+      const nowSec = self.currentSec();
       if (nowSec >= self.totalSec || (self.mode === "rendered" && self.audioEl && self.audioEl.ended)) {
         self._stopScheduler();
         self.state = "paused";
@@ -367,9 +422,10 @@
         if (self.audioEl) self.audioEl.currentTime = 0;
         self._emit("statechange", "paused");
         self._emit("end");
-        self._syncCursorTo(1);
+        self._emitPosition(0);
         return;
       }
+      self._emitPosition(nowSec);
       requestAnimationFrame(self._tick);
     };
 
@@ -380,23 +436,6 @@
         else break;
       }
       return m;
-    };
-
-    self._syncCursorTo = function (measureNum) {
-      try {
-        const cursor = self.osmd.cursor;
-        if (!cursor) return;
-        cursor.show();
-        cursor.reset();
-        const iter = cursor.iterator;
-        for (let i = 0; i < 10000; i++) {
-          if (!iter) break;
-          const cur = (iter.CurrentMeasureIndex != null ? iter.CurrentMeasureIndex : iter.currentMeasureIndex) + 1;
-          if (cur >= measureNum) break;
-          cursor.next();
-          if (iter.EndReached || iter.endReached) break;
-        }
-      } catch (_) {}
     };
 
     self._ensureAudio = async function () {
@@ -468,8 +507,7 @@
           self.playheadSec = 0;
           self.audioEl.currentTime = 0;
           self._emit("statechange", "paused");
-          self._emit("positionchange", 1);
-          self._syncCursorTo(1);
+          self._emitPosition(0);
         });
       }
     };
@@ -571,52 +609,118 @@
   }
 
   // ── UI ─────────────────────────────────────────────────────────────
+  const ICONS = {
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a.5.5 0 0 0 .76.43l10.4-6.5a.5.5 0 0 0 0-.86L8.76 5.07A.5.5 0 0 0 8 5.5z"/></svg>',
+    pause:
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>',
+    restart:
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="2.5" height="14" rx="1"/><path d="M19 6.1v11.8a.5.5 0 0 1-.78.41L9.6 12.41a.5.5 0 0 1 0-.82l8.62-5.9a.5.5 0 0 1 .78.41z"/></svg>',
+    error: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="10.75" y="5" width="2.5" height="9" rx="1"/><circle cx="12" cy="18" r="1.5"/></svg>',
+  };
+
   function PlaybackUI(container, engine) {
     const root = document.createElement("div");
-    root.className = "sheet-playback";
+    root.className = "sheet-transport";
     root.setAttribute("data-sheet-playback", "");
+    root.setAttribute("role", "group");
+    root.setAttribute("aria-label", "Playback");
+    const count = engine.measureCount;
     root.innerHTML = `
-      <button type="button" class="sheet-playback__btn sheet-playback__play" data-pb-action="toggle" aria-label="Play">▶</button>
-      <button type="button" class="sheet-playback__btn sheet-playback__reset" data-pb-action="reset" aria-label="Restart">↺</button>
-      <span class="sheet-playback__pos" data-pb-pos>m 1 / ${engine.measureCount}</span>
-      <input type="range" class="sheet-playback__seek" data-pb-seek min="1" max="${engine.measureCount}" value="1" step="1" aria-label="Seek measure">
-      <label class="sheet-playback__mode">
-        <span>Mode</span>
-        <select data-pb-mode aria-label="Playback mode">
-          ${engine.renderedPlayback ? `<option value="rendered">${engine.renderedPlayback.label}</option>` : ""}
-          <option value="live">Live sound</option>
-        </select>
-      </label>
-      <label class="sheet-playback__instrument">
+      <button type="button" class="sheet-transport__btn sheet-transport__play" data-pb-action="toggle" aria-label="Play">${ICONS.play}</button>
+      <button type="button" class="sheet-transport__btn" data-pb-action="reset" aria-label="Back to start" title="Back to start">${
+        ICONS.restart
+      }</button>
+      <div class="sheet-transport__track" data-pb-seek role="slider" tabindex="0" aria-label="Measure"
+        aria-valuemin="1" aria-valuemax="${count}" aria-valuenow="1" aria-valuetext="Measure 1 of ${count}">
+        <span class="sheet-transport__line"></span>
+        <span class="sheet-transport__band" data-pb-band></span>
+        <span class="sheet-transport__ticks" data-pb-ticks></span>
+        <span class="sheet-transport__progress" data-pb-progress></span>
+      </div>
+      <span class="sheet-transport__pos" data-pb-pos aria-hidden="true">m. 1 of ${count}</span>
+      ${
+        engine.renderedPlayback
+          ? `<label class="sheet-transport__select">
+              <span>Audio</span>
+              <select data-pb-mode>
+                <option value="rendered">${engine.renderedPlayback.label}</option>
+                <option value="live">Live sound</option>
+              </select>
+            </label>`
+          : ""
+      }
+      <label class="sheet-transport__select">
         <span>Sound</span>
-        <select data-pb-instrument aria-label="Playback instrument">
+        <select data-pb-instrument>
           ${INSTRUMENT_CHOICES.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
         </select>
       </label>
-      <label class="sheet-playback__click-seek">
-        <input type="checkbox" data-pb-click-seek>
-        <span>Click score to seek</span>
-      </label>
+      <button type="button" class="sheet-transport__toggle" data-pb-click-seek aria-pressed="false">Click score to jump</button>
     `;
     const host = container.parentElement || container;
     host.insertBefore(root, container);
 
     const playBtn = root.querySelector('[data-pb-action="toggle"]');
     const resetBtn = root.querySelector('[data-pb-action="reset"]');
+    const track = root.querySelector("[data-pb-seek]");
+    const band = root.querySelector("[data-pb-band]");
+    const ticks = root.querySelector("[data-pb-ticks]");
+    const progress = root.querySelector("[data-pb-progress]");
     const posLabel = root.querySelector("[data-pb-pos]");
-    const seek = root.querySelector("[data-pb-seek]");
     const mode = root.querySelector("[data-pb-mode]");
     const instrument = root.querySelector("[data-pb-instrument]");
     const clickSeek = root.querySelector("[data-pb-click-seek]");
-    mode.value = engine.mode;
+    let measure = 1;
+
+    const setIcon = (name, label) => {
+      playBtn.innerHTML = ICONS[name];
+      if (label) playBtn.setAttribute("aria-label", label);
+    };
+    const setClickSeek = (on) => {
+      clickSeek.setAttribute("aria-pressed", String(on));
+      try {
+        localStorage.setItem(CLICK_MODE_KEY, on ? "1" : "0");
+      } catch (_) {}
+    };
+    const clickSeekOn = () => clickSeek.getAttribute("aria-pressed") === "true";
+
+    // Barline ticks sit at each measure's start time, so uneven measures
+    // (pickups, meter changes, rendered audio) keep true proportions.
+    const renderTicks = () => {
+      const total = engine.totalSec || 1;
+      const starts = engine.measureStarts;
+      const marks = starts.slice(1).map((sec, i) => {
+        const phrase = (i + 1) % 4 === 0 ? " sheet-transport__tick--phrase" : "";
+        return `<span class="sheet-transport__tick${phrase}" style="left:${((sec / total) * 100).toFixed(3)}%"></span>`;
+      });
+      marks.push('<span class="sheet-transport__tick sheet-transport__tick--final" style="left:100%"></span>');
+      ticks.innerHTML = marks.join("");
+      track.setAttribute("aria-valuemax", String(engine.measureCount));
+    };
+    const renderMeasure = (m) => {
+      measure = m;
+      const total = engine.totalSec || 1;
+      const start = engine.measureStarts[m - 1] || 0;
+      const end = m < engine.measureStarts.length ? engine.measureStarts[m] : total;
+      band.style.left = `${((start / total) * 100).toFixed(3)}%`;
+      band.style.width = `${(((end - start) / total) * 100).toFixed(3)}%`;
+      posLabel.textContent = `m. ${m} of ${engine.measureCount}`;
+      track.setAttribute("aria-valuenow", String(m));
+      track.setAttribute("aria-valuetext", `Measure ${m} of ${engine.measureCount}`);
+    };
+    const renderTime = (sec) => {
+      const ratio = engine.totalSec ? Math.min(1, Math.max(0, sec / engine.totalSec)) : 0;
+      progress.style.transform = `scaleX(${ratio.toFixed(4)})`;
+    };
+
+    renderTicks();
+    renderMeasure(1);
+    if (mode) mode.value = engine.mode;
     instrument.value = engine.instrumentName;
     instrument.disabled = engine.mode === "rendered";
-    root.classList.toggle("is-rendered-mode", engine.mode === "rendered");
     try {
-      clickSeek.checked = localStorage.getItem(CLICK_MODE_KEY) === "1";
-    } catch (_) {
-      clickSeek.checked = false;
-    }
+      clickSeek.setAttribute("aria-pressed", String(localStorage.getItem(CLICK_MODE_KEY) === "1"));
+    } catch (_) {}
 
     playBtn.addEventListener("click", () => {
       // Must prime AudioContext inside the user-gesture handler so
@@ -625,19 +729,47 @@
       engine.toggle();
     });
     resetBtn.addEventListener("click", () => engine.stop());
-    seek.addEventListener("input", () => engine.seekToMeasure(parseInt(seek.value, 10)));
-    mode.addEventListener("change", () => engine.setMode(mode.value));
+    if (mode) mode.addEventListener("change", () => engine.setMode(mode.value));
     instrument.addEventListener("change", () => engine.setInstrumentName(instrument.value));
-    clickSeek.addEventListener("change", () => {
-      try {
-        localStorage.setItem(CLICK_MODE_KEY, clickSeek.checked ? "1" : "0");
-      } catch (_) {}
+    clickSeek.addEventListener("click", () => setClickSeek(!clickSeekOn()));
+
+    const measureAtClientX = (clientX) => {
+      const rect = track.getBoundingClientRect();
+      const ratio = rect.width ? Math.min(1, Math.max(0, (clientX - rect.left) / rect.width)) : 0;
+      return engine._measureAtSec(ratio * engine.totalSec - 1e-6);
+    };
+    let dragging = false;
+    track.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      dragging = true;
+      track.setPointerCapture(e.pointerId);
+      engine.seekToMeasure(measureAtClientX(e.clientX));
+    });
+    track.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const m = measureAtClientX(e.clientX);
+      if (m !== measure) engine.seekToMeasure(m);
+    });
+    const endDrag = () => {
+      dragging = false;
+    };
+    track.addEventListener("pointerup", endDrag);
+    track.addEventListener("pointercancel", endDrag);
+    track.addEventListener("keydown", (e) => {
+      const steps = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 4, PageDown: -4 };
+      let target = null;
+      if (e.key in steps) target = measure + steps[e.key];
+      else if (e.key === "Home") target = 1;
+      else if (e.key === "End") target = engine.measureCount;
+      if (target == null) return;
+      e.preventDefault();
+      engine.seekToMeasure(Math.max(1, Math.min(engine.measureCount, target)));
     });
 
     container.addEventListener(
       "click",
       (e) => {
-        if (!clickSeek.checked) return;
+        if (!clickSeekOn()) return;
         if (e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
         const target = e.target instanceof Element ? e.target : null;
         if (!target || target.closest("[data-sheet-annotator], [data-sheet-playback], [data-chord-tag], [data-chord-inspector]")) return;
@@ -651,30 +783,30 @@
 
     engine.on("statechange", (state) => {
       const playing = state === "playing";
-      playBtn.textContent = playing ? "⏸" : "▶";
-      playBtn.setAttribute("aria-label", playing ? "Pause" : "Play");
-      playBtn.classList.toggle("is-playing", playing);
+      playBtn.classList.remove("is-error");
+      playBtn.removeAttribute("title");
+      setIcon(playing ? "pause" : "play", playing ? "Pause" : "Play");
+      root.classList.toggle("is-playing", playing);
     });
-    engine.on("positionchange", (m) => {
-      posLabel.textContent = `m ${m} / ${engine.measureCount}`;
-      if (parseInt(seek.value, 10) !== m) seek.value = String(m);
-    });
+    engine.on("time", renderTime);
+    engine.on("positionchange", renderMeasure);
     engine.on("modechange", (nextMode) => {
-      mode.value = nextMode;
+      if (mode) mode.value = nextMode;
       instrument.disabled = nextMode === "rendered";
-      root.classList.toggle("is-rendered-mode", nextMode === "rendered");
+      renderTicks();
+      renderMeasure(Math.min(measure, engine.measureCount));
     });
     engine.on("timingchange", () => {
-      seek.max = String(engine.measureCount);
-      posLabel.textContent = `m ${seek.value} / ${engine.measureCount}`;
+      renderTicks();
+      renderMeasure(Math.min(measure, engine.measureCount));
     });
     engine.on("loadingchange", (loading) => {
       playBtn.classList.toggle("is-loading", loading);
-      if (loading) playBtn.textContent = "…";
+      playBtn.setAttribute("aria-busy", String(loading));
     });
     engine.on("loaderror", () => {
-      playBtn.textContent = "✕";
-      playBtn.title = "Soundfont failed to load. Check console / network.";
+      setIcon("error", "Sound failed to load");
+      playBtn.title = "The sound could not load. Check your connection, then press again.";
       playBtn.classList.add("is-error");
     });
 

@@ -13,6 +13,9 @@
   {% if include.timing_json %}
     data-timing-url="{{ include.timing_json | relative_url }}"
   {% endif %}
+  {% if include.playback_instrument %}
+    data-playback-instrument="{{ include.playback_instrument }}"
+  {% endif %}
 >
   {% if include.practice %}
     <div class="practice-view-controls">
@@ -59,7 +62,7 @@
   </noscript>
 </div>
 
-<link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css?v=4' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css?v=5' | relative_url }}">
 
 <script>
   window.StradellaButtons = {
@@ -92,7 +95,8 @@
 <script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js?v=2' | relative_url }}"></script>
 {% if include.playback and include.practice != true %}
-  <script defer src="{{ '/assets/js/sheet-music/playback.js?v=5' | relative_url }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/playhead.js?v=1' | relative_url }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/playback.js?v=6' | relative_url }}"></script>
 {% endif %}
 <script src="{{ '/assets/js/vendor/opensheetmusicdisplay.min.js' | relative_url }}"></script>
-<script defer src="{{ '/assets/js/sheet-music/page.js?v=1' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/page.js?v=2' | relative_url }}"></script>

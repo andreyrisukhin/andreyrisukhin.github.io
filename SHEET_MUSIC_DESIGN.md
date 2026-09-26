@@ -87,8 +87,28 @@ What made the static render work:
   map uses score tempo markings to drive measure seeking.
 - Cache-bust both the MP3 and timing JSON whenever either asset changes.
 - Keep the live SoundFont mode optional. It is useful for testing instrument
-  colors, but it can lag because it schedules many notes and moves the OSMD
-  cursor on the main thread.
+  colors, but it schedules many notes on the main thread.
+
+## Playback transport
+
+Pages with `playback=true` (and no practice mode) get a transport bar above
+the score, from `assets/js/sheet-music/playback.js`.
+
+- The bar is one horizontal ledge: play, back to start, a measure track,
+  the measure count, and the sound picker. It sticks under the site nav on
+  desktop and docks at the bottom on phones.
+- The measure track is drawn as a staff line with barlines at true measure
+  times. Every fourth barline is taller, and the end has a final double
+  barline. Click or drag to jump; arrow keys, Page Up/Down, Home, and End
+  work when it has focus.
+- Set a page's default sound with `playback_instrument` (a SoundFont name
+  from `INSTRUMENT_CHOICES`, such as `drawbar_organ`).
+- The playhead (`playhead.js`) walks the OSMD cursor once per render and
+  then glides between note onsets from the audio clock. Do not move OSMD's
+  cursor per frame; that is what made playback stall and jump. With reduced
+  motion the playhead snaps to each onset instead of gliding.
+- Buttons keep the music pages' 44px touch targets on coarse pointers and
+  shrink only for a mouse.
 
 ## Do nots
 

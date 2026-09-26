@@ -12,4 +12,5 @@ converted `.musicxml` live under `/assets/music/sheet-music/reconstructing-more-
   slug="reconstructing-more-science"
   source_ext="mxl"
   playback=true
+  playback_instrument="drawbar_organ"
 %}
