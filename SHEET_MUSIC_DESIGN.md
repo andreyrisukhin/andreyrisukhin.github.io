@@ -95,8 +95,16 @@ Pages with `playback=true` (and no practice mode) get a transport bar above
 the score, from `assets/js/sheet-music/playback.js`.
 
 - The bar is one horizontal ledge: play, back to start, a measure track,
-  the measure count, and the sound picker. It sticks under the site nav on
-  desktop and docks at the bottom on phones.
+  the measure count, the key stepper, and the sound picker. It sticks under
+  the site nav on desktop and docks at the bottom on phones. Select
+  captions are for screen readers only; the chosen value names itself.
+- The key stepper transposes the notation and the live sound together, one
+  semitone at a time up to a tritone each way. The key name is the reset
+  button. Notes are respelled by interval from the tonic (`transpose.js`),
+  so a leading tone becomes F double-sharp in G sharp minor rather than G.
+  MusicXML files often omit `<mode>`, so set `key_mode="minor"` on the
+  include when the key name would otherwise read as the relative major.
+  Transposing switches a rendered audio file to the live sound.
 - The measure track is drawn as a staff line with barlines at true measure
   times. Every fourth barline is taller, and the end has a final double
   barline. Click or drag to jump; arrow keys, Page Up/Down, Home, and End
