@@ -111,6 +111,10 @@ the score, from `assets/js/sheet-music/playback.js`.
   work when it has focus.
 - Set a page's default sound with `playback_instrument` (a SoundFont name
   from `INSTRUMENT_CHOICES`, such as `drawbar_organ`).
+- Live sound goes through the shared Tactus audio engine (`TACTUS.md`).
+  Pausing stops the instrument's notes and keeps the context and samples
+  loaded, so Play resumes at once. Play notes at gain 1; loudness is set by
+  the engine's calibrated trims.
 - The playhead (`playhead.js`) walks the OSMD cursor once per render and
   then glides between note onsets from the audio clock. Do not move OSMD's
   cursor per frame; that is what made playback stall and jump. With reduced
