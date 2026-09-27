@@ -551,7 +551,13 @@
                 if (!pitch) continue;
                 const midi = noteToMidi(pitch);
                 if (midi == null) continue;
-                const len = note.Length || note.length;
+                // A tie chain sounds once, from its first note, for the
+                // chain's total length; later notes in the chain are silent.
+                const tie = note.NoteTie || note.noteTie;
+                const tieNotes = tie && (tie.Notes || tie.notes);
+                const tied = tieNotes && tieNotes.length > 1;
+                if (tied && tieNotes[0] !== note) continue;
+                const len = tied ? tie.Duration || tie.duration : note.Length || note.length;
                 const lenBeats =
                   len && typeof len.RealValue === "number" ? len.RealValue * 4 : len && typeof len.realValue === "number" ? len.realValue * 4 : 1;
                 events.push({
