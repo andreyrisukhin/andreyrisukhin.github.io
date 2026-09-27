@@ -321,10 +321,15 @@
         if (e.startSec > horizonSec) break;
         const when = Math.max(ctx.currentTime + safety, t0 + e.startSec);
         try {
-          self.instrument.play(e.midi + self.transpose, when, {
-            duration: e.durationSec * 0.95,
-            gain: (self.noteGain || 1) * (e.gain || 1),
-          });
+          const options = {
+            duration: e.durationSec * (e.gate || DEFAULT_GATE),
+            gain: (self.noteGain || 1) * (e.gain || 1) * (e.accent ? e.accent.peak : 1),
+          };
+          if (e.accent) {
+            options.decay = ACCENT_DECAY_SEC;
+            options.sustain = e.accent.sustain;
+          }
+          self.instrument.play(e.midi + self.transpose, when, options);
         } catch (_) {}
         self._nextEventIdx++;
       }
@@ -572,6 +577,7 @@
             const stradellaStaff = self.stradellaBass && isLowerInstrumentStaff(sse, staffIdx);
             const voiceEntries = sse.VoiceEntries || sse.voiceEntries || [];
             for (const ve of voiceEntries) {
+              const articulation = articulationStyle(ve);
               const notes = ve.Notes || ve.notes || [];
               for (const note of notes) {
                 if (!note) continue;
@@ -593,10 +599,10 @@
                 const durationSec = Math.max(0.05, lenBeats * quarterDur);
                 if (stradellaStaff && midi >= STRADELLA_CHORD_MIN_MIDI) {
                   for (const interval of chordIntervalsFor(midi % 12, startSec, measureIdx)) {
-                    events.push({ midi: midi + interval, startSec, durationSec, gain: STRADELLA_CHORD_TONE_GAIN, role: "chord" });
+                    events.push({ midi: midi + interval, startSec, durationSec, gain: STRADELLA_CHORD_TONE_GAIN, role: "chord", ...articulation });
                   }
                 } else {
-                  events.push({ midi, startSec, durationSec, role: stradellaStaff ? "bass" : undefined });
+                  events.push({ midi, startSec, durationSec, role: stradellaStaff ? "bass" : undefined, ...articulation });
                 }
               }
             }
@@ -687,6 +693,58 @@
       }
     } catch (_) {}
     return null;
+  }
+
+  // Articulation playback. Gate is the fraction of the written length that
+  // sounds. Accents shape the attack only: the note starts louder, then
+  // decays to the level of an unaccented note (soundfont-player's default
+  // sustain is 0.9 of the note gain), so an accented held note is
+  // emphasized without being louder throughout. Measured on the accordion
+  // soundfont, a 0.5 s decay keeps an accent about 5 dB up at 50 ms and
+  // 2 dB up at 150 ms, level by 300 ms; shorter decays vanish under the
+  // sample's own onset.
+  const DEFAULT_GATE = 0.95;
+  const ACCENT_DECAY_SEC = 0.5;
+  const DEFAULT_SUSTAIN = 0.9;
+  const ACCENTS = {
+    accent: 2, // +6 dB at the attack, roughly mf to ff
+    strongaccent: 2.5, // marcato, +8 dB
+    marcatoup: 2.5,
+    marcatodown: 2.5,
+    invertedstrongaccent: 2.5,
+  };
+  // OSMD's ArticulationEnum, for builds that do not export it.
+  const ARTICULATION_NAMES = {
+    0: "accent",
+    1: "strongaccent",
+    3: "marcatoup",
+    4: "marcatodown",
+    5: "invertedstrongaccent",
+    6: "staccato",
+    7: "staccatissimo",
+    8: "spiccato",
+    9: "tenuto",
+    25: "detachedlegato",
+  };
+
+  function articulationStyle(voiceEntry) {
+    const list = voiceEntry.Articulations || voiceEntry.articulations || [];
+    if (!list.length) return {};
+    const names = window.opensheetmusicdisplay && window.opensheetmusicdisplay.ArticulationEnum;
+    const has = new Set(
+      list.map((a) => {
+        const value = a && typeof a === "object" ? a.articulationEnum ?? a.ArticulationEnum : a;
+        return (names && names[value]) || ARTICULATION_NAMES[value];
+      })
+    );
+    const style = {};
+    if (has.has("staccatissimo") || has.has("spiccato")) style.gate = 0.3;
+    else if (has.has("detachedlegato") || (has.has("staccato") && has.has("tenuto"))) style.gate = 0.75;
+    else if (has.has("staccato")) style.gate = 0.5;
+    else if (has.has("tenuto")) style.gate = 1;
+    const peak = Math.max(0, ...[...has].map((name) => ACCENTS[name] || 0));
+    if (peak) style.accent = { peak, sustain: DEFAULT_SUSTAIN / peak };
+    return style;
   }
 
   // Stradella left-hand notation: on the lower staff of an accordion
