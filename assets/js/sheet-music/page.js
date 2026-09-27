@@ -84,6 +84,9 @@
     for (const t of svg.querySelectorAll("g.vf-text > text, text.vf-chord, text")) {
       const s = (t.textContent || "").trim();
       if (!s || !looksLikeChord(s)) continue;
+      // Rehearsal marks ("A", "B") parse as chord names; OSMD draws them bold
+      // and chord symbols in regular weight.
+      if (t.getAttribute("font-weight") === "bold") continue;
       const wrap = t.closest("g.vf-text") || t;
       if (wrap.hasAttribute("data-test-injected")) continue;
       wrap.setAttribute("data-hidden-chord-text", s);

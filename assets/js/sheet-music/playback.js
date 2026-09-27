@@ -44,6 +44,10 @@
     const requestedInstrument = sheetPage && sheetPage.dataset.playbackInstrument;
     const instrumentName = INSTRUMENT_CHOICES.some(([value]) => value === requestedInstrument) ? requestedInstrument : "church_organ";
     const engine = new PlaybackEngine(osmd, renderedPlayback, instrumentName);
+    // Sparse or staccato scores sound quieter; pages can trim note gain
+    // toward the Tactus loudness target (TACTUS.md).
+    const noteGain = parseFloat(sheetPage && sheetPage.dataset.playbackGain);
+    if (noteGain > 0) engine.noteGain = noteGain;
     window.__playback = engine; // expose for DevTools poking
     console.log(
       "[playback] schedule built: events=%d, measures=%d, totalSec=%.2f, bpm=%d",
@@ -316,7 +320,7 @@
         try {
           self.instrument.play(e.midi + self.transpose, when, {
             duration: e.durationSec * 0.95,
-            gain: 1,
+            gain: self.noteGain || 1,
           });
         } catch (_) {}
         self._nextEventIdx++;

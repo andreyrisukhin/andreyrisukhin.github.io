@@ -80,6 +80,14 @@
       },
       stop: () => window.__playback.pause(),
     },
+    "/music/sheet/senorita/": {
+      warm: () => soundfontReady(window.__playback.instrumentName),
+      start: () => {
+        window.__playback.primeAudio();
+        window.__playback.play();
+      },
+      stop: () => window.__playback.pause(),
+    },
     "/music/sheet/cogwork-dancers/": {
       warm: () => soundfontReady(window.SheetPractice.player.snapshot().instrument),
       start: () => {

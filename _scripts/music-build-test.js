@@ -21,6 +21,7 @@ const routes = [
   "sheet/cogwork-dancers/",
   "sheet/reclaiming-entropy/",
   "sheet/reconstructing-more-science/",
+  "sheet/senorita/",
 ];
 let links = 0;
 for (const route of routes) {
@@ -69,6 +70,7 @@ for (const route of [
   "music/bayan-simulator",
   "music/sheet/cogwork-dancers",
   "music/sheet/reconstructing-more-science",
+  "music/sheet/senorita",
 ]) {
   const page = fs.readFileSync(path.join(site, route, "index.html"), "utf8");
   assert.ok(/<script[^>]*\ssrc="\/assets\/js\/tactus\/audio\.js/.test(page), route + " loads the shared audio engine");
@@ -78,6 +80,12 @@ for (const route of [
 for (const dependency of ["/assets/js/theme.js", "/assets/js/vanilla-back-to-top.min.js", "/assets/css/bootstrap.min.css"]) {
   assert.ok(precache.includes(dependency), "Offline page shell includes " + dependency);
 }
+const senorita = fs.readFileSync(path.join(site, "music/sheet/senorita/index.html"), "utf8");
+assert.ok(senorita.includes('data-playback-instrument="accordion"'), "Señorita plays on accordion");
+assert.ok(senorita.includes("/sheet-music/playback.js"), "Señorita has sheet playback");
+const senoritaXml = fs.readFileSync(path.join(site, "assets/music/sheet-music/senorita/senorita.musicxml"), "utf8");
+assert.equal((senoritaXml.match(/<measure /g) || []).length, 16, "Señorita stops before rehearsal mark B");
+assert.ok(!/>B<\/rehearsal>/.test(senoritaXml) && /light-heavy/.test(senoritaXml), "Señorita ends with a final barline");
 const build = fs.readFileSync(path.join(site, "music/build/index.html"), "utf8");
 assert.ok(build.includes('id="song-charts"') && build.includes('id="stradella-play"'), "Set list builder has song charts and a player");
 assert.ok(/window\.SongChartData = \[\{/.test(build), "Set list builder inlines the song chart data");

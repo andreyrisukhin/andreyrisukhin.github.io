@@ -73,6 +73,10 @@ keywords: Andrey Bayan, bayandrey, accordion, stradella bass, bayan, music theor
       <span class="music-landing-card__title">Reconstructing More Science</span>
       <span class="music-landing-card__desc">From the Portal 2 soundtrack. Eight-bar two-hand exercise in F minor.</span>
     </a>
+    <a class="music-landing-card" href="{{ '/music/sheet/senorita/' | relative_url }}">
+      <span class="music-landing-card__title">Señorita</span>
+      <span class="music-landing-card__desc">Accordion arrangement, first draft. Sixteen bars in A minor.</span>
+    </a>
   </div>
 </section>
 

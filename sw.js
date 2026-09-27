@@ -29,6 +29,7 @@ const PRECACHE_URLS = [
   '/music/songs/',
   '/music/sheet/cogwork-dancers/',
   '/music/sheet/reconstructing-more-science/',
+  '/music/sheet/senorita/',
 
   '/manifest.webmanifest',
   '/assets/img/pwa/icon-192.png',
