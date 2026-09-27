@@ -3,7 +3,7 @@ layout: music
 title: Bayan Simulator
 permalink: /music/bayan-simulator/
 description: A browser-based B-system bayan keyboard for auditioning melodies and chords with Minecraft note-block samples.
-keywords: bayan simulator, B-system bayan, accordion keyboard, note block sounds, Andrey Bayan, bayandrey
+keywords: B-system bayan, accordion keyboard, note block sounds
 ---
 
 Explore a B-system bayan layout in the browser. Click buttons or use the computer keyboard to play notes, build chords, and hear real Minecraft note-block samples mapped onto the diagonal chromatic axis.

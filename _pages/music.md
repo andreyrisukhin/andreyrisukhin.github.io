@@ -6,7 +6,7 @@ nav: true
 nav_order: 4
 permalink: /music/
 description: Tools, sheets, and references for bayan and harmony.
-keywords: Andrey Bayan, bayandrey, accordion, stradella bass, bayan, music theory, chord recognizer, set list
+keywords: bayan, accordion, stradella bass, music theory
 ---
 
 <script>
@@ -88,5 +88,5 @@ keywords: Andrey Bayan, bayandrey, accordion, stradella bass, bayan, music theor
     <li><a href="{{ '/music/intervals/' | relative_url }}">Intervals</a></li>
     <li><a href="{{ '/music/stradella/' | relative_url }}">Stradella catalog</a></li>
   </ul>
-  <p class="music-small">Made by Andrey Risukhin, also known as Andrey Bayan / @bayandrey.</p>
+  <p class="music-small">Andrey Risukhin, @bayandrey.</p>
 </section>
