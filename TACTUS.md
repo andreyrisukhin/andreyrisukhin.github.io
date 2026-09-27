@@ -61,7 +61,7 @@ Measured on 2026-09-26 (gated RMS before the limiter):
 | ---------------------------------- | ------------------------- | ----- |
 | Sheet: Reconstructing More Science | soundfont (drawbar organ) | −27.1 |
 | Sheet: Cogwork Dancers, live       | soundfont (accordion)     | −28.2 |
-| Sheet: Señorita (gain 1.6)         | soundfont (accordion)     | −26.9 |
+| Sheet: Señorita (gain 1.6)         | soundfont (accordion)     | −26.7 |
 | Bass patterns (Prison Blues)       | synth                     | −27.9 |
 | Workbench                          | synth                     | −28.9 |
 | Blues                              | synth                     | −28.2 |

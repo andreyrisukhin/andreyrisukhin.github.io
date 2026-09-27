@@ -43,7 +43,9 @@
 
     const requestedInstrument = sheetPage && sheetPage.dataset.playbackInstrument;
     const instrumentName = INSTRUMENT_CHOICES.some(([value]) => value === requestedInstrument) ? requestedInstrument : "church_organ";
-    const engine = new PlaybackEngine(osmd, renderedPlayback, instrumentName);
+    const engine = new PlaybackEngine(osmd, renderedPlayback, instrumentName, {
+      stradellaBass: !!(sheetPage && sheetPage.dataset.playbackStradella === "true"),
+    });
     // Sparse or staccato scores sound quieter; pages can trim note gain
     // toward the Tactus loudness target (TACTUS.md).
     const noteGain = parseFloat(sheetPage && sheetPage.dataset.playbackGain);
@@ -152,9 +154,10 @@
 
   const CLICK_MODE_KEY = "sheet-playback-click-seek";
   // ── Engine ─────────────────────────────────────────────────────────
-  function PlaybackEngine(osmd, renderedPlayback, instrumentName) {
+  function PlaybackEngine(osmd, renderedPlayback, instrumentName, options) {
     const self = this;
     self.osmd = osmd;
+    self.stradellaBass = !!(options && options.stradellaBass);
     self.renderedPlayback = renderedPlayback;
     self.audioCtx = null;
     self.audioEl = null;
@@ -320,7 +323,7 @@
         try {
           self.instrument.play(e.midi + self.transpose, when, {
             duration: e.durationSec * 0.95,
-            gain: self.noteGain || 1,
+            gain: (self.noteGain || 1) * (e.gain || 1),
           });
         } catch (_) {}
         self._nextEventIdx++;
@@ -523,8 +526,34 @@
       const measureStarts = [];
       let t = 0;
       let degradeCount = 0;
-      for (const measure of measures) {
+      const chordWords = [];
+      const realBeats = (frac) =>
+        frac && typeof frac.RealValue === "number" ? frac.RealValue * 4 : frac && typeof frac.realValue === "number" ? frac.realValue * 4 : 0;
+      // Latest chord symbol with this root at or before the note, else the
+      // first one later in the same measure.
+      const chordIntervalsFor = (pc, sec, measureIdx) => {
+        let best = null;
+        for (const w of chordWords) {
+          if (w.pc !== pc) continue;
+          if (w.sec <= sec + 0.001) best = w;
+          else if (!best && w.measureIdx === measureIdx) best = w;
+        }
+        return best ? best.intervals : CHORD_WORD_INTERVALS[""];
+      };
+      for (const [measureIdx, measure] of measures.entries()) {
         measureStarts.push(t);
+        if (self.stradellaBass) {
+          for (const staffExprs of measure.StaffLinkedExpressions || measure.staffLinkedExpressions || []) {
+            for (const me of staffExprs || []) {
+              const sec = t + realBeats(me.Timestamp || me.timestamp) * quarterDur;
+              for (const text of expressionTexts(me)) {
+                const chord = parseChordWord(text);
+                if (chord) chordWords.push({ sec, measureIdx, pc: chord.pc, intervals: chord.intervals });
+              }
+            }
+          }
+          chordWords.sort((a, b) => a.sec - b.sec);
+        }
         const containers = measure.VerticalSourceStaffEntryContainers || measure.verticalSourceStaffEntryContainers || [];
         for (const c of containers) {
           // OSMD exposes both PascalCase and camelCase getters depending
@@ -538,8 +567,9 @@
                 : (degradeCount++, 0);
           const startSec = t + tsBeats * quarterDur;
           const staffEntries = c.StaffEntries || c.staffEntries || [];
-          for (const sse of staffEntries) {
+          for (const [staffIdx, sse] of staffEntries.entries()) {
             if (!sse) continue;
+            const stradellaStaff = self.stradellaBass && isLowerInstrumentStaff(sse, staffIdx);
             const voiceEntries = sse.VoiceEntries || sse.voiceEntries || [];
             for (const ve of voiceEntries) {
               const notes = ve.Notes || ve.notes || [];
@@ -560,11 +590,14 @@
                 const len = tied ? tie.Duration || tie.duration : note.Length || note.length;
                 const lenBeats =
                   len && typeof len.RealValue === "number" ? len.RealValue * 4 : len && typeof len.realValue === "number" ? len.realValue * 4 : 1;
-                events.push({
-                  midi,
-                  startSec,
-                  durationSec: Math.max(0.05, lenBeats * quarterDur),
-                });
+                const durationSec = Math.max(0.05, lenBeats * quarterDur);
+                if (stradellaStaff && midi >= STRADELLA_CHORD_MIN_MIDI) {
+                  for (const interval of chordIntervalsFor(midi % 12, startSec, measureIdx)) {
+                    events.push({ midi: midi + interval, startSec, durationSec, gain: STRADELLA_CHORD_TONE_GAIN, role: "chord" });
+                  }
+                } else {
+                  events.push({ midi, startSec, durationSec, role: stradellaStaff ? "bass" : undefined });
+                }
               }
             }
           }
@@ -654,6 +687,71 @@
       }
     } catch (_) {}
     return null;
+  }
+
+  // Stradella left-hand notation: on the lower staff of an accordion
+  // part, notes below the middle line (D3) are single bass buttons and
+  // notes on or above it stand for chord buttons. A chord note is
+  // written as its root; the chord symbol above the staff gives the
+  // quality.
+  const STRADELLA_CHORD_MIN_MIDI = 50;
+  const STRADELLA_CHORD_TONE_GAIN = 0.5;
+  const CHORD_WORD_RE = /^([A-Ga-g])([#b\u266F\u266D]?)(m|min|-|M|maj|7|m7|min7|-7|maj7|M7|dim|dim7|\u00B0|\u00B07|o|o7)?$/;
+  const CHORD_WORD_INTERVALS = {
+    "": [0, 4, 7],
+    M: [0, 4, 7],
+    maj: [0, 4, 7],
+    m: [0, 3, 7],
+    min: [0, 3, 7],
+    "-": [0, 3, 7],
+    7: [0, 4, 10],
+    m7: [0, 3, 7, 10],
+    min7: [0, 3, 7, 10],
+    "-7": [0, 3, 7, 10],
+    maj7: [0, 4, 7, 11],
+    M7: [0, 4, 7, 11],
+    dim: [0, 3, 9],
+    dim7: [0, 3, 9],
+    "\u00B0": [0, 3, 9],
+    "\u00B07": [0, 3, 9],
+    o: [0, 3, 9],
+    o7: [0, 3, 9],
+  };
+  const LETTER_PC = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
+
+  // Accepts lowercase roots ("am", "em") as well as lead-sheet spelling.
+  // Anything else ("rit.", "a tempo") returns null.
+  function parseChordWord(text) {
+    const m = CHORD_WORD_RE.exec(String(text || "").trim());
+    if (!m) return null;
+    let pc = LETTER_PC[m[1].toLowerCase()];
+    if (m[2] === "#" || m[2] === "\u266F") pc += 1;
+    else if (m[2] === "b" || m[2] === "\u266D") pc -= 1;
+    return { pc: (pc + 12) % 12, intervals: CHORD_WORD_INTERVALS[m[3] || ""] };
+  }
+
+  function expressionTexts(multiExpression) {
+    const out = [];
+    const lists = [multiExpression.UnknownList || multiExpression.unknownList, multiExpression.EntriesList || multiExpression.entriesList];
+    for (const list of lists) {
+      if (!Array.isArray(list)) continue;
+      for (const item of list) {
+        const expr = (item && (item.expression || item.Expression)) || item;
+        const label = expr && (expr.Label || expr.label);
+        const text = label && typeof label === "object" ? label.text || label.Text : label;
+        if (typeof text === "string" && !out.includes(text)) out.push(text);
+      }
+    }
+    return out;
+  }
+
+  // Is this staff entry on the lower staff of a two-staff instrument?
+  function isLowerInstrumentStaff(sse, fallbackIndex) {
+    const staff = sse.ParentStaff || sse.parentStaff;
+    const instrument = staff && (staff.ParentInstrument || staff.parentInstrument);
+    const staves = instrument && (instrument.Staves || instrument.staves);
+    if (staves && staves.length) return staves.length > 1 && staves[staves.length - 1] === staff;
+    return fallbackIndex === 1;
   }
 
   function noteToMidi(pitch) {

@@ -83,9 +83,15 @@ for (const dependency of ["/assets/js/theme.js", "/assets/js/vanilla-back-to-top
 const senorita = fs.readFileSync(path.join(site, "music/sheet/senorita/index.html"), "utf8");
 assert.ok(senorita.includes('data-playback-instrument="accordion"'), "Señorita plays on accordion");
 assert.ok(senorita.includes("/sheet-music/playback.js"), "Señorita has sheet playback");
+assert.ok(senorita.includes('data-playback-stradella="true"'), "Señorita plays left-hand chord buttons as chords");
 const senoritaXml = fs.readFileSync(path.join(site, "assets/music/sheet-music/senorita/senorita.musicxml"), "utf8");
 assert.equal((senoritaXml.match(/<measure /g) || []).length, 16, "Señorita stops before rehearsal mark B");
 assert.ok(!/>B<\/rehearsal>/.test(senoritaXml) && /light-heavy/.test(senoritaXml), "Señorita ends with a final barline");
+const senoritaM3 = senoritaXml.slice(senoritaXml.indexOf('<measure number="3"'), senoritaXml.indexOf('<measure number="5"'));
+assert.ok(
+  !/<step>C<\/step>\s*<octave>3<\/octave>/.test(senoritaM3) && /<step>C<\/step>\s*<octave>4<\/octave>/.test(senoritaM3),
+  "Señorita v1.1 writes the C chord cues in the chord register"
+);
 const build = fs.readFileSync(path.join(site, "music/build/index.html"), "utf8");
 assert.ok(build.includes('id="song-charts"') && build.includes('id="stradella-play"'), "Set list builder has song charts and a player");
 assert.ok(/window\.SongChartData = \[\{/.test(build), "Set list builder inlines the song chart data");

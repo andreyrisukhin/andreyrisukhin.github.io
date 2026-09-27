@@ -43,6 +43,10 @@
       }
     }
   });
-  if (engine.events.length !== sounding) problems.push("expected " + sounding + " sounding notes, scheduled " + engine.events.length);
+  // Stradella chord notes expand to several chord-tone events that share
+  // one start time; count each such group as one written note.
+  const chordHits = new Set(engine.events.filter((e) => e.role === "chord").map((e) => e.startSec.toFixed(4))).size;
+  const scheduled = engine.events.filter((e) => e.role !== "chord").length + chordHits;
+  if (scheduled !== sounding) problems.push("expected " + sounding + " sounding notes, scheduled " + scheduled);
   return { page: location.pathname, events: engine.events.length, continuations, crossings, pass: problems.length === 0, problems };
 })();
