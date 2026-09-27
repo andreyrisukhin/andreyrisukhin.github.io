@@ -510,23 +510,23 @@
         </note>
       <direction placement="above">
         <direction-type>
-          <words relative-y="10">c</words>
+          <words default-y="17.76" relative-y="10">c</words>
           </direction-type>
         <staff>2</staff>
         </direction>
-      <note default-x="47.56" default-y="-126.87">
+      <note default-x="47.56" default-y="-91.87">
         <pitch>
           <step>C</step>
-          <octave>3</octave>
+          <octave>4</octave>
           </pitch>
         <duration>4</duration>
         <voice>5</voice>
         <type>quarter</type>
-        <stem>up</stem>
+        <stem>down</stem>
         <staff>2</staff>
         <notations>
           <articulations>
-            <staccato default-x="4.93" default-y="-33.44"/>
+            <staccato default-x="4.93" default-y="19.3"/>
             </articulations>
           </notations>
         </note>
@@ -537,19 +537,19 @@
         <type>quarter</type>
         <staff>2</staff>
         </note>
-      <note default-x="117.69" default-y="-126.87">
+      <note default-x="117.69" default-y="-91.87">
         <pitch>
           <step>C</step>
-          <octave>3</octave>
+          <octave>4</octave>
           </pitch>
         <duration>4</duration>
         <voice>5</voice>
         <type>quarter</type>
-        <stem>up</stem>
+        <stem>down</stem>
         <staff>2</staff>
         <notations>
           <articulations>
-            <staccato default-x="4.93" default-y="-33.44"/>
+            <staccato default-x="4.93" default-y="19.3"/>
             </articulations>
           </notations>
         </note>
@@ -659,19 +659,19 @@
         <type>quarter</type>
         <staff>2</staff>
         </note>
-      <note default-x="53.41" default-y="-126.87">
+      <note default-x="53.41" default-y="-91.87">
         <pitch>
           <step>C</step>
-          <octave>3</octave>
+          <octave>4</octave>
           </pitch>
         <duration>4</duration>
         <voice>5</voice>
         <type>quarter</type>
-        <stem>up</stem>
+        <stem>down</stem>
         <staff>2</staff>
         <notations>
           <articulations>
-            <staccato default-x="4.93" default-y="-33.44"/>
+            <staccato default-x="4.93" default-y="19.3"/>
             </articulations>
           </notations>
         </note>
@@ -682,19 +682,19 @@
         <type>quarter</type>
         <staff>2</staff>
         </note>
-      <note default-x="144.76" default-y="-126.87">
+      <note default-x="144.76" default-y="-91.87">
         <pitch>
           <step>C</step>
-          <octave>3</octave>
+          <octave>4</octave>
           </pitch>
         <duration>4</duration>
         <voice>5</voice>
         <type>quarter</type>
-        <stem>up</stem>
+        <stem>down</stem>
         <staff>2</staff>
         <notations>
           <articulations>
-            <staccato default-x="4.93" default-y="-33.44"/>
+            <staccato default-x="4.93" default-y="19.3"/>
             </articulations>
           </notations>
         </note>
@@ -947,7 +947,7 @@
           <tied type="start"/>
           <slur type="start" bezier-x="31.423559" bezier-y="23.993487" number="1"/>
           <articulations>
-            <accent default-x="-0.72" default-y="4.55"/>
+            <accent default-x="-0.72" default-y="4"/>
             </articulations>
           </notations>
         </note>
