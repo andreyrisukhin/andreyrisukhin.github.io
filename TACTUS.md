@@ -55,13 +55,14 @@ agent-browser eval --stdin < _scripts/tactus-loudness-check.js
 Use a fresh browser session after a rebuild; the service worker otherwise
 serves the previous scripts.
 
-Measured on 2026-09-26 (gated RMS before the limiter):
+Measured on 2026-09-26, sheet playback pages re-measured 2026-09-27 after
+articulation playback (gated RMS before the limiter):
 
 | Page                               | Voice                     | dBFS  |
 | ---------------------------------- | ------------------------- | ----- |
-| Sheet: Reconstructing More Science | soundfont (drawbar organ) | −27.1 |
+| Sheet: Reconstructing More Science | soundfont (drawbar organ) | −27.7 |
 | Sheet: Cogwork Dancers, live       | soundfont (accordion)     | −28.2 |
-| Sheet: Señorita (gain 1.6)         | soundfont (accordion)     | −26.7 |
+| Sheet: Señorita (gain 1.6)         | soundfont (accordion)     | −27.1 |
 | Bass patterns (Prison Blues)       | synth                     | −27.9 |
 | Workbench                          | synth                     | −28.9 |
 | Blues                              | synth                     | −28.2 |
