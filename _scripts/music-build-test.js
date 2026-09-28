@@ -83,6 +83,16 @@ for (const dependency of ["/assets/js/theme.js", "/assets/js/vanilla-back-to-top
 const senorita = fs.readFileSync(path.join(site, "music/sheet/senorita/index.html"), "utf8");
 assert.ok(senorita.includes('data-playback-instrument="accordion"'), "Señorita plays on accordion");
 assert.ok(senorita.includes("/sheet-music/playback.js"), "Señorita has sheet playback");
+assert.ok(
+  /data-musicxml-url="\/assets\/music\/sheet-music\/senorita\/senorita\.musicxml\?v=\d+"/.test(senorita),
+  "Señorita's score URL changes with each build so cached copies of an old score are skipped"
+);
+assert.ok(
+  /startsWith\('\/assets\/music\/sheet-music\/'\)\)\s*\{\s*event\.respondWith\(networkFirst\(new Request\(req, \{ cache: 'no-cache' \}\)\)\)/.test(
+    fs.readFileSync(path.join(site, "sw.js"), "utf8")
+  ),
+  "Offline cache fetches score files fresh when online"
+);
 assert.ok(senorita.includes('data-playback-stradella="true"'), "Señorita plays left-hand chord buttons as chords");
 const senoritaXml = fs.readFileSync(path.join(site, "assets/music/sheet-music/senorita/senorita.musicxml"), "utf8");
 assert.equal((senoritaXml.match(/<measure /g) || []).length, 16, "Señorita stops before rehearsal mark B");

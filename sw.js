@@ -237,6 +237,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Score files keep the same path when a score is revised, so a cached copy
+  // would outlive the edit. Revalidate them with the server (bypassing the
+  // browser's HTTP cache too) and use the cache only offline.
+  if (url.origin === self.location.origin && url.pathname.startsWith('/assets/music/sheet-music/')) {
+    event.respondWith(networkFirst(new Request(req, { cache: 'no-cache' })));
+    return;
+  }
+
   if (isMusicAsset(url)) {
     if (url.pathname.startsWith('/assets/js/vendor/') || url.pathname.startsWith('/assets/img/pwa/')) {
       event.respondWith(cacheFirst(req, CACHE_STATIC));

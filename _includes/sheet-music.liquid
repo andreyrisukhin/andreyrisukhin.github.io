@@ -6,7 +6,7 @@
 
 <div
   class="sheet-music-page sheet-music-page--flexoki{% if include.practice %} sheet-practice{% endif %}"
-  data-musicxml-url="{{ musicxml_path | relative_url }}"
+  data-musicxml-url="{{ musicxml_path | relative_url }}?v={{ site.time | date: '%s' }}"
   {% if include.rendered_audio %}
     data-rendered-audio-url="{{ include.rendered_audio | relative_url }}"
   {% endif %}
