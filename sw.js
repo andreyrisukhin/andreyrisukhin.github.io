@@ -6,7 +6,7 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1790558396';
+const VERSION = '1790560039';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
@@ -202,15 +202,20 @@ async function cacheFirst(request, cacheName) {
 
 async function staleWhileRevalidate(request, cacheName) {
   const cache = await caches.open(cacheName);
-  // Jekyll appends a content hash to shell assets. The precache uses bare paths.
-  const cached = await cache.match(request, { ignoreSearch: isPrecached(new URL(request.url)) });
+  const cached = await cache.match(request);
   const network = fetch(request)
     .then((res) => {
       if (res && res.ok) cache.put(request, res.clone()).catch(() => undefined);
       return res;
     })
     .catch(() => undefined);
-  return cached || (await network) || Response.error();
+  if (cached) return cached;
+  // An uncached ?v= or content-hash URL is a new version, so wait for the
+  // network. The precache stores bare paths; use them only offline.
+  const fresh = await network;
+  if (fresh) return fresh;
+  const offline = isPrecached(new URL(request.url)) ? await cache.match(request, { ignoreSearch: true }) : undefined;
+  return offline || Response.error();
 }
 
 self.addEventListener('fetch', (event) => {
