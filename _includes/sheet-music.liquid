@@ -86,7 +86,7 @@
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/tactus/audio.js?v=1' | relative_url }}"></script>
-<script src="{{ '/assets/js/sheet-music/osmd-bridge.js?v=2' | relative_url }}"></script>
+<script src="{{ '/assets/js/sheet-music/osmd-bridge.js?v=3' | relative_url }}"></script>
 <script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
 {% if include.practice %}
   <script src="{{ '/assets/js/music/bayan-keyboard.js' | relative_url }}"></script>
@@ -99,14 +99,14 @@
   <script defer src="{{ '/assets/js/sheet-music/practice.js' | relative_url }}"></script>
   <script defer src="{{ '/assets/js/sheet-music/practice-inspector.js' | relative_url }}"></script>
 {% else %}
-  <script defer src="{{ '/assets/js/sheet-music/chord-inspector.js' | relative_url }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/chord-inspector.js?v=2' | relative_url }}"></script>
 {% endif %}
 <script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js?v=2' | relative_url }}"></script>
 {% if include.playback and include.practice != true %}
   <script defer src="{{ '/assets/js/sheet-music/playhead.js?v=1' | relative_url }}"></script>
   <script defer src="{{ '/assets/js/sheet-music/transpose.js?v=1' | relative_url }}"></script>
-  <script defer src="{{ '/assets/js/sheet-music/playback.js?v=13' | relative_url }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/playback.js?v=14' | relative_url }}"></script>
 {% endif %}
 <script src="{{ '/assets/js/vendor/opensheetmusicdisplay.min.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/page.js?v=4' | relative_url }}"></script>

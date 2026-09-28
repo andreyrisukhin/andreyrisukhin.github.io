@@ -51,6 +51,8 @@
     const noteGain = parseFloat(sheetPage && sheetPage.dataset.playbackGain);
     if (noteGain > 0) engine.noteGain = noteGain;
     window.__playback = engine; // expose for DevTools poking
+    // Lets the hover tag name the chord a Stradella chord note plays.
+    if (engine.stradellaBass) bridge.stradellaReading = (note) => (engine.stradellaReadings && engine.stradellaReadings.get(note)) || null;
     console.log(
       "[playback] schedule built: events=%d, measures=%d, totalSec=%.2f, bpm=%d",
       engine.events.length,
@@ -536,15 +538,17 @@
         frac && typeof frac.RealValue === "number" ? frac.RealValue * 4 : frac && typeof frac.realValue === "number" ? frac.realValue * 4 : 0;
       // Latest chord symbol with this root at or before the note, else the
       // first one later in the same measure.
-      const chordIntervalsFor = (pc, sec, measureIdx) => {
+      const chordQualityFor = (pc, sec, measureIdx) => {
         let best = null;
         for (const w of chordWords) {
           if (w.pc !== pc) continue;
           if (w.sec <= sec + 0.001) best = w;
           else if (!best && w.measureIdx === measureIdx) best = w;
         }
-        return best ? best.intervals : CHORD_WORD_INTERVALS[""];
+        return best || MAJOR_CHORD;
       };
+      // Source note -> {role, suffix, tones}, for hover labels.
+      const stradellaReadings = new Map();
       for (const [measureIdx, measure] of measures.entries()) {
         measureStarts.push(t);
         if (self.stradellaBass) {
@@ -553,7 +557,7 @@
               const sec = t + realBeats(me.Timestamp || me.timestamp) * quarterDur;
               for (const text of expressionTexts(me)) {
                 const chord = parseChordWord(text);
-                if (chord) chordWords.push({ sec, measureIdx, pc: chord.pc, intervals: chord.intervals });
+                if (chord) chordWords.push({ sec, measureIdx, ...chord });
               }
             }
           }
@@ -597,12 +601,18 @@
                 const lenBeats =
                   len && typeof len.RealValue === "number" ? len.RealValue * 4 : len && typeof len.realValue === "number" ? len.realValue * 4 : 1;
                 const durationSec = Math.max(0.05, lenBeats * quarterDur);
-                if (stradellaStaff && midi >= STRADELLA_CHORD_MIN_MIDI) {
-                  for (const interval of chordIntervalsFor(midi % 12, startSec, measureIdx)) {
+                let reading = null;
+                if (stradellaStaff) {
+                  const quality = midi >= STRADELLA_CHORD_MIN_MIDI ? chordQualityFor(midi % 12, startSec, measureIdx) : null;
+                  reading = quality ? { role: "chord", suffix: quality.suffix, tones: quality.tones } : { role: "bass" };
+                  for (const n of tied ? tieNotes : [note]) stradellaReadings.set(n, reading);
+                }
+                if (reading && reading.role === "chord") {
+                  for (const [interval] of reading.tones) {
                     events.push({ midi: midi + interval, startSec, durationSec, gain: STRADELLA_CHORD_TONE_GAIN, role: "chord", ...articulation });
                   }
                 } else {
-                  events.push({ midi, startSec, durationSec, role: stradellaStaff ? "bass" : undefined, ...articulation });
+                  events.push({ midi, startSec, durationSec, role: reading ? "bass" : undefined, ...articulation });
                 }
               }
             }
@@ -617,6 +627,7 @@
         console.warn("[playback] %d containers had no usable Timestamp; events stacked at measure start", degradeCount);
       }
       self.events = events.sort((a, b) => a.startSec - b.startSec);
+      self.stradellaReadings = stradellaReadings;
       self.measureStarts = measureStarts;
       self.totalSec = t;
       self.liveMeasureStarts = measureStarts;
@@ -755,26 +766,58 @@
   const STRADELLA_CHORD_MIN_MIDI = 50;
   const STRADELLA_CHORD_TONE_GAIN = 0.5;
   const CHORD_WORD_RE = /^([A-Ga-g])([#b\u266F\u266D]?)(m|min|-|M|maj|7|m7|min7|-7|maj7|M7|dim|dim7|\u00B0|\u00B07|o|o7)?$/;
-  const CHORD_WORD_INTERVALS = {
-    "": [0, 4, 7],
-    M: [0, 4, 7],
-    maj: [0, 4, 7],
-    m: [0, 3, 7],
-    min: [0, 3, 7],
-    "-": [0, 3, 7],
-    7: [0, 4, 10],
-    m7: [0, 3, 7, 10],
-    min7: [0, 3, 7, 10],
-    "-7": [0, 3, 7, 10],
-    maj7: [0, 4, 7, 11],
-    M7: [0, 4, 7, 11],
-    dim: [0, 3, 9],
-    dim7: [0, 3, 9],
-    "\u00B0": [0, 3, 9],
-    "\u00B07": [0, 3, 9],
-    o: [0, 3, 9],
-    o7: [0, 3, 9],
+  // Chord-button qualities: display suffix and tones as [semitones above
+  // the root, letter steps above the root] so tones can be spelled.
+  // The Stradella diminished button omits the fifth.
+  const CHORD_QUALITIES = {
+    "": [
+      [0, 0],
+      [4, 2],
+      [7, 4],
+    ],
+    m: [
+      [0, 0],
+      [3, 2],
+      [7, 4],
+    ],
+    7: [
+      [0, 0],
+      [4, 2],
+      [10, 6],
+    ],
+    m7: [
+      [0, 0],
+      [3, 2],
+      [7, 4],
+      [10, 6],
+    ],
+    maj7: [
+      [0, 0],
+      [4, 2],
+      [7, 4],
+      [11, 6],
+    ],
+    dim7: [
+      [0, 0],
+      [3, 2],
+      [9, 6],
+    ],
   };
+  const CHORD_WORD_SUFFIX = {
+    M: "",
+    maj: "",
+    min: "m",
+    "-": "m",
+    min7: "m7",
+    "-7": "m7",
+    M7: "maj7",
+    dim: "dim7",
+    "\u00B0": "dim7",
+    "\u00B07": "dim7",
+    o: "dim7",
+    o7: "dim7",
+  };
+  const MAJOR_CHORD = { suffix: "", tones: CHORD_QUALITIES[""] };
   const LETTER_PC = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
 
   // Accepts lowercase roots ("am", "em") as well as lead-sheet spelling.
@@ -785,7 +828,9 @@
     let pc = LETTER_PC[m[1].toLowerCase()];
     if (m[2] === "#" || m[2] === "\u266F") pc += 1;
     else if (m[2] === "b" || m[2] === "\u266D") pc -= 1;
-    return { pc: (pc + 12) % 12, intervals: CHORD_WORD_INTERVALS[m[3] || ""] };
+    const written = m[3] || "";
+    const suffix = written in CHORD_WORD_SUFFIX ? CHORD_WORD_SUFFIX[written] : written;
+    return { pc: (pc + 12) % 12, suffix, tones: CHORD_QUALITIES[suffix] };
   }
 
   function expressionTexts(multiExpression) {

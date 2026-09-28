@@ -61,7 +61,7 @@
             : null;
 
         const notes = voiceEntry && Array.isArray(voiceEntry.notes) ? voiceEntry.notes : [gn];
-        const pitches = notes.map((n) => pitchName(n)).filter(Boolean);
+        let pitches = notes.map((n) => pitchName(n)).filter(Boolean);
 
         const sn = gn.sourceNote || gn.SourceNote;
         const isRest = !!(sn && (sn.isRestFlag === true || (typeof sn.isRest === "function" && sn.isRest())));
@@ -79,7 +79,7 @@
         //                root-position by itself). Drives the
         //                Stradella overlay and the inspector's
         //                "Sounds as" line.
-        const chordName = pitches.length >= 2 ? detectChordName(pitches) : null;
+        let chordName = pitches.length >= 2 ? detectChordName(pitches) : null;
         let harmony = null;
         if (chordName) {
           const measurePitches = staffEntry ? gatherMeasurePitches(staffEntry, gn) : [];
@@ -87,10 +87,23 @@
           if (promoted && promoted !== chordName) harmony = promoted;
         }
 
+        // On an accordion bass staff read as Stradella notation (set up
+        // by playback.js), a single chord-register note stands for a
+        // chord button: report the chord it plays, not the written pitch.
+        const reading = sn && typeof api.stradellaReading === "function" ? api.stradellaReading(sn) : null;
+        const root = reading && reading.role === "chord" ? pitchName(gn) : null;
+        const tones = root ? reading.tones.map(([semitones, steps]) => spellAbove(root, semitones, steps)) : [];
+        if (tones.length && tones.every(Boolean)) {
+          pitches = tones;
+          chordName = root.replace(/-?\d+$/, "") + reading.suffix;
+          harmony = null;
+        }
+
         return {
           pitches,
           chordName,
           harmony,
+          stradella: reading ? reading.role : null,
           clickedPitch: pitchName(gn),
           isRest,
           isTied,
@@ -318,6 +331,21 @@
     else if (acc === "##") semi += 2;
     else if (acc === "bb") semi -= 2;
     return (octave + 1) * 12 + semi;
+  }
+
+  // Spell the note `semitones` above `pitch` whose letter is `steps`
+  // letters higher, e.g. ("A3", 3, 2) -> "C4", ("C4", 9, 6) -> "Bbb4".
+  function spellAbove(pitch, semitones, steps) {
+    const m = String(pitch).match(/^([A-G])([#b]{0,2})(-?\d+)$/);
+    if (!m) return null;
+    const LETTERS = "CDEFGAB";
+    const NATURAL = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    const index = LETTERS.indexOf(m[1]) + steps;
+    const letter = LETTERS[index % 7];
+    const octave = parseInt(m[3], 10) + Math.floor(index / 7);
+    const offset = pitchToMidi(pitch) + semitones - ((octave + 1) * 12 + NATURAL[letter]);
+    if (Math.abs(offset) > 2) return null;
+    return letter + (offset > 0 ? "#".repeat(offset) : "b".repeat(-offset)) + octave;
   }
 
   // Collect every pitch in the source measure that is NOT one of the

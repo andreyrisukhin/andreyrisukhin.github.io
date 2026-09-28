@@ -272,6 +272,9 @@
       chordName,
       harmony,
       clickedPitch: hit.clickedPitch || pitches[0],
+      // Stradella notes are buttons, so name the button kind instead of
+      // repeating the written pitch.
+      tagDetail: hit.stradella === "chord" ? "chord button" : hit.stradella === "bass" ? "bass button" : null,
       stradellaHtml,
     };
   }
@@ -349,7 +352,7 @@
 
     function showAt(pageX, pageY, data, sticky) {
       const chord = data.chordName && data.chordName !== "N/A" ? data.chordName : "";
-      const pitch = data.clickedPitch ? data.clickedPitch : "";
+      const pitch = data.tagDetail || data.clickedPitch || "";
       let html = "";
       if (chord) html += `<span class="chord-tag__chord">${escapeHtml(chord)}</span>`;
       if (pitch) html += `<span class="chord-tag__pitch">${escapeHtml(pitch)}</span>`;
