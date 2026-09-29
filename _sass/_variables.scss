@@ -37,6 +37,9 @@ $black-color: #000000 !default;
 $code-bg-color-light: rgba($purple-color, 0.05);
 $code-bg-color-dark: #2c3237 !default;
 
+// Site face, loaded from Google Fonts via `google_fonts` in _config.yml.
+$site-font: "Nunito Sans", "Helvetica Neue", Arial, sans-serif !default;
+
 // Typography scale
 $type-size-body: 1rem !default;
 $type-size-small: 0.875rem !default;
