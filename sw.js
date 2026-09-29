@@ -6,7 +6,7 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1790560039';
+const VERSION = '1790701599';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
