@@ -13,7 +13,11 @@ layout: default
   </style>
 {% endif %}
 
-<div class="post">
+{% if jekyll.environment == 'development' %}
+  <script src="{{ '/assets/js/post-font-preview.js' | relative_url | bust_file_cache }}"></script>
+{% endif %}
+{% assign post_style = page.post_style | default: site.post_style | default: 'reading' %}
+<div class="post post-reading{% if post_style == 'paper' %} post-reading--paper{% endif %}">
   <header class="post-header">
     <h1 class="post-title">{{ page.title }}</h1>
     <p class="post-meta">

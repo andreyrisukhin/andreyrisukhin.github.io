@@ -19,7 +19,10 @@ strong {
   color: var(--global-text-color);
 }
 
+// MDB sets Roboto at weight 300 on body; the site face reads better at 400.
 body {
+  font-family: $site-font;
+  font-weight: 400;
   font-size: $type-size-body;
   line-height: $type-line-body;
 }

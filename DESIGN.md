@@ -32,6 +32,7 @@ A caption that just restates what the photo shows is noise. Caption only when th
 
 ### 3. Typographic restraint
 
+- One typeface sitewide: Nunito Sans (Google Fonts via `google_fonts` in `_config.yml`, upright and italic, weights 300-800), set as `$site-font` in `_sass/_variables.scss`. Body weight is 400; use 700 for bold. Code stays monospace.
 - Use a small, discrete type scale across the site. Do not introduce one-off font sizes for page-specific polish.
 - Default roles:
   - Body text: `1rem` / `16px`, line-height `1.5`.
@@ -40,6 +41,12 @@ A caption that just restates what the photo shows is noise. Caption only when th
   - H1/page title: `2.5rem` / `40px`, line-height `1.2`.
   - H2/section title: `1.5rem` / `24px`, line-height `1.3`.
   - H3/card title: `1.125rem` / `18px`, line-height `1.35`.
+- Blog posts (`layout: post`) use a reading scale instead of the body role above, defined in `_sass/_post-reading.scss`:
+  - Column: `42.5rem` / `680px`, about 70 characters per line. Long lines are the main cause of reading fatigue.
+  - Body: the site face at `1.1875rem` / `19px`, line-height `1.6`, weight 400, near-black text. `1.125rem` on phones.
+  - Title, H2/H3, and captions use the same face: bold headings with generous space above, italic muted captions at the small size.
+  - In local previews, `?font=<name>` on a post URL tries other faces (`assets/js/post-font-preview.js`).
+  - Posts sit on a Flexoki paper sheet by default (`post_style: paper` in `_config.yml`), matching the sheet music pages. This is the one allowed exception to keeping paper treatment off writing pages. A post can opt out with `post_style: reading` in its front matter.
 - Page descriptions should not look like second-class body copy. If a description is the lead sentence for a page, render it at body size, not metadata size.
 - Tool-specific UI can use small/tiny text for controls, badges, and compact diagrams, but explanatory prose on tool pages should stay at body size.
 - One H1 per page (the title), then H2 sparingly. Do not use H3+ unless the post genuinely has nested structure.

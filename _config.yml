@@ -58,6 +58,11 @@ bib_search: true
 # Dimensions
 max_width: 930px
 
+# Blog post style: "reading" (serif column on the site background) or "paper"
+# (serif column on a paper sheet, like the sheet music pages). A post can
+# override this with `post_style:` in its front matter.
+post_style: paper
+
 # -----------------------------------------------------------------------------
 # Open Graph & Schema.org
 # -----------------------------------------------------------------------------
@@ -463,7 +468,8 @@ third_party_libraries:
     version: "5.5.0"
   google_fonts:
     url:
-      fonts: "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&display=swap"
+      # Site face (see $site-font in _sass/_variables.scss): upright and italic, weights 300-800.
+      fonts: "https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300..800;1,6..12,300..800&display=swap"
   highlightjs:
     integrity:
       css:
