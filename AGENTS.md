@@ -64,6 +64,21 @@ If `vale` is installed in the repo, run it before responding and fold its output
 - The broken-links workflow excludes Liquid-templated pages (`_pages/kata.md`, `terrarium.md`, `golem-demo.md`, `_projects/3_project.md`). If a new page uses Liquid in URLs, add it to that exclude list.
 - `.lycheeignore` covers bot-blocked domains (linkedin, reddit, unsplash, intmath).
 
+## Local preview
+
+I view previews in a browser on another machine through VS Code Remote-SSH port forwarding. A server that answers `curl` on this machine can still fail for me. Start previews with:
+
+```sh
+bin/preview-serve.sh /blog/2026/my-post/
+```
+
+It picks free ports in 8090-8099 (live reload in 35729-35739), reuses the main checkout's gems from a worktree, includes drafts (`--unpublished --future`), waits for the first build (about 80 seconds), asks VS Code to forward the port and open the page, then prints the URL and the PID to stop.
+
+- Do not serve on 5173, 4173, 8080, or 6006. Static SSH forwards on my laptop claim those ports and do not reach this machine, so the page shows "connection refused" or stays blank.
+- `bin/dev-serve.sh` and the Jekyll default use port 4000, which I also cannot reach.
+- If a restarted server's page goes blank, VS Code is holding a stale forward. Stop the server and rerun the script; it takes the next free port.
+- Prettier from a worktree needs the main checkout's install: run `node_modules/.bin/prettier --check <absolute path>` from the main checkout.
+
 ## Branches and merging
 
 `main` is the only long-lived branch. GitHub Pages deploys from it, so whatever lands there is public.
