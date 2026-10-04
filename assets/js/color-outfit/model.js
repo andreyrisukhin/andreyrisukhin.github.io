@@ -298,9 +298,9 @@
     return { scheme, notes };
   }
 
-  // Hash format: chinos.556b2f.45_tee.ffffff.30 (share omitted when auto).
+  // Hash format: chinos.556b2f.45_tee.ffffff.30.k (share omitted when auto; k marks a locked piece).
   function encodeOutfit(state) {
-    const pieces = state.pieces.map((p) => [p.garment, p.hex.replace("#", ""), state.auto ? "" : p.share].filter(String).join("."));
+    const pieces = state.pieces.map((p) => [p.garment, p.hex.replace("#", ""), state.auto ? "" : p.share, p.locked ? "k" : ""].filter(String).join("."));
     const params = new URLSearchParams();
     params.set("o", pieces.join("_"));
     if (state.skin) params.set("skin", state.skin.replace("#", ""));
@@ -314,10 +314,12 @@
     const pieces = raw
       .split("_")
       .map((part) => {
-        const [id, hex, share] = part.split(".");
+        const [id, hex, ...flags] = part.split(".");
         const color = normalizeHex(hex);
         if (!GARMENT_BY_ID[id] || !color) return null;
-        return { garment: id, hex: color, share: Number(share) || 0 };
+        const piece = { garment: id, hex: color, share: Number(flags.find((f) => /^\d+$/.test(f))) || 0 };
+        if (flags.includes("k")) piece.locked = true;
+        return piece;
       })
       .filter(Boolean);
     if (!pieces.length) return null;
@@ -455,6 +457,13 @@
     return best ? best.name : null;
   }
 
+  // Ideas build on the largest locked piece, or on the largest piece when nothing is locked.
+  function ideaBaseIndex(pieces, locked) {
+    const lockedList = Array.from(locked || []).filter((i) => pieces[i]);
+    if (!lockedList.length) return anchorIndex(pieces);
+    return lockedList.reduce((best, i) => (pieces[i].share > pieces[best].share ? i : best));
+  }
+
   function anchorIndex(pieces) {
     return pieces.reduce((best, p, i) => (p.share > pieces[best].share ? i : best), 0);
   }
@@ -473,7 +482,7 @@
     const variant = options.variant || 0;
     const pick = (list, k = 0) => list[(variant + k) % list.length];
 
-    const anchorAt = anchorIndex(pieces);
+    const anchorAt = ideaBaseIndex(pieces, locked);
     const anchorHex = pieces[anchorAt].hex;
     const A = hexToHsv(anchorHex);
     const AL = hexToOklch(anchorHex);
@@ -584,6 +593,7 @@
 
   root.OutfitColor = {
     anchorIndex,
+    ideaBaseIndex,
     familyOf,
     suggestOutfits,
     clamp,

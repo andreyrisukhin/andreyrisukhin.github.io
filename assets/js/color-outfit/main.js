@@ -414,13 +414,12 @@
     const anchorAt = leadIndex();
     const rows = state.pieces.map((p, i) => {
       const li = document.createElement("li");
-      li.className = "outfit-piece" + (i === selected ? " is-selected" : "");
+      li.className = "outfit-piece" + (i === selected ? " is-selected" : "") + (p.locked ? " is-locked" : "");
       li.innerHTML = `
-        <button type="button" class="outfit-piece__swatch" style="background:${p.hex}" aria-label="Edit ${nameOf(p)} color"></button>
+        <button type="button" class="outfit-piece__swatch" style="background:${p.hex}" aria-label="Edit ${nameOf(p)} color" title="${colorName(p.hex)}${i === anchorAt ? " (anchor)" : ""}"></button>
         <select class="outfit-piece__garment" aria-label="Garment">${garmentOptions(p.garment)}</select>
-        <span class="outfit-piece__color">${colorName(p.hex)}${i === anchorAt ? ' <span class="outfit-badge">anchor</span>' : ""}</span>
         <label class="outfit-piece__share"><input type="number" min="1" max="99" value="${p.share}" aria-label="${nameOf(p)} share">%</label>
-        <button type="button" class="outfit-piece__lock${p.locked ? " is-locked" : ""}" aria-pressed="${Boolean(p.locked)}" aria-label="Keep ${nameOf(p)} color in ideas" title="${p.locked ? "Locked: ideas keep this color" : "Lock to keep this color in ideas"}"><i class="ti ti-lock${p.locked ? "" : "-open"}" aria-hidden="true"></i></button>
+        <button type="button" class="outfit-piece__lock${p.locked ? " is-locked" : ""}" aria-pressed="${Boolean(p.locked)}" aria-label="Lock ${nameOf(p)} color" title="${p.locked ? "Locked: ideas build around this color and never change it" : "Lock this color so ideas never change it"}"><i class="ti ti-lock${p.locked ? "" : "-open"}" aria-hidden="true"></i><span>${p.locked ? "Locked" : "Lock"}</span></button>
         <button type="button" class="outfit-piece__remove" aria-label="Remove ${nameOf(p)}"${state.pieces.length < 2 ? " disabled" : ""}>&times;</button>`;
       li.addEventListener("click", (event) => {
         if (event.target.closest("select, input, .outfit-piece__remove, .outfit-piece__lock")) return;
@@ -445,7 +444,8 @@
       });
       li.querySelector(".outfit-piece__lock").addEventListener("click", () => {
         p.locked = !p.locked;
-        render();
+        ideaVariant = 0;
+        commit();
       });
       li.querySelector(".outfit-piece__remove").addEventListener("click", () => {
         state.pieces.splice(i, 1);
@@ -557,12 +557,17 @@
 
   function renderIdeas() {
     const locked = state.pieces.map((p, i) => (p.locked ? i : -1)).filter((i) => i >= 0);
-    const anchor = state.pieces[leadIndex()];
+    const base = state.pieces[O.ideaBaseIndex(state.pieces, locked)];
     const ideas = O.suggestOutfits(state.pieces, { locked, variant: ideaVariant });
-    const kept = [nameOf(anchor) + " (anchor)", ...locked.filter((i) => state.pieces[i] !== anchor).map((i) => nameOf(state.pieces[i]))];
+    const describe = (p) => `${colorName(p.hex).toLowerCase()} ${nameOf(p).toLowerCase()}`;
+    const others = locked.map((i) => state.pieces[i]).filter((p) => p !== base);
+    const keeping = others.length ? ` Also keeping ${others.map(describe).join(", ")}.` : "";
+    const lockTip = locked.length ? "" : " Lock pieces you can’t change and ideas will work around them.";
     ideasNote.textContent = ideas.length
-      ? `Built around ${colorName(anchor.hex).toLowerCase()} ${nameOf(anchor).toLowerCase()}. Keeping: ${kept.join(", ")}. Click one to try it.`
-      : "Add a piece or unlock one to get ideas.";
+      ? `Built around ${describe(base)}.${keeping} Click one to try it.${lockTip}`
+      : locked.length === state.pieces.length
+        ? "Every piece is locked. Unlock one to get ideas for it."
+        : "Add a piece to get ideas.";
     moreButton.hidden = !ideas.length;
     ideasEl.replaceChildren(
       ...ideas.map((idea) => {

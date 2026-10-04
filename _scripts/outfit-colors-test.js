@@ -89,7 +89,7 @@ const base = [
   { garment: "hat", hex: "#1c1c1e", share: 8 },
 ];
 assert.equal(O.anchorIndex(base), 1);
-const ideas = O.suggestOutfits(base, { locked: [0] });
+const ideas = O.suggestOutfits(base, { locked: [0, 1] });
 assert.ok(ideas.length >= 3);
 for (const idea of ideas) {
   assert.equal(idea.hexes[1], "#5b6236");
@@ -114,6 +114,30 @@ const oliveIdeas = O.suggestOutfits(olive);
 assert.ok(oliveIdeas[0].proven && oliveIdeas[0].name.startsWith("Olive"));
 const rust = O.suggestOutfits(olive, { variant: 1 }).find((idea) => idea.name === "Olive + rust accent");
 assert.equal(rust.hexes[2], "#a4472c");
+
+// Locking a smaller piece makes it the base, so the larger unlocked tee gets repainted around the shorts.
+const shortsLook = [
+  { garment: "tee", hex: "#f4f2ec", share: 54 },
+  { garment: "shorts", hex: "#5b6236", share: 33, locked: true },
+  { garment: "shoes", hex: "#5c4033", share: 13 },
+];
+assert.equal(O.ideaBaseIndex(shortsLook, [1]), 1);
+assert.equal(O.ideaBaseIndex(shortsLook, []), 0);
+const shortsIdeas = O.suggestOutfits(shortsLook, { locked: [1] });
+assert.ok(shortsIdeas.every((idea) => idea.hexes[1] === "#5b6236"));
+assert.ok(shortsIdeas.some((idea) => idea.hexes[0] !== "#f4f2ec"));
+assert.ok(shortsIdeas[0].name.startsWith("Olive"));
+assert.equal(O.suggestOutfits(shortsLook, { locked: [0, 1, 2] }).length, 0);
+
+// Locks survive links.
+const lockedLink = O.encodeOutfit({ auto: true, pieces: shortsLook });
+assert.equal(lockedLink, "o=tee.f4f2ec_shorts.5b6236.k_shoes.5c4033");
+const lockedBack = O.decodeOutfit(lockedLink);
+assert.deepEqual(Array.from(lockedBack.pieces, (p) => Boolean(p.locked)), [false, true, false]);
+assert.equal(lockedBack.auto, true);
+const lockedCustom = O.decodeOutfit("o=tee.ffffff.60_shorts.5b6236.40.k");
+assert.deepEqual(Array.from(lockedCustom.pieces, (p) => p.share), [60, 40]);
+assert.equal(lockedCustom.pieces[1].locked, true);
 
 // Links round-trip; auto sizes omit shares.
 const auto = O.encodeOutfit({ auto: true, skin: "#c68e6a", pieces: [{ garment: "tee", hex: "#f4f2ec", share: 60 }, { garment: "shorts", hex: "#5b6236", share: 40 }] });
