@@ -5,8 +5,8 @@ nav: true
 nav_order: 9
 dropdown: true
 children:
-  - title: ditherer
-    permalink: /ditherer/
+  - title: color
+    permalink: /color/
   - title: kata
     permalink: /kata/
 ---

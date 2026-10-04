@@ -10,7 +10,7 @@ Planned menu, motion, and palette work lives in [`SITE_DESIGN_REFRESH_PLAN.md`](
 
 ### Creative pages: paper and ink
 
-Music, ditherer, and kata may gather soft watercolor washes as the reader interacts.
+Music, color (the outfit palette and ditherer), and kata may gather soft watercolor washes as the reader interacts.
 Keep this treatment off the homepage, writing, and other non-creative pages.
 Music retains its instrument palette. Kata steps sit above a slowly drifting
 landscape, with stars, fractured plains, and a distant campfire for Sleep Form.
