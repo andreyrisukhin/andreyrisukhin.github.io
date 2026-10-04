@@ -295,12 +295,41 @@
       else notes.push({ level: "good", title: "Balanced contrast", text: "The large pieces differ in lightness without a hard jump." });
     }
 
+    // Leather goods read as one set when they match the shoes.
+    const shoe = pieces.find((p) => p.garment && garment(p.garment).slot === "shoes");
+    const goods = pieces.filter((p) => p.garment && LEATHER_GOODS.includes(garment(p.garment).slot));
+    if (shoe && goods.length) {
+      const off = goods.filter((g) => !leatherMatch(g.hex, shoe.hex));
+      const names = (list) => list.map((g) => g.label).join(" and ");
+      const verb = (list, one, many) => (list.length > 1 ? many : one);
+      const shoeName = shoe.label.toLowerCase();
+      if (!off.length) {
+        notes.push({ level: "good", title: "Leather matches", text: `${names(goods)} ${verb(goods, "matches", "match")} the ${shoeName}, so the accessories read as one set.` });
+      } else if (isBrown(shoe.hex) && off.every((g) => isBrown(g.hex) && oklabDistance(g.hex, shoe.hex) < 0.2)) {
+        notes.push({
+          level: "warn",
+          title: "Two close browns",
+          text: `${names(off)} and the ${shoeName} are similar browns that don’t quite match. Match them, or pick clearly different shades.`,
+        });
+      } else {
+        notes.push({
+          level: "info",
+          title: "Leather differs",
+          text: `${names(off)} ${verb(off, "doesn’t", "don’t")} match the ${shoeName}. Fine when the ${shoeName} are a clear neutral like gray, white, or black; matching looks more put-together.`,
+        });
+      }
+    }
+
     return { scheme, notes };
   }
 
-  // Hash format: chinos.556b2f.45_tee.ffffff.30.k (share omitted when auto; k marks a locked piece).
+  // Hash format: chinos.556b2f.45_shoes.5c4033.k.8a8d8f (share omitted when auto; k marks a locked
+  // piece; extra hex values are other colors the owner could wear for that piece).
   function encodeOutfit(state) {
-    const pieces = state.pieces.map((p) => [p.garment, p.hex.replace("#", ""), state.auto ? "" : p.share, p.locked ? "k" : ""].filter(String).join("."));
+    const pieces = state.pieces.map((p) => {
+      const extra = p.locked && p.options ? p.options.filter((hex) => hex !== p.hex).map((hex) => hex.replace("#", "")) : [];
+      return [p.garment, p.hex.replace("#", ""), state.auto ? "" : p.share, p.locked ? "k" : "", ...extra].filter(String).join(".");
+    });
     const params = new URLSearchParams();
     params.set("o", pieces.join("_"));
     if (state.skin) params.set("skin", state.skin.replace("#", ""));
@@ -317,8 +346,10 @@
         const [id, hex, ...flags] = part.split(".");
         const color = normalizeHex(hex);
         if (!GARMENT_BY_ID[id] || !color) return null;
-        const piece = { garment: id, hex: color, share: Number(flags.find((f) => /^\d+$/.test(f))) || 0 };
+        const piece = { garment: id, hex: color, share: Number(flags.find((f) => /^\d{1,3}$/.test(f))) || 0 };
         if (flags.includes("k")) piece.locked = true;
+        const extra = flags.filter((f) => /^[0-9a-f]{6}$/i.test(f)).map(normalizeHex);
+        if (piece.locked && extra.length) piece.options = [color, ...extra.filter((hex) => hex !== color)];
         return piece;
       })
       .filter(Boolean);
@@ -337,7 +368,7 @@
   // A neutral anchor has no hue to build on, so ideas borrow one of these classic menswear hues.
   const PARTNER_COLORS = ["#5b6236", "#3d5a80", "#a4472c", "#6d1f2b", "#4f6d5e"];
   const LEATHER = { brown: "#5c4033", tan: "#a0784f", dark: "#3b2a20", black: "#1c1c1e", white: "#f4f2ec" };
-  const FOOT_SLOTS = ["shoes", "belt", "socks"];
+  const FOOT_SLOTS = ["shoes", "belt", "socks", "bag"];
   const CASUAL = ["tee", "ssshirt", "polo", "ssovershirt", "shorts"];
 
   // Proven menswear pairings for common anchor colors. Hue math alone misses many of these
@@ -457,11 +488,31 @@
     return best ? best.name : null;
   }
 
-  // Ideas build on the largest locked piece, or on the largest piece when nothing is locked.
+  // A locked piece with several owned colors (gray or brown shoes): ideas choose among them.
+  const isChoice = (p) => Boolean(p && p.locked && Array.isArray(p.options) && p.options.length > 1);
+  const LEATHER_GOODS = ["belt", "bag"];
+
+  // Brown leather: warm hue with some chroma, from tan to dark brown.
+  function isBrown(hex) {
+    const { l, c, h } = hexToOklch(hex);
+    return c >= 0.025 && h >= 25 && h <= 95 && l < 0.8;
+  }
+
+  const leatherMatch = (a, b) => oklabDistance(a, b) < 0.08;
+
+  function lockedSet(pieces, locked) {
+    const set = new Set(Array.from(locked || []).filter((i) => pieces[i]));
+    pieces.forEach((p, i) => p.locked && set.add(i));
+    return set;
+  }
+
+  // Ideas build on the largest piece locked to one color, or on the largest piece when nothing is locked.
   function ideaBaseIndex(pieces, locked) {
-    const lockedList = Array.from(locked || []).filter((i) => pieces[i]);
-    if (!lockedList.length) return anchorIndex(pieces);
-    return lockedList.reduce((best, i) => (pieces[i].share > pieces[best].share ? i : best));
+    const largest = (list) => list.reduce((best, i) => (pieces[i].share > pieces[best].share ? i : best));
+    const fixed = Array.from(lockedSet(pieces, locked)).filter((i) => !isChoice(pieces[i]));
+    if (fixed.length) return largest(fixed);
+    const free = pieces.map((_, i) => i).filter((i) => !isChoice(pieces[i]));
+    return free.length ? largest(free) : anchorIndex(pieces);
   }
 
   function anchorIndex(pieces) {
@@ -475,12 +526,14 @@
     return analysis.notes.reduce((sum, n) => sum + (n.level === "good" ? 1 : n.level === "warn" ? -2 : 0), 0);
   }
 
-  // Build complete palettes around the anchor (largest piece). Locked pieces keep their color.
+  // Build complete palettes around the base piece. Locked pieces keep their color; pieces with
+  // several owned colors get whichever one suits each idea.
   function suggestOutfits(pieces, options = {}) {
     if (!pieces.length) return [];
-    const locked = new Set(options.locked || []);
+    const locked = lockedSet(pieces, options.locked);
     const variant = options.variant || 0;
     const pick = (list, k = 0) => list[(variant + k) % list.length];
+    const slotOf = (i) => garment(pieces[i].garment).slot;
 
     const anchorAt = ideaBaseIndex(pieces, locked);
     const anchorHex = pieces[anchorAt].hex;
@@ -497,10 +550,12 @@
     const grayAnchor = neutralAnchor && AL.l < 0.45;
 
     const order = pieces.map((_, i) => i).sort((a, b) => pieces[b].share - pieces[a].share || a - b);
-    const clothing = order.filter((i) => i !== anchorAt && !FOOT_SLOTS.includes(garment(pieces[i].garment).slot));
+    const clothing = order.filter((i) => i !== anchorAt && !FOOT_SLOTS.includes(slotOf(i)));
     const second = clothing[0];
     const rest = clothing.slice(1);
-    const shoes = order.find((i) => garment(pieces[i].garment).slot === "shoes");
+    const shoes = order.find((i) => slotOf(i) === "shoes");
+    const bottom = order.find((i) => slotOf(i) === "bottom");
+    const choices = order.filter((i) => i !== anchorAt && isChoice(pieces[i]));
 
     const complement = hsvToHex({ h: base.h + 180, s: clamp(Math.max(baseS, 0.45), 0, 0.68), v: 0.62 });
     const strategies = [
@@ -558,43 +613,105 @@
         accentColor: accent,
       }));
 
-    const seen = new Set();
-    const ideas = [];
-    [...curated, ...strategies].forEach((strategy) => {
+    // forced: index -> owned color, used to show an owned option no idea picked on its own.
+    function build(strategy, forced = {}) {
       const hexes = pieces.map((p) => p.hex);
+      const wants = {};
       const set = (i, hex) => {
-        if (i !== undefined && i !== anchorAt && !locked.has(i)) hexes[i] = hex;
+        if (i === undefined || i === anchorAt) return;
+        if (isChoice(pieces[i])) wants[i] = hex;
+        else if (!locked.has(i)) hexes[i] = hex;
       };
+      // Pick the owned color nearest the idea, preferring one that matches leather already in the look.
+      const choose = (i, refs) => {
+        if (!isChoice(pieces[i])) return;
+        if (forced[i]) {
+          hexes[i] = forced[i];
+          return;
+        }
+        const want = wants[i] || pieces[i].hex;
+        const cost = (hex) => oklabDistance(hex, want) - (refs.some((r) => r && leatherMatch(r, hex)) ? 0.2 : 0);
+        hexes[i] = pieces[i].options.reduce((best, hex) => (cost(hex) < cost(best) ? hex : best));
+      };
+      const fixedGoods = order.filter((i) => LEATHER_GOODS.includes(slotOf(i)) && locked.has(i) && !isChoice(pieces[i])).map((i) => pieces[i].hex);
+
       set(second, strategy.second());
       rest.forEach((i, k) => set(i, strategy.rest(k, k === rest.length - 1)));
       const shoeColor = strategy.accentShoes && shoes !== undefined ? strategy.accentColor || complement : strategy.leather;
-      order.forEach((i) => {
-        if (garment(pieces[i].garment).slot === "shoes") set(i, shoeColor);
+      order.filter((i) => slotOf(i) === "shoes").forEach((i) => {
+        // A locked bag or belt pulls unlocked shoes toward matching leather.
+        const goodsLeather = fixedGoods.find((hex) => isBrown(hex) || hex === LEATHER.black);
+        set(i, goodsLeather && !strategy.accentShoes && colorRole(shoeColor) !== "loud" && shoeColor !== LEATHER.white ? goodsLeather : shoeColor);
+        choose(i, fixedGoods);
       });
       const firstShoe = shoes === undefined ? null : hexes[shoes];
-      const bottom = order.find((i) => garment(pieces[i].garment).slot === "bottom");
+      const shoeLeather = firstShoe && (isBrown(firstShoe) || leatherMatch(firstShoe, LEATHER.black)) ? firstShoe : LEATHER.brown;
       order.forEach((i) => {
-        const g = pieces[i].garment;
-        if (g === "belt") set(i, firstShoe && firstShoe !== LEATHER.white && colorRole(firstShoe) !== "loud" ? firstShoe : LEATHER.brown);
-        if (g === "socks") set(i, bottom !== undefined && pieces[bottom].garment !== "shorts" ? hexes[bottom] : firstShoe || LEATHER.white);
+        const slot = slotOf(i);
+        if (LEATHER_GOODS.includes(slot)) {
+          set(i, shoeLeather);
+          choose(i, [firstShoe]);
+        }
+        if (slot === "socks") set(i, bottom !== undefined && pieces[bottom].garment !== "shorts" ? hexes[bottom] : firstShoe || LEATHER.white);
       });
+      choices.forEach((i) => {
+        if (!FOOT_SLOTS.includes(slotOf(i))) choose(i, []);
+      });
+      return hexes;
+    }
+
+    const seen = new Set();
+    const ideas = [];
+    const consider = (strategy, hexes, extra = {}) => {
       const key = hexes.join(",");
-      if (seen.has(key) || hexes.every((hex, i) => hex === pieces[i].hex)) return;
+      if (seen.has(key) || hexes.every((hex, i) => hex === pieces[i].hex)) return null;
       seen.add(key);
-      const analysis = analyzeOutfit(pieces.map((p, i) => ({ label: garment(p.garment).label, hex: hexes[i], share: p.share })));
-      ideas.push({ name: strategy.name, text: strategy.text, proven: Boolean(strategy.proven), hexes, scheme: analysis.scheme, score: scoreOf(analysis) });
-    });
+      const analysis = analyzeOutfit(pieces.map((p, i) => ({ label: garment(p.garment).label, garment: p.garment, hex: hexes[i], share: p.share })));
+      const idea = {
+        name: strategy.name,
+        text: strategy.text,
+        proven: Boolean(strategy.proven),
+        hexes,
+        wear: choices.map((i) => ({ index: i, hex: hexes[i] })),
+        scheme: analysis.scheme,
+        score: scoreOf(analysis),
+        strategy,
+        ...extra,
+      };
+      ideas.push(idea);
+      return idea;
+    };
+    [...curated, ...strategies].forEach((strategy) => consider(strategy, build(strategy)));
+
     const theory = ideas
       .filter((idea) => !idea.proven)
       .sort((a, b) => b.score - a.score)
       .slice(0, 6 - ideas.filter((idea) => idea.proven).length);
-    return ideas.filter((idea) => idea.proven || theory.includes(idea));
+    const shown = ideas.filter((idea) => idea.proven || theory.includes(idea));
+
+    // Make sure every owned color shows up at least once.
+    choices.forEach((i) => {
+      pieces[i].options.forEach((hex) => {
+        if (!shown.length || shown.some((idea) => idea.hexes[i] === hex)) return;
+        // The best idea with this color swapped in can equal the current outfit, so fall through to the next.
+        const ranked = shown.slice().sort((a, b) => b.score - a.score);
+        for (const top of ranked) {
+          const idea = consider(top.strategy, build(top.strategy, { [i]: hex }), { alternate: true });
+          if (idea) {
+            shown.push(idea);
+            break;
+          }
+        }
+      });
+    });
+    return shown.map(({ strategy, ...idea }) => idea);
   }
 
   root.OutfitColor = {
     anchorIndex,
     ideaBaseIndex,
     familyOf,
+    oklabDistance,
     suggestOutfits,
     clamp,
     wrapHue,

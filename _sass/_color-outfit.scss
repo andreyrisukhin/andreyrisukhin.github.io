@@ -332,6 +332,12 @@
   color: var(--global-theme-color);
 }
 
+.outfit-idea__wear {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
 .outfit-idea__text {
   font-size: 0.75rem;
   line-height: 1.4;
@@ -411,6 +417,50 @@
     background: var(--global-theme-color);
     color: var(--global-bg-color);
   }
+}
+
+.outfit-piece__owned {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--global-text-color-light);
+}
+
+.outfit-owned {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px;
+  border: 1px solid transparent;
+
+  &.is-active {
+    border-color: var(--global-theme-color);
+  }
+}
+
+.outfit .outfit-owned__pick {
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.outfit .outfit-owned__remove {
+  border: 0;
+  background: none;
+  padding: 0 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.outfit .outfit-owned__add {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.75rem;
 }
 
 .outfit-piece.is-locked .outfit-piece__swatch {

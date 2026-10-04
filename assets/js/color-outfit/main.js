@@ -39,6 +39,7 @@
     ["White", "#f4f2ec"],
     ["Cream", "#e9e1cc"],
     ["Light gray", "#b9b9b4"],
+    ["Gray", "#8a8d8f"],
     ["Charcoal", "#3a3d40"],
     ["Black", "#1c1c1e"],
     ["Navy", "#1f2a44"],
@@ -61,6 +62,7 @@
     { name: "Olive shorts", query: "o=tee.f4f2ec_shorts.5b6236_shoes.5c4033" },
     { name: "Navy and gray", query: "o=sweater.1f2a44_chinos.b9b9b4_shoes.f4f2ec" },
     { name: "Rust accent", query: "o=shirt.e9e1cc_overshirt.a4472c_jeans.3d5a80_boots.5c4033" },
+    { name: "Shoe choice and bag", query: "o=tee.f4f2ec_shorts.5b6236.k_shoes.5c4033.k.8a8d8f_bag.5c4033.k" },
   ];
 
   let state = loadInitial();
@@ -91,7 +93,23 @@
   }
 
   const nameOf = (piece) => O.garment(piece.garment).label;
-  const colorName = (hex) => COLOR_NAMES[hex] || hex;
+  function colorName(hex) {
+    if (COLOR_NAMES[hex]) return COLOR_NAMES[hex];
+    const nearest = CLOTHING_COLORS.map(([name, h]) => ({ name, d: O.oklabDistance(hex, h) })).sort((a, b) => a.d - b.d)[0];
+    return nearest.d < 0.06 ? nearest.name : hex;
+  }
+
+  // Editing a piece with several owned colors edits the one being worn.
+  function setHex(piece, hex) {
+    const next = O.normalizeHex(hex);
+    if (!next) return;
+    if (piece.options) {
+      const k = piece.options.indexOf(piece.hex);
+      if (k >= 0) piece.options[k] = next;
+      piece.options = [...new Set(piece.options)];
+    }
+    piece.hex = next;
+  }
   const inkFor = (hex) => (O.hexToOklch(hex).l > 0.62 ? "#1c1c1e" : "#ffffff");
 
   function setStatus(message) {
@@ -240,7 +258,7 @@
     const piece = state.pieces[selected];
     const hsv = O.hexToHsv(piece.hex);
     const hs = hsAt(point.x, point.y, geo);
-    piece.hex = O.hsvToHex({ h: hs.h, s: hs.s, v: hsv.v < 0.04 ? 0.5 : hsv.v });
+    setHex(piece, O.hsvToHex({ h: hs.h, s: hs.s, v: hsv.v < 0.04 ? 0.5 : hsv.v }));
     commit();
   }
 
@@ -270,7 +288,7 @@
   valueInput.addEventListener("input", () => {
     const piece = state.pieces[selected];
     const hsv = O.hexToHsv(piece.hex);
-    piece.hex = O.hsvToHex({ ...hsv, v: Number(valueInput.value) / 100 });
+    setHex(piece, O.hsvToHex({ ...hsv, v: Number(valueInput.value) / 100 }));
     commit();
   });
 
@@ -282,7 +300,7 @@
   });
 
   function setSelectedHex(hex) {
-    state.pieces[selected].hex = O.normalizeHex(hex);
+    setHex(state.pieces[selected], hex);
     commit();
   }
 
@@ -410,6 +428,22 @@
 
   addSelect.innerHTML = garmentOptions("shoes");
 
+  const OWNED_DEFAULTS = ["#8a8d8f", "#5c4033", "#1c1c1e", "#f4f2ec", "#a0784f", "#1f2a44"];
+
+  function ownedMarkup(p) {
+    const owned = p.options || [p.hex];
+    const chips = owned
+      .map(
+        (hex, k) => `<span class="outfit-owned${hex === p.hex ? " is-active" : ""}">
+          <button type="button" class="outfit-owned__pick" data-owned="${k}" style="background:${hex}" title="Wear ${colorName(hex)}" aria-label="Wear ${colorName(hex)} ${nameOf(p).toLowerCase()}"></button>${
+            owned.length > 1 ? `<button type="button" class="outfit-owned__remove" data-owned-remove="${k}" aria-label="Remove ${colorName(hex)}">&times;</button>` : ""
+          }</span>`
+      )
+      .join("");
+    const label = owned.length > 1 ? "Ideas pick from:" : "Own it in another color?";
+    return `<div class="outfit-piece__owned"><span class="outfit-piece__owned-label">${label}</span>${owned.length > 1 ? chips : ""}<button type="button" class="outfit-owned__add">+ Add color</button></div>`;
+  }
+
   function renderPieces() {
     const anchorAt = leadIndex();
     const rows = state.pieces.map((p, i) => {
@@ -420,9 +454,10 @@
         <select class="outfit-piece__garment" aria-label="Garment">${garmentOptions(p.garment)}</select>
         <label class="outfit-piece__share"><input type="number" min="1" max="99" value="${p.share}" aria-label="${nameOf(p)} share">%</label>
         <button type="button" class="outfit-piece__lock${p.locked ? " is-locked" : ""}" aria-pressed="${Boolean(p.locked)}" aria-label="Lock ${nameOf(p)} color" title="${p.locked ? "Locked: ideas build around this color and never change it" : "Lock this color so ideas never change it"}"><i class="ti ti-lock${p.locked ? "" : "-open"}" aria-hidden="true"></i><span>${p.locked ? "Locked" : "Lock"}</span></button>
-        <button type="button" class="outfit-piece__remove" aria-label="Remove ${nameOf(p)}"${state.pieces.length < 2 ? " disabled" : ""}>&times;</button>`;
+        <button type="button" class="outfit-piece__remove" aria-label="Remove ${nameOf(p)}"${state.pieces.length < 2 ? " disabled" : ""}>&times;</button>
+        ${p.locked ? ownedMarkup(p) : ""}`;
       li.addEventListener("click", (event) => {
-        if (event.target.closest("select, input, .outfit-piece__remove, .outfit-piece__lock")) return;
+        if (event.target.closest("select, input, .outfit-piece__remove, .outfit-piece__lock, .outfit-piece__owned")) return;
         selected = i;
         render();
       });
@@ -442,8 +477,35 @@
         selected = i;
         commit();
       });
+      li.querySelectorAll("[data-owned]").forEach((b) =>
+        b.addEventListener("click", () => {
+          p.hex = p.options[Number(b.dataset.owned)];
+          selected = i;
+          commit();
+        })
+      );
+      li.querySelectorAll("[data-owned-remove]").forEach((b) =>
+        b.addEventListener("click", () => {
+          p.options.splice(Number(b.dataset.ownedRemove), 1);
+          if (!p.options.includes(p.hex)) p.hex = p.options[0];
+          if (p.options.length < 2) delete p.options;
+          commit();
+        })
+      );
+      const addOwned = li.querySelector(".outfit-owned__add");
+      if (addOwned)
+        addOwned.addEventListener("click", () => {
+          const owned = p.options || [p.hex];
+          const next = OWNED_DEFAULTS.find((hex) => owned.every((h) => O.oklabDistance(h, hex) > 0.08)) || "#8a8d8f";
+          p.options = [...owned, next];
+          p.hex = next;
+          selected = i;
+          commit();
+          setStatus(`Added another ${nameOf(p).toLowerCase()} color. Adjust it on the wheel to match what you own.`);
+        });
       li.querySelector(".outfit-piece__lock").addEventListener("click", () => {
         p.locked = !p.locked;
+        if (!p.locked) delete p.options;
         ideaVariant = 0;
         commit();
       });
@@ -538,7 +600,7 @@
   // ----- Notes -----
 
   function renderNotes() {
-    const { notes } = O.analyzeOutfit(state.pieces.map((p) => ({ label: nameOf(p), hex: p.hex, share: p.share })));
+    const { notes } = O.analyzeOutfit(state.pieces.map((p) => ({ label: nameOf(p), garment: p.garment, hex: p.hex, share: p.share })));
     notesEl.replaceChildren(
       ...notes.map((note) => {
         const li = document.createElement("li");
@@ -560,11 +622,16 @@
     const base = state.pieces[O.ideaBaseIndex(state.pieces, locked)];
     const ideas = O.suggestOutfits(state.pieces, { locked, variant: ideaVariant });
     const describe = (p) => `${colorName(p.hex).toLowerCase()} ${nameOf(p).toLowerCase()}`;
-    const others = locked.map((i) => state.pieces[i]).filter((p) => p !== base);
+    const hasChoices = (p) => p.locked && p.options && p.options.length > 1;
+    const others = locked.map((i) => state.pieces[i]).filter((p) => p !== base && !hasChoices(p));
     const keeping = others.length ? ` Also keeping ${others.map(describe).join(", ")}.` : "";
+    const choosing = state.pieces
+      .filter(hasChoices)
+      .map((p) => `${p.options.map((hex) => colorName(hex).toLowerCase()).join(" or ")} ${nameOf(p).toLowerCase()}`);
+    const choiceText = choosing.length ? ` Choosing between ${choosing.join("; ")}.` : "";
     const lockTip = locked.length ? "" : " Lock pieces you can’t change and ideas will work around them.";
     ideasNote.textContent = ideas.length
-      ? `Built around ${describe(base)}.${keeping} Click one to try it.${lockTip}`
+      ? `Built around ${describe(base)}.${keeping}${choiceText} Click one to try it.${lockTip}`
       : locked.length === state.pieces.length
         ? "Every piece is locked. Unlock one to get ideas for it."
         : "Add a piece to get ideas.";
@@ -592,7 +659,14 @@
         const tag = document.createElement("span");
         tag.className = "outfit-idea__tag";
         tag.textContent = idea.proven ? "Proven pairing" : "Color theory";
-        button.append(bar, tag, title, body);
+        button.append(bar, tag, title);
+        if (idea.wear.length) {
+          const wear = document.createElement("span");
+          wear.className = "outfit-idea__wear";
+          wear.textContent = "Wear " + idea.wear.map((w) => `${colorName(w.hex).toLowerCase()} ${nameOf(state.pieces[w.index]).toLowerCase()}`).join(", ");
+          button.append(wear);
+        }
+        button.append(body);
         button.addEventListener("click", () => {
           idea.hexes.forEach((hex, i) => (state.pieces[i].hex = hex));
           commit();

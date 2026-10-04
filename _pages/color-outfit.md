@@ -54,7 +54,7 @@ Pick a color for each piece, then size it by how much of you it covers. Olive sh
     <div class="outfit-split">
       <section class="outfit-section" aria-labelledby="outfit-pieces-title">
         <h2 id="outfit-pieces-title">Pieces</h2>
-        <p class="outfit-hint outfit-hint--top">Lock a piece whose color you can’t change, like shorts you already own. Ideas never repaint it.</p>
+        <p class="outfit-hint outfit-hint--top">Lock a piece whose color you can’t change, like shorts you already own. Ideas never repaint it. If you own it in a few colors, like gray or brown shoes, add them and ideas pick the best one.</p>
         <ol class="outfit-pieces" id="outfit-pieces"></ol>
         <div class="outfit-add">
           <select id="outfit-add-garment" aria-label="Garment to add"></select>

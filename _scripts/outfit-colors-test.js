@@ -122,7 +122,7 @@ const shortsLook = [
   { garment: "shoes", hex: "#5c4033", share: 13 },
 ];
 assert.equal(O.ideaBaseIndex(shortsLook, [1]), 1);
-assert.equal(O.ideaBaseIndex(shortsLook, []), 0);
+assert.equal(O.ideaBaseIndex(shortsLook.map(({ locked, ...p }) => p), []), 0);
 const shortsIdeas = O.suggestOutfits(shortsLook, { locked: [1] });
 assert.ok(shortsIdeas.every((idea) => idea.hexes[1] === "#5b6236"));
 assert.ok(shortsIdeas.some((idea) => idea.hexes[0] !== "#f4f2ec"));
@@ -138,6 +138,59 @@ assert.equal(lockedBack.auto, true);
 const lockedCustom = O.decodeOutfit("o=tee.ffffff.60_shorts.5b6236.40.k");
 assert.deepEqual(Array.from(lockedCustom.pieces, (p) => p.share), [60, 40]);
 assert.equal(lockedCustom.pieces[1].locked, true);
+
+// Owned colors: ideas pick gray or brown shoes, a locked brown bag pulls toward brown, and every owned color appears.
+const BROWN = "#5c4033";
+const GRAY = "#8a8d8f";
+const owned = [
+  { garment: "tee", hex: "#f4f2ec", share: 50 },
+  { garment: "shorts", hex: "#5b6236", share: 30, locked: true },
+  { garment: "shoes", hex: BROWN, share: 12, locked: true, options: [BROWN, GRAY] },
+  { garment: "bag", hex: BROWN, share: 8, locked: true },
+];
+assert.equal(O.ideaBaseIndex(owned), 1);
+const ownedIdeas = O.suggestOutfits(owned);
+assert.ok(ownedIdeas.every((idea) => [BROWN, GRAY].includes(idea.hexes[2])));
+assert.ok(ownedIdeas.every((idea) => idea.hexes[1] === "#5b6236" && idea.hexes[3] === BROWN));
+assert.ok(ownedIdeas.every((idea) => idea.wear.length === 1 && idea.wear[0].index === 2));
+const brownCount = ownedIdeas.filter((idea) => idea.hexes[2] === BROWN).length;
+assert.ok(brownCount > ownedIdeas.length / 2, "a brown bag should favor brown shoes");
+assert.ok(ownedIdeas.some((idea) => idea.hexes[2] === GRAY));
+// With only brown-wanting ideas, gray still shows up as an alternate.
+const formal = owned.map((p) => ({ ...p }));
+formal[0] = { garment: "shirt", hex: "#f4f2ec", share: 50 };
+formal[1] = { garment: "chinos", hex: "#1f2a44", share: 30, locked: true };
+const formalIdeas = O.suggestOutfits(formal);
+assert.ok(formalIdeas.some((idea) => idea.hexes[2] === GRAY));
+assert.ok(formalIdeas.some((idea) => idea.hexes[2] === BROWN));
+// An owned color still appears when swapping it into the best idea reproduces the current outfit.
+const CHARCOAL = "#3a3d40";
+const current = [
+  { garment: "tee", hex: "#a9c4e0", share: 49 },
+  { garment: "shorts", hex: "#5b6236", share: 30, locked: true },
+  { garment: "shoes", hex: CHARCOAL, share: 11, locked: true, options: [CHARCOAL, BROWN] },
+  { garment: "bag", hex: BROWN, share: 10, locked: true },
+];
+assert.ok(O.suggestOutfits(current).some((idea) => idea.hexes[2] === CHARCOAL && idea.alternate));
+
+// An unlocked bag follows brown shoes.
+const freeBag = owned.map((p) => ({ ...p }));
+freeBag[3] = { garment: "bag", hex: "#000000", share: 8 };
+for (const idea of O.suggestOutfits(freeBag)) assert.equal(idea.hexes[3], BROWN);
+
+// Leather note.
+const noteFor = (list) => O.analyzeOutfit(list.map((p) => ({ ...p, label: O.garment(p.garment).label }))).notes.map((n) => n.title);
+assert.ok(noteFor(owned).includes("Leather matches"));
+assert.ok(noteFor(owned.map((p, i) => (i === 2 ? { ...p, hex: GRAY } : p))).includes("Leather differs"));
+assert.ok(noteFor(owned.map((p, i) => (i === 2 ? { ...p, hex: "#7a5640" } : p))).includes("Two close browns"));
+
+// Owned colors survive links.
+const ownedLink = O.encodeOutfit({ auto: true, pieces: owned });
+assert.equal(ownedLink, "o=tee.f4f2ec_shorts.5b6236.k_shoes.5c4033.k.8a8d8f_bag.5c4033.k");
+const ownedBack = O.decodeOutfit(ownedLink).pieces[2];
+assert.deepEqual(Array.from(ownedBack.options), [BROWN, GRAY]);
+assert.equal(ownedBack.locked, true);
+assert.equal(O.decodeOutfit("o=shoes.5c4033.8a8d8f").pieces[0].options, undefined);
 
 // Links round-trip; auto sizes omit shares.
 const auto = O.encodeOutfit({ auto: true, skin: "#c68e6a", pieces: [{ garment: "tee", hex: "#f4f2ec", share: 60 }, { garment: "shorts", hex: "#5b6236", share: 40 }] });
