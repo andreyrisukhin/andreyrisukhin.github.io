@@ -77,6 +77,8 @@ function init(app) {
   }
 
   function renderMoves() {
+    // Emptying the list collapses its height and drops scrollTop to 0, so put it back after the rebuild.
+    const scrollTop = movesEl.scrollTop;
     movesEl.replaceChildren();
     if (!scenario.root.children.length) {
       const empty = document.createElement("p");
@@ -108,12 +110,15 @@ function init(app) {
       container.append(group);
     };
     line(movesEl, scenario.root, true);
+    movesEl.scrollTop = scrollTop;
     const current = movesEl.querySelector(".chess-move--current");
     if (current) {
-      const top = current.offsetTop - movesEl.offsetTop;
-      if (top < movesEl.scrollTop || top + current.offsetHeight > movesEl.scrollTop + movesEl.clientHeight) {
-        movesEl.scrollTop = top - movesEl.clientHeight / 2;
-      }
+      // Scroll only as far as needed to bring the current move into view.
+      const list = movesEl.getBoundingClientRect();
+      const move = current.getBoundingClientRect();
+      const margin = 8;
+      if (move.top < list.top + margin) movesEl.scrollTop -= list.top + margin - move.top;
+      else if (move.bottom > list.bottom - margin) movesEl.scrollTop += move.bottom - (list.bottom - margin);
     }
   }
 
