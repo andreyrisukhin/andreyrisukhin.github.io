@@ -90,12 +90,18 @@ function init(app) {
         const [main, ...variations] = n.children;
         container.append(moveButton(main, force));
         force = false;
-        for (const variation of variations) {
-          const box = document.createElement("span");
-          box.className = "chess-variation";
-          box.append(moveButton(variation, true));
-          line(box, variation, false);
-          container.append(box);
+        if (variations.length) {
+          // Each alternative gets its own bracketed line so sibling lines never read as one sequence.
+          const group = document.createElement("div");
+          group.className = "chess-variations";
+          for (const variation of variations) {
+            const box = document.createElement("div");
+            box.className = "chess-variation";
+            box.append(moveButton(variation, true));
+            line(box, variation, false);
+            group.append(box);
+          }
+          container.append(group);
           force = true;
         }
         n = main;
