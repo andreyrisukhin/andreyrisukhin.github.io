@@ -266,7 +266,11 @@
     const point = wheelPointer(event);
     const geo = wheelGeometry();
     const hit = state.pieces
-      .map((p, i) => ({ i, d: Math.hypot(pointFor(O.hexToHsv(p.hex), geo).x - point.x, pointFor(O.hexToHsv(p.hex), geo).y - point.y), r: markerRadius(p) }))
+      .map((p, i) => ({
+        i,
+        d: Math.hypot(pointFor(O.hexToHsv(p.hex), geo).x - point.x, pointFor(O.hexToHsv(p.hex), geo).y - point.y),
+        r: markerRadius(p),
+      }))
       .filter((m) => m.d <= m.r + 4)
       .sort((a, b) => a.d - b.d)[0];
     wheelDrag = true;
@@ -435,13 +439,19 @@
     const chips = owned
       .map(
         (hex, k) => `<span class="outfit-owned${hex === p.hex ? " is-active" : ""}">
-          <button type="button" class="outfit-owned__pick" data-owned="${k}" style="background:${hex}" title="Wear ${colorName(hex)}" aria-label="Wear ${colorName(hex)} ${nameOf(p).toLowerCase()}"></button>${
-            owned.length > 1 ? `<button type="button" class="outfit-owned__remove" data-owned-remove="${k}" aria-label="Remove ${colorName(hex)}">&times;</button>` : ""
+          <button type="button" class="outfit-owned__pick" data-owned="${k}" style="background:${hex}" title="Wear ${colorName(
+            hex
+          )}" aria-label="Wear ${colorName(hex)} ${nameOf(p).toLowerCase()}"></button>${
+            owned.length > 1
+              ? `<button type="button" class="outfit-owned__remove" data-owned-remove="${k}" aria-label="Remove ${colorName(hex)}">&times;</button>`
+              : ""
           }</span>`
       )
       .join("");
     const label = owned.length > 1 ? "Ideas pick from:" : "Own it in another color?";
-    return `<div class="outfit-piece__owned"><span class="outfit-piece__owned-label">${label}</span>${owned.length > 1 ? chips : ""}<button type="button" class="outfit-owned__add">+ Add color</button></div>`;
+    return `<div class="outfit-piece__owned"><span class="outfit-piece__owned-label">${label}</span>${
+      owned.length > 1 ? chips : ""
+    }<button type="button" class="outfit-owned__add">+ Add color</button></div>`;
   }
 
   function renderPieces() {
@@ -450,11 +460,19 @@
       const li = document.createElement("li");
       li.className = "outfit-piece" + (i === selected ? " is-selected" : "") + (p.locked ? " is-locked" : "");
       li.innerHTML = `
-        <button type="button" class="outfit-piece__swatch" style="background:${p.hex}" aria-label="Edit ${nameOf(p)} color" title="${colorName(p.hex)}${i === anchorAt ? " (anchor)" : ""}"></button>
+        <button type="button" class="outfit-piece__swatch" style="background:${p.hex}" aria-label="Edit ${nameOf(p)} color" title="${colorName(
+          p.hex
+        )}${i === anchorAt ? " (anchor)" : ""}"></button>
         <select class="outfit-piece__garment" aria-label="Garment">${garmentOptions(p.garment)}</select>
         <label class="outfit-piece__share"><input type="number" min="1" max="99" value="${p.share}" aria-label="${nameOf(p)} share">%</label>
-        <button type="button" class="outfit-piece__lock${p.locked ? " is-locked" : ""}" aria-pressed="${Boolean(p.locked)}" aria-label="Lock ${nameOf(p)} color" title="${p.locked ? "Locked: ideas build around this color and never change it" : "Lock this color so ideas never change it"}"><i class="ti ti-lock${p.locked ? "" : "-open"}" aria-hidden="true"></i><span>${p.locked ? "Locked" : "Lock"}</span></button>
-        <button type="button" class="outfit-piece__remove" aria-label="Remove ${nameOf(p)}"${state.pieces.length < 2 ? " disabled" : ""}>&times;</button>
+        <button type="button" class="outfit-piece__lock${p.locked ? " is-locked" : ""}" aria-pressed="${Boolean(p.locked)}" aria-label="Lock ${nameOf(
+          p
+        )} color" title="${
+          p.locked ? "Locked: ideas build around this color and never change it" : "Lock this color so ideas never change it"
+        }"><i class="ti ti-lock${p.locked ? "" : "-open"}" aria-hidden="true"></i><span>${p.locked ? "Locked" : "Lock"}</span></button>
+        <button type="button" class="outfit-piece__remove" aria-label="Remove ${nameOf(p)}"${
+          state.pieces.length < 2 ? " disabled" : ""
+        }>&times;</button>
         ${p.locked ? ownedMarkup(p) : ""}`;
       li.addEventListener("click", (event) => {
         if (event.target.closest("select, input, .outfit-piece__remove, .outfit-piece__lock, .outfit-piece__owned")) return;
@@ -663,7 +681,8 @@
         if (idea.wear.length) {
           const wear = document.createElement("span");
           wear.className = "outfit-idea__wear";
-          wear.textContent = "Wear " + idea.wear.map((w) => `${colorName(w.hex).toLowerCase()} ${nameOf(state.pieces[w.index]).toLowerCase()}`).join(", ");
+          wear.textContent =
+            "Wear " + idea.wear.map((w) => `${colorName(w.hex).toLowerCase()} ${nameOf(state.pieces[w.index]).toLowerCase()}`).join(", ");
           button.append(wear);
         }
         button.append(body);

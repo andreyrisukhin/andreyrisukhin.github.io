@@ -115,7 +115,11 @@
   function toPercentages(weights, sum = 100) {
     const total = weights.reduce((acc, w) => acc + Math.max(0, w), 0);
     if (!weights.length) return [];
-    if (!total) return toPercentages(weights.map(() => 1), sum);
+    if (!total)
+      return toPercentages(
+        weights.map(() => 1),
+        sum
+      );
     const raw = weights.map((w) => (Math.max(0, w) / total) * sum);
     const floors = raw.map(Math.floor);
     let left = sum - floors.reduce((a, b) => a + b, 0);
@@ -246,7 +250,9 @@
     // Colors that are nearly identical count as one when judging proportion.
     const groups = [];
     entries.forEach((e) => {
-      const same = groups.find((g) => Math.abs(g.l - e.l) < 0.06 && (Math.max(g.c, e.c) < NEUTRAL_CHROMA || (hueDistance(g.h, e.h) < 20 && Math.abs(g.c - e.c) < 0.04)));
+      const same = groups.find(
+        (g) => Math.abs(g.l - e.l) < 0.06 && (Math.max(g.c, e.c) < NEUTRAL_CHROMA || (hueDistance(g.h, e.h) < 20 && Math.abs(g.c - e.c) < 0.04))
+      );
       if (same) {
         same.share += e.share;
         same.labels.push(e.label);
@@ -256,11 +262,19 @@
     const lead = groups[0];
     const leadName = lead.labels.join(" + ");
     if (groups.length === 1) {
-      notes.push({ level: "info", title: "One color", text: "Everything matches. Vary texture or add one small accent to give the eye somewhere to land." });
+      notes.push({
+        level: "info",
+        title: "One color",
+        text: "Everything matches. Vary texture or add one small accent to give the eye somewhere to land.",
+      });
     } else if (lead.share >= 50) {
       notes.push({ level: "good", title: "Strong anchor", text: `${leadName} covers ${lead.share}%, so the eye knows where to start.` });
     } else if (lead.share < 35 && groups.length >= 3) {
-      notes.push({ level: "warn", title: "No anchor", text: `The largest color covers only ${lead.share}%. Let one color take about half the look.` });
+      notes.push({
+        level: "warn",
+        title: "No anchor",
+        text: `The largest color covers only ${lead.share}%. Let one color take about half the look.`,
+      });
     } else {
       notes.push({ level: "info", title: "Anchor", text: `${leadName} anchors at ${lead.share}%. Around 50 to 60% makes the anchor clearer.` });
     }
@@ -272,7 +286,9 @@
       notes.push({
         level: off <= 25 ? "good" : "info",
         title: "60 / 30 / 10",
-        text: `Your top three colors sit at ${actual.join(" / ")}. ${off <= 25 ? "Close to the classic split." : "The classic split is a guide, not a law."}`,
+        text: `Your top three colors sit at ${actual.join(" / ")}. ${
+          off <= 25 ? "Close to the classic split." : "The classic split is a guide, not a law."
+        }`,
       });
     }
 
@@ -280,18 +296,36 @@
     const loudShare = loud.reduce((sum, g) => sum + g.share, 0);
     const competing = loud.filter((g) => g.share >= 20);
     if (competing.length >= 2 && hueDistance(competing[0].h, competing[1].h) > 30) {
-      notes.push({ level: "warn", title: "Loud colors compete", text: `${competing[0].labels.join(" + ")} and ${competing[1].labels.join(" + ")} are both bright and large. Shrink one or mute it.` });
+      notes.push({
+        level: "warn",
+        title: "Loud colors compete",
+        text: `${competing[0].labels.join(" + ")} and ${competing[1].labels.join(" + ")} are both bright and large. Shrink one or mute it.`,
+      });
     } else if (loud.length && loudShare <= 20) {
       notes.push({ level: "good", title: "Accent sized well", text: `Bright color covers ${loudShare}%, enough to notice without shouting.` });
     } else if (loudShare > 55) {
-      notes.push({ level: "info", title: "Mostly bright", text: `Bright color covers ${loudShare}%. Fine for a statement; a neutral shoe or layer calms it down.` });
+      notes.push({
+        level: "info",
+        title: "Mostly bright",
+        text: `Bright color covers ${loudShare}%. Fine for a statement; a neutral shoe or layer calms it down.`,
+      });
     }
 
     const sizable = entries.filter((e) => e.share >= 10);
     if (sizable.length >= 2) {
       const range = Math.max(...sizable.map((e) => e.l)) - Math.min(...sizable.map((e) => e.l));
-      if (range < 0.12) notes.push({ level: "info", title: "Low contrast", text: "The large pieces share a lightness. Tonal looks are soft; a lighter or darker piece adds definition." });
-      else if (range > 0.55) notes.push({ level: "info", title: "High contrast", text: "Light and dark pieces sit far apart. Crisp and formal; split it with a mid-tone for a softer read." });
+      if (range < 0.12)
+        notes.push({
+          level: "info",
+          title: "Low contrast",
+          text: "The large pieces share a lightness. Tonal looks are soft; a lighter or darker piece adds definition.",
+        });
+      else if (range > 0.55)
+        notes.push({
+          level: "info",
+          title: "High contrast",
+          text: "Light and dark pieces sit far apart. Crisp and formal; split it with a mid-tone for a softer read.",
+        });
       else notes.push({ level: "good", title: "Balanced contrast", text: "The large pieces differ in lightness without a hard jump." });
     }
 
@@ -304,7 +338,11 @@
       const verb = (list, one, many) => (list.length > 1 ? many : one);
       const shoeName = shoe.label.toLowerCase();
       if (!off.length) {
-        notes.push({ level: "good", title: "Leather matches", text: `${names(goods)} ${verb(goods, "matches", "match")} the ${shoeName}, so the accessories read as one set.` });
+        notes.push({
+          level: "good",
+          title: "Leather matches",
+          text: `${names(goods)} ${verb(goods, "matches", "match")} the ${shoeName}, so the accessories read as one set.`,
+        });
       } else if (isBrown(shoe.hex) && off.every((g) => isBrown(g.hex) && oklabDistance(g.hex, shoe.hex) < 0.2)) {
         notes.push({
           level: "warn",
@@ -315,7 +353,11 @@
         notes.push({
           level: "info",
           title: "Leather differs",
-          text: `${names(off)} ${verb(off, "doesn’t", "don’t")} match the ${shoeName}. Fine when the ${shoeName} are a clear neutral like gray, white, or black; matching looks more put-together.`,
+          text: `${names(off)} ${verb(
+            off,
+            "doesn’t",
+            "don’t"
+          )} match the ${shoeName}. Fine when the ${shoeName} are a clear neutral like gray, white, or black; matching looks more put-together.`,
         });
       }
     }
@@ -638,12 +680,14 @@
       set(second, strategy.second());
       rest.forEach((i, k) => set(i, strategy.rest(k, k === rest.length - 1)));
       const shoeColor = strategy.accentShoes && shoes !== undefined ? strategy.accentColor || complement : strategy.leather;
-      order.filter((i) => slotOf(i) === "shoes").forEach((i) => {
-        // A locked bag or belt pulls unlocked shoes toward matching leather.
-        const goodsLeather = fixedGoods.find((hex) => isBrown(hex) || hex === LEATHER.black);
-        set(i, goodsLeather && !strategy.accentShoes && colorRole(shoeColor) !== "loud" && shoeColor !== LEATHER.white ? goodsLeather : shoeColor);
-        choose(i, fixedGoods);
-      });
+      order
+        .filter((i) => slotOf(i) === "shoes")
+        .forEach((i) => {
+          // A locked bag or belt pulls unlocked shoes toward matching leather.
+          const goodsLeather = fixedGoods.find((hex) => isBrown(hex) || hex === LEATHER.black);
+          set(i, goodsLeather && !strategy.accentShoes && colorRole(shoeColor) !== "loud" && shoeColor !== LEATHER.white ? goodsLeather : shoeColor);
+          choose(i, fixedGoods);
+        });
       const firstShoe = shoes === undefined ? null : hexes[shoes];
       const shoeLeather = firstShoe && (isBrown(firstShoe) || leatherMatch(firstShoe, LEATHER.black)) ? firstShoe : LEATHER.brown;
       order.forEach((i) => {

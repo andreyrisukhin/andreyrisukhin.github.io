@@ -464,7 +464,9 @@
 }
 
 .outfit-piece.is-locked .outfit-piece__swatch {
-  box-shadow: 0 0 0 2px var(--global-bg-color), 0 0 0 4px var(--global-theme-color);
+  box-shadow:
+    0 0 0 2px var(--global-bg-color),
+    0 0 0 4px var(--global-theme-color);
 }
 
 .outfit .outfit-piece__remove {

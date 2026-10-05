@@ -98,7 +98,15 @@ for (const idea of ideas) {
   if (O.colorRole(idea.hexes[2]) !== "loud" && idea.hexes[2] !== "#f4f2ec") assert.equal(idea.hexes[3], idea.hexes[2]);
 }
 assert.equal(new Set(ideas.map((i) => i.hexes.join())).size, ideas.length);
-assert.ok(O.suggestOutfits([{ garment: "sweater", hex: "#9a9c9e", share: 60 }, { garment: "jeans", hex: "#3d5a80", share: 40 }], { variant: 2 }).length >= 2);
+assert.ok(
+  O.suggestOutfits(
+    [
+      { garment: "sweater", hex: "#9a9c9e", share: 60 },
+      { garment: "jeans", hex: "#3d5a80", share: 40 },
+    ],
+    { variant: 2 }
+  ).length >= 2
+);
 assert.ok(O.suggestOutfits([{ garment: "tee", hex: "#ffffff", share: 100 }]).length === 0);
 
 // Olive gets curated pairings first, and a pairing's accent lands on the shoes when nothing else is small.
@@ -122,7 +130,13 @@ const shortsLook = [
   { garment: "shoes", hex: "#5c4033", share: 13 },
 ];
 assert.equal(O.ideaBaseIndex(shortsLook, [1]), 1);
-assert.equal(O.ideaBaseIndex(shortsLook.map(({ locked, ...p }) => p), []), 0);
+assert.equal(
+  O.ideaBaseIndex(
+    shortsLook.map(({ locked, ...p }) => p),
+    []
+  ),
+  0
+);
 const shortsIdeas = O.suggestOutfits(shortsLook, { locked: [1] });
 assert.ok(shortsIdeas.every((idea) => idea.hexes[1] === "#5b6236"));
 assert.ok(shortsIdeas.some((idea) => idea.hexes[0] !== "#f4f2ec"));
@@ -133,10 +147,16 @@ assert.equal(O.suggestOutfits(shortsLook, { locked: [0, 1, 2] }).length, 0);
 const lockedLink = O.encodeOutfit({ auto: true, pieces: shortsLook });
 assert.equal(lockedLink, "o=tee.f4f2ec_shorts.5b6236.k_shoes.5c4033");
 const lockedBack = O.decodeOutfit(lockedLink);
-assert.deepEqual(Array.from(lockedBack.pieces, (p) => Boolean(p.locked)), [false, true, false]);
+assert.deepEqual(
+  Array.from(lockedBack.pieces, (p) => Boolean(p.locked)),
+  [false, true, false]
+);
 assert.equal(lockedBack.auto, true);
 const lockedCustom = O.decodeOutfit("o=tee.ffffff.60_shorts.5b6236.40.k");
-assert.deepEqual(Array.from(lockedCustom.pieces, (p) => p.share), [60, 40]);
+assert.deepEqual(
+  Array.from(lockedCustom.pieces, (p) => p.share),
+  [60, 40]
+);
 assert.equal(lockedCustom.pieces[1].locked, true);
 
 // Owned colors: ideas pick gray or brown shoes, a locked brown bag pulls toward brown, and every owned color appears.
@@ -193,15 +213,28 @@ assert.equal(ownedBack.locked, true);
 assert.equal(O.decodeOutfit("o=shoes.5c4033.8a8d8f").pieces[0].options, undefined);
 
 // Links round-trip; auto sizes omit shares.
-const auto = O.encodeOutfit({ auto: true, skin: "#c68e6a", pieces: [{ garment: "tee", hex: "#f4f2ec", share: 60 }, { garment: "shorts", hex: "#5b6236", share: 40 }] });
+const auto = O.encodeOutfit({
+  auto: true,
+  skin: "#c68e6a",
+  pieces: [
+    { garment: "tee", hex: "#f4f2ec", share: 60 },
+    { garment: "shorts", hex: "#5b6236", share: 40 },
+  ],
+});
 assert.equal(auto, "o=tee.f4f2ec_shorts.5b6236&skin=c68e6a");
 const decoded = O.decodeOutfit("#" + auto);
 assert.equal(decoded.auto, true);
 assert.equal(decoded.skin, "#c68e6a");
-assert.deepEqual(Array.from(decoded.pieces, (p) => p.share), Array.from(O.defaultShares(["tee", "shorts"])));
+assert.deepEqual(
+  Array.from(decoded.pieces, (p) => p.share),
+  Array.from(O.defaultShares(["tee", "shorts"]))
+);
 const custom = O.decodeOutfit("o=tee.ffffff.70_chinos.5b6236.30");
 assert.equal(custom.auto, false);
-assert.deepEqual(Array.from(custom.pieces, (p) => p.share), [70, 30]);
+assert.deepEqual(
+  Array.from(custom.pieces, (p) => p.share),
+  [70, 30]
+);
 assert.equal(O.decodeOutfit("o=cape.ffffff"), null);
 
 console.log("outfit-colors-test: ok");
