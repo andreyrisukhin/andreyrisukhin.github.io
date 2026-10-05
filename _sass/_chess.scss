@@ -176,8 +176,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  margin: 0.2rem 0 0.2rem 0.6rem;
-  font-size: 0.92em;
+  margin: 0.2rem 0 0.2rem 0.4rem;
 }
 
 .chess-variation {
@@ -185,16 +184,10 @@
   border-left: 2px solid var(--global-divider-color);
   border-radius: 0 6px 6px 0;
   background: color-mix(in srgb, var(--global-divider-color) 25%, transparent);
+}
 
-  &::before {
-    content: "(";
-    opacity: 0.45;
-  }
-
-  &::after {
-    content: ")";
-    opacity: 0.45;
-  }
+.chess-variation--main {
+  border-left-color: var(--global-theme-color);
 }
 
 .chess-actions {

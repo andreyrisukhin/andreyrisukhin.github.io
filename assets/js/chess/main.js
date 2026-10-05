@@ -83,29 +83,27 @@ function init(app) {
       movesEl.append(empty);
       return;
     }
+    // Moves run inline until a position has more than one continuation. There the line forks: every
+    // continuation, main line first, gets its own box at the same depth and carries its line onward.
     const line = (container, position, forceNumber) => {
       let n = position;
       let force = forceNumber;
-      while (n.children.length) {
-        const [main, ...variations] = n.children;
-        container.append(moveButton(main, force));
+      while (n.children.length === 1) {
+        container.append(moveButton(n.children[0], force), " ");
         force = false;
-        if (variations.length) {
-          // Each alternative gets its own bracketed line so sibling lines never read as one sequence.
-          const group = document.createElement("div");
-          group.className = "chess-variations";
-          for (const variation of variations) {
-            const box = document.createElement("div");
-            box.className = "chess-variation";
-            box.append(moveButton(variation, true));
-            line(box, variation, false);
-            group.append(box);
-          }
-          container.append(group);
-          force = true;
-        }
-        n = main;
+        n = n.children[0];
       }
+      if (n.children.length < 2) return;
+      const group = document.createElement("div");
+      group.className = "chess-variations";
+      n.children.forEach((child, i) => {
+        const box = document.createElement("div");
+        box.className = i === 0 ? "chess-variation chess-variation--main" : "chess-variation";
+        box.append(moveButton(child, true), " ");
+        line(box, child, false);
+        group.append(box);
+      });
+      container.append(group);
     };
     line(movesEl, scenario.root, true);
     const current = movesEl.querySelector(".chess-move--current");
