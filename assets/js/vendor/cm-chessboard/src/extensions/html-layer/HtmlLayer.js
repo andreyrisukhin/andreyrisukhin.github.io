@@ -1,0 +1,6 @@
+/**
+ * Author and copyright: Stefan Haack (https://shaack.com)
+ * Repository: https://github.com/shaack/cm-chessboard
+ * License: MIT, see file 'LICENSE'
+ */
+import{Extension,EXTENSION_POINT}from"../../model/Extension.js";export class HtmlLayer extends Extension{constructor(e){super(e),this.layers=[],e.addHtmlLayer=this.addHtmlLayer.bind(this),e.removeHtmlLayer=this.removeHtmlLayer.bind(this),this.registerExtensionPoint(EXTENSION_POINT.destroy,(()=>{this.onDestroy()}))}addHtmlLayer(e){const t=document.createElement("div");return this.chessboard.context.appendChild(t),this.chessboard.context.style.position="relative",t.classList.add("html-layer"),t.style.position="absolute",t.style.top="0",t.style.left="0",t.style.bottom="0",t.style.right="0",t.innerHTML=e,this.layers.push(t),t}removeHtmlLayer(e){const t=this.layers.indexOf(e);-1!==t&&this.layers.splice(t,1),e&&e.parentNode===this.chessboard.context&&this.chessboard.context.removeChild(e)}onDestroy(){for(const e of this.layers)e.parentNode&&e.parentNode.removeChild(e);this.layers.length=0,delete this.chessboard.addHtmlLayer,delete this.chessboard.removeHtmlLayer}}
