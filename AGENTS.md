@@ -77,7 +77,7 @@ It picks free ports in 8090-8099 (live reload in 35729-35739), reuses the main c
 - Do not serve on 5173, 4173, 8080, or 6006. Static SSH forwards on my laptop claim those ports and do not reach this machine, so the page shows "connection refused" or stays blank.
 - `bin/dev-serve.sh` and the Jekyll default use port 4000, which I also cannot reach.
 - If a restarted server's page goes blank, VS Code is holding a stale forward. Stop the server and rerun the script; it takes the next free port.
-- Prettier from a worktree needs the main checkout's install: run `node_modules/.bin/prettier --check <absolute path>` from the main checkout.
+- Prettier in a worktree: run `npm ci` once in the worktree (two packages, under a second), then `node_modules/.bin/prettier --check <paths>` from the worktree root. Do not run the main checkout's Prettier on worktree paths: it either fails to load the Liquid plugin or treats the files as ignored and reports success without checking them.
 
 ## Branches and merging
 
@@ -85,7 +85,7 @@ It picks free ports in 8090-8099 (live reload in 35729-35739), reuses the main c
 
 - **One task, one short-lived branch.** Name it for the task (`music/tools-hub`, `droid/<task>-<timestamp>`) and work in its own worktree under `~/.factory/worktrees/` or a sibling directory. Do not commit to `main` directly.
 - **Commit before you stop.** End every session with the work committed and pushed to its branch. Uncommitted edits in a checkout are invisible to every other session and are how work gets stranded. Stashes are not storage.
-- **Merge with `bin/merge-to-main`.** It refuses on `main` or with uncommitted tracked changes, merges `origin/main` into the branch, builds the production site, runs `_scripts/*-test.js`, checks Prettier on changed files, then fast-forwards `origin/main` under the shared `droid-integration.lock`. Use `--dry-run` first to see ahead/behind counts and predicted conflicts.
+- **Merge with `bin/merge-to-main`.** It refuses on `main` or with uncommitted tracked changes, merges `origin/main` into the branch, builds the production site, runs `_scripts/*-test.js`, checks Prettier on changed files, then fast-forwards `origin/main` under the shared `droid-integration.lock`. In a worktree it reuses the main checkout's gems and runs `npm ci` if Prettier is missing. Afterwards it fast-forwards the local `main` checkout when that checkout has no tracked changes, so `git branch -d` works right away. Use `--dry-run` first to see ahead/behind counts and predicted conflicts.
 - **Resolve conflicts on the branch, never on `main`.** When the script stops on a conflict, fix it in the branch worktree, commit the merge, and rerun. No force-pushes to `main`, no rebasing published branches.
 - **Run the browser checks the change touches.** The script runs the Node suites only. For music pages, also run the matching `_scripts/*-browser-check.*` and `*-check.py` scripts against a local build before merging.
 - **Delete merged branches.** After the merge, `git branch -d <branch>` locally and delete the remote branch if one exists. `-d` refuses unmerged work, which is the point.

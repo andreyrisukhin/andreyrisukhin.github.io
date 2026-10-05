@@ -46,9 +46,13 @@ PORT="${PREVIEW_PORT:-$(free_port 8090 8099)}"
 LIVERELOAD_PORT="${PREVIEW_LIVERELOAD_PORT:-$(free_port 35729 35739)}"
 LOG="$(mktemp -t preview-serve.XXXXXX.log)"
 
-nohup bundle exec jekyll serve --host 127.0.0.1 --port "$PORT" \
+# setsid gives the server its own session, so it survives when the caller's process group is
+# killed (agent shells and CI steps do this when a command returns). nohup alone does not.
+DETACH=(nohup)
+command -v setsid >/dev/null && DETACH=(setsid nohup)
+"${DETACH[@]}" bundle exec jekyll serve --host 127.0.0.1 --port "$PORT" \
   --livereload --livereload-port "$LIVERELOAD_PORT" --unpublished --future \
-  >"$LOG" 2>&1 &
+  >"$LOG" 2>&1 </dev/null &
 PID=$!
 disown "$PID"
 

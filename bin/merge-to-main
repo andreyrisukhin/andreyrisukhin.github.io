@@ -50,6 +50,7 @@ die() { printf '[merge-to-main] error: %s\n' "$*" >&2; exit 1; }
 
 REPO_ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
+MAIN_CHECKOUT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 
 BRANCH="$(git symbolic-ref --quiet --short HEAD)" \
   || die "HEAD is detached; check out a named branch first"
@@ -93,8 +94,14 @@ if [ "$behind" -gt 0 ]; then
 fi
 
 if [ "$BUILD" -eq 1 ]; then
-  if [ -z "${BUNDLE_PATH:-}" ] && [ ! -f .bundle/config ] && [ -d vendor/bundle ]; then
-    export BUNDLE_PATH=vendor/bundle
+  # Worktrees have no vendor/bundle of their own; reuse the main checkout's gems.
+  if [ -z "${BUNDLE_PATH:-}" ] && [ ! -f .bundle/config ]; then
+    if [ -d vendor/bundle ]; then
+      export BUNDLE_PATH=vendor/bundle
+    elif [ -d "$MAIN_CHECKOUT/vendor/bundle" ]; then
+      export BUNDLE_PATH="$MAIN_CHECKOUT/vendor/bundle"
+      export BUNDLE_FROZEN=true
+    fi
   fi
   say "building the production site"
   JEKYLL_ENV=production bundle exec jekyll build --quiet \
@@ -122,8 +129,12 @@ rm -f /tmp/merge-to-main-test.$$
 
 mapfile -t changed < <(git diff --name-only --diff-filter=ACMR "$UPSTREAM...HEAD")
 if [ "${#changed[@]}" -gt 0 ]; then
-  [ -x node_modules/.bin/prettier ] \
-    || die "Prettier is not installed; run 'npm ci' in $REPO_ROOT"
+  # Use this checkout's own Prettier. The main checkout's copy is not a substitute: run on
+  # worktree paths it either cannot load the Liquid plugin or skips the files as ignored.
+  if [ ! -x node_modules/.bin/prettier ]; then
+    say "installing Prettier for this checkout (npm ci)"
+    npm ci --no-audit --no-fund --loglevel=error || die "npm ci failed in $REPO_ROOT"
+  fi
   say "checking Prettier on ${#changed[@]} changed file(s)"
   node_modules/.bin/prettier --check --ignore-unknown --log-level warn "${changed[@]}" \
     || die "Prettier found unformatted files; run node_modules/.bin/prettier --write on them and commit"
@@ -149,9 +160,26 @@ HEAD_SHA="$(git rev-parse HEAD)"
 say "fast-forwarding $UPSTREAM to ${HEAD_SHA:0:8}"
 git push "$REMOTE" "HEAD:refs/heads/$TARGET"
 
-if git show-ref --verify --quiet "refs/heads/$TARGET" \
-  && git fetch --quiet "$REMOTE" "$TARGET:$TARGET" 2>/dev/null; then
-  say "local $TARGET fast-forwarded too"
+# Bring local $TARGET up to date so `git branch -d` accepts the merged branch. Git will not
+# fetch into a branch checked out in another worktree, so fast-forward that checkout instead,
+# but only when it has no tracked changes; untracked files block the merge only if they collide.
+TARGET_CHECKOUT="$(git worktree list --porcelain | awk -v ref="refs/heads/$TARGET" '
+  /^worktree / { path = substr($0, 10) }
+  $0 == "branch " ref { print path; exit }')"
+if [ -n "$TARGET_CHECKOUT" ]; then
+  if [ -n "$(git -C "$TARGET_CHECKOUT" status --porcelain --untracked-files=no)" ]; then
+    say "local $TARGET in $TARGET_CHECKOUT has uncommitted changes; left it behind $UPSTREAM"
+  elif git -C "$TARGET_CHECKOUT" merge --ff-only --quiet "$UPSTREAM"; then
+    say "local $TARGET in $TARGET_CHECKOUT fast-forwarded too"
+  else
+    say "could not fast-forward local $TARGET in $TARGET_CHECKOUT; update it by hand"
+  fi
+elif git show-ref --verify --quiet "refs/heads/$TARGET"; then
+  git fetch --quiet "$REMOTE" "$TARGET:$TARGET" && say "local $TARGET fast-forwarded too"
 fi
 
-say "done. When you no longer need $BRANCH: git branch -d $BRANCH"
+if git merge-base --is-ancestor "$BRANCH" "refs/heads/$TARGET" 2>/dev/null; then
+  say "done. When you no longer need $BRANCH: git branch -d $BRANCH"
+else
+  say "done. Local $TARGET is behind, so delete $BRANCH after updating it: git branch -d $BRANCH"
+fi
