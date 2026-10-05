@@ -137,6 +137,18 @@ fs.copyFileSync(path.join(root, "assets/js/chess/scenario.js"), path.join(tmp, "
     assert.notEqual(next.startFen, START_FEN);
   });
 
+  check("material tracks captures along the current line and the point balance", () => {
+    const s = Scenario.fromHash(Chess, "#m=e2e4.d7d5.e4d5.d8d5.b1c3.d5a2.a1a2&at=7");
+    assert.deepEqual(s.material(), { captures: { w: ["p", "q"], b: ["p", "p"] }, advantage: 8 });
+    s.back();
+    assert.deepEqual(s.material(), { captures: { w: ["p"], b: ["p", "p"] }, advantage: -1 });
+    assert.deepEqual(new Scenario(Chess).material(), { captures: { w: [], b: [] }, advantage: 0 });
+    const promoted = Scenario.fromHash(Chess, "#fen=1r4k1/P7/8/8/8/8/8/6K1_w_-_-_0_1&m=a7b8q&at=1");
+    assert.deepEqual(promoted.material(), { captures: { w: ["r"], b: [] }, advantage: 9 });
+    const custom = Scenario.fromHash(Chess, "#fen=r4rk1/3n1pp1/p4n1p/2pP1Q2/P1B1p3/q7/1bPB1PPP/1R3RK1_b_-_-_0_1");
+    assert.equal(custom.material().advantage, -3);
+  });
+
   check("page examples load", () => {
     const page = fs.readFileSync(path.join(root, "_pages/chess.md"), "utf8");
     const hashes = [...page.matchAll(/href="\{\{ '\/chess\/' \| relative_url \}\}(#[^"]+)"/g)].map((m) => m[1]);

@@ -11,7 +11,9 @@ Examples: <a href="{{ '/chess/' | relative_url }}#t=Fried%20Liver&m=e2e4.e7e5.g1
 
 <div class="chess-app" data-chess-app data-assets="{{ '/assets/js/vendor/cm-chessboard/assets/' | relative_url }}">
   <div class="chess-app__board-column">
+    <div class="chess-material" data-chess-material="top"></div>
     <div class="chess-board" data-chess-board></div>
+    <div class="chess-material" data-chess-material="bottom"></div>
     <div class="chess-nav" role="group" aria-label="Step through moves">
       <button type="button" data-chess-action="start" aria-label="First position" title="First position (Up)">&#x23EE;</button>
       <button type="button" data-chess-action="back" aria-label="Previous move" title="Previous move (Left)">&#x25C0;</button>

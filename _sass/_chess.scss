@@ -28,10 +28,39 @@
   touch-action: none;
 }
 
+.chess-material {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.9rem;
+  font-size: 0.9rem;
+}
+
+.chess-material__side {
+  margin-right: 0.25rem;
+  font-weight: 600;
+}
+
+.chess-material__group {
+  display: inline-flex;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+// Overlap repeated pieces the way chess.com stacks them.
+.chess-material__piece + .chess-material__piece {
+  margin-left: -0.45em;
+}
+
+.chess-material__score {
+  margin-left: 0.15rem;
+  opacity: 0.7;
+}
+
 .chess-nav {
   display: flex;
   gap: 0.4rem;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 
   button {
     flex: 1;

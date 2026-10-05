@@ -6,6 +6,8 @@ export const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0
 // One letter per annotation color in the URL; the values match cm-chessboard's RightClickAnnotator keys.
 export const ANNOTATION_COLORS = { g: "success", b: "info", r: "danger", o: "warning" };
 
+const PIECE_VALUES = { p: 1, n: 3, b: 3, r: 5, q: 9 };
+const PIECE_ORDER = "pnbrq";
 const MOVE_TOKEN = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const SQUARE = /^[a-h][1-8]$/;
 
@@ -16,6 +18,8 @@ function makeNode(parent, move, fen) {
     san: move ? move.san : null,
     from: move ? move.from : null,
     to: move ? move.to : null,
+    color: move ? move.color : null,
+    captured: move ? move.captured || null : null,
     fen,
     children: [],
     selected: null,
@@ -104,6 +108,22 @@ export class Scenario {
       if (n.parent.children[0] !== n) return false;
     }
     return true;
+  }
+
+  // Pieces each side captured between the start position and `node`, plus the material balance
+  // on the board (positive favors White). The balance also counts material missing from a custom start.
+  material(node = this.current) {
+    const captures = { w: [], b: [] };
+    for (let n = node; n.parent; n = n.parent) {
+      if (n.captured) captures[n.color].push(n.captured);
+    }
+    for (const side of ["w", "b"]) captures[side].sort((x, y) => PIECE_ORDER.indexOf(x) - PIECE_ORDER.indexOf(y));
+    let advantage = 0;
+    for (const char of node.fen.split(" ")[0]) {
+      const value = PIECE_VALUES[char.toLowerCase()];
+      if (value) advantage += char === char.toUpperCase() ? value : -value;
+    }
+    return { captures, advantage };
   }
 
   // Removes `node` and everything after it.

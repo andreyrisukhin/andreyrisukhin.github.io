@@ -11,6 +11,11 @@ import { ANNOTATION_COLORS, Scenario } from "./scenario.js";
 
 const STORAGE_KEY = "chess-scenarios:v1";
 const WHEEL_STEP = 60;
+const GLYPHS = {
+  w: { p: "\u2659", n: "\u2658", b: "\u2657", r: "\u2656", q: "\u2655" },
+  b: { p: "\u265F", n: "\u265E", b: "\u265D", r: "\u265C", q: "\u265B" },
+};
+const PIECE_NAMES = { p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen" };
 
 const app = document.querySelector("[data-chess-app]");
 if (app) init(app);
@@ -25,6 +30,7 @@ function init(app) {
   const setupEl = $("[data-chess-setup]");
   const turnEl = $("[data-chess-turn]");
   const savedEl = $("[data-chess-saved]");
+  const materialEls = { top: $('[data-chess-material="top"]'), bottom: $('[data-chess-material="bottom"]') };
   const action = (name) => app.querySelector(`[data-chess-action="${name}"]`);
 
   const colorByClass = {};
@@ -62,6 +68,7 @@ function init(app) {
     board.setAnnotations(toBoardAnnotations(node.annotations));
     if (document.activeElement !== titleEl) titleEl.value = scenario.title;
     renderMoves();
+    renderMaterial();
     renderStatus();
     renderButtons();
     writeHash();
@@ -123,6 +130,50 @@ function init(app) {
       render({ animate: true });
     });
     return button;
+  }
+
+  function renderMaterial() {
+    const { captures, advantage } = scenario.material();
+    const bottom = scenario.orientation;
+    const top = bottom === "w" ? "b" : "w";
+    fillMaterial(materialEls.top, top, captures[top], advantage);
+    fillMaterial(materialEls.bottom, bottom, captures[bottom], advantage);
+  }
+
+  function fillMaterial(el, side, pieces, advantage) {
+    const opponent = side === "w" ? "b" : "w";
+    const name = side === "w" ? "White" : "Black";
+    const lead = side === "w" ? advantage : -advantage;
+    el.replaceChildren();
+    const label = document.createElement("span");
+    label.className = "chess-material__side";
+    label.textContent = name;
+    el.append(label);
+    let group = null;
+    pieces.forEach((type, i) => {
+      if (type !== pieces[i - 1]) {
+        group = document.createElement("span");
+        group.className = "chess-material__group";
+        el.append(group);
+      }
+      const piece = document.createElement("span");
+      piece.className = "chess-material__piece";
+      piece.textContent = GLYPHS[opponent][type];
+      group.append(piece);
+    });
+    if (lead > 0) {
+      const score = document.createElement("span");
+      score.className = "chess-material__score";
+      score.textContent = `+${lead}`;
+      el.append(score);
+    }
+    const counts = {};
+    for (const type of pieces) counts[type] = (counts[type] || 0) + 1;
+    const list = Object.entries(counts).map(([type, n]) => `${n} ${PIECE_NAMES[type]}${n > 1 ? "s" : ""}`);
+    el.setAttribute(
+      "aria-label",
+      `${name} captured ${list.length ? list.join(", ") : "nothing"}${lead > 0 ? `, up ${lead} point${lead > 1 ? "s" : ""}` : ""}`
+    );
   }
 
   function renderStatus() {
@@ -311,6 +362,7 @@ function init(app) {
   function flip() {
     scenario.orientation = scenario.orientation === "w" ? "b" : "w";
     board.setOrientation(scenario.orientation, true);
+    renderMaterial();
     writeHash();
   }
 
