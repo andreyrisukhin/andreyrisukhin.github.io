@@ -139,14 +139,28 @@ fs.copyFileSync(path.join(root, "assets/js/chess/scenario.js"), path.join(tmp, "
 
   check("material tracks captures along the current line and the point balance", () => {
     const s = Scenario.fromHash(Chess, "#m=e2e4.d7d5.e4d5.d8d5.b1c3.d5a2.a1a2&at=7");
-    assert.deepEqual(s.material(), { captures: { w: ["p", "q"], b: ["p", "p"] }, advantage: 8 });
+    const none = { w: [], b: [] };
+    assert.deepEqual(s.material(), { offAtStart: none, captures: { w: ["p", "q"], b: ["p", "p"] }, advantage: 8 });
     s.back();
-    assert.deepEqual(s.material(), { captures: { w: ["p"], b: ["p", "p"] }, advantage: -1 });
-    assert.deepEqual(new Scenario(Chess).material(), { captures: { w: [], b: [] }, advantage: 0 });
+    assert.deepEqual(s.material(), { offAtStart: none, captures: { w: ["p"], b: ["p", "p"] }, advantage: -1 });
+    assert.deepEqual(new Scenario(Chess).material(), { offAtStart: none, captures: none, advantage: 0 });
     const promoted = Scenario.fromHash(Chess, "#fen=1r4k1/P7/8/8/8/8/8/6K1_w_-_-_0_1&m=a7b8q&at=1");
-    assert.deepEqual(promoted.material(), { captures: { w: ["r"], b: [] }, advantage: 9 });
-    const custom = Scenario.fromHash(Chess, "#fen=r4rk1/3n1pp1/p4n1p/2pP1Q2/P1B1p3/q7/1bPB1PPP/1R3RK1_b_-_-_0_1");
-    assert.equal(custom.material().advantage, -3);
+    assert.deepEqual(promoted.material().captures, { w: ["r"], b: [] });
+    assert.equal(promoted.material().advantage, 9);
+  });
+
+  check("material lists pieces already off the board at a custom start", () => {
+    const custom = Scenario.fromHash(Chess, "#fen=r4rk1/3n1pp1/p4n1p/2pP1Q2/P1B1p3/q7/1bPB1PPP/1R3RK1_b_-_-_0_1&m=a3a2.b1b2.a2b2");
+    assert.deepEqual(custom.material(custom.root), {
+      offAtStart: { w: ["p", "p", "b"], b: ["p", "p", "n", "n"] },
+      captures: { w: [], b: [] },
+      advantage: -3,
+    });
+    custom.toEnd();
+    assert.deepEqual(custom.material().captures, { w: ["b"], b: ["r"] });
+    assert.deepEqual(custom.material().offAtStart.w, ["p", "p", "b"], "start pieces do not change along the line");
+    const twoQueens = new Scenario(Chess, "4k3/8/8/8/8/8/PPPPPPP1/QQ2K3 w - - 0 1");
+    assert.deepEqual(twoQueens.material().offAtStart.b, ["n", "n", "b", "b", "r", "r"], "extra queen counts as the missing pawn");
   });
 
   check("page examples load", () => {

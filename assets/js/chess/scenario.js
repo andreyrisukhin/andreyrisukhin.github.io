@@ -8,6 +8,7 @@ export const ANNOTATION_COLORS = { g: "success", b: "info", r: "danger", o: "war
 
 const PIECE_VALUES = { p: 1, n: 3, b: 3, r: 5, q: 9 };
 const PIECE_ORDER = "pnbrq";
+const FULL_SET = { p: 8, n: 2, b: 2, r: 2, q: 1 };
 const MOVE_TOKEN = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const SQUARE = /^[a-h][1-8]$/;
 
@@ -110,20 +111,22 @@ export class Scenario {
     return true;
   }
 
-  // Pieces each side captured between the start position and `node`, plus the material balance
-  // on the board (positive favors White). The balance also counts material missing from a custom start.
+  // For each side, the opponent's pieces already off the board in the start position (`offAtStart`)
+  // and those it captured between the start and `node` (`captures`), plus the material balance on
+  // the board (positive favors White).
   material(node = this.current) {
     const captures = { w: [], b: [] };
     for (let n = node; n.parent; n = n.parent) {
       if (n.captured) captures[n.color].push(n.captured);
     }
-    for (const side of ["w", "b"]) captures[side].sort((x, y) => PIECE_ORDER.indexOf(x) - PIECE_ORDER.indexOf(y));
+    const offAtStart = { w: missingPieces(this.startFen, "b"), b: missingPieces(this.startFen, "w") };
+    for (const side of ["w", "b"]) captures[side].sort(byPieceOrder);
     let advantage = 0;
     for (const char of node.fen.split(" ")[0]) {
       const value = PIECE_VALUES[char.toLowerCase()];
       if (value) advantage += char === char.toUpperCase() ? value : -value;
     }
-    return { captures, advantage };
+    return { offAtStart, captures, advantage };
   }
 
   // Removes `node` and everything after it.
@@ -303,6 +306,29 @@ export class Scenario {
     tokens.push("*");
     return (headers.length ? headers.join("\n") + "\n\n" : "") + tokens.join(" ");
   }
+}
+
+function byPieceOrder(x, y) {
+  return PIECE_ORDER.indexOf(x) - PIECE_ORDER.indexOf(y);
+}
+
+// Pieces of `color` missing from a full set in `fen`. Extra queens, rooks, and so on are promoted
+// pawns, so each one counts against the pawns instead.
+function missingPieces(fen, color) {
+  const counts = { p: 0, n: 0, b: 0, r: 0, q: 0 };
+  for (const char of fen.split(" ")[0]) {
+    const type = char.toLowerCase();
+    const isColor = color === "w" ? char !== type : char === type;
+    if (isColor && type in counts) counts[type]++;
+  }
+  const missing = [];
+  let promoted = 0;
+  for (const type of "nbrq") {
+    promoted += Math.max(0, counts[type] - FULL_SET[type]);
+    for (let i = counts[type]; i < FULL_SET[type]; i++) missing.push(type);
+  }
+  for (let i = counts.p + promoted; i < FULL_SET.p; i++) missing.push("p");
+  return missing.sort(byPieceOrder);
 }
 
 function encodeAnnotation(annotation) {

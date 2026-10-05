@@ -137,14 +137,16 @@ function init(app) {
   }
 
   function renderMaterial() {
-    const { captures, advantage } = scenario.material();
+    const { offAtStart, captures, advantage } = scenario.material();
     const bottom = scenario.orientation;
     const top = bottom === "w" ? "b" : "w";
-    fillMaterial(materialEls.top, top, captures[top], advantage);
-    fillMaterial(materialEls.bottom, bottom, captures[bottom], advantage);
+    fillMaterial(materialEls.top, top, offAtStart[top], captures[top], advantage);
+    fillMaterial(materialEls.bottom, bottom, offAtStart[bottom], captures[bottom], advantage);
   }
 
-  function fillMaterial(el, side, pieces, advantage) {
+  // Shows the opponent's pieces already off the board at the start, a divider, then the ones this
+  // side captured along the current line.
+  function fillMaterial(el, side, startPieces, captured, advantage) {
     const opponent = side === "w" ? "b" : "w";
     const name = side === "w" ? "White" : "Black";
     const lead = side === "w" ? advantage : -advantage;
@@ -153,31 +155,45 @@ function init(app) {
     label.className = "chess-material__side";
     label.textContent = name;
     el.append(label);
-    let group = null;
-    pieces.forEach((type, i) => {
-      if (type !== pieces[i - 1]) {
-        group = document.createElement("span");
-        group.className = "chess-material__group";
-        el.append(group);
-      }
-      const piece = document.createElement("span");
-      piece.className = "chess-material__piece";
-      piece.textContent = GLYPHS[opponent][type];
-      group.append(piece);
-    });
+    const appendGroups = (pieces, className) => {
+      let group = null;
+      pieces.forEach((type, i) => {
+        if (type !== pieces[i - 1]) {
+          group = document.createElement("span");
+          group.className = className;
+          el.append(group);
+        }
+        const piece = document.createElement("span");
+        piece.className = "chess-material__piece";
+        piece.textContent = GLYPHS[opponent][type];
+        group.append(piece);
+      });
+    };
+    appendGroups(startPieces, "chess-material__group chess-material__group--start");
+    if (startPieces.length && captured.length) {
+      const divider = document.createElement("span");
+      divider.className = "chess-material__divider";
+      divider.textContent = "|";
+      divider.title = "Left: off the board at the start. Right: captured in this line.";
+      el.append(divider);
+    }
+    appendGroups(captured, "chess-material__group");
     if (lead > 0) {
       const score = document.createElement("span");
       score.className = "chess-material__score";
       score.textContent = `+${lead}`;
       el.append(score);
     }
-    const counts = {};
-    for (const type of pieces) counts[type] = (counts[type] || 0) + 1;
-    const list = Object.entries(counts).map(([type, n]) => `${n} ${PIECE_NAMES[type]}${n > 1 ? "s" : ""}`);
-    el.setAttribute(
-      "aria-label",
-      `${name} captured ${list.length ? list.join(", ") : "nothing"}${lead > 0 ? `, up ${lead} point${lead > 1 ? "s" : ""}` : ""}`
-    );
+    const describe = (pieces) => {
+      const counts = {};
+      for (const type of pieces) counts[type] = (counts[type] || 0) + 1;
+      const list = Object.entries(counts).map(([type, n]) => `${n} ${PIECE_NAMES[type]}${n > 1 ? "s" : ""}`);
+      return list.length ? list.join(", ") : "nothing";
+    };
+    let description = `${name} captured ${describe(captured)}`;
+    if (startPieces.length) description += `; ${describe(startPieces)} already off the board at the start`;
+    if (lead > 0) description += `; up ${lead} point${lead > 1 ? "s" : ""}`;
+    el.setAttribute("aria-label", description);
   }
 
   function renderStatus() {
