@@ -79,7 +79,7 @@ fs.copyFileSync(path.join(root, "assets/js/chess/scenario.js"), path.join(tmp, "
     ];
     s.root.annotations = [{ color: "b", from: "e2", to: "e4" }];
     const hash = s.toHash();
-    assert.equal(hash, "#t=Sicilian%20%26%20friends&m=e2e4.e7e5(c7c5.g1f3)g1f3&at=4&a=0:be2e4;4:gd7d6,rd4");
+    assert.equal(hash, "#t=Sicilian%20%26%20friends&m=e2e4.e7e5_c7c5.g1f3~g1f3&at=4&a=0:be2e4;4:gd7d6,rd4");
     const copy = Scenario.fromHash(Chess, hash);
     assert.equal(copy.title, "Sicilian & friends");
     assert.equal(copy.current.san, "Nf3");
@@ -90,7 +90,7 @@ fs.copyFileSync(path.join(root, "assets/js/chess/scenario.js"), path.join(tmp, "
   });
 
   check("nested variations survive encoding", () => {
-    const moves = "e2e4.e7e5(c7c5.g1f3(b1c3.b8c6)d7d6)g1f3.b8c6";
+    const moves = "e2e4.e7e5_c7c5.g1f3_b1c3.b8c6~d7d6~g1f3.b8c6";
     const s = Scenario.fromHash(Chess, "#m=" + moves);
     assert.equal(s.encodeMoves(), moves);
     assert.equal(s.toPgn(), "1. e4 e5 (1... c5 2. Nf3 (2. Nc3 Nc6) 2... d6) 2. Nf3 Nc6 *");
@@ -110,16 +110,47 @@ fs.copyFileSync(path.join(root, "assets/js/chess/scenario.js"), path.join(tmp, "
 
   check("bad hashes throw instead of loading half a scenario", () => {
     assert.throws(() => Scenario.fromHash(Chess, "#m=e2e5"), /Illegal move/);
-    assert.throws(() => Scenario.fromHash(Chess, "#m=e2e4("), /Unbalanced/);
+    assert.throws(() => Scenario.fromHash(Chess, "#m=e2e4_"), /Unbalanced/);
     assert.throws(() => Scenario.fromHash(Chess, "#fen=not_a_fen"));
   });
 
+  check("links written with ( ) before the switch to _ ~ still load", () => {
+    const old = Scenario.fromHash(Chess, "#m=e2e4.e7e5(c7c5.g1f3(b1c3.b8c6)d7d6)g1f3.b8c6&at=5");
+    assert.equal(old.encodeMoves(), "e2e4.e7e5_c7c5.g1f3_b1c3.b8c6~d7d6~g1f3.b8c6");
+    assert.equal(old.current.san, "Nc3");
+  });
+
+  check("links contain no characters that messaging apps end a link on", () => {
+    const s = Scenario.fromHash(Chess, "#t=Deep%20lines&m=e2e4.e7e5_c7c5.g1f3_b1c3.b8c6~d7d6~g1f3.b8c6&a=1:ge2e4");
+    assert.doesNotMatch(s.toHash(), /[()\[\]{}<>"' ]/);
+  });
+
+  check("a cut-off link loads the moves before the cut when lenient", () => {
+    // The text-message cut that prompted the lenient mode: the link ended mid-variation.
+    const cut =
+      "#t=an%20interesting%20situation&o=b&fen=r4rk1/3n1pp1/p4n1p/2pP1Q2/P1B1p3/q7/1bPB1PPP/1R3RK1_b_-_-_0_1" +
+      "&m=d7e5(a8b8.c4a6.a3a4)(b2c3.b1b3.a3b3(a3a4.b3c3)c2b3.c3d2)(a3a4.b1b2(c4b3.a4a3(a4d4))a4c4.b2b4";
+    assert.throws(() => Scenario.fromHash(Chess, cut), /Unbalanced/);
+    const s = Scenario.fromHash(Chess, cut, { lenient: true });
+    assert.match(s.loadWarning, /Unbalanced/);
+    assert.equal(s.title, "an interesting situation");
+    assert.equal(s.orientation, "b");
+    assert.deepEqual(
+      s.root.children.map((n) => n.san),
+      ["Ne5", "Rab8", "Bc3", "Qxa4"]
+    );
+    const truncatedMove = Scenario.fromHash(Chess, "#m=e2e4.e7e5.g1f", { lenient: true });
+    assert.equal(truncatedMove.encodeMoves(), "e2e4.e7e5");
+    assert.match(truncatedMove.loadWarning, /Bad move/);
+    assert.equal(Scenario.fromHash(Chess, "#m=e2e4", { lenient: true }).loadWarning, null);
+  });
+
   check("delete and promote keep the cursor valid", () => {
-    const s = Scenario.fromHash(Chess, "#m=e2e4.e7e5(c7c5.g1f3)g1f3&at=4");
+    const s = Scenario.fromHash(Chess, "#m=e2e4.e7e5_c7c5.g1f3~g1f3&at=4");
     assert.equal(s.current.san, "Nf3");
     const c5 = s.current.parent;
     s.promote(c5);
-    assert.equal(s.encodeMoves(), "e2e4.c7c5(e7e5.g1f3)g1f3");
+    assert.equal(s.encodeMoves(), "e2e4.c7c5_e7e5.g1f3~g1f3");
     s.deleteNode(c5);
     assert.equal(s.current.san, "e4");
     assert.equal(s.encodeMoves(), "e2e4.e7e5.g1f3");

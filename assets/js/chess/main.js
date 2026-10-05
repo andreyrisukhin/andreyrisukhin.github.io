@@ -13,7 +13,8 @@ const STORAGE_KEY = "chess-scenarios:v1";
 const WHEEL_STEP = 60;
 const GLYPHS = {
   w: { p: "\u2659", n: "\u2658", b: "\u2657", r: "\u2656", q: "\u2655" },
-  b: { p: "\u265F", n: "\u265E", b: "\u265D", r: "\u265C", q: "\u265B" },
+  // U+FE0E keeps iOS from drawing the black pawn as a color emoji.
+  b: { p: "\u265F\uFE0E", n: "\u265E", b: "\u265D", r: "\u265C", q: "\u265B" },
 };
 const PIECE_NAMES = { p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen" };
 
@@ -46,12 +47,13 @@ function init(app) {
     extensions: [{ class: Markers }, { class: PromotionDialog }, { class: RightClickAnnotator }],
   });
 
-  let scenario = loadFromHash() || new Scenario(Chess);
   let mode = "play";
   let pendingMove = null;
   let savedId = null;
   let setupTool = "move";
   let toastTimer = 0;
+  // Declared after the state above: loading can show a toast, which reads toastTimer.
+  let scenario = loadFromHash() || new Scenario(Chess);
 
   // ---- Rendering ----
 
@@ -253,7 +255,11 @@ function init(app) {
   function loadFromHash() {
     if (location.hash.length < 2) return null;
     try {
-      return Scenario.fromHash(Chess, location.hash);
+      const loaded = Scenario.fromHash(Chess, location.hash, { lenient: true });
+      if (loaded.loadWarning) {
+        showToast("This link looks cut off, so it loaded only the moves up to where it ends.");
+      }
+      return loaded;
     } catch (error) {
       showToast(`Could not read this link: ${error.message}`);
       return null;
@@ -270,12 +276,17 @@ function init(app) {
     if (message) showToast(message);
   }
 
-  window.addEventListener("popstate", () => {
+  // Back/Forward fire popstate; tapping a same-page example link fires hashchange (and, in some
+  // browsers, popstate too). Skip the reload when the URL already matches what is on screen.
+  const onUrlChange = () => {
+    if (location.hash === scenario.toHash()) return;
     scenario = loadFromHash() || new Scenario(Chess);
     savedId = null;
     if (mode === "setup") exitSetup();
     render();
-  });
+  };
+  window.addEventListener("popstate", onUrlChange);
+  window.addEventListener("hashchange", onUrlChange);
 
   // ---- Play mode input ----
 
@@ -578,7 +589,7 @@ function init(app) {
       open.append(meta);
       open.addEventListener("click", () => {
         try {
-          const next = Scenario.fromHash(Chess, item.hash);
+          const next = Scenario.fromHash(Chess, item.hash, { lenient: true });
           if (mode === "setup") exitSetup();
           replaceScenario(next);
           savedId = item.id;

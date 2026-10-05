@@ -9,6 +9,10 @@ export const ANNOTATION_COLORS = { g: "success", b: "info", r: "danger", o: "war
 const PIECE_VALUES = { p: 1, n: 3, b: 3, r: 5, q: 9 };
 const PIECE_ORDER = "pnbrq";
 const FULL_SET = { p: 8, n: 2, b: 2, r: 2, q: 1 };
+// Variations are wrapped in "_" ... "~" in links. Messaging apps end a link at "(" or ")", which the
+// first version of the format used, so those are still read but no longer written.
+const OPEN = "_";
+const CLOSE = "~";
 const MOVE_TOKEN = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const SQUARE = /^[a-h][1-8]$/;
 
@@ -190,7 +194,8 @@ export class Scenario {
   encodeMoves() {
     let text = "";
     const emit = (token) => {
-      const needsDot = text && token !== "(" && token !== ")" && !text.endsWith("(") && !text.endsWith(")");
+      const marker = (t) => t === OPEN || t === CLOSE;
+      const needsDot = text && !marker(token) && !marker(text[text.length - 1]);
       text += (needsDot ? "." : "") + token;
     };
     const walk = (position) => {
@@ -199,10 +204,10 @@ export class Scenario {
         const [main, ...variations] = n.children;
         emit(main.uci);
         for (const variation of variations) {
-          emit("(");
+          emit(OPEN);
           emit(variation.uci);
           walk(variation);
-          emit(")");
+          emit(CLOSE);
         }
         n = main;
       }
@@ -230,13 +235,23 @@ export class Scenario {
     return parts.length ? "#" + parts.join("&") : "";
   }
 
-  static fromHash(Chess, hash) {
+  // With `lenient`, a damaged move list (usually a link cut short by a messaging app) loads as far
+  // as it reads cleanly and the problem is left in `loadWarning` instead of throwing.
+  static fromHash(Chess, hash, { lenient = false } = {}) {
     const params = parseHash(hash);
     const fen = params.fen ? params.fen.replace(/_/g, " ") : START_FEN;
     const scenario = new Scenario(Chess, fen);
     scenario.title = params.t || "";
     scenario.orientation = params.o === "b" ? "b" : "w";
-    if (params.m) scenario.decodeMoves(params.m);
+    scenario.loadWarning = null;
+    if (params.m) {
+      try {
+        scenario.decodeMoves(params.m);
+      } catch (error) {
+        if (!lenient) throw error;
+        scenario.loadWarning = error.message;
+      }
+    }
     const nodes = [scenario.root, ...scenario.orderedNodes()];
     if (params.a) {
       for (const group of params.a.split(";")) {
@@ -251,8 +266,9 @@ export class Scenario {
     return scenario;
   }
 
+  // Moves read before an error stay in the tree, so a lenient caller keeps everything up to it.
   decodeMoves(text) {
-    const tokens = text.replace(/\(/g, ".(.").replace(/\)/g, ".).").split(".").filter(Boolean);
+    const tokens = text.replace(/[(_]/g, ".(.").replace(/[)~]/g, ".).").split(".").filter(Boolean);
     const stack = [];
     let last = this.root;
     let position = this.root;
@@ -262,7 +278,7 @@ export class Scenario {
         stack.push(last);
         position = last.parent;
       } else if (token === ")") {
-        if (!stack.length) throw new Error("Unbalanced ')' in moves");
+        if (!stack.length) throw new Error("Unbalanced variation end in moves");
         last = stack.pop();
         position = last;
       } else {
@@ -273,7 +289,7 @@ export class Scenario {
         position = node;
       }
     }
-    if (stack.length) throw new Error("Unbalanced '(' in moves");
+    if (stack.length) throw new Error("Unbalanced variation start in moves");
   }
 
   toPgn() {

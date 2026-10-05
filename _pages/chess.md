@@ -7,7 +7,7 @@ description: "Set up chess positions, play out lines, and share them as links."
 
 The link holds every move, branch, and arrow, so whoever opens it sees the same scenario.
 
-Examples: <a href="{{ '/chess/' | relative_url }}#t=Fried%20Liver&m=e2e4.e7e5.g1f3.b8c6.f1c4.g8f6.f3g5.d7d5.e4d5.f6d5(c6a5.c4b5.c7c6)g5f7.e8f7.d1f3.f7e6.b1c3&at=14&a=14:rf7d8,rf7h8">Fried Liver</a>, <a href="{{ '/chess/' | relative_url }}#t=Back-rank%20mate&fen=6k1/5ppp/8/8/8/8/5PPP/3R2K1_w_-_-_0_1&m=d1d8&a=0:gd1d8">back-rank mate</a>, <a href="{{ '/chess/' | relative_url }}#t=an%20interesting%20situation&o=b&fen=r4rk1/3n1pp1/p4n1p/2pP1Q2/P1B1p3/q7/1bPB1PPP/1R3RK1_b_-_-_0_1">an interesting situation</a>.
+Examples: <a href="{{ '/chess/' | relative_url }}#t=Fried%20Liver&m=e2e4.e7e5.g1f3.b8c6.f1c4.g8f6.f3g5.d7d5.e4d5.f6d5_c6a5.c4b5.c7c6~g5f7.e8f7.d1f3.f7e6.b1c3&at=14&a=14:rf7d8,rf7h8">Fried Liver</a>, <a href="{{ '/chess/' | relative_url }}#t=Back-rank%20mate&fen=6k1/5ppp/8/8/8/8/5PPP/3R2K1_w_-_-_0_1&m=d1d8&a=0:gd1d8">back-rank mate</a>, <a href="{{ '/chess/' | relative_url }}#t=an%20interesting%20situation&o=b&fen=r4rk1/3n1pp1/p4n1p/2pP1Q2/P1B1p3/q7/1bPB1PPP/1R3RK1_b_-_-_0_1">an interesting situation</a>.
 
 <div class="chess-app" data-chess-app data-assets="{{ '/assets/js/vendor/cm-chessboard/assets/' | relative_url }}">
   <div class="chess-app__board-column">
@@ -64,7 +64,7 @@ Examples: <a href="{{ '/chess/' | relative_url }}#t=Fried%20Liver&m=e2e4.e7e5.g1
         <button type="button" data-chess-tool="br" aria-pressed="false" title="Black rook">&#x265C;</button>
         <button type="button" data-chess-tool="bb" aria-pressed="false" title="Black bishop">&#x265D;</button>
         <button type="button" data-chess-tool="bn" aria-pressed="false" title="Black knight">&#x265E;</button>
-        <button type="button" data-chess-tool="bp" aria-pressed="false" title="Black pawn">&#x265F;</button>
+        <button type="button" data-chess-tool="bp" aria-pressed="false" title="Black pawn">&#x265F;&#xFE0E;</button>
       </div>
       <label class="chess-label" for="chess-turn">Side to move</label>
       <select id="chess-turn" class="chess-select" data-chess-turn>
