@@ -7,10 +7,12 @@ import {
   ARROW_TYPE as NOTE_ARROW,
   MARKER_TYPE as NOTE_MARKER,
 } from "../vendor/cm-chessboard/src/extensions/right-click-annotator/RightClickAnnotator.js";
-import { ANNOTATION_COLORS, Scenario } from "./scenario.js";
+import { ANNOTATION_COLORS, Scenario, pgnHeaders, pgnTitle, splitPgnGames } from "./scenario.js";
 
 const STORAGE_KEY = "chess-scenarios:v1";
 const WHEEL_STEP = 60;
+// Some messaging apps and browsers truncate or refuse links past roughly this length.
+const LONG_LINK = 2000;
 const GLYPHS = {
   w: { p: "\u2659", n: "\u2658", b: "\u2657", r: "\u2656", q: "\u2655" },
   // U+FE0E keeps iOS from drawing the black pawn as a color emoji.
@@ -31,6 +33,11 @@ function init(app) {
   const setupEl = $("[data-chess-setup]");
   const turnEl = $("[data-chess-turn]");
   const savedEl = $("[data-chess-saved]");
+  const importEl = $("[data-chess-import]");
+  const pgnEl = $("[data-chess-pgn]");
+  const fileEl = $("[data-chess-file]");
+  const gamesEl = $("[data-chess-games]");
+  const gamesWrapEl = $("[data-chess-games-wrap]");
   const materialEls = { top: $('[data-chess-material="top"]'), bottom: $('[data-chess-material="bottom"]') };
   const action = (name) => app.querySelector(`[data-chess-action="${name}"]`);
 
@@ -430,6 +437,7 @@ function init(app) {
       render();
     },
     reset: () => replaceScenario(new Scenario(Chess)),
+    "import-text": () => importText(pgnEl.value),
     setup: enterSetup,
     "setup-start": () => board.setPosition(FEN.start),
     "setup-clear": () => board.setPosition(FEN.empty),
@@ -461,10 +469,10 @@ function init(app) {
     }
   }
 
-  function showToast(message) {
+  function showToast(message, duration = 4000) {
     toastEl.textContent = message;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => (toastEl.textContent = ""), 4000);
+    toastTimer = setTimeout(() => (toastEl.textContent = ""), duration);
   }
 
   // ---- Setup mode ----
@@ -534,6 +542,78 @@ function init(app) {
     exitSetup();
     replaceScenario(next, "Position set. Moves now start from here.");
   }
+
+  // ---- PGN import ----
+
+  let importedGames = [];
+
+  function importText(text) {
+    const games = splitPgnGames(text);
+    if (!games.length) {
+      showToast("There is no PGN to load yet. Paste a game or choose a file.");
+      return;
+    }
+    importedGames = games;
+    gamesEl.replaceChildren();
+    games.forEach((game, i) => {
+      const headers = pgnHeaders(game);
+      const details = [headers.Result, headers.Date].filter((value) => value && !/^[?.*]+$/.test(value));
+      const option = document.createElement("option");
+      option.value = String(i);
+      option.textContent = `${i + 1}. ${pgnTitle(headers) || "Untitled game"}${details.length ? ` (${details.join(", ")})` : ""}`;
+      gamesEl.append(option);
+    });
+    gamesWrapEl.hidden = games.length < 2;
+    loadGame(0);
+  }
+
+  function loadGame(index) {
+    let next;
+    try {
+      next = Scenario.fromPgn(Chess, importedGames[index]);
+    } catch (error) {
+      showToast(`Could not load that game: ${error.message}`, 8000);
+      return;
+    }
+    gamesEl.value = String(index);
+    if (mode === "setup") exitSetup();
+    replaceScenario(next);
+    const count = importedGames.length > 1 ? ` (game ${index + 1} of ${importedGames.length})` : "";
+    const length = location.href.length;
+    if (length > LONG_LINK) {
+      showToast(`Game loaded${count}. Its link is ${length.toLocaleString()} characters, which some apps cut off; Copy PGN shares it safely.`, 8000);
+    } else {
+      showToast(`Game loaded${count}. Step through it with the arrow keys.`);
+    }
+  }
+
+  function importFile(file) {
+    if (!file) return;
+    importEl.open = true;
+    file.text().then(importText, () => showToast(`Could not read ${file.name}.`));
+  }
+
+  gamesEl.addEventListener("change", () => loadGame(Number(gamesEl.value)));
+  fileEl.addEventListener("change", () => {
+    importFile(fileEl.files[0]);
+    fileEl.value = "";
+  });
+
+  const hasFiles = (event) => event.dataTransfer && Array.from(event.dataTransfer.types).includes("Files");
+  app.addEventListener("dragover", (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    app.classList.add("chess-app--drop");
+  });
+  app.addEventListener("dragleave", (event) => {
+    if (!app.contains(event.relatedTarget)) app.classList.remove("chess-app--drop");
+  });
+  app.addEventListener("drop", (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    app.classList.remove("chess-app--drop");
+    importFile(event.dataTransfer.files[0]);
+  });
 
   // ---- Saved scenarios (this browser only) ----
 

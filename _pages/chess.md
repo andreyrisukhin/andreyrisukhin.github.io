@@ -47,6 +47,21 @@ Examples: <a href="{{ '/chess/' | relative_url }}#t=Fried%20Liver&m=e2e4.e7e5.g1
     </div>
     <p class="chess-toast" data-chess-toast role="status"></p>
 
+    <details class="chess-import" data-chess-import>
+      <summary>Import a game (PGN)</summary>
+      <p>Paste PGN from Lichess, Chess.com, or any chess app, choose a .pgn file, or drop one anywhere on this tool. Branches, the starting position, and Lichess arrows come along.</p>
+      <label class="chess-label" for="chess-pgn">PGN</label>
+      <textarea id="chess-pgn" class="chess-pgn" rows="5" spellcheck="false" placeholder="1. e4 e5 2. Nf3 Nc6 ..." data-chess-pgn></textarea>
+      <div class="chess-actions">
+        <button type="button" class="chess-button chess-button--primary" data-chess-action="import-text">Load PGN</button>
+        <label class="chess-button chess-file">Choose file<input type="file" accept=".pgn,.txt,application/x-chess-pgn,text/plain" data-chess-file></label>
+      </div>
+      <div data-chess-games-wrap hidden>
+        <label class="chess-label" for="chess-games">Game in this file</label>
+        <select id="chess-games" class="chess-select" data-chess-games></select>
+      </div>
+    </details>
+
     <section class="chess-setup" data-chess-setup hidden>
       <h2>Set up position</h2>
       <p>Drag pieces to move them, or drag one off the board to remove it. Pick a piece below to place it with a click.</p>

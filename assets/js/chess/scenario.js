@@ -43,12 +43,17 @@ export class Scenario {
   }
 
   // Adds a child of `parent` (or returns the existing one) without moving `current`.
+  // `move` is a UCI string ("e2e4"), {from, to, promotion}, or {san: "Nf3"}.
   addMove(parent, move) {
-    const uci = typeof move === "string" ? move : move.from + move.to + (move.promotion || "");
     const game = new this.Chess(parent.fen);
     let result;
     try {
-      result = game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] });
+      if (move.san) {
+        result = game.move(move.san, { strict: false });
+      } else {
+        const uci = typeof move === "string" ? move : move.from + move.to + (move.promotion || "");
+        result = game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] });
+      }
     } catch {
       return null;
     }
@@ -266,6 +271,58 @@ export class Scenario {
     return scenario;
   }
 
+  // Builds a scenario from one PGN game: header tags, SAN moves, ( ) variations, { } and ; comments,
+  // NAGs, and Lichess [%cal]/[%csl] arrows and circles inside comments. Comment text, clocks, and
+  // engine scores are dropped. Throws with the move number on an illegal or unreadable move.
+  static fromPgn(Chess, text) {
+    const headers = {};
+    const movetext = text.replace(/^\s*\[(\w+)\s+"((?:[^"\\]|\\.)*)"\]\s*$/gm, (line, key, value) => {
+      headers[key] = value.replace(/\\(.)/g, "$1");
+      return "";
+    });
+    let scenario;
+    try {
+      scenario = new Scenario(Chess, headers.FEN || START_FEN);
+    } catch {
+      throw new Error(`The game's starting position (FEN tag) is not valid: ${headers.FEN}`);
+    }
+    scenario.title = pgnTitle(headers);
+    const stack = [];
+    let last = scenario.root;
+    let position = scenario.root;
+    for (const [token] of movetext.matchAll(PGN_TOKEN)) {
+      if (token[0] === "{" || token[0] === ";") {
+        last.annotations.push(...pgnAnnotations(token));
+      } else if (token === "(") {
+        if (!last.parent) throw new Error("A variation starts before any move.");
+        stack.push(last);
+        position = last.parent;
+      } else if (token === ")") {
+        if (!stack.length) throw new Error("A variation ends that never started.");
+        last = stack.pop();
+        position = last;
+      } else if (/^\$\d+$|^\d+\.+$|^(1-0|0-1|1\/2-1\/2|\*)$/.test(token)) {
+        continue;
+      } else {
+        const san = token
+          .replace(/^\d+\.+/, "")
+          .replace(/0/g, "O")
+          .replace(/e\.p\.$/, "")
+          .replace(/[!?]+$/, "");
+        if (!san) continue;
+        const node = scenario.addMove(position, { san });
+        if (!node) {
+          const [, turn, , , , fullmove] = position.fen.split(" ");
+          throw new Error(`Move ${fullmove}${turn === "w" ? "." : "..."} ${token} is not legal in that position.`);
+        }
+        last = node;
+        position = node;
+      }
+    }
+    if (stack.length) throw new Error("A variation never ends; the PGN may be cut off.");
+    return scenario;
+  }
+
   // Moves read before an error stay in the tree, so a lenient caller keeps everything up to it.
   decodeMoves(text) {
     const tokens = text.replace(/[(_]/g, ".(.").replace(/[)~]/g, ".).").split(".").filter(Boolean);
@@ -322,6 +379,61 @@ export class Scenario {
     tokens.push("*");
     return (headers.length ? headers.join("\n") + "\n\n" : "") + tokens.join(" ");
   }
+}
+
+// Comments, parentheses, NAGs, move numbers (possibly glued to the move, as in "1.e4"), then words.
+const PGN_TOKEN = /\{[^}]*\}?|;[^\n]*|[()]|\$\d+|\d+\.+|[^\s(){};]+/g;
+const PGN_COLORS = { G: "g", R: "r", B: "b", Y: "o" };
+
+// Splits a PGN file into one string per game. A tag line after some movetext starts the next game.
+export function splitPgnGames(text) {
+  const games = [];
+  let lines = [];
+  let sawMoves = false;
+  for (const line of text.replace(/^\uFEFF/, "").split(/\r?\n/)) {
+    const isTag = /^\s*\[\w+\s+".*"\]\s*$/.test(line);
+    if (isTag && sawMoves) {
+      games.push(lines.join("\n"));
+      lines = [];
+      sawMoves = false;
+    }
+    if (!isTag && line.trim()) sawMoves = true;
+    lines.push(line);
+  }
+  if (lines.some((line) => line.trim())) games.push(lines.join("\n"));
+  return games;
+}
+
+// Header tags of one PGN game, for listing games before choosing one.
+export function pgnHeaders(text) {
+  const headers = {};
+  for (const [, key, value] of text.matchAll(/^\s*\[(\w+)\s+"((?:[^"\\]|\\.)*)"\]\s*$/gm)) {
+    headers[key] = value.replace(/\\(.)/g, "$1");
+  }
+  return headers;
+}
+
+export function pgnTitle(headers) {
+  const known = (value) => value && value !== "?" && !/^\?+$/.test(value);
+  if (known(headers.White) && known(headers.Black)) return `${headers.White} vs ${headers.Black}`;
+  return known(headers.Event) ? headers.Event : "";
+}
+
+function pgnAnnotations(comment) {
+  const out = [];
+  for (const [, list] of comment.matchAll(/\[%cal\s+([^\]]*)\]/g)) {
+    for (const item of list.split(",")) {
+      const match = /^([GRBY])([a-h][1-8])([a-h][1-8])$/.exec(item.trim());
+      if (match) out.push({ color: PGN_COLORS[match[1]], from: match[2], to: match[3] });
+    }
+  }
+  for (const [, list] of comment.matchAll(/\[%csl\s+([^\]]*)\]/g)) {
+    for (const item of list.split(",")) {
+      const match = /^([GRBY])([a-h][1-8])$/.exec(item.trim());
+      if (match) out.push({ color: PGN_COLORS[match[1]], from: match[2] });
+    }
+  }
+  return out;
 }
 
 function byPieceOrder(x, y) {

@@ -238,6 +238,52 @@
   color: var(--global-theme-color);
 }
 
+.chess-import {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 12px;
+
+  summary {
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  p {
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+  }
+
+  .chess-label {
+    margin: 0.5rem 0 0.25rem;
+  }
+
+  .chess-actions {
+    margin-top: 0.5rem;
+  }
+}
+
+.chess-pgn {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  font-family: var(--global-code-font, monospace);
+  font-size: 0.8rem;
+  color: var(--global-text-color);
+  background: var(--global-bg-color);
+  border: 1px solid var(--global-divider-color);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.chess-file input {
+  display: none;
+}
+
+.chess-app--drop {
+  outline: 2px dashed var(--global-theme-color);
+  outline-offset: 0.5rem;
+  border-radius: 12px;
+}
+
 .chess-setup {
   padding: 0.75rem;
   border: 1px solid var(--global-theme-color);
@@ -286,6 +332,7 @@
 
   .chess-moves,
   .chess-app__panel > .chess-actions,
+  .chess-import,
   .chess-saved {
     display: none;
   }

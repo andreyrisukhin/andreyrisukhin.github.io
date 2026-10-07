@@ -15,7 +15,7 @@ fs.copyFileSync(path.join(root, "assets/js/chess/scenario.js"), path.join(tmp, "
 
 (async () => {
   const { Chess } = await import(path.join(tmp, "vendor/chess.js/chess.js"));
-  const { Scenario, START_FEN } = await import(path.join(tmp, "chess/scenario.js"));
+  const { Scenario, START_FEN, splitPgnGames, pgnHeaders, pgnTitle } = await import(path.join(tmp, "chess/scenario.js"));
   let passed = 0;
   const check = (name, fn) => {
     fn();
@@ -192,6 +192,50 @@ fs.copyFileSync(path.join(root, "assets/js/chess/scenario.js"), path.join(tmp, "
     assert.deepEqual(custom.material().offAtStart.w, ["p", "p", "b"], "start pieces do not change along the line");
     const twoQueens = new Scenario(Chess, "4k3/8/8/8/8/8/PPPPPPP1/QQ2K3 w - - 0 1");
     assert.deepEqual(twoQueens.material().offAtStart.b, ["n", "n", "b", "b", "r", "r"], "extra queen counts as the missing pawn");
+  });
+
+  check("PGN import reads headers, variations, comments, NAGs, and Lichess arrows", () => {
+    const pgn = [
+      '[Event "Casual game"]',
+      '[White "Morphy, Paul"]',
+      '[Black "Duke \\"Karl\\""]',
+      '[Result "1-0"]',
+      "",
+      "{ [%csl Rd4] } 1. e4 { [%cal Ge7e5,Bg8f6] [%clk 0:05:00] } e5 (1... c5!? $1 2. Nf3 (2.Nc3) d6) 2.Nf3 Nc6?! ; side note",
+      "3. Bc4 0-0-0?? 1-0",
+    ].join("\n");
+    assert.throws(() => Scenario.fromPgn(Chess, pgn), /Move 3\.\.\. 0-0-0\?\? is not legal/);
+    const s = Scenario.fromPgn(Chess, pgn.replace(" 0-0-0??", ""));
+    assert.equal(s.title, 'Morphy, Paul vs Duke "Karl"');
+    assert.equal(s.encodeMoves(), "e2e4.e7e5_c7c5.g1f3_b1c3~d7d6~g1f3.b8c6.f1c4");
+    assert.deepEqual(s.root.annotations, [{ color: "r", from: "d4" }]);
+    assert.deepEqual(s.root.children[0].annotations, [
+      { color: "g", from: "e7", to: "e5" },
+      { color: "b", from: "g8", to: "f6" },
+    ]);
+    assert.equal(s.current, s.root);
+  });
+
+  check("PGN import starts from a FEN tag, accepts zero castling, and survives its own export", () => {
+    const fen = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
+    const s = Scenario.fromPgn(Chess, `[SetUp "1"]\n[FEN "${fen}"]\n\n1. 0-0 O-O-O *`);
+    assert.equal(s.startFen, fen);
+    assert.equal(s.encodeMoves(), "e1g1.e8c8");
+    assert.equal(s.title, "");
+    const nested = Scenario.fromHash(Chess, "#m=e2e4.e7e5_c7c5.g1f3_b1c3.b8c6~d7d6~g1f3.b8c6");
+    assert.equal(Scenario.fromPgn(Chess, nested.toPgn()).encodeMoves(), nested.encodeMoves());
+    assert.throws(() => Scenario.fromPgn(Chess, '[FEN "nonsense"]\n\n1. e4'), /FEN tag/);
+    assert.throws(() => Scenario.fromPgn(Chess, "1. e4 (1. d4"), /never ends/);
+  });
+
+  check("multi-game PGN files split into games with readable titles", () => {
+    const file = '\uFEFF[Event "One"]\r\n[White "A"]\r\n[Black "B"]\r\n\r\n1. e4 e5 1-0\r\n\r\n[Event "Two"]\r\n[White "?"]\r\n\r\n1. d4 *\r\n';
+    const games = splitPgnGames(file);
+    assert.equal(games.length, 2);
+    assert.equal(pgnTitle(pgnHeaders(games[0])), "A vs B");
+    assert.equal(pgnTitle(pgnHeaders(games[1])), "Two");
+    assert.equal(Scenario.fromPgn(Chess, games[1]).encodeMoves(), "d2d4");
+    assert.deepEqual(splitPgnGames("1. e4 e5"), ["1. e4 e5"]);
   });
 
   check("page examples load", () => {
