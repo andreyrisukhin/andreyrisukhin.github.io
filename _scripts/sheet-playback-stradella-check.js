@@ -5,8 +5,15 @@
 //   agent-browser open http://127.0.0.1:4000/music/sheet/senorita/
 //   agent-browser eval --stdin < _scripts/sheet-playback-stradella-check.js
 (async () => {
-  for (let i = 0; i < 100 && !(window.__playback && window.__playback.events.length); i++) await new Promise((r) => setTimeout(r, 100));
-  const engine = window.__playback;
+  for (let i = 0; i < 100 && !window.SheetReader?.score.events.length; i++) await new Promise((r) => setTimeout(r, 100));
+  const score = window.SheetReader?.score;
+  const engine = score && {
+    events: score.events,
+    osmd: window.__sheetMusic.osmd,
+    bpm: score.tempos[0].bpm,
+    measureStarts: score.starts,
+    stradellaBass: document.querySelector(".sheet-reader").dataset.playbackStradella === "true",
+  };
   if (!engine) throw new Error("Playback engine did not start");
   if (!engine.stradellaBass) return { pass: false, problems: ["page does not enable data-playback-stradella"] };
   const quarter = 60 / engine.bpm;
@@ -57,6 +64,7 @@
   const bridge = window.__sheetMusic;
   let chordLabels = 0;
   let bassLabels = 0;
+  let chordHead;
   for (const el of document.querySelectorAll("#osmd-container .vf-stavenote")) {
     const r = el.getBoundingClientRect();
     const head = el.querySelector(".vf-notehead");
@@ -70,10 +78,36 @@
       continue;
     }
     chordLabels++;
+    chordHead ||= head;
     const want = NAMES[hit.clickedPitch.charAt(0)];
     if (hit.chordName !== want) problems.push(where + ": hover names " + hit.chordName + ", want " + want);
     if (hit.pitches.length !== 3 || hit.pitches[0] !== hit.clickedPitch) problems.push(where + ": hover spells " + hit.pitches.join(" "));
   }
   if (!chordLabels || !bassLabels) problems.push("hover found " + chordLabels + " chord and " + bassLabels + " bass labels");
+  if (chordHead) {
+    const rect = chordHead.getBoundingClientRect();
+    chordHead.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }));
+    const dialog = document.getElementById("sheet-inspector");
+    if (!dialog.open) problems.push("Stradella chord inspection did not open");
+    if (document.querySelectorAll("#sheet-right-keyboard .is-selected").length !== 1)
+      problems.push("Written diagram should show only the chord-button root");
+    if (!document.getElementById("sheet-note-context").textContent.includes("Stradella chord button:"))
+      problems.push("Chord-button interpretation is not explained");
+    if (document.getElementById("sheet-left-detail").textContent.includes("Single bass button"))
+      problems.push("Chord button was mistaken for a single bass");
+    let heard;
+    const play = WorkbenchPlayer.play;
+    try {
+      WorkbenchPlayer.play = (groups) => {
+        heard = groups[0];
+        return Promise.resolve(false);
+      };
+      document.querySelector("[data-inspect-hear]").click();
+      if (heard?.length !== 1) problems.push("Hear written notes must audition only the written root");
+    } finally {
+      WorkbenchPlayer.play = play;
+      dialog.close();
+    }
+  }
   return { page: location.pathname, basses, chords, chordLabels, bassLabels, pass: problems.length === 0, problems };
 })();

@@ -564,7 +564,7 @@ html.sheet-music-focus-open body {
 
 @media (max-width: 768px) {
   .sheet-music-page--flexoki:has(.sheet-transport) {
-    padding-bottom: 7rem;
+    padding-bottom: calc(var(--sheet-transport-height, 7rem) + 1.5rem + env(safe-area-inset-bottom));
   }
 
   .sheet-transport {
@@ -601,12 +601,12 @@ html.sheet-music-focus-open body {
   // Other fixed corner buttons move above the bottom transport.
   body:has(.sheet-transport) {
     .sheet-dev-toggle {
-      bottom: calc(8.25rem + env(safe-area-inset-bottom));
+      bottom: calc(var(--sheet-transport-height, 7rem) + 1.5rem + env(safe-area-inset-bottom));
     }
 
     // vanilla-back-to-top writes its offset as an inline style.
     #back-to-top {
-      bottom: calc(8.25rem + env(safe-area-inset-bottom)) !important;
+      bottom: calc(var(--sheet-transport-height, 7rem) + 1.5rem + env(safe-area-inset-bottom)) !important;
     }
   }
 }

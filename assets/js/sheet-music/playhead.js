@@ -43,6 +43,10 @@
     cursor.show();
     cursor.reset();
     const el = cursor.cursorElement;
+    if (el) {
+      el.alt = "";
+      el.setAttribute?.("aria-hidden", "true");
+    }
     const unit = 10 * (osmd.zoom || osmd.Zoom || 1);
     const seen = new Set();
     const steps = [];
@@ -171,7 +175,8 @@
   Playhead.prototype.keepInView = function () {
     const rect = this.el.getBoundingClientRect();
     const transport = document.querySelector("[data-sheet-playback]");
-    const top = transport ? Math.max(0, transport.getBoundingClientRect().bottom) + 12 : 72;
+    const docked = transport && getComputedStyle(transport).position === "fixed";
+    const top = transport && !docked ? Math.max(0, transport.getBoundingClientRect().bottom) + 12 : 72;
     const bottom = root.innerHeight - (transport && getComputedStyle(transport).position === "fixed" ? transport.offsetHeight + 24 : 24);
     if (rect.top >= top && rect.bottom <= bottom) return;
     this.el.scrollIntoView({ block: "center", inline: "nearest", behavior: this.reduceMotion ? "auto" : "smooth" });

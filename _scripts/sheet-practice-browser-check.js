@@ -1,15 +1,15 @@
 // Run with agent-browser eval --stdin on the generated Cogwork Dancers page.
 // Uses the real score, DOM controls, and production model.
 (async () => {
-  for (let attempt = 0; attempt < 100 && !window.SheetPractice; attempt++) await new Promise((resolve) => setTimeout(resolve, 100));
-  if (!window.SheetPractice) throw new Error("Practice failed to initialize");
+  for (let attempt = 0; attempt < 100 && !window.SheetReader; attempt++) await new Promise((resolve) => setTimeout(resolve, 100));
+  if (!window.SheetReader) throw new Error("Practice failed to initialize");
   const checks = [];
   const assert = (condition, message) => {
     if (!condition) throw new Error(message);
     checks.push(message);
   };
   const $ = (name) => document.querySelector("[data-practice-" + name + "]");
-  const state = () => window.SheetPractice.player.snapshot();
+  const state = () => window.SheetReader.player.snapshot();
   const change = (name, value) => {
     const element = $(name);
     if (element.type === "checkbox") element.checked = value;
@@ -17,16 +17,16 @@
     element.dispatchEvent(new Event("change", { bubbles: true }));
   };
   const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  const score = SheetPractice.score;
+  const score = SheetReader.score;
   assert(state().state === "paused", "Page never autoplays");
   change("loop", false);
-  $("restart").click();
+  document.querySelector('[data-pb-action="reset"]').click();
   assert(score.starts.length === 79 && Math.abs(score.duration - 137.9) < 0.00001, "MusicXML gives all 79 measures and correct total time");
   assert(score.starts[19] === 38 && score.starts[68] === 111.5, "Written tempo changes match the recording");
   assert(score.events.length === 1229, "Tied notes are merged in the actual score");
   assert(document.querySelector("h1").textContent === "Cogwork Dancers", "Correct page title");
   assert(!document.querySelector("#osmd-container").textContent.includes("未命名"), "Imported placeholder title is not displayed");
-  assert(!document.querySelector("[data-sheet-playback]"), "Legacy player is not mounted");
+  assert(document.querySelectorAll("[data-sheet-playback]").length === 1, "One shared transport is mounted");
   assert(document.documentElement.scrollWidth <= innerWidth, "Page has no horizontal overflow");
   assert(document.querySelector(".vf-notehead").getBoundingClientRect().height >= 8, "Default notes are readable");
   document.querySelector(".practice-settings").open = true;
@@ -43,16 +43,18 @@
   $("measure").value = "69";
   $("jump").requestSubmit();
   assert(state().measure === 69 && !state().loop.enabled, "Jumping outside the passage turns the loop off");
-  change("mode", "live");
+  const soundMode = document.querySelector("[data-pb-mode]");
+  soundMode.value = "live";
+  soundMode.dispatchEvent(new Event("change"));
   assert(state().measure === 69 && state().state === "paused", "Sound switch preserves measure and stays paused");
-  assert(!$("instrument-label").hidden, "Live instruments are available in live mode");
-  change("mode", "recording");
-  assert($("instrument-label").hidden, "Recording does not show an unusable instrument selector");
-  $("restart").click();
+  assert(!document.querySelector("[data-pb-instrument]").disabled, "Live instruments are available in live mode");
+  soundMode.value = "recording";
+  soundMode.dispatchEvent(new Event("change"));
+  assert(document.querySelector("[data-pb-instrument]").disabled, "Recording disables the live instrument selector");
+  document.querySelector('[data-pb-action="reset"]').click();
   assert(state().measure === 1, "Restart returns to score start when loop is off");
   document.querySelector(".practice-settings").open = false;
-  const display = document.querySelector(".practice-view-controls details");
-  display.open = true;
+
   const zoom = __sheetMusic.osmd.Zoom;
   document.getElementById("osmd-zoom-in").click();
   assert(__sheetMusic.osmd.Zoom > zoom, "Notes can be enlarged");
@@ -61,7 +63,7 @@
   document.getElementById("osmd-stradella-toggle").click();
   assert(document.getElementById("osmd-stradella-toggle").getAttribute("aria-pressed") === "true", "Stradella state is accessible");
   document.getElementById("osmd-stradella-toggle").click();
-  display.open = false;
+
   document.getElementById("osmd-focus-toggle").click();
   await frame();
   assert(document.documentElement.classList.contains("sheet-music-focus-open"), "Focus mode opens");
@@ -93,11 +95,11 @@
   assert(!dialog.open && state().loop.enabled && state().loop.start === state().loop.end, "Loop this measure sets a single-measure passage");
   assert(document.querySelector(".practice-settings").open, "New loop is visible in the controls");
   change("rate", "0.75");
-  const stored = JSON.parse(localStorage.getItem("sheet-practice:" + location.pathname));
+  const stored = JSON.parse(localStorage.getItem("sheet-reader:" + location.pathname));
   assert(stored.rate === 0.75 && stored.loop.enabled, "Practice settings are saved per piece");
   assert(!document.querySelector("#osmd-container img:not([alt])"), "Playback cursor is decorative for screen readers");
   change("loop", false);
-  $("restart").click();
+  document.querySelector('[data-pb-action="reset"]').click();
   document.querySelector(".practice-settings").open = false;
   scrollTo(0, 0);
   await frame();

@@ -1,15 +1,17 @@
-/* One cancellable transport for the recording and tempo-aware live notes. */
+/* Shared cancellable player for recordings and tempo-aware live scores. */
 window.SheetPracticePlayer = (function () {
   "use strict";
   function create(score, options = {}) {
     let mode = options.audioUrl ? "recording" : "live";
     let rate = 1;
+    let transpose = 0;
     let position = 0;
     let state = "paused";
     let loop = { enabled: false, start: 1, end: Math.min(4, score.starts.length) };
     let context, instrument, instrumentPromise, audio, recording, timingPromise, audioPromise, audioUrl;
     let disposed = false;
-    let instrumentName = "accordion";
+    const instruments = options.instruments || ["accordion", "church_organ", "acoustic_grand_piano", "string_ensemble_1"];
+    let instrumentName = instruments.includes(options.instrument) ? options.instrument : "accordion";
     let origin = 0;
     let timer, frame;
     let ticket = 0;
@@ -32,6 +34,10 @@ window.SheetPracticePlayer = (function () {
       measure: measureAt(now()),
       count: score.starts.length,
       instrument: instrumentName,
+      transpose,
+      time: now(),
+      starts: map().starts,
+      duration: map().duration,
     });
     const emit = (message = "") => listeners.forEach((listener) => listener(snapshot(), message));
     const cancelClock = () => {
@@ -118,10 +124,17 @@ window.SheetPracticePlayer = (function () {
     }
     function schedule(event, start, end) {
       if (end <= start) return;
-      instrument.play(event.midi, Math.max(context.currentTime, origin + (start - position) / rate), {
-        duration: (end - start) / rate,
-        gain: 1,
-      });
+      const midi = event.midi + transpose;
+      if (midi < 0 || midi > 127) return;
+      const settings = {
+        duration: ((end - start) * (event.gate || 1)) / rate,
+        gain: (options.gain || 1) * (event.gain || 1) * (event.accent?.peak || 1),
+      };
+      if (event.accent) {
+        settings.decay = 0.5;
+        settings.sustain = event.accent.sustain;
+      }
+      instrument.play(midi, Math.max(context.currentTime, origin + (start - position) / rate), settings);
     }
     function scheduleAhead() {
       if (state !== "playing" || mode !== "live") return;
@@ -192,7 +205,10 @@ window.SheetPracticePlayer = (function () {
         if (mode === "recording") {
           audio.playbackRate = rate;
           await audio.play();
-          if (request !== ticket) return;
+          if (request !== ticket) {
+            if (state !== "playing") audio.pause();
+            return;
+          }
         }
         state = "playing";
         if (mode === "live") beginLive();
@@ -246,14 +262,27 @@ window.SheetPracticePlayer = (function () {
       const measure = measureAt(now());
       change(() => {
         mode = value;
+        if (value === "recording") transpose = 0;
         place(map().starts[measure - 1]);
       }, false);
     }
     function setInstrument(value) {
-      if (!["accordion", "church_organ", "acoustic_grand_piano", "string_ensemble_1"].includes(value)) return;
+      if (!instruments.includes(value) || value === instrumentName) return;
       change(() => {
         instrumentName = value;
         instrument = instrumentPromise = null;
+      });
+    }
+    function setTranspose(value) {
+      if (!Number.isInteger(value) || value < -6 || value > 6 || value === transpose) return;
+      const measure = measureAt(now());
+      const fraction = (now() - map().starts[measure - 1]) / (map().ends[measure - 1] - map().starts[measure - 1]);
+      change(() => {
+        transpose = value;
+        if (value && mode === "recording") {
+          mode = "live";
+          place(score.starts[measure - 1] + fraction * (score.ends[measure - 1] - score.starts[measure - 1]));
+        }
       });
     }
     return {
@@ -264,6 +293,7 @@ window.SheetPracticePlayer = (function () {
       setRate,
       setMode,
       setInstrument,
+      setTranspose,
       snapshot,
       toggle: () => (state === "paused" ? play() : pause()),
       restart: () => {

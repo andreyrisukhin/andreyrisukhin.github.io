@@ -1,0 +1,35 @@
+<dialog id="sheet-inspector" class="sheet-note-inspector" aria-labelledby="sheet-note-title">
+  <header class="sheet-inspector-heading">
+    <div>
+      <p id="sheet-note-location"></p>
+      <h2 id="sheet-note-title">Selected notes</h2>
+    </div>
+    <button type="button" data-inspect-close autofocus>Close</button>
+  </header>
+  <p id="sheet-note-pitches"></p>
+  <div class="sheet-inspector-actions">
+    <button type="button" data-inspect-hear>Hear written notes</button>
+    <button type="button" data-inspect-stop disabled>Stop</button>
+    <button type="button" data-inspect-seek>Start here</button>
+    <button type="button" data-inspect-loop>Loop this measure</button>
+  </div>
+  <p id="sheet-note-context"></p>
+  <div class="sheet-hand-diagrams">
+    <section aria-labelledby="sheet-right-title">
+      <h3 id="sheet-right-title">Written pitches on B-system</h3>
+      <p class="practice-help">Exact written octaves. This map does not assign the notes to a hand.</p>
+      <div id="sheet-right-keyboard"></div>
+    </section>
+    <section aria-labelledby="sheet-left-title">
+      <h3 id="sheet-left-title">Stradella suggestion</h3>
+      <p id="sheet-left-recipe"></p>
+      <p id="sheet-left-detail" class="practice-help"></p>
+      <button type="button" data-inspect-left>Hear suggestion</button>
+      <div class="sheet-left-scroll" tabindex="0" role="region" aria-label="Stradella buttons, scroll sideways for all columns">
+        <div id="sheet-left-keyboard"></div>
+      </div>
+      <p id="sheet-button-detail" class="practice-help">Focus or tap any button to inspect its tones. Audio uses demonstration registers.</p>
+    </section>
+  </div>
+  <p data-inspect-status class="practice-help" role="status"></p>
+</dialog>

@@ -91,8 +91,8 @@ What made the static render work:
 
 ## Playback transport
 
-Pages with `playback=true` (and no practice mode) get a transport bar above
-the score, from `assets/js/sheet-music/playback.js`.
+Every page with `playback=true` gets the same transport bar above the score,
+from `assets/js/sheet-music/transport.js`. There is no separate practice reader.
 
 - The bar is one horizontal ledge: play, back to start, a measure track,
   the measure count, the key stepper, and the sound picker. It sticks under
@@ -121,6 +121,14 @@ the score, from `assets/js/sheet-music/playback.js`.
   motion the playhead snaps to each onset instead of gliding.
 - Buttons keep the music pages' 44px touch targets on coarse pointers and
   shrink only for a mouse.
+- Expandable practice settings hold speed, inclusive measure loops, a
+  measure jump, and the follow toggle. These work with recordings and live
+  sound. Settings persist per piece without autoplay on return.
+- Score display controls, file downloads, and note inspection use the same
+  components on every sheet page. Read-only scores omit playback controls.
+- Credits, source format, recording labels, and default sounds come from
+  include parameters. Use `score_heading=false` to suppress an imported
+  placeholder title without changing the reader.
 
 ## Do nots
 

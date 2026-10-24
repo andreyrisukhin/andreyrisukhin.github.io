@@ -1,103 +1,25 @@
-/* Opt-in reader layout; legacy sheet pages retain their existing transport. */
-.music-page--sheet-practice .music-page-header {
-  margin-bottom: 12px;
-  .music-eyebrow {
-    display: none;
-  }
-}
-body:has(.sheet-practice) .sheet-dev-toggle {
-  color: var(--music-ink);
-  opacity: 1;
-}
-.sheet-music-page.sheet-practice {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  color: var(--music-ink);
-  --accent: var(--music-accent);
-  --muted: var(--music-muted);
-  --rule: var(--music-rule);
-  --paper: var(--music-paper);
-  --surface: var(--music-surface);
-  --ink: var(--music-ink);
-  --key: var(--music-surface);
-
+/* Shared reader settings and note inspection; the transport lives in _sheet-music.scss. */
+.sheet-reader {
   [hidden] {
     display: none !important;
   }
   > * {
     min-width: 0;
-    width: 100%;
   }
-  button,
-  select,
-  input,
-  summary {
-    font: inherit;
+  .practice-help,
+  .practice-score-help {
     font-size: 0.875rem;
-    color: var(--music-ink);
-  }
-  button,
-  select,
-  input[type="number"] {
-    min-height: 44px;
-    border: 1px solid var(--music-rule);
-    border-radius: 4px;
-    padding: 8px 12px;
-    background: var(--music-surface);
-  }
-  button {
-    cursor: pointer;
-  }
-  button:disabled {
-    cursor: default;
-    opacity: 0.55;
-  }
-  :is(button, select, input, summary, [tabindex]):focus-visible {
-    outline: 2px solid var(--music-accent);
-    outline-offset: 3px;
-  }
-  .sheet-music-controls {
-    order: 1;
-    gap: 6px;
-    margin: 8px 0;
-  }
-  .practice-view-controls {
-    order: 1;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin: 8px 0;
-    > details {
-      flex: 1;
-      min-width: 0;
-    }
-  }
-  .sheet-music-controls .music-share-btn {
-    color: var(--music-ink);
-    background: var(--music-surface);
-  }
-  .sheet-music-container {
-    order: 3;
-    padding: 0;
-    border-radius: 4px;
-    box-shadow: none;
-    scroll-margin-top: 200px;
-    touch-action: pan-x pan-y;
-  }
-  .sheet-music-status {
-    order: 4;
     color: var(--music-muted);
   }
-  .sheet-music-status:empty {
-    display: none;
+  .practice-score-help {
+    margin: 0 0 8px;
+  }
+  .practice-settings,
+  .sheet-downloads {
+    margin-bottom: 12px;
+    color: var(--music-ink);
   }
   .sheet-downloads {
-    order: 5;
     margin-top: 24px;
     border-top: 1px solid var(--music-rule);
   }
@@ -106,48 +28,45 @@ body:has(.sheet-practice) .sheet-dev-toggle {
     padding-block: 10px;
     cursor: pointer;
   }
-  p {
-    margin: 0 0 12px;
+  .practice-settings,
+  .sheet-note-inspector {
+    --accent: var(--music-accent);
+    --muted: var(--music-muted);
+    --rule: var(--music-rule);
+    --paper: var(--music-paper);
+    --surface: var(--music-surface);
+    --ink: var(--music-ink);
+    --key: var(--music-surface);
+    button,
+    select,
+    input {
+      font: inherit;
+      font-size: 0.875rem;
+      color: var(--music-ink);
+    }
+    button,
+    select,
+    input[type="number"] {
+      min-height: 44px;
+      border: 1px solid var(--music-rule);
+      border-radius: 4px;
+      padding: 8px 12px;
+      background: var(--music-surface);
+    }
+    button {
+      cursor: pointer;
+    }
+    button:disabled {
+      cursor: default;
+      opacity: 0.55;
+    }
+    p {
+      margin: 0 0 12px;
+    }
   }
-  .practice-help,
-  .practice-score-help {
-    font-size: 0.875rem;
-    color: var(--music-muted);
-  }
-  .practice-score-help {
-    order: 2;
-    margin: 0 0 8px;
-  }
-  .practice-transport {
-    position: sticky;
-    top: 64px;
-    z-index: 20;
-    padding: 8px 0;
-    border-block: 1px solid var(--music-rule);
-    background: var(--music-paper);
-  }
-  .practice-main-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-  }
-  [data-practice-play] {
-    background: var(--music-accent);
-    color: var(--music-on-accent);
-    min-width: 76px;
-  }
-  [data-practice-position] {
-    font-size: 0.875rem;
-    font-variant-numeric: tabular-nums;
-    margin-left: auto;
-  }
-  .practice-speed {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
+  :is(button, select, input, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--music-accent);
+    outline-offset: 3px;
   }
   .practice-settings[open] {
     max-height: 55vh;
@@ -205,12 +124,6 @@ body:has(.sheet-practice) .sheet-dev-toggle {
   .practice-jump label {
     margin: 0;
   }
-  [data-practice-status] {
-    margin: 4px 0 0;
-  }
-  [data-practice-status]:empty {
-    display: none;
-  }
   #osmd-container .vf-stavenote {
     cursor: pointer;
   }
@@ -223,18 +136,6 @@ body:has(.sheet-practice) .sheet-dev-toggle {
     stroke: #af3029;
   }
 
-  &.sheet-music-page--focus {
-    padding: 12px;
-    background: var(--music-paper);
-    > .sheet-music-controls {
-      position: static;
-      background: none;
-      backdrop-filter: none;
-    }
-    .practice-transport {
-      top: -12px;
-    }
-  }
   .sheet-note-inspector {
     width: min(850px, calc(100vw - 24px));
     max-width: none;
@@ -328,7 +229,6 @@ body:has(.sheet-practice) .sheet-dev-toggle {
   }
 
   @media (max-width: 768px) {
-    margin-inline: 0;
     .practice-settings-grid,
     .sheet-hand-diagrams {
       grid-template-columns: minmax(0, 1fr);
@@ -336,21 +236,14 @@ body:has(.sheet-practice) .sheet-dev-toggle {
     .sheet-note-inspector {
       padding: 16px;
     }
-    .practice-main-controls {
-      gap: 6px;
-    }
-    [data-practice-position] {
-      flex-basis: 100%;
-      margin-left: 0;
-    }
-    .sheet-music-controls {
-      gap: 4px;
-    }
-    .sheet-music-controls button {
-      padding-inline: 8px;
-    }
-    .practice-transport {
-      top: 60px;
-    }
   }
+}
+.sheet-transport__status {
+  flex-basis: 100%;
+  margin: 0 8px;
+  font-size: 0.875rem;
+}
+.sheet-transport__status:empty,
+.sheet-reader .sheet-music-status:empty {
+  display: none;
 }

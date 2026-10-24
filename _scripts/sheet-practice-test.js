@@ -61,6 +61,57 @@ check("Production recording ends at the score, not the reverb tail", () => {
   const timing = JSON.parse(fs.readFileSync(path.join(root, "assets/music/sheet-music/cogwork-dancers/cogwork-dancers-timing.json")));
   assert.equal(T.renderedMap(timing, 79).duration, 137.9);
 });
+vm.runInNewContext(fs.readFileSync(path.join(root, "assets/js/sheet-music/score.js"), "utf8"), { window, console });
+function scoreFixture() {
+  const pitch = (midi) => ({ getHalfTone: () => midi - 12 });
+  const first = { Pitch: pitch(60), Length: { RealValue: 1 } };
+  const continuation = { Pitch: pitch(60), Length: { RealValue: 1 } };
+  const tie = { Notes: [first, continuation], Duration: { RealValue: 2 } };
+  first.NoteTie = continuation.NoteTie = tie;
+  const measure = (note, articulations = []) => ({
+    VerticalSourceStaffEntryContainers: [
+      {
+        Timestamp: { RealValue: 0 },
+        StaffEntries: [{ VoiceEntries: [{ Notes: [note], Articulations: articulations }] }],
+      },
+    ],
+  });
+  return { Sheet: { SourceMeasures: [measure(first, [0, 6]), measure(continuation), measure({ Pitch: pitch(64), Length: { RealValue: 1 } }, [9])] } };
+}
+check("Shared OSMD schedule keeps tied durations across tempo changes and articulation", () => {
+  const score = window.SheetScore.build(scoreFixture(), timeline);
+  assert.equal(score.events.length, 2);
+  assert.equal(score.events[0].end, 3.5);
+  assert.equal(score.events[0].gate, 0.5);
+  assert.equal(score.events[0].accent.peak * score.events[0].accent.sustain, 0.9);
+  assert.equal(score.events[1].gate, 1);
+  assert.equal(score.duration, 5.45);
+});
+check("Shared schedule expands Stradella chords without changing written notes", () => {
+  const osmd = scoreFixture();
+  const note = { Pitch: { getHalfTone: () => 45 }, Length: { RealValue: 0.25 } }; // A3
+  osmd.Sheet.SourceMeasures[0].VerticalSourceStaffEntryContainers[0].StaffEntries.push({
+    VoiceEntries: [{ Notes: [note] }],
+  });
+  osmd.Sheet.SourceMeasures[0].StaffLinkedExpressions = [
+    [
+      {
+        Timestamp: { RealValue: 0 },
+        UnknownList: [{ Label: { text: "am" } }],
+      },
+    ],
+  ];
+  const score = window.SheetScore.build(osmd, timeline, { stradellaBass: true });
+  assert.deepEqual(
+    Array.from(
+      score.events.filter((event) => event.role === "chord"),
+      (event) => event.midi
+    ),
+    [57, 60, 64]
+  );
+  assert.equal(score.stradellaReadings.get(note).suffix, "m");
+  assert.equal(note.Pitch.getHalfTone(), 45);
+});
 
 function harness() {
   let clock = 0,
@@ -178,6 +229,29 @@ function harness() {
     assert.equal(p.snapshot().state, "paused");
     assert.equal(h.contexts, 0);
   });
+  const configured = harness();
+  const custom = configured.create(timeline, { instrument: "drawbar_organ", instruments: ["accordion", "drawbar_organ"], gain: 1.6 });
+  custom.setTranspose(3);
+  await custom.play();
+  check("Shared player honors page instrument, transposition, and gain", () => {
+    assert.equal(custom.snapshot().instrument, "drawbar_organ");
+    assert.equal(configured.played[0].midi, 63);
+    assert.equal(configured.played[0].gain, 1.6);
+  });
+  custom.pause();
+  custom.setTranspose(7);
+  check("Transpose limits leave state intact", () => assert.equal(custom.snapshot().transpose, 3));
+  custom.dispose();
+  const articulated = harness();
+  const marked = articulated.create(window.SheetScore.build(scoreFixture(), timeline));
+  await marked.play();
+  check("Shared audio scheduling applies gates and accent envelopes", () => {
+    assert.equal(articulated.played[0].duration, 1.75);
+    assert.equal(articulated.played[0].gain, 2);
+    assert.equal(articulated.played[0].decay, 0.5);
+    assert.equal(articulated.played[0].sustain, 0.45);
+  });
+  marked.dispose();
   check("Invalid speed and reversed/out-of-range loops leave state intact", () => {
     assert.equal(p.setRate(0), false);
     assert.equal(p.setRate(NaN), false);
@@ -256,6 +330,14 @@ function harness() {
     assert.equal(r.audio.paused, true);
   });
   recording.setMode("recording");
+  recording.setTranspose(-2);
+  check("Transposing a recording selects live sound without autoplay or losing the measure", () => {
+    assert.equal(recording.snapshot().mode, "live");
+    assert.equal(recording.snapshot().measure, 2);
+    assert.equal(recording.snapshot().state, "paused");
+  });
+  recording.setMode("recording");
+  check("Returning to a recording restores the written key", () => assert.equal(recording.snapshot().transpose, 0));
   recording.setLoop(2, 2, true);
   await recording.play();
   r.audio.currentTime = 7.1;
