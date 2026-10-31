@@ -18,7 +18,17 @@
   };
   const sameSize = (before) => before.every((value, index) => Math.abs(value - size()[index]) < 1);
   assert(practice.classList.contains("is-ready"), "Kata initializes");
-  assert(Number(getComputedStyle(document.querySelector(".kata-scene")).opacity) >= 0.85, "Fresh bounded dawn is visible before any interaction");
+  const hour = new Date().getHours();
+  const linked = [...document.querySelectorAll("[data-kata-recipe]")].find((recipe) => `#${recipe.id}` === location.hash);
+  const initialScene = linked ? linked.dataset.scene : hour >= 6 && hour < 18 ? "morning" : "night";
+  assert(practice.dataset.scene === initialScene, "Initial form follows a direct link or the visitor's local time");
+  assert(document.querySelector(`[data-kata-recipe][data-scene="${initialScene}"]`).hidden === false, "Initial form is visible");
+  assert(
+    Number(getComputedStyle(document.querySelector(".kata-scene")).opacity) >= (initialScene === "morning" ? 0.85 : 0.1),
+    "Initial painting is visible before any interaction"
+  );
+  button("morning-clear-form").click();
+  await frame();
   assert(document.documentElement.scrollWidth <= innerWidth, "No horizontal page overflow");
   const morning = "morning-clear-form";
   const night = "night-soften";

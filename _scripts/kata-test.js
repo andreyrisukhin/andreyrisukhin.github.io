@@ -43,7 +43,7 @@ class Element {
   }
 }
 
-function mount({ hash = "", reducedMotion = false } = {}) {
+function mount({ hash = "", reducedMotion = false, hour = 9 } = {}) {
   const stepSets = [6, 5].map((count) => Array.from({ length: count }, () => new Element()));
   const lists = [new Element(), new Element()];
   const backs = [new Element(), new Element()];
@@ -80,6 +80,11 @@ function mount({ hash = "", reducedMotion = false } = {}) {
   vm.runInNewContext(read("assets/js/kata.js"), {
     document: { querySelector: (selector) => ({ "[data-kata-practice]": practice, "[data-kata-immersive]": immersive })[selector] },
     window,
+    Date: class {
+      getHours() {
+        return hour;
+      }
+    },
   });
   return { practice, recipes, buttons, stepSets, lists, backs, forwards, stepNavs, motion, nav, reduced, views, viewGroup, immersive, home, window };
 }
@@ -147,6 +152,24 @@ assert.ok(!app.motion.disabled);
 assert.ok(!app.practice.classes.has("is-still"));
 assert.equal(mount({ hash: "#night-soften" }).practice.dataset.scene, "night");
 assert.equal(mount({ hash: "#missing" }).practice.dataset.scene, "morning");
+for (let hour = 0; hour < 24; hour++) {
+  const scene = hour >= 6 && hour < 18 ? "morning" : "night";
+  for (const hash of ["", "#missing"]) {
+    const local = mount({ hour, hash });
+    assert.equal(local.practice.dataset.scene, scene, `Local hour ${hour} selects ${scene} with hash "${hash}"`);
+    local.recipes.forEach((recipe, index) => {
+      const selected = recipe.dataset.scene === scene;
+      assert.equal(recipe.hidden, !selected, "Only the local-time form is visible");
+      assert.equal(local.buttons[index].attributes["aria-pressed"], String(selected), "Selection is announced");
+    });
+    assert.equal(local.practice.attributes["--scene-depth"], undefined, "Time-based selection does not develop the painting");
+    const other = scene === "morning" ? 1 : 0;
+    local.buttons[other].events.click();
+    assert.equal(local.practice.dataset.scene, local.recipes[other].dataset.scene, "Manual selection overrides the local-time default");
+  }
+  assert.equal(mount({ hour, hash: "#morning-clear-form" }).practice.dataset.scene, "morning", "Morning deep links override local time");
+  assert.equal(mount({ hour, hash: "#night-soften" }).practice.dataset.scene, "night", "Night deep links override local time");
+}
 assert.ok(mount({ reducedMotion: true }).motion.disabled);
 app.buttons[1].events.click();
 app.motion.events.click();
