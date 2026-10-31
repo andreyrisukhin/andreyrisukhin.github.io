@@ -1,0 +1,83 @@
+.project-logbook {
+  margin: 2.5rem 0;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--global-divider-color);
+  border-bottom: 1px solid var(--global-divider-color);
+  scroll-margin-top: 5rem;
+
+  &__entries {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+
+    li + li {
+      margin-top: 1.5rem;
+    }
+
+    a {
+      font-weight: 700;
+    }
+
+    p {
+      margin: 0.4rem 0 0;
+    }
+  }
+
+  &__meta {
+    color: var(--global-text-color-light);
+    font-size: $type-size-small;
+  }
+}
+
+.project-series-trail {
+  margin-bottom: 1.25rem;
+  font-size: $type-size-small;
+
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    color: var(--global-text-color-light);
+  }
+
+  li + li::before {
+    content: "/";
+    margin-right: 0.5rem;
+  }
+}
+
+.project-series-navigation {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--global-divider-color);
+
+  &__steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 1.25rem;
+
+    a {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    span {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--global-text-color-light);
+      font-size: $type-size-small;
+    }
+  }
+
+  &__all {
+    display: inline-block;
+    margin-top: 1.25rem;
+    font-size: $type-size-small;
+  }
+}

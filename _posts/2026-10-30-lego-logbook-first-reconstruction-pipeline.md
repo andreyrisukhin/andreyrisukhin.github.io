@@ -8,6 +8,10 @@ tags: [lego, machine-learning]
 categories: [lego]
 related_posts: false
 published: true
+series: lego
+experiment_date: "2026-03-28"
+experiment_label: March 28–29, 2026
+series_summary: An end-to-end pipeline, a start-token bug, and invalid LDraw assemblies.
 ---
 
 I started with reconstruction: take a few photos of a LEGO model and recover its parts, colors, positions, and orientations.

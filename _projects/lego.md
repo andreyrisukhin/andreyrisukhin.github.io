@@ -22,6 +22,9 @@ I want to let anyone be a Lego Master Builder. For example, anybody should be en
 
 {% include figure.liquid path="assets/img/projects/lego/project-examples.svg" class="img-fluid" figure_class="figure-spaced" avoid_scaling=true zoomable=true alt="Target LEGO tasks: generate a 42-stud airship and parts list from reference views; label matching pins in a pile; reconstruct a tank from video frames and adapt it for GIA use." caption="I did this! As a kid! A model can, too." %}
 
+{% capture lego_logbook %}{% include project-series.liquid series="lego" mode="logbook" %}{% endcapture %}
+{{ lego_logbook | strip }}
+
 ## Let Kids Play
 
 I spent 23 years training to be a master builder. Each example above is something I did myself. Yet even today, organic shapes are hard for me to build.
@@ -46,23 +49,3 @@ Also I want to try visualizing experiments as version control trees! Branches th
 I'm a scientist, I like science - Richard Sutton's bitter lesson suggests scaling compute and data outperform human hand-crafted heuristics. But Lego is a discrete _and_ continuous verifiable orientation problem. I'll start with recognition and move to the harder problems after that.
 
 {% include figure.liquid path="assets/img/projects/lego/lego-menger.webp" class="img-fluid d-block mx-auto" figure_class="figure-spaced" width="450" avoid_scaling=true zoomable=true alt="A blue and yellow LEGO Menger sponge with nested square openings." %}
-
-{% if site.unpublished %}
-
-## Current status
-
-<!-- Date each status update. Keep the original goals distinct from later findings. -->
-
-{% endif %}
-
-## Posts
-
-<!-- Add links as posts are published. Group by topic when the series grows. -->
-
-- [LEGO logbook: the first reconstruction pipeline]({{ '/blog/2026/lego-logbook-first-reconstruction-pipeline/' | relative_url }}) (entries from March 28–29, 2026).
-
-{% if site.unpublished %}
-
-- [My LEGO recognizer failed on a white background](/blog/2026/lego-recognizer-white-background/) (draft; experiments from April 14, 2026).
-
-{% endif %}

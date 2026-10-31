@@ -19,6 +19,7 @@ layout: default
 {% assign post_style = page.post_style | default: site.post_style | default: 'reading' %}
 <div class="post post-reading{% if post_style == 'paper' %} post-reading--paper{% endif %}">
   <header class="post-header">
+    {% if page.series %}{% include project-series.liquid mode="header" %}{% endif %}
     <h1 class="post-title">{{ page.title }}</h1>
     <p class="post-meta">
       Created on {{ page.date | date: '%B %d, %Y' }}
@@ -73,6 +74,8 @@ layout: default
       {{ content }}
     </div>
   </article>
+
+  {% if page.series %}{% include project-series.liquid mode="footer" %}{% endif %}
 
   {% if page.citation %}
     {% include citation.liquid %}

@@ -1,0 +1,77 @@
+{% assign reading_key = include.series | default: page.series | default: '' %}
+{% assign reading_series = site.data.project_series[reading_key] %}
+{% if reading_series %}
+  {% assign reading_posts = site.posts | where: 'series', reading_key | sort: 'experiment_date' %}
+  {% assign reading_index = null %}
+  {% for entry in reading_posts %}
+    {% if entry.url == page.url %}
+      {% assign reading_index = forloop.index0 %}
+    {% endif %}
+  {% endfor %}
+  {% assign reading_logbook_url = reading_series.overview_url | append: '#logbook' %}
+
+  {% if include.mode == 'logbook' %}
+    <section class="project-logbook" id="logbook" aria-labelledby="logbook-title">
+      <h2 id="logbook-title">Research logbook</h2>
+      <p>The project overview comes first. These entries follow the experiments in order, not their publication dates.</p>
+      {% if reading_posts.size > 0 %}
+        <p>
+          <a href="{{ reading_posts.first.url | relative_url }}">Start reading: {{ reading_posts.first.title | escape }}</a>
+        </p>
+        <ol class="project-logbook__entries">
+          {% for entry in reading_posts %}
+            <li>
+              <p class="project-logbook__meta">
+                Entry {{ forloop.index }} · {{ entry.experiment_label | escape }}
+                {% if entry.published == false %} · Draft{% endif %}
+              </p>
+              <a href="{{ entry.url | relative_url }}">{{ entry.title | escape }}</a>
+              <p>{{ entry.series_summary | default: entry.description | escape }}</p>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p>No entries published yet.</p>
+      {% endif %}
+    </section>
+  {% elsif reading_index != null %}
+    {% if include.mode == 'header' %}
+      <nav class="project-series-trail" aria-label="Research logbook breadcrumb">
+        <ol>
+          <li>
+            <a href="{{ reading_series.overview_url | relative_url }}">{{ reading_series.title | escape }}</a>
+          </li>
+          <li><a href="{{ reading_logbook_url | relative_url }}">Research logbook</a></li>
+          <li aria-current="page">Entry {{ reading_index | plus: 1 }}</li>
+        </ol>
+      </nav>
+    {% elsif include.mode == 'footer' %}
+      <nav class="project-series-navigation" aria-label="{{ reading_series.title | escape }} reading order">
+        <div class="project-series-navigation__steps">
+          {% if reading_index > 0 %}
+            {% assign reading_previous_index = reading_index | minus: 1 %}
+            {% assign reading_previous = reading_posts[reading_previous_index] %}
+            <a href="{{ reading_previous.url | relative_url }}" rel="prev">
+              <span>Previous</span>
+              {{ reading_previous.title | escape }}
+            </a>
+          {% else %}
+            <a href="{{ reading_series.overview_url | relative_url }}" rel="prev">
+              <span>Previous</span>
+              {{ reading_series.overview_title | escape }}
+            </a>
+          {% endif %}
+          {% assign reading_next_index = reading_index | plus: 1 %}
+          {% if reading_next_index < reading_posts.size %}
+            {% assign reading_next = reading_posts[reading_next_index] %}
+            <a href="{{ reading_next.url | relative_url }}" rel="next">
+              <span>Next</span>
+              {{ reading_next.title | escape }}
+            </a>
+          {% endif %}
+        </div>
+        <a class="project-series-navigation__all" href="{{ reading_logbook_url | relative_url }}">All {{ reading_series.title | escape }} entries</a>
+      </nav>
+    {% endif %}
+  {% endif %}
+{% endif %}

@@ -7,6 +7,9 @@ tags: [lego, machine-learning]
 categories: [lego]
 related_posts: false
 published: false
+series: lego
+experiment_date: "2026-04-14"
+experiment_label: April 14, 2026
 ---
 
 My LEGO part recognizer scored 95% on clean renders and 2% after a white-background transformation. Training against that failure improved the score, but did not establish recognition outside the renderer.
