@@ -20,7 +20,7 @@ I want to let anyone be a Lego Master Builder. For example, anybody should be en
 - Find all part 2780 pins in a 78-piece pile image and label the five matches.
 - Reconstruct a digital LEGO tank from video frames and adapt its style to a custom faction.
 
-{% include figure.liquid path="assets/img/projects/lego/project-examples.svg" class="img-fluid" figure_class="figure-spaced" avoid_scaling=true zoomable=true alt="Target LEGO tasks: generate a 42-stud airship and parts list from reference views; label matching pins in a pile; reconstruct a tank from video frames and adapt it for GIA use." caption="The pin labels come from synthetic ground truth, not model predictions. The parts list is an excerpt." %}
+{% include figure.liquid path="assets/img/projects/lego/project-examples.svg" class="img-fluid" figure_class="figure-spaced" avoid_scaling=true zoomable=true alt="Target LEGO tasks: generate a 42-stud airship and parts list from reference views; label matching pins in a pile; reconstruct a tank from video frames and adapt it for GIA use." caption="I did this! As a kid! A model can, too." %}
 
 ## Let Kids Play
 
