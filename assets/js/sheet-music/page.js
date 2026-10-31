@@ -6,7 +6,7 @@
   if (!sheetPage || !container || !status) return;
 
   const url = sheetPage.dataset.musicxmlUrl;
-  const practice = sheetPage.classList.contains("sheet-practice");
+  const scoreHeading = sheetPage.dataset.scoreHeading !== "false";
 
   if (!window.opensheetmusicdisplay) {
     status.textContent = "OSMD failed to load from CDN.";
@@ -20,11 +20,11 @@
 
   const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
     backend: "svg",
-    drawTitle: !practice,
-    drawComposer: !practice,
-    drawSubtitle: !practice,
-    drawPartNames: !practice,
-    drawPartAbbreviations: !practice,
+    drawTitle: scoreHeading,
+    drawComposer: scoreHeading,
+    drawSubtitle: scoreHeading,
+    drawPartNames: scoreHeading,
+    drawPartAbbreviations: scoreHeading,
     drawChordSymbols: false,
     autoResize: false,
     // Flexoki cyan instead of OSMD's neon green; callers scroll it themselves.
@@ -45,7 +45,7 @@
   };
 
   const mobileQ = window.matchMedia("(max-width: 768px)");
-  const fitZoom = () => (mobileQ.matches ? (practice ? 0.8 : 0.4) : 1.0);
+  const fitZoom = () => (mobileQ.matches ? 0.8 : 1.0);
   let userZoomed = false;
   let zoom = fitZoom();
   const applyZoom = () => {
@@ -102,17 +102,15 @@
     chordHideObs.observe(container, { childList: true, subtree: true });
   };
 
-  const source = practice
-    ? fetch(url)
-        .then((response) => {
-          if (!response.ok) throw new Error("Score could not be downloaded.");
-          return response.text();
-        })
-        .then((xml) => {
-          window.__sheetMusic.xml = new DOMParser().parseFromString(xml, "application/xml");
-          return xml;
-        })
-    : Promise.resolve(url);
+  const source = fetch(url)
+    .then((response) => {
+      if (!response.ok) throw new Error("Score could not be downloaded.");
+      return response.text();
+    })
+    .then((xml) => {
+      window.__sheetMusic.xml = new DOMParser().parseFromString(xml, "application/xml");
+      return xml;
+    });
   source
     .then((xml) => osmd.load(xml))
     .then(() => {
@@ -135,7 +133,7 @@
   });
   document.getElementById("osmd-zoom-out").addEventListener("click", () => {
     userZoomed = true;
-    zoom = Math.max(zoom - 0.1, practice ? 0.6 : 0.3);
+    zoom = Math.max(zoom - 0.1, 0.3);
     applyZoom();
   });
   document.getElementById("osmd-zoom-reset").addEventListener("click", () => {

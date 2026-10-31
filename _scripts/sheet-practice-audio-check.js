@@ -14,7 +14,7 @@
     }
     throw new Error("Audio did not become ready");
   };
-  const player = SheetPractice.player;
+  const player = SheetReader.player;
   let audio, soundfont, context, analyser;
   const scheduled = [];
   const mediaPlay = HTMLMediaElement.prototype.play;

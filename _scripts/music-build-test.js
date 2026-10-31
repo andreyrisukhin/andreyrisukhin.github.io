@@ -107,9 +107,9 @@ assert.ok(build.includes('id="song-charts"') && build.includes('id="stradella-pl
 assert.ok(/window\.SongChartData = \[\{/.test(build), "Set list builder inlines the song chart data");
 const scales = fs.readFileSync(path.join(site, "music/scales/index.html"), "utf8");
 const sheet = fs.readFileSync(path.join(site, "music/sheet/cogwork-dancers/index.html"), "utf8");
-assert.ok(sheet.includes('class="practice-transport"'), "Cogwork Dancers includes practice controls");
+assert.ok(sheet.includes('class="practice-settings"'), "Cogwork Dancers includes shared practice settings");
 assert.ok(sheet.includes('id="sheet-inspector"'), "Cogwork Dancers includes accessible note inspection");
-assert.ok(!sheet.includes("/sheet-music/playback.js"), "Practice page does not mount the legacy transport");
+assert.ok(sheet.includes("/sheet-music/playback.js"), "Cogwork Dancers mounts the shared reader");
 assert.ok(!sheet.includes("/sheet-music/chord-inspector.js"), "Practice page does not mount the legacy click handler");
 const played = fs.readFileSync(path.join(site, "music/sheet/reconstructing-more-science/index.html"), "utf8");
 assert.ok(played.includes('data-playback-instrument="drawbar_organ"'), "Reconstructing More Science defaults to drawbar organ");
@@ -120,11 +120,36 @@ assert.ok(transposeAt > 0 && transposeAt < played.indexOf("/sheet-music/playback
 assert.ok(played.includes('data-key-mode="minor"'), "Reconstructing More Science names its key as F minor");
 const sheetIds = [...sheet.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
 assert.equal(new Set(sheetIds).size, sheetIds.length, "Sheet practice has no duplicate IDs");
-for (const file of ["practice-timeline.js", "practice-player.js", "practice.js", "practice-inspector.js"]) {
+for (const file of [
+  "practice-timeline.js",
+  "practice-player.js",
+  "score.js",
+  "transport.js",
+  "playback.js",
+  "playhead.js",
+  "transpose.js",
+  "page.js",
+  "practice-inspector.js",
+]) {
   assert.ok(precache.includes("/assets/js/sheet-music/" + file), "Offline cache includes " + file);
 }
 const otherSheet = fs.readFileSync(path.join(site, "music/sheet/reclaiming-entropy/index.html"), "utf8");
-assert.ok(otherSheet.includes("/sheet-music/chord-inspector.js"), "Other sheet retains its existing inspector");
+assert.ok(otherSheet.includes("/sheet-music/practice-inspector.js"), "Read-only sheet uses shared inspection");
+assert.ok(!otherSheet.includes("/sheet-music/playback.js"), "Read-only sheet has no player");
+assert.ok(!otherSheet.includes('class="practice-settings"'), "Read-only sheet hides playback settings");
+for (const name of ["senorita", "reconstructing-more-science", "cogwork-dancers", "reclaiming-entropy"]) {
+  const content = fs.readFileSync(path.join(site, "music/sheet", name, "index.html"), "utf8");
+  assert.ok(content.includes("sheet-reader"), name + " uses the common reader shell");
+  assert.ok(content.includes('class="sheet-downloads"'), name + " has common downloads");
+  assert.ok(content.includes('id="sheet-inspector"'), name + " has common inspection");
+  assert.ok(!content.includes("/sheet-music/practice.js"), name + " does not load the retired player controller");
+  assert.ok(!content.includes("/sheet-music/chord-inspector.js"), name + " has only one note click handler");
+  const scriptUrls = [...content.matchAll(/<script[^>]*\ssrc="([^"]+)"/g)].map((match) => match[1].split("?")[0]);
+  for (const url of scriptUrls.filter((url) => /^\/assets\/js\/(sheet-music|workbench|music|tactus|vendor)\//.test(url))) {
+    if (url.endsWith("/dev-annotator.js")) continue;
+    assert.ok(precache.includes(url), name + " caches " + url);
+  }
+}
 assert.equal((scales.match(/class="music-table-scroll"/g) || []).length, 4, "All scale tables have scroll regions");
 assert.equal((scales.match(/<table[\s>]/g) || []).length, 4, "Markdown tables render inside their wrappers");
 assert.ok(!html.includes("site-dev-annotator.js"), "Production omits development controls");

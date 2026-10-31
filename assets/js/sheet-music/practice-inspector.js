@@ -1,7 +1,7 @@
 /* The score supplies written pitches; Stradella supplies suggestions, never a rewrite. */
 (function () {
   "use strict";
-  const page = document.querySelector(".sheet-practice");
+  const page = document.querySelector(".sheet-reader");
   if (!page) return;
   const bridge = window.__sheetMusic;
   const dialog = document.getElementById("sheet-inspector");
@@ -20,7 +20,7 @@
   let audition = 0;
   function hear(midis) {
     const request = ++audition;
-    window.SheetPractice?.player.pause();
+    window.SheetReader?.player?.pause();
     const playing = window.WorkbenchPlayer.play([midis], {
       onError: (message) => {
         status.textContent = message;
@@ -45,14 +45,15 @@
     if (recipe) hear(recipe.midis);
   });
   action("seek").addEventListener("click", () => {
-    window.SheetPractice?.player.seek(selection.measureNumber);
+    window.SheetReader?.player?.seek(selection.measureNumber);
     dialog.close();
   });
   action("loop").addEventListener("click", () => {
-    window.SheetPractice?.player.setLoop(selection.measureNumber, selection.measureNumber, true);
-    window.SheetPractice?.player.seek(selection.measureNumber);
+    window.SheetReader?.player?.setLoop(selection.measureNumber, selection.measureNumber, true);
+    window.SheetReader?.player?.seek(selection.measureNumber);
     dialog.close();
     page.querySelector(".practice-settings").open = true;
+    page.dispatchEvent(new CustomEvent("sheet-settings-change"));
   });
   window.BayanKeyboard.bind($("sheet-right-keyboard"), { onActivate: (midi) => hear([midi]) });
   function leftCell(target) {
@@ -93,27 +94,34 @@
   });
   function open(hit, element) {
     if (!hit || hit.isRest || !hit.pitches.length) return;
-    window.SheetPractice?.player.pause();
+    window.SheetReader?.player?.pause();
     window.WorkbenchPlayer.stop();
     selectedElement?.classList.remove("is-inspected");
     selectedElement = element;
     selectedElement?.classList.add("is-inspected");
-    selection = hit;
-    const pitches = hit.pitches.slice().sort((a, b) => T.Note.midi(a) - T.Note.midi(b));
+    const pitches = (hit.stradella === "chord" ? [hit.clickedPitch] : hit.pitches).slice().sort((a, b) => T.Note.midi(a) - T.Note.midi(b));
+    selection = { ...hit, pitches };
     const midis = pitches.map(T.Note.midi);
     const name = hit.chordName || (pitches.length === 1 ? pitches[0] : "Selected notes");
     $("sheet-note-title").textContent = pretty(name);
     $("sheet-note-location").textContent = "Measure " + hit.measureNumber + (hit.staffIndex != null ? " · Staff " + (hit.staffIndex + 1) : "");
     $("sheet-note-pitches").textContent = "Written: " + pitches.map(pretty).join(" · ");
-    $("sheet-note-context").textContent = hit.harmony
-      ? "Possible harmony: " + pretty(hit.harmony) + ". The bass is inferred from other notes in this measure, not this simultaneous stack."
-      : "The diagrams show this selected note group, not every voice sounding in the measure.";
+    $("sheet-note-context").textContent =
+      hit.stradella === "chord"
+        ? "Stradella chord button: " +
+          pretty(hit.chordName) +
+          " sounds " +
+          hit.pitches.map(pretty).join(" · ") +
+          ". The written pitch names the button root."
+        : hit.harmony
+          ? "Possible harmony: " + pretty(hit.harmony) + ". The bass is inferred from other notes in this measure, not this simultaneous stack."
+          : "The diagrams show this selected note group, not every voice sounding in the measure.";
     const model = window.WorkbenchModel.fromName(hit.harmony || hit.chordName || "") || window.WorkbenchModel.fromNotes(pitches.map(T.Note.chroma));
     const roots = [3, 2, 1, 0, -1, -2].map((step) => window.WorkbenchModel.mod(model.root + step * 7));
     cells = Left.layout(roots);
     recipe = Voicings.resolve(model, roots);
     Left.mount(leftHost, model, roots);
-    if (pitches.length === 1) {
+    if (pitches.length === 1 && hit.stradella !== "chord") {
       const bass = cells.find((cell) => cell.kind === "bass" && cell.root === T.Note.chroma(pitches[0]));
       if (bass) {
         recipe = { midis: bass.midis, recipe: bass.name, detail: "Single bass button, not a chord. Demonstration octave only." };
@@ -131,7 +139,7 @@
       root: midis.find((midi) => midi % 12 === model.root),
       labels: Object.fromEntries(pitches.map((pitch) => [T.Note.midi(pitch), pretty(pitch)])),
     });
-    action("seek").disabled = action("loop").disabled = !window.SheetPractice;
+    action("seek").disabled = action("loop").disabled = !window.SheetReader?.player;
     status.textContent = "";
     if (!dialog.open) dialog.showModal();
   }

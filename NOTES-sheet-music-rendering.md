@@ -114,39 +114,60 @@ assets/js/sheet-music/
 .dev-annotations/            git-ignored; <slug>.json per page
 ```
 
-## Cogwork Dancers practice reader
+## Shared sheet reader
 
-The Cogwork Dancers include opts into `practice=true`; other scores keep their
-existing reader and playback. The original MuseScore and MusicXML files are
-unchanged. The page supplies the title and credits instead of displaying the
-MusicXML placeholder title.
+All four sheet pages use `sheet-music.liquid` for score display, downloads,
+and keyboard-accessible note inspection. `playback=true` adds the same
+Señorita-style transport and practice settings. A read-only page does not load
+a player. The page supplies source format, credits, default sound, key mode,
+and optional recording assets and label; no shared include names a piece.
 
-- `practice-timeline.js` reads MusicXML durations, voice backups, chords, ties,
-  and tempo directions. This score has no repeats, grace notes, or transposing
-  instruments. The timeline starts at 120 BPM, changes to 160 at measure 20,
-  then to 100 at measure 69. It ends at 137.9 seconds.
-- `practice-player.js` keeps score time separate from playback speed. Inclusive
-  measure loops work with both the strings recording and live soundfonts.
-  The recording is fetched as a complete blob so seeking also works without
-  HTTP Range support and from the service-worker cache. Pause cancels pending
-  playback; switching sources preserves the measure but never starts audio.
-- `practice.js` owns the transport, cursor, optional follow-scroll, and
-  per-piece browser settings under `sheet-practice:<pathname>`.
-- `practice-inspector.js` opens a keyboard-accessible dialog on one note-group
-  activation. It reuses the workbench's B-system and Stradella renderers.
-  Written octaves stay distinct from inferred harmony and suggested bass
-  registers. Inspection pauses the score; closing it stops any audition.
+- `page.js` fetches MusicXML once, keeps the parsed document on the OSMD
+  bridge, and owns zoom and focus mode. Mobile reading starts at 0.8 zoom.
+- `practice-timeline.js` supplies a single written-tempo map, including
+  mid-measure changes. `score.js` uses that map with OSMD’s ties,
+  articulations, and optional Stradella chord-button interpretation.
+- `practice-player.js` is the shared cancellable player. Score time stays
+  separate from playback speed. Inclusive passage loops, sustained-note
+  resume, gain, and transposition use the same scheduler on every piece.
+- `transport.js` owns the common measure track, key stepper, sound picker,
+  and expandable speed, loop, jump, and follow settings. Settings use
+  `sheet-reader:<pathname>`, with a fallback read of old Cogwork settings.
+- `playback.js` connects the player, transport, notation transposition, and
+  `playhead.js`. The playhead caches notation positions once per render;
+  it does not walk OSMD’s cursor on every measure or frame.
+- Recordings are fetched as complete blobs for seeking without HTTP Range
+  support. Changing source stays paused and preserves the measure.
+  Transposing selects live sound; returning to a recording resets the key.
+- `practice-inspector.js` is shared by playable and read-only scores.
+  One note activation opens its accessible dialog. Written pitches stay
+  distinct from Stradella interpretation and suggested registers. Inspection
+  pauses playback; closing it stops auditions and restores focus.
+
+Cogwork Dancers retains its strings recording, 79 measures, and tempo changes:
+120 BPM initially, 160 at measure 20, and 100 at measure 69. Its score time
+ends at 137.9 seconds. Señorita retains articulation, gain, and Stradella
+chord-button playback. Reclaiming Entropy remains read-only.
 
 Checks:
 
 ```sh
 node _scripts/sheet-practice-test.js
+node _scripts/sheet-playhead-test.js
+node _scripts/sheet-transpose-test.js
 # After a production Jekyll build:
 node _scripts/music-build-test.js
-# In an isolated browser on the generated page:
+# On each of the four pages, at desktop and mobile widths:
+agent-browser eval --stdin < _scripts/sheet-reader-browser-check.js
+# Additional Cogwork interactions and real recording/live audio:
 agent-browser eval --stdin < _scripts/sheet-practice-browser-check.js
 # Unlock audio with a real Play click first:
 agent-browser eval --stdin < _scripts/sheet-practice-audio-check.js
+# Señorita and Reconstructing More Science:
+agent-browser eval --stdin < _scripts/sheet-playback-ties-check.js
+agent-browser eval --stdin < _scripts/sheet-playback-articulation-check.js
+# Señorita:
+agent-browser eval --stdin < _scripts/sheet-playback-stradella-check.js
 ```
 
 ## References

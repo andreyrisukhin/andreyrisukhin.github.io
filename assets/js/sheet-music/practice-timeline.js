@@ -55,6 +55,8 @@ window.SheetPracticeTimeline = (function () {
       ends: starts.map((start, index) => secondsAt(start + measures[index].beats)),
       tempos,
       duration: secondsAt(beat),
+      beatStarts: starts,
+      secondsAt,
     };
   }
 

@@ -7,8 +7,15 @@
 //   agent-browser open http://127.0.0.1:4000/music/sheet/senorita/
 //   agent-browser eval --stdin < _scripts/sheet-playback-articulation-check.js
 (async () => {
-  for (let i = 0; i < 100 && !(window.__playback && window.__playback.events.length); i++) await new Promise((r) => setTimeout(r, 100));
-  const engine = window.__playback;
+  for (let i = 0; i < 100 && !window.SheetReader?.score.events.length; i++) await new Promise((r) => setTimeout(r, 100));
+  const score = window.SheetReader?.score;
+  const engine = score && {
+    events: score.events,
+    osmd: window.__sheetMusic.osmd,
+    bpm: score.tempos[0].bpm,
+    measureStarts: score.starts,
+    stradellaBass: document.querySelector(".sheet-reader").dataset.playbackStradella === "true",
+  };
   if (!engine) throw new Error("Playback engine did not start");
   const names = window.opensheetmusicdisplay.ArticulationEnum;
   const quarter = 60 / engine.bpm;

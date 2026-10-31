@@ -5,9 +5,12 @@
 {% assign source_path = '/assets/music/sheet-music/' | append: sheet_dir | append: '/' | append: sheet_slug | append: '.' | append: source_ext %}
 
 <div
-  class="sheet-music-page sheet-music-page--flexoki{% if include.practice %} sheet-practice{% endif %}"
+  class="sheet-music-page sheet-music-page--flexoki sheet-reader"
+  data-playback="{{ include.playback | default: false }}"
+  data-score-heading="{% if include.score_heading == false %}false{% else %}true{% endif %}"
   data-musicxml-url="{{ musicxml_path | relative_url }}?v={{ site.time | date: '%s' }}"
   {% if include.rendered_audio %}
+    data-rendered-label="{{ include.rendered_label | default: 'Recording' | escape }}"
     data-rendered-audio-url="{{ include.rendered_audio | relative_url }}"
   {% endif %}
   {% if include.timing_json %}
@@ -26,43 +29,29 @@
     data-key-mode="{{ include.key_mode }}"
   {% endif %}
 >
-  {% if include.practice %}
-    <div class="practice-view-controls">
-      <details>
-        <summary>Score display</summary>
-  {% endif %}
   <div class="sheet-music-controls">
     <button id="osmd-zoom-out" class="music-share-btn" type="button" aria-label="Smaller notes">−</button>
     <button id="osmd-zoom-reset" class="music-share-btn" type="button">Reset zoom</button>
     <button id="osmd-zoom-in" class="music-share-btn" type="button" aria-label="Larger notes">+</button>
     <button id="osmd-stradella-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Show Stradella</button>
-    {% unless include.practice %}
-      <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Focus score</button>
-      <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
-      <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
-    {% endunless %}
-  </div>
-  {% if include.practice %}
-    <p class="practice-help">Keyboard: Tab to the score notes, then use arrow keys and Enter.</p>
-    </details>
     <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Focus score</button>
-    </div>
-  {% endif %}
-
-  {% if include.practice %}
+  </div>
+  {% if include.playback %}
     {% include sheet-practice.liquid %}
   {% endif %}
+  <p class="practice-score-help">Tap a note to inspect it. Keyboard: Tab to the score, then use arrow keys and Enter.</p>
   <div id="osmd-container" class="sheet-music-container" tabindex="0" role="region" aria-label="Sheet music, scroll sideways if needed"></div>
   <p id="osmd-status" class="sheet-music-status">Loading score…</p>
-  {% if include.practice %}
-    <details class="sheet-downloads">
-      <summary>Score files and credits</summary>
-      <p>Music by Christopher Larkin. Organ transcription by Lysine. Original source files are unchanged.</p>
-      <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download MuseScore</a>
-      <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
-      <p>Notation rendered with <a href="https://opensheetmusicdisplay.org/">OpenSheetMusicDisplay</a>.</p>
-    </details>
-  {% endif %}
+  <details class="sheet-downloads">
+    <summary>Score files and credits</summary>
+    {% if include.credits %}
+      <p>{{ include.credits | escape }}</p>
+    {% endif %}
+    <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
+    <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
+    <p>Notation rendered with <a href="https://opensheetmusicdisplay.org/">OpenSheetMusicDisplay</a>.</p>
+  </details>
+  {% include sheet-inspector.liquid %}
 
   <noscript>
     <p>
@@ -86,27 +75,24 @@
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-recipe.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/tactus/audio.js?v=1' | relative_url }}"></script>
-<script src="{{ '/assets/js/sheet-music/osmd-bridge.js?v=3' | relative_url }}"></script>
+<script src="{{ '/assets/js/sheet-music/osmd-bridge.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/js/vendor/soundfont-player.min.js' | relative_url }}"></script>
-{% if include.practice %}
-  <script src="{{ '/assets/js/music/bayan-keyboard.js' | relative_url }}"></script>
-  <script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
-  <script src="{{ '/assets/js/workbench/player.js' | relative_url }}"></script>
-  <script src="{{ '/assets/js/workbench/stradella.js' | relative_url }}"></script>
-  <script src="{{ '/assets/js/workbench/voicings.js' | relative_url }}"></script>
-  <script src="{{ '/assets/js/sheet-music/practice-timeline.js' | relative_url }}"></script>
-  <script src="{{ '/assets/js/sheet-music/practice-player.js' | relative_url }}"></script>
-  <script defer src="{{ '/assets/js/sheet-music/practice.js' | relative_url }}"></script>
-  <script defer src="{{ '/assets/js/sheet-music/practice-inspector.js' | relative_url }}"></script>
-{% else %}
-  <script defer src="{{ '/assets/js/sheet-music/chord-inspector.js?v=2' | relative_url }}"></script>
-{% endif %}
-<script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}"></script>
-<script defer src="{{ '/assets/js/sheet-music/dev-annotator.js?v=2' | relative_url }}"></script>
-{% if include.playback and include.practice != true %}
-  <script defer src="{{ '/assets/js/sheet-music/playhead.js?v=1' | relative_url }}"></script>
-  <script defer src="{{ '/assets/js/sheet-music/transpose.js?v=1' | relative_url }}"></script>
-  <script defer src="{{ '/assets/js/sheet-music/playback.js?v=14' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/bayan-keyboard.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/player.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/stradella.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/voicings.js' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/practice-inspector.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% if include.playback %}
+  <script src="{{ '/assets/js/sheet-music/practice-timeline.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+  <script src="{{ '/assets/js/sheet-music/practice-player.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+  <script src="{{ '/assets/js/sheet-music/score.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+  <script src="{{ '/assets/js/sheet-music/transport.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/playhead.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/transpose.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/playback.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {% endif %}
 <script src="{{ '/assets/js/vendor/opensheetmusicdisplay.min.js' | relative_url }}"></script>
-<script defer src="{{ '/assets/js/sheet-music/page.js?v=4' | relative_url }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/page.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
