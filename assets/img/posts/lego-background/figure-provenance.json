@@ -1,0 +1,27 @@
+{
+  "figure_kind": "recreated CPU transform illustration and replot, not model inference",
+  "transform_source_sha256": "f5ccbabe306578a0a59075e345998801787588068d6b6b0b982b634a0c08020a",
+  "logbook_sha256": "964adf40b0b004a285de5ef873c952295a05401dd05f3338f89df865a470628a",
+  "opencv_version": "5.0.0",
+  "numpy_version": "2.5.4",
+  "source_images": [
+    {
+      "source_image": "3001/c4_v0.png",
+      "source_sha256": "036233e1c60b907c10f3ed038c5e31036b562089461f2e93025d7e8013298565",
+      "changed_pixels": 55908,
+      "total_pixels": 65536
+    },
+    {
+      "source_image": "3001/c71_v0.png",
+      "source_sha256": "584040a7afda8234bf1dcdeed91899f529c8779d7fdd8c0a882da12a8ce26e06",
+      "changed_pixels": 60509,
+      "total_pixels": 65536
+    }
+  ],
+  "logbook_values": {
+    "clean": [95.0, 92.0, 86.0, 92.0],
+    "white_bg": [2.0, 47.0, 49.0, 61.0],
+    "blue_bg": [1.0, 48.0, 49.0, 59.0],
+    "edge_overlay": [8.0, 46.0, 43.0, 87.0]
+  }
+}
