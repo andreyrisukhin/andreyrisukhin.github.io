@@ -34,12 +34,28 @@ assert.match(logbook, /March 31, 2026/, "Logbook shows the rendering experiment 
 assert.ok(navigation(firstPost).includes(`href="${second}" rel="next"`), "First entry links to the rendering entry");
 assert.ok(navigation(secondPost).includes(`href="${first}" rel="prev"`), "Rendering entry links back to the first entry");
 assert.match(secondPost, /aria-current="page">Entry 2/, "Rendering experiment is Entry 2");
-for (const figure of ["boxes-and-studs.svg", "color-and-reflection.svg"]) {
+for (const figure of ["boxes-and-studs.png", "color-comparison.png", "reflection-comparison.png"]) {
   assert.ok(secondPost.includes(`assets/img/posts/2026-lego-rendering/${figure}`), `Rendering post includes ${figure}`);
   assert.ok(fs.existsSync(path.join(site, "assets/img/posts/2026-lego-rendering", figure)), `${figure} is deployed`);
 }
-assert.ok(secondPost.includes("Schematic, not archived training images."), "Geometry illustration keeps its provenance caption");
-assert.ok(secondPost.includes("Schematics, not before-and-after render captures."), "Bug illustration keeps its provenance caption");
+assert.ok(secondPost.includes("New Blender/Cycles renders"), "Geometry comparison identifies new Blender renders");
+assert.ok(secondPost.includes("not the original Studio mesh or archived March 31 inputs"), "Geometry comparison keeps its provenance caveat");
+assert.ok(secondPost.includes("New renders reproducing the color encoding error."), "Color comparison identifies a reproduced failure");
+for (const schematic of ["boxes-and-studs.svg", "color-and-reflection.svg"]) {
+  assert.ok(!secondPost.includes(schematic), `Rendering post does not reuse ${schematic}`);
+}
+const renderRecord = JSON.parse(fs.readFileSync(path.join(site, "assets/img/posts/2026-lego-rendering/blender/provenance.json"), "utf8"));
+assert.equal(renderRecord.renderer, "Cycles", "Figure provenance identifies the actual renderer");
+assert.equal(renderRecord.device, "CPU", "Figure provenance records CPU rendering");
+for (const name of Object.keys(renderRecord.raw_images)) {
+  const rawPath = path.join(site, "assets/img/posts/2026-lego-rendering/blender", name);
+  const crypto = require("node:crypto");
+  assert.equal(
+    crypto.createHash("sha256").update(fs.readFileSync(rawPath)).digest("hex"),
+    renderRecord.raw_images[name],
+    `${name} matches its render record`
+  );
+}
 if (preview) {
   assert.ok(logbook.indexOf(second) < logbook.indexOf(third), "March 31 precedes April 14 despite its later publication date");
   assert.match(logbook, /Draft/, "Preview identifies the unpublished entry");

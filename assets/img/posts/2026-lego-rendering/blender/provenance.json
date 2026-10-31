@@ -1,0 +1,109 @@
+{
+  "kind": "New Blender reproductions, not archived March 31 experiment images",
+  "created_utc": "2026-10-31T18:44:49.881503+00:00",
+  "blender_version": "4.0.2",
+  "renderer": "Cycles",
+  "device": "CPU",
+  "threads": 4,
+  "samples": 128,
+  "denoising": false,
+  "seed": 0,
+  "resolution": [800, 600],
+  "view_transform": "Standard",
+  "palette_srgb": {
+    "4": [196, 0, 38],
+    "1": [0, 85, 191]
+  },
+  "assembly_source": "lego commit 35e2284:artifacts/overfit_real/gt.ldr",
+  "assembly_sha256": "1bcb900f6fb0ed0d8463b0edc2d963700d4312b49d2ec3aefb2e6f78c4d2bb11",
+  "renderer_script_sha256": "4e13fcf413db5745b653c316321d87c45df2e789ef5e5296606fd95401824ad5",
+  "variants": {
+    "detailed": {
+      "boxes": false,
+      "wrong_color": false,
+      "reflected": false
+    },
+    "boxes": {
+      "boxes": true,
+      "wrong_color": false,
+      "reflected": false
+    },
+    "wrong-color": {
+      "boxes": false,
+      "wrong_color": true,
+      "reflected": false
+    },
+    "reflected": {
+      "boxes": false,
+      "wrong_color": false,
+      "reflected": true
+    }
+  },
+  "controls": "Same camera, lighting, palette, sample seed, exposure, and display transform in all four renders",
+  "geometry_note": "Current LDraw library geometry, not the original Studio-embedded mesh; box variant uses each resolved part's bounding box",
+  "surface_counts": [302, 174],
+  "ldraw_sources": {
+    "p/4-4cyli.dat": {
+      "sha256": "4a742c2765b6ebf98245baaf8a160a4ff587fc93d36c8ee2b9074712a2f968c4",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/4-4disc.dat": {
+      "sha256": "a00b5547776f61a7389d303616987c76b3c4de86ad8ec32f22857e1bd5e5e40f",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/4-4edge.dat": {
+      "sha256": "54a52196e421fd1717d291ff52ea57553b1fb238907c1678cc1f1a84c698b1da",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/4-4ring3.dat": {
+      "sha256": "1f2835ac308154edc2d6f479d8e742a55be981f6167b20bfa100c195bc0731dd",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/box4t.dat": {
+      "sha256": "9e85c281fff9c33ce26931d772310c8faeeaba4dca1036acf1e6ac578dc50c00",
+      "credits": ["0 Author: Tore Eriksson [Tore_Eriksson]", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/box5.dat": {
+      "sha256": "ccb7b8a1d36692335b10ea6aa196849afcad4b15331683ed8112a10b50977318",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/stud.dat": {
+      "sha256": "db037d518d7c08bcdc1f0e7497f4f98e97d99850531dd62d602965520f3bf8f4",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/stud3.dat": {
+      "sha256": "d29e9160faeaf85b2b72a098e89a81f41e0082517a82065d7b1f149b5fd2addd",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/stud4.dat": {
+      "sha256": "871cdcab26e7f5113488a24c453d6fabda75b275b06de592e0bfaad4292c12a3",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/stug-1x3.dat": {
+      "sha256": "f24de368545aa96580b811daa6c25e18f5bfdbaca1d4b11addcfa7cbb625f4c9",
+      "credits": ["0 Author: Steffen [Steffen]", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "p/stug3-1x2.dat": {
+      "sha256": "e78926d1494fa67b984f390aa1c05d01c35eff99030209e9bbee4e15bfcc0ecb",
+      "credits": ["0 Author: Steffen [Steffen]", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "parts/3021.dat": {
+      "sha256": "ad56a79b7c774b99d30a54bd1e198ab95918ba3d1bcfc6a788ca15cf05d757e8",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "parts/3622.dat": {
+      "sha256": "9317bcec4fbcddbd38ed3972d25ea95d685101904f3ed86c7e769a9f356245d8",
+      "credits": ["0 Author: James Jessiman", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    },
+    "parts/s/3622s01.dat": {
+      "sha256": "bb4e34ea6d2c7b7f7591b6051d69fd09f18a52486c2495b27c5baed67ea616f7",
+      "credits": ["0 Author: Takeshi Takahashi [RainbowDolphin]", "0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt"]
+    }
+  },
+  "raw_images": {
+    "detailed.png": "ec1dd48d1391da1668b844360e21a8bcfdc0a7d799d49f436602f2200087148c",
+    "boxes.png": "70172b2a790863cd0e462eabdcbba2f0c57c3e2cc5b3359d5a841769d1295d5f",
+    "wrong-color.png": "6c19832bdf16f118ef662ce836cff83168a22ea3631faba72ca8c0e736d99307",
+    "reflected.png": "31d393020b5f6a1431a8378cd4d434c927eb12eaefdd6ad8cec174923822a96a"
+  }
+}
