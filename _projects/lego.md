@@ -7,6 +7,7 @@ importance: 1
 category: fun
 published: true
 img: assets/img/projects/lego/lego-menger.webp
+breadcrumbs: false
 ---
 
 <!-- Add a short introduction and a concrete example or visual here. -->
