@@ -100,7 +100,12 @@ ninja.data = [{
           section: "News",},{id: "news-joined-factory-in-san-francisco-wrote-a-reflection-on-the-last-year",
           title: 'Joined Factory 🏭 in San Francisco! Wrote a reflection on the last year....',
           description: "",
-          section: "News",},{
+          section: "News",},{id: "projects-lego",
+          title: 'LEGO',
+          description: "",
+          section: "Projects",handler: () => {
+              window.location.href = "/projects/lego/";
+            },},{
         id: 'social-email',
         title: 'email',
         section: 'Socials',
