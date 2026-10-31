@@ -7,7 +7,7 @@ description: March 28–29, 2026. An end-to-end pipeline, a start-token bug, and
 tags: [lego, machine-learning]
 categories: [lego]
 related_posts: false
-published: false
+published: true
 ---
 
 I started with reconstruction: take a few photos of a LEGO model and recover its parts, colors, positions, and orientations.

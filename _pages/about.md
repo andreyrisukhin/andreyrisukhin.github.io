@@ -57,6 +57,8 @@ Previously a Founding Member of Technical Staff at [Perceptron AI](https://www.p
 
 In my free time, I learn to play accordion and teach myself music theory. I write, sketch, and go to parks.
 
+My [LEGO project]({{ '/projects/lego/' | relative_url }}) explores recognizing pieces and reconstructing models from images.
+
 <a class="home-music-link" href="{{ '/music/' | relative_url }}">
   <img src="{{ '/assets/img/home-bayan-b-system.svg' | relative_url }}" alt="" width="100" height="24">
   <span>Bayan workbench ↗<small>Explore chords, button layouts, and harmony.</small></span>

@@ -11,4 +11,6 @@ children:
     permalink: /color/
   - title: kata
     permalink: /kata/
+  - title: LEGO
+    permalink: /projects/lego/
 ---

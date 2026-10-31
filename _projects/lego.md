@@ -53,11 +53,16 @@ I'm a scientist, I like science - Richard Sutton's bitter lesson suggests scalin
 
 <!-- Date each status update. Keep the original goals distinct from later findings. -->
 
+{% endif %}
+
 ## Posts
 
 <!-- Add links as posts are published. Group by topic when the series grows. -->
 
-- [LEGO logbook: the first reconstruction pipeline](/blog/2026/lego-logbook-first-reconstruction-pipeline/) (draft; entries from March 28–29, 2026).
+- [LEGO logbook: the first reconstruction pipeline]({{ '/blog/2026/lego-logbook-first-reconstruction-pipeline/' | relative_url }}) (entries from March 28–29, 2026).
+
+{% if site.unpublished %}
+
 - [My LEGO recognizer failed on a white background](/blog/2026/lego-recognizer-white-background/) (draft; experiments from April 14, 2026).
 
 {% endif %}
