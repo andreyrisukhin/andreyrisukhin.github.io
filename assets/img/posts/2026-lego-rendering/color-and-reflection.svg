@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="660" viewBox="0 0 960 660" font-family="Nunito Sans, DejaVu Sans, sans-serif">
+<title>Color encoding and reflection are separate bugs</title>
+<desc>Schematic before-and-after comparisons. Swatches illustrate only the sRGB encoding error, without lighting or tone mapping. A yellow marker changes sides on a reflected L-shaped assembly.</desc>
+<rect width="960" height="660" rx="12" fill="#FFFCF0"/>
+<text x="32" y="44" font-size="28" font-weight="700" fill="#343331">BEFORE</text>
+<text x="512" y="44" font-size="28" font-weight="700" fill="#343331">AFTER</text>
+<text x="32" y="102" font-size="28" font-weight="700" fill="#343331">Color encoding</text>
+<text x="32" y="142" font-size="26" font-weight="400" fill="#343331">sRGB used as linear</text>
+<text x="512" y="142" font-size="26" font-weight="400" fill="#343331">Converted to linear</text>
+<rect x="32" y="170" width="104" height="66" rx="8" fill="#e3006c" stroke="#343331" stroke-width="1.5"/><rect x="154" y="170" width="104" height="66" rx="8" fill="#009ce0" stroke="#343331" stroke-width="1.5"/>
+<rect x="512" y="170" width="104" height="66" rx="8" fill="#c40026" stroke="#343331" stroke-width="1.5"/><rect x="634" y="170" width="104" height="66" rx="8" fill="#0055bf" stroke="#343331" stroke-width="1.5"/>
+<text x="32" y="282" font-size="25" font-weight="400" fill="#343331">Palette swatches only; no lighting or tone mapping</text>
+<path d="M 32 316 H 928" stroke="#DAD8CE" stroke-width="2"/>
+<text x="32" y="366" font-size="28" font-weight="700" fill="#343331">Coordinate conversion</text>
+<text x="32" y="406" font-size="26" font-weight="400" fill="#343331">Reflection</text>
+<text x="512" y="406" font-size="26" font-weight="400" fill="#343331">No reflection</text>
+<g transform="translate(192 430) scale(-1 1)"><polygon points="0.00,0.00 72.00,0.00 72.00,72.00 144.00,72.00 144.00,144.00 0.00,144.00" fill="#0055bf" stroke="#343331" stroke-width="1.5" stroke-linejoin="round"/><circle cx="112" cy="112" r="18" fill="#FFC857" stroke="#343331" stroke-width="2"/></g>
+<g transform="translate(528 430)"><polygon points="0.00,0.00 72.00,0.00 72.00,72.00 144.00,72.00 144.00,144.00 0.00,144.00" fill="#0055bf" stroke="#343331" stroke-width="1.5" stroke-linejoin="round"/><circle cx="112" cy="112" r="18" fill="#FFC857" stroke="#343331" stroke-width="2"/></g>
+<text x="32" y="626" font-size="25" font-weight="400" fill="#343331">Schematic · the yellow marker makes the reflection visible</text>
+</svg>
