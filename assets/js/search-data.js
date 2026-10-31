@@ -65,7 +65,18 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/projects/lego/";
               },
-            },{id: "post-lego-logbook-the-first-reconstruction-pipeline",
+            },{id: "post-lego-logbook-from-boxes-to-blender",
+        
+          title: "LEGO logbook: from boxes to Blender",
+        
+        description: "March 31, 2026. Real stud geometry, washed-out colors, a mirrored model, and the same two-brick test.",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/lego-logbook-studio-to-blender/";
+          
+        },
+      },{id: "post-lego-logbook-the-first-reconstruction-pipeline",
         
           title: "LEGO logbook: the first reconstruction pipeline",
         
