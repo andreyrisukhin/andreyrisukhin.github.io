@@ -88,10 +88,20 @@
                         <div class="dropdown-divider"></div>
                       {% else %}
                         <a
-                          class="dropdown-item {% if page.title == child.title %}active{% endif %}"
+                          class="dropdown-item{% if child.thumbnail %} dropdown-item--with-thumbnail{% endif %} {% if page.title == child.title %}active{% endif %}"
                           href="{% if child.permalink contains '://' %}{{ child.permalink }}{% else %}{{ child.permalink | relative_url }}{% endif %}"
                         >
-                          {{- child.title -}}
+                          {% if child.thumbnail %}
+                            <img
+                              class="dropdown-item__thumbnail"
+                              src="{{ child.thumbnail | relative_url }}"
+                              alt=""
+                              width="32"
+                              height="32"
+                              decoding="async"
+                            >
+                          {% endif %}
+                          <span class="dropdown-item__label">{{ child.title }}</span>
                         </a>
                       {% endif %}
                     {% endfor %}
