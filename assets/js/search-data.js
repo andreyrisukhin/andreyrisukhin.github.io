@@ -58,7 +58,25 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/kata/";
               },
-            },{id: "post-trying-to-measure-my-best-work",
+            },{id: "dropdown-lego",
+              title: "LEGO",
+              description: "",
+              section: "Dropdown",
+              handler: () => {
+                window.location.href = "/projects/lego/";
+              },
+            },{id: "post-lego-logbook-the-first-reconstruction-pipeline",
+        
+          title: "LEGO logbook: the first reconstruction pipeline",
+        
+        description: "March 28–29, 2026. An end-to-end pipeline, a start-token bug, and invalid training assemblies.",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/lego-logbook-first-reconstruction-pipeline/";
+          
+        },
+      },{id: "post-trying-to-measure-my-best-work",
         
           title: "Trying to Measure My Best Work",
         
