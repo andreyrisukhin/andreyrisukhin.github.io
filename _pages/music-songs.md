@@ -71,10 +71,10 @@ Saved studies and Stradella set lists, kept in this browser. Open either in [Wor
 <script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
 <script>window.SongChartData = {{ site.data.music.song_charts.charts | jsonify }};</script>
-<script src="{{ '/assets/js/music-build/charts.js?v=3' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-build/charts.js?v=4' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/library.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-songs/main.js?v=2' | relative_url }}"></script>
 
 <style>
   .songs-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }

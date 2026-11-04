@@ -164,6 +164,9 @@ for (const id of ["workspace-study", "workspace-setlist", "recognize", "recipes"
 }
 const scriptUrls = [...html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g)].map((match) => match[1].split("?")[0]);
 assert.equal(new Set(scriptUrls).size, scriptUrls.length, "Consolidated tools load each script once");
+for (const file of ["workbench/main.js", "stradella/main.js", "music-build/charts.js", "music-songs/main.js"]) {
+  assert.ok(html.includes("/assets/js/" + file + "?v="), "Changed script bypasses older HTTP and PWA caches: " + file);
+}
 const songs = fs.readFileSync(path.join(site, "music/songs/index.html"), "utf8");
 assert.ok(songs.includes('id="song-charts"') && songs.includes("/music-build/charts.js"), "Song library owns the chart chooser");
 assert.ok(songs.includes("Song library") && songs.includes("/music-songs/library.js"), "Song library reads both original stores");
