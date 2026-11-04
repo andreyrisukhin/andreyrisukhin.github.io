@@ -11,6 +11,9 @@ children:
   - title: color
     permalink: /color/
     thumbnail: /assets/img/navigation/color.svg
+  - title: fireplace
+    permalink: /fireplace/
+    thumbnail: /assets/img/navigation/fireplace.webp
   - title: kata
     permalink: /kata/
     thumbnail: /assets/img/navigation/kata.webp
