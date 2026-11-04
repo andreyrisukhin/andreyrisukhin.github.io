@@ -1,14 +1,22 @@
 ---
 layout: music
-title: Songs
+title: Song library
 permalink: /music/songs/
 ---
 
-Songs you've saved from the Stradella tool. Storage is local to this browser; sync pushes them to the `songs-inbox` branch of the site repo so the laptop can pull them with `bin/songs-pull`.
+Saved studies and Stradella set lists, kept in this browser. Open either in [Workbench]({{ '/music/workbench/' | relative_url }}). Their original formats stay intact: studies keep note order, hand choices, and progression settings; set lists keep chord durations, meter, and recipes.
 
-<div id="songs-list" class="songs-list"></div>
+<p id="songs-library-status" role="status"></p>
+<div id="songs-list" class="songs-list" data-workbench-url="{{ '/music/workbench/' | relative_url }}"></div>
+<div class="music-share">
+  <button type="button" id="songs-export-study" class="music-share-btn">Export studies</button>
+  <button type="button" id="songs-export-setlist" class="music-share-btn">Export set lists</button>
+</div>
+<p class="music-small">Study backups can be imported from Workbench’s Saved practice drawer. Set-list backups keep the original song records. Backups contain no sync credentials.</p>
 
-<h2>Sync to repo</h2>
+<h2>Set-list sync</h2>
+
+<p>Optional sync sends Stradella set lists to the <code>songs-inbox</code> branch so the laptop can pull them with <code>bin/songs-pull</code>. Studies stay local and are not included in sync.</p>
 
 <p class="songs-sync-help">
   Create a fine-grained GitHub token at <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">github.com/settings/personal-access-tokens</a>, scope it to <em>only</em> this repo, grant <strong>Contents: Read and write</strong>, then paste it below. The token stays in this browser's local storage; the page never sends it anywhere except <code>api.github.com</code>.
@@ -49,6 +57,10 @@ Songs you've saved from the Stradella tool. Storage is local to this browser; sy
 
 <noscript><p>This page needs JavaScript.</p></noscript>
 
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-songs/library.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>
 

@@ -40,8 +40,9 @@ for (const route of routes) {
   }
 }
 const hub = fs.readFileSync(path.join(site, "music/index.html"), "utf8");
+const legacyRoutes = ["build/", "stradella/", "chord-recognizer/"];
 const sections = [
-  ["tools", "Chords", ["workbench/", "build/", "chord-recognizer/", "stradella/", "songs/"]],
+  ["tools", "Chords", ["workbench/", "songs/"]],
   ["practice", "Practice", ["exercises/", "bass-patterns/", "blues/", "bayan-simulator/"]],
   ["sheets", "Sheets", routes.filter((route) => route.startsWith("sheet/"))],
   ["field-notes", "References", ["scales/", "chords/", "intervals/"]],
@@ -63,7 +64,7 @@ assert.equal(new Set(hubRoutes).size, hubRoutes.length, "Hub lists each destinat
 assert.deepEqual(
   [...hubRoutes].sort(),
   routes
-    .filter(Boolean)
+    .filter((route) => route && !legacyRoutes.includes(route))
     .map((route) => "/music/" + route)
     .sort(),
   "Hub covers every music tool"
@@ -84,12 +85,19 @@ for (const route of routes) {
   );
   const current = anchors.filter((match) => match[1].includes("aria-current="));
   assert.equal(current.length, 1, route + " has one current navigation item");
-  const expected = route ? sections.find((section) => section[2].includes(route))[1] : "Music";
+  const expected = legacyRoutes.includes(route) ? "Chords" : route ? sections.find((section) => section[2].includes(route))[1] : "Music";
   assert.equal(current[0][2].trim(), expected, route + " marks its own group");
   assert.ok(current[0][1].includes(`aria-current="${route ? "location" : "page"}"`), route + " uses the correct current scope");
 }
-for (const tool of ["/music/workbench/", "/music/chord-recognizer/", "/music/build/", "/music/songs/", "/music/sheet/reconstructing-more-science/"]) {
+for (const tool of ["/music/workbench/", "/music/songs/", "/music/sheet/reconstructing-more-science/"]) {
   assert.ok(hub.includes(`href="${tool}"`), "Tools hub links to " + tool);
+}
+for (const route of legacyRoutes) {
+  assert.ok(!hub.includes(`href="/music/${route}"`), "Hub omits retired tool " + route);
+  const page = fs.readFileSync(path.join(site, "music", route, "index.html"), "utf8");
+  assert.ok(page.includes("target.search = location.search") && page.includes("location.hash ||"), route + " preserves shared link state");
+  assert.ok(page.includes("location.replace(target.href)"), route + " redirects into Workbench");
+  assert.ok(!page.includes('id="stradella-setlist"'), route + " no longer has a duplicate interface");
 }
 assert.ok(!hub.includes('id="workbench-composer"'), "Tools hub stays compact without the workbench");
 assert.ok(hub.includes('id="field-notes"'), "Tools hub keeps the #field-notes anchor");
@@ -105,7 +113,7 @@ const precache = vm.runInNewContext(fs.readFileSync(path.join(site, "sw.js"), "u
 });
 const dependencies = [...html.matchAll(/<script src="([^"]+)"/g)]
   .map((match) => match[1].split("?")[0])
-  .filter((url) => /^\/assets\/js\/(workbench|music|tactus|vendor)\//.test(url));
+  .filter((url) => /^\/assets\/js\/(workbench|music|music-songs|music-build|stradella|chord-recognizer|tactus|vendor)\//.test(url));
 for (const dependency of dependencies) {
   assert.ok(precache.includes(dependency), "Offline cache includes " + dependency);
 }
@@ -114,8 +122,6 @@ for (const route of [
   "music/bass-patterns",
   "music/blues",
   "music/exercises",
-  "music/stradella",
-  "music/build",
   "music/bayan-simulator",
   "music/sheet/cogwork-dancers",
   "music/sheet/reconstructing-more-science",
@@ -151,9 +157,15 @@ assert.ok(
   !/<step>C<\/step>\s*<octave>3<\/octave>/.test(senoritaM3) && /<step>C<\/step>\s*<octave>4<\/octave>/.test(senoritaM3),
   "Señorita v1.1 writes the C chord cues in the chord register"
 );
-const build = fs.readFileSync(path.join(site, "music/build/index.html"), "utf8");
-assert.ok(build.includes('id="song-charts"') && build.includes('id="stradella-play"'), "Set list builder has song charts and a player");
-assert.ok(/window\.SongChartData = \[\{/.test(build), "Set list builder inlines the song chart data");
+assert.ok(html.includes('id="song-charts"') && html.includes('id="stradella-play"'), "Workbench contains song charts and the timed player");
+assert.ok(/window\.SongChartData = \[\{/.test(html), "Workbench inlines the song chart data");
+for (const id of ["workspace-study", "workspace-setlist", "recognize", "recipes", "recognizer-text-input", "stradella-catalog"]) {
+  assert.ok(html.includes(`id="${id}"`), "Workbench includes " + id);
+}
+const scriptUrls = [...html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g)].map((match) => match[1].split("?")[0]);
+assert.equal(new Set(scriptUrls).size, scriptUrls.length, "Consolidated tools load each script once");
+const songs = fs.readFileSync(path.join(site, "music/songs/index.html"), "utf8");
+assert.ok(songs.includes("Song library") && songs.includes("/music-songs/library.js"), "Song library reads both original stores");
 const scales = fs.readFileSync(path.join(site, "music/scales/index.html"), "utf8");
 const sheet = fs.readFileSync(path.join(site, "music/sheet/cogwork-dancers/index.html"), "utf8");
 assert.ok(sheet.includes('class="practice-settings"'), "Cogwork Dancers includes shared practice settings");

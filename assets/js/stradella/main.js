@@ -68,12 +68,17 @@
           .map(function (id) {
             return { id: id, key: s.key };
           });
-        saveState();
         return;
       }
       // v2 format: {catalogKey: N, selected: [{id, key}, ...]}
       if (typeof s.catalogKey === "number") state.catalogKey = s.catalogKey;
       if (typeof s.hasDim7 === "boolean") state.hasDim7 = s.hasDim7;
+      if (typeof s.gridView === "boolean") state.gridView = s.gridView;
+      if (s.show && typeof s.show === "object") {
+        Object.keys(state.show).forEach(function (key) {
+          if (typeof s.show[key] === "boolean") state.show[key] = s.show[key];
+        });
+      }
       if (typeof s.bpm === "number") state.bpm = Math.max(40, Math.min(200, s.bpm));
       if (s.meter === 3 || s.meter === 4) state.meter = s.meter;
       if (VOICES.hasOwnProperty(s.voice)) state.voice = s.voice;
@@ -426,7 +431,8 @@
   // Full permalink for the current set list: the page URL plus the encoded
   // chord list in the fragment, ready to copy or bookmark.
   function permalinkUrl() {
-    return window.location.origin + window.location.pathname + "#load=" + encodeURIComponent(exportString());
+    var base = document.getElementById("workspace-setlist") ? "?workspace=setlist" : "";
+    return window.location.origin + window.location.pathname + base + "#load=" + encodeURIComponent(exportString());
   }
 
   // Normalize pasted share input to the raw code importString expects.
@@ -784,6 +790,15 @@
   }
 
   function renderAll() {
+    var dim7 = document.getElementById("stradella-dim7-check");
+    if (dim7) dim7.checked = state.hasDim7;
+    var viewToggle = document.getElementById("stradella-view-toggle");
+    if (viewToggle) viewToggle.textContent = state.gridView ? "Family view" : "Grid view";
+    var group = document.getElementById("stradella-toggle-group");
+    if (group)
+      group.querySelectorAll("[data-layer]").forEach(function (button) {
+        button.classList.toggle("is-active", !!state.show[button.dataset.layer]);
+      });
     renderKeyBar();
     renderSetList();
     renderCircle();
@@ -1002,6 +1017,7 @@
   }
 
   window.StradellaTool = {
+    stop: stopPlayback,
     getSnapshot: function () {
       return JSON.parse(JSON.stringify(state));
     },
@@ -1014,9 +1030,12 @@
       if (typeof snap.gridView === "boolean") state.gridView = snap.gridView;
       if (typeof snap.bpm === "number") state.bpm = Math.max(40, Math.min(200, Math.round(snap.bpm)));
       if (snap.meter === 3 || snap.meter === 4) state.meter = snap.meter;
+      if (VOICES.hasOwnProperty(snap.voice)) state.voice = snap.voice;
       if (runtime.playing || runtime.pendingStart) stopPlayback();
       saveState();
       renderAll();
+      var voice = document.getElementById("stradella-voice");
+      if (voice) voice.value = state.voice;
       return true;
     },
     // Public hooks used by /music/build/'s chord-name search input and

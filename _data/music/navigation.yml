@@ -1,22 +1,17 @@
 - title: Chords
   id: tools
-  description: Start with Workbench to explore harmony, or use a focused tool for a specific task.
+  description: Explore harmony and build set lists in Workbench. Keep named copies in the Song library.
+  aliases:
+    - /music/build/
+    - /music/chord-recognizer/
+    - /music/stradella/
   items:
     - title: Workbench
       url: /music/workbench/
-      description: Build a progression and see each chord as notes, buttons, and sound.
-    - title: Set-list builder
-      url: /music/build/
-      description: Turn chord names and song charts into a Stradella set list.
-    - title: Chord recognizer
-      url: /music/chord-recognizer/
-      description: Enter notes to name the chord and see its inversions.
-    - title: Stradella recipes
-      url: /music/stradella/
-      description: Browse chords made from left-hand bass buttons.
-    - title: Saved songs
+      description: Study chords, recognize notes, browse recipes, and build progressions or timed set lists.
+    - title: Song library
       url: /music/songs/
-      description: Manage saved Stradella set lists and sync them to the site repo.
+      description: Open saved studies and Stradella songs, with backups and optional set-list sync.
 
 - title: Practice
   id: practice

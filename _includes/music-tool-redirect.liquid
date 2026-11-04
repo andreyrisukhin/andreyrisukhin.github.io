@@ -1,0 +1,14 @@
+<p>
+  This tool is now part of
+  <a href="{{ '/music/workbench/?workspace=setlist' | relative_url }}{{ page.workspace_anchor }}">Workbench’s Set list mode</a>. Your saved songs and
+  draft stay in this browser.
+</p>
+<script>
+  (() => {
+    const target = new URL("{{ '/music/workbench/' | relative_url }}", location.origin);
+    target.search = location.search;
+    target.searchParams.set("workspace", "setlist");
+    target.hash = location.hash || {{ page.workspace_anchor | default: '' | jsonify }};
+    location.replace(target.href);
+  })();
+</script>

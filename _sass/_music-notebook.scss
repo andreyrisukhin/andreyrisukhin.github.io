@@ -204,6 +204,29 @@
     border-top: 1px solid var(--music-rule);
     padding-top: 1rem;
   }
+  .wb-workspace-switch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    button {
+      border: 1px solid var(--music-rule);
+      border-radius: 3px;
+      padding: 0.5rem 1rem;
+      background: var(--music-surface);
+      color: var(--music-ink);
+    }
+    button[aria-pressed="true"] {
+      background: var(--music-accent);
+      color: var(--music-on-accent);
+    }
+  }
+  #workspace-setlist :is(h2, details) {
+    scroll-margin-top: 5rem;
+  }
+  #workspace-setlist .recognizer-input-row {
+    flex-wrap: wrap;
+  }
   .workbench-input-row {
     label {
       display: block;

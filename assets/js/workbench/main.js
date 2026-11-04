@@ -782,7 +782,9 @@
       (state.drawer ? " open" : "") +
       '><summary>Saved practice <span class="music-small">' +
       state.saved.length +
-      '</span></summary><p class="music-small">Stored only in this browser. Earlier Stradella songs are kept separately.</p>';
+      '</span></summary><p class="music-small">Stored in this browser. The <a href="' +
+      root.dataset.libraryUrl +
+      '">Song library</a> also lists your Stradella set lists.</p>';
     if (state.storageError) html += '<p class="wb-warning">' + state.storageError + "</p>";
     if (!state.saved.length && !state.storageError) html += '<p class="music-small">Save a chord or progression to return to it later.</p>';
     html += '<ol class="wb-saved-list">';
@@ -830,6 +832,33 @@
     state.drawer = true;
     renderSaved();
     if (saved) announce("Practice saved in this browser.");
+  }
+  function loadSaved(index) {
+    readSaved();
+    if (state.storageError) return false;
+    var item = state.saved[index];
+    if (!item) return false;
+    var restored = item.chords.map(Model.restore);
+    if (
+      restored.some(function (chord) {
+        return !chord;
+      })
+    )
+      return false;
+    selectItems(restored, {
+      label: item.name,
+      key: item.key,
+      keyMode: item.keyMode,
+      keyTonic: item.keyTonic,
+      gap: item.gap,
+      loop: item.loop,
+      sound: item.sound,
+      bpm: item.bpm,
+      mode: item.mode,
+      index: item.index,
+      syncInput: true,
+    });
+    return true;
   }
   function exportSaved() {
     var blob = new Blob([JSON.stringify(state.saved, null, 2)], { type: "application/json" });
@@ -1117,20 +1146,8 @@
       );
     }
     if (el.hasAttribute("data-load")) {
-      var item = state.saved[Number(el.dataset.load)];
-      return selectItems(item.chords.map(Model.restore), {
-        label: item.name,
-        key: item.key,
-        keyMode: item.keyMode,
-        keyTonic: item.keyTonic,
-        gap: item.gap,
-        loop: item.loop,
-        sound: item.sound,
-        bpm: item.bpm,
-        mode: item.mode,
-        index: item.index,
-        syncInput: true,
-      });
+      if (!loadSaved(Number(el.dataset.load))) announce("Could not open this study. Saved data has not been changed.");
+      return;
     }
     if (el.hasAttribute("data-remove")) {
       state.saved.splice(Number(el.dataset.remove), 1);
@@ -1279,6 +1296,7 @@
     render();
   }
   initializing = false;
+  window.WorkbenchStudy = { loadSaved: loadSaved };
   if (draftError) document.getElementById("wb-draft-status").textContent = draftError;
   else persistDraft();
 })();

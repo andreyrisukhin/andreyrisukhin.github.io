@@ -14,7 +14,7 @@ layout: default
       {% assign section_routes = section.items | map: 'url' %}
       <a
         href="{{ '/music/#' | append: section.id | relative_url }}"
-        {% if section_routes contains page.permalink %}
+        {% if section_routes contains page.permalink or section.aliases contains page.permalink %}
           aria-current="location"
         {% endif %}
       >
