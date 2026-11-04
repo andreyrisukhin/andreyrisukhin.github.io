@@ -11,6 +11,7 @@ export const ACHIEVEMENTS = Object.freeze([
   { id: "fling", title: "Hot potato", text: "Threw something that was on fire." },
   { id: "timber", title: "Timber", text: "Burned a log until it broke in two." },
   { id: "ashes", title: "Ashes", text: "Let a fire burn all the way out on its own." },
+  { id: "tea", title: "Tea time", text: "Boiled the mug of water over the fire." },
 ]);
 
 export const STORAGE_KEY = "fireplace-achievements";
@@ -58,6 +59,7 @@ export function createAchievements(storage) {
         else if (event.type === "douse") unlock("hiss");
         else if (event.type === "fling") unlock("fling");
         else if (event.type === "split") unlock("timber");
+        else if (event.type === "boil") unlock("tea");
       }
       carried = stats.heldBurning ? carried + dt : 0;
       if (carried >= TORCH_SECONDS) unlock("torch");
