@@ -129,6 +129,9 @@ const SPARK_LIMIT = 240;
 const RADIANT_REACH = 12;
 // Wood burns in short sections, so a flame creeps along a log instead of lighting all of it at once.
 const SEGMENT = 8;
+// Bark is dense and corky: it takes more heat to light and warms slowly. Burning chars it
+// and flakes it off (seconds at full flame), exposing the inner wood, which burns freely.
+const BARK_LAYER = Object.freeze({ shield: 0.1, slow: 0.35, seconds: 45 });
 const PILE = [
   { x: 52, z: -70 },
   { x: 60, z: -110 },
@@ -284,6 +287,7 @@ export class World {
     item.chars = fill(item.char, state.chars);
     // Soaked sections cannot burn until they dry.
     item.wet = fill(0, state.wet);
+    item.bark = fill(kind === "log" ? 1 : 0, state.bark);
     summarize(item);
     item.r = item.r0;
     item.length = item.length0;
@@ -741,10 +745,12 @@ export class World {
           if (item.fire[k] < 0.06) item.fire[k] = 0;
           item.heat[k] = item.fire[k] ? 0.6 + 0.4 * item.fire[k] : material.out;
           item.chars[k] = Math.min(1, item.chars[k] + charRate * (1 - item.chars[k]) * (0.4 + 0.6 * item.fire[k]));
+          if (item.bark[k] > 0) item.bark[k] = Math.max(0, item.bark[k] - (dt / (BARK_LAYER.seconds * burnScale)) * (0.3 + 0.7 * item.fire[k]));
         } else {
-          const t = before[k] + (heat - before[k]) * warm + (neighbors - before[k]) * conduct;
+          const bark = item.bark[k];
+          const t = before[k] + (heat - before[k]) * warm * (1 - BARK_LAYER.slow * bark) + (neighbors - before[k]) * conduct;
           item.heat[k] = t;
-          if (t >= material.ignite) item.fire[k] = 0.3;
+          if (t >= material.ignite + BARK_LAYER.shield * bark) item.fire[k] = 0.3;
         }
       }
       const fire = summarize(item);
@@ -1052,6 +1058,7 @@ export class World {
       fire: item.fire.slice(from, to),
       chars: item.chars.slice(from, to),
       wet: item.wet.slice(from, to),
+      bark: item.bark.slice(from, to),
     });
     const end = (p, sign) => ({ x: p.x + unit.x * half * sign, y: p.y + unit.y * half * sign, z: p.z + unit.z * half * sign });
     const first = this.spawn(item.kind, a, end(a, 1), part(0, Math.ceil(n / 2)));

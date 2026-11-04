@@ -8,6 +8,7 @@ const canvas = document.getElementById("fireplace");
 const output = canvas.getContext("2d");
 const status = document.getElementById("hearth-status");
 const toast = document.getElementById("hearth-toast");
+const foundBox = document.getElementById("hearth-found");
 const foundCount = document.getElementById("hearth-found-count");
 const foundList = document.getElementById("hearth-found-list");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -440,6 +441,8 @@ if (!output || !ctx) {
   const achievements = createAchievements(storage);
   function showFound() {
     const found = achievements.found();
+    // Secrets stay secret: the list appears only once one has been found.
+    foundBox.hidden = !found.length;
     foundCount.textContent = `${found.length} of ${ACHIEVEMENTS.length} found`;
     foundList.innerHTML = found.map((entry) => `<li><strong>${entry.title}.</strong> ${entry.text}</li>`).join("");
   }

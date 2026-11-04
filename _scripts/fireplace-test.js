@@ -82,6 +82,29 @@ async function main() {
   assert.ok(loneFire < 0.5, "a lone log burns low");
   assert.ok(Math.min(...logs(fire).map(mean)) > loneFire, "a teepee burns stronger than a lone log");
 
+  // Bark is slow to catch, and burns off to show the inner wood.
+  const barked = createFire();
+  run(barked, 5);
+  assert.ok(
+    barked.items().some((item) => item.kind === "stick" && item.burning),
+    "kindling catches first"
+  );
+  assert.ok(!logs(barked).some((item) => item.burning), "bark keeps the logs from catching right away");
+  run(barked, 55);
+  const meanBark = (item) => item.bark.reduce((sum, value) => sum + value, 0) / item.bark.length;
+  const teepee = logs(barked).filter((item) => item.inHearth);
+  assert.ok(
+    teepee.every((item) => meanBark(item) < 0.5),
+    "burning logs lose their bark"
+  );
+  assert.ok(
+    barked
+      .items()
+      .filter((item) => item.kind === "log" && !item.inHearth)
+      .every((item) => meanBark(item) === 1),
+    "spare logs keep theirs"
+  );
+
   // Flames stay attached to the fire: any pocket that breaks away sits just above a tongue.
   const shape = createFire();
   run(shape, 20);
@@ -94,7 +117,8 @@ async function main() {
     const solid = new Set();
     for (const list of [back, front, bed]) for (let n = 0; n < list.length; n += 3) solid.add(key(list[n], list[n + 1]));
     const joined = new Set();
-    const queue = [...flame].filter((cell) => [1, -1, 240, -240, 480].some((d) => solid.has(cell + d)));
+    // A tongue may lick a cell away from the side of its log.
+    const queue = [...flame].filter((cell) => [1, -1, 2, -2, 240, -240, 480].some((d) => solid.has(cell + d)));
     queue.forEach((cell) => joined.add(cell));
     while (queue.length) {
       const cell = queue.pop();
@@ -256,6 +280,8 @@ async function main() {
   }
   for (let t = 0; t < 20 && !study.stats().heldBurning; t++) run(study, 0.5);
   assert.ok(study.stats().heldBurning, "a stick held in the fire catches");
+  // Let it get going before carrying it out.
+  run(study, 3);
   for (const [x, y] of [
     [260, 150],
     [300, 90],
@@ -276,7 +302,7 @@ async function main() {
 
   // Two burning logs on the floorboards light them. The floor fire spreads a few boards, then dies, leaving char.
   const room = createFire();
-  run(room, 40);
+  run(room, 50);
   for (const [n, chosen] of logs(room)
     .filter((item) => item.burning)
     .slice(0, 2)
@@ -455,6 +481,7 @@ async function main() {
       fireplace: canvas,
       "hearth-status": new Element(),
       "hearth-toast": new Element(),
+      "hearth-found": new Element(),
       "hearth-found-count": new Element(),
       "hearth-found-list": new Element(),
     };
@@ -510,7 +537,7 @@ async function main() {
   }
 
   const page = mount();
-  assert.equal(page.elements["hearth-found-count"].textContent, "0 of 10 found");
+  assert.equal(page.elements["hearth-found"].hidden, true, "no hint of secrets before one is found");
   assert.equal(page.elements["hearth-toast"].hidden, true);
   assert.equal(page.fire().options.burnScale, 2, "URL parameters tune the fire");
   assert.equal(page.fire().options.flameHeight, pixelFire.DEFAULTS.flameHeight);
@@ -580,11 +607,13 @@ async function main() {
   }
   assert.equal(page.elements["hearth-toast"].hidden, false, "finding a secret shows a notice");
   assert.match(page.elements["hearth-toast"].textContent, /Secret found: Hiss/);
+  assert.equal(page.elements["hearth-found"].hidden, false);
   assert.equal(page.elements["hearth-found-count"].textContent, "1 of 10 found");
   assert.match(page.elements["hearth-found-list"].innerHTML, /Hiss/);
   assert.deepEqual(JSON.parse(page.store.get(achievementsModule.STORAGE_KEY)), ["hiss"]);
   const returning = mount({ saved: ["books", "floor"] });
   assert.equal(returning.elements["hearth-found-count"].textContent, "2 of 10 found", "found secrets are listed on return");
+  assert.equal(returning.elements["hearth-found"].hidden, false);
   page.document.hidden = true;
   page.document.events.visibilitychange();
   assert.equal(page.frames.size, 0, "hidden tabs stop drawing");
@@ -601,7 +630,7 @@ async function main() {
   const unsupported = mount({ supported: false });
   assert.match(unsupported.elements["hearth-status"].textContent, /cannot draw/);
   console.log(
-    "Fireplace: teepee physics, fire spread, flames and light, collapse and embers, matches, carrying wood, outdoor fires, hover highlights, the matchbox, books, shelf, candle, floorboards, the rug, water, secrets, pause, reduced motion, and canvas fallback passed."
+    "Fireplace: teepee physics, fire spread, flames and light, collapse and embers, matches, carrying wood, bark, outdoor fires, hover highlights, the matchbox, books, shelf, candle, floorboards, the rug, water, secrets, pause, reduced motion, and canvas fallback passed."
   );
 }
 
