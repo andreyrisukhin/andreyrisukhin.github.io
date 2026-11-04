@@ -8,7 +8,7 @@ import { HEARTH, SCENE, archTopAt, clamp, generator, hash, insideOpening, noise,
 import { EMBER_COLUMNS, MATERIALS, STEP, SUPPLIES, World, flameStrength, inHearth, segmentAt, segmentFlame } from "./world.mjs";
 
 export { MATERIALS, STEP, SUPPLIES };
-export const HIGHLIGHT = "#f8d69b";
+export const HIGHLIGHT = "#b48a5a";
 export const FIRE_COLORS = [null, "#8e241c", "#c33619", "#e65316", "#f67c1d", "#ffa52a", "#ffc345", "#ffda65", "#ffe990", "#fff3be"];
 const BARK = ["#24170f", "#3d281b", "#523622", "#68462b", "#7f5937"];
 const TWIG = ["#2e2017", "#4a3424", "#654730", "#80603f", "#9c7a50"];
