@@ -66,6 +66,7 @@ const PRECACHE_URLS = [
   '/assets/js/workbench/chord-grid.js',
   '/assets/js/workbench/composer.js',
   '/assets/js/workbench/main.js',
+  '/assets/js/workbench/workspaces.js',
   '/assets/js/bass-patterns/model.js',
   '/assets/js/bass-patterns/storage.js',
   '/assets/js/bass-patterns/player.js',
@@ -80,6 +81,7 @@ const PRECACHE_URLS = [
   '/assets/js/music-build/charts.js',
   '/assets/js/music-exercises/main.js',
   '/assets/js/music-songs/main.js',
+  '/assets/js/music-songs/library.js',
   '/assets/js/music-songs/sync.js',
 
   '/assets/js/sheet-music/osmd-bridge.js',

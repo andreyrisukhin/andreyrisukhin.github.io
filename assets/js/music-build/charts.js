@@ -1,4 +1,4 @@
-// Song charts for /music/build/: turns chord-name bar charts from
+// Song charts in Song library: turns chord-name bar charts from
 // _data/music/song_charts.json into set list entries ({id, key, bass,
 // beats, label}) and loads them through window.StradellaTool.
 (function () {
@@ -55,6 +55,20 @@
       });
     });
     return entries;
+  }
+
+  function snapshotFor(charts, id, sectionId, keyIndex) {
+    var chart = charts.find(function (item) {
+      return item.id === id;
+    });
+    if (!chart) throw new Error("Song chart not found.");
+    var index = keyIndex == null ? "0" : String(keyIndex);
+    if (!/^\d+$/.test(index) || !chart.keys[Number(index)]) throw new Error("Chart key not found.");
+    return {
+      selected: buildEntries(chart, sectionId ? [sectionId] : null, chart.keys[Number(index)].offset),
+      bpm: chart.bpm,
+      meter: chart.beats_per_bar || 4,
+    };
   }
 
   function esc(s) {
@@ -140,7 +154,16 @@
         return;
       }
       var T = window.StradellaTool;
-      if (!T) return;
+      if (!T) {
+        var url = new URL(el.dataset.workbenchUrl, location.href);
+        url.searchParams.set("workspace", "setlist");
+        url.searchParams.set("chart", chart.id);
+        url.searchParams.set("chartkey", String(keyChoice[ci]));
+        var section = btn.getAttribute("data-section");
+        if (section) url.searchParams.set("section", section);
+        location.assign(url.href);
+        return;
+      }
       // No confirm(): embedded browsers such as editor previews can refuse
       // dialogs silently, which made loading look broken. Undo instead.
       var snapshot = T.getSnapshot();
@@ -170,7 +193,7 @@
     });
   }
 
-  window.SongCharts = { buildEntries: buildEntries, resolveChord: resolveChord };
+  window.SongCharts = { buildEntries: buildEntries, resolveChord: resolveChord, snapshotFor: snapshotFor };
 
   if (typeof document === "undefined") return;
   if (document.readyState === "loading") {

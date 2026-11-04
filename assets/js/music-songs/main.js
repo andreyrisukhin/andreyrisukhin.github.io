@@ -10,8 +10,16 @@
 
   var STORAGE_KEY = "stradella-songs";
   var Sync = window.MusicSongsSync;
+  var Library = window.MusicLibrary;
+  var songsReadError = "";
+  var renderedStudies = null;
 
   function loadSongs() {
+    if (Library) {
+      var store = Library.read("setlist");
+      songsReadError = store.error;
+      return store.entries;
+    }
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return [];
@@ -23,10 +31,13 @@
   }
 
   function saveSongs(songs) {
+    if (songsReadError) return false;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
+      return true;
     } catch (_) {
-      /* quota / private mode */
+      setStatus("Could not save changes. Existing data has not been changed.", "err");
+      return false;
     }
   }
 
@@ -63,11 +74,35 @@
   function renderSongList(songs) {
     var el = document.getElementById("songs-list");
     if (!el) return;
-    if (songs.length === 0) {
-      el.innerHTML = '<p class="songs-empty">No saved songs yet. Save one from the <a href="/music/stradella/">Stradella tool</a>.</p>';
+    renderedStudies = Library.read("study");
+    var status = document.getElementById("songs-library-status");
+    if (status) status.textContent = [renderedStudies.error, songsReadError].filter(Boolean).join(" ");
+    var base = el.dataset.workbenchUrl;
+    if (songs.length === 0 && renderedStudies.entries.length === 0) {
+      el.innerHTML = '<p class="songs-empty">No readable saved items. Save a named copy in <a href="' + esc(base) + '">Workbench</a>.</p>';
       return;
     }
     var html = "";
+    renderedStudies.entries.forEach(function (item, index) {
+      var model = window.WorkbenchModel.savedItems(JSON.stringify([item]))[0];
+      html += '<div class="songs-card" data-practice-index="' + index + '">';
+      html += '<h3 class="songs-card__name">' + esc(item.name) + "</h3>";
+      html +=
+        '<p class="music-small">' +
+        (model.mode === "progression" ? "Progression study" : "Chord / notes study") +
+        " · " +
+        model.chords.length +
+        " chords · " +
+        model.bpm +
+        " BPM · local only</p>";
+      html +=
+        '<div class="songs-card__actions"><a class="music-share-btn" href="' +
+        esc(base) +
+        "?practice=" +
+        index +
+        '">Open in Workbench</a><button type="button" class="music-share-btn" data-action="rename">Rename</button>' +
+        '<button type="button" class="music-share-btn" data-action="delete">Delete</button></div></div>';
+    });
     songs
       .slice()
       .sort(function (a, b) {
@@ -81,6 +116,7 @@
         html += '<span class="songs-card__badge ' + (pending ? "is-pending" : "is-synced") + '">' + (pending ? "unsynced" : "synced") + "</span>";
         html += "</div>";
         html += '<dl class="songs-card__meta">';
+        html += "<dt>Type</dt><dd>Stradella set list</dd>";
         html += "<dt>Chords</dt><dd>" + chordCount(song) + "</dd>";
         html += "<dt>Saved</dt><dd>" + esc(formatDate(song.savedAt)) + "</dd>";
         if (song.updatedAt && song.updatedAt !== song.savedAt) {
@@ -94,7 +130,8 @@
           html += '<p class="songs-card__notes">' + esc(song.notes) + "</p>";
         }
         html += '<div class="songs-card__actions">';
-        html += '<button class="music-share-btn" data-action="load">Load into Stradella</button>';
+        html +=
+          '<a class="music-share-btn" href="' + esc(base) + "?workspace=setlist&amp;song=" + encodeURIComponent(song.id) + '">Open in Workbench</a>';
         html += '<button class="music-share-btn" data-action="rename">Rename</button>';
         html += '<button class="music-share-btn" data-action="delete">Delete</button>';
         html += "</div>";
@@ -147,6 +184,24 @@
         if (!btn) return;
         var card = btn.closest(".songs-card");
         if (!card) return;
+        if (card.hasAttribute("data-practice-index")) {
+          var studyIndex = Number(card.dataset.practiceIndex);
+          var study = renderedStudies.entries[studyIndex];
+          if (!study) return;
+          var name = null;
+          if (btn.dataset.action === "rename") {
+            name = window.prompt("New name:", study.name);
+            if (name == null || !name.trim()) return;
+            name = name.trim();
+          } else if (!window.confirm('Delete study "' + study.name + '"?')) return;
+          try {
+            Library.changeStudy(studyIndex, renderedStudies.raw, name);
+            renderSongList(loadSongs());
+          } catch (error) {
+            document.getElementById("songs-library-status").textContent = error.message;
+          }
+          return;
+        }
         var id = card.getAttribute("data-id");
         var songs = loadSongs();
         var idx = songs.findIndex(function (x) {
@@ -158,7 +213,7 @@
         if (action === "delete") {
           if (!window.confirm('Delete song "' + (song.name || song.id) + '"? This does not remove it from the repo.')) return;
           songs.splice(idx, 1);
-          saveSongs(songs);
+          if (!saveSongs(songs)) return;
           renderSongList(loadSongs());
           renderSyncPanel();
         } else if (action === "rename") {
@@ -166,21 +221,9 @@
           if (nm == null) return;
           song.name = nm.trim() || song.name;
           song.updatedAt = new Date().toISOString();
-          saveSongs(songs);
+          if (!saveSongs(songs)) return;
           renderSongList(loadSongs());
           renderSyncPanel();
-        } else if (action === "load") {
-          if (!song.snapshot || song.snapshot.tool !== "stradella") {
-            window.alert("This song was saved by a different tool.");
-            return;
-          }
-          try {
-            localStorage.setItem("stradella-setlist", JSON.stringify(song.snapshot));
-          } catch (_) {
-            window.alert("Could not write to localStorage.");
-            return;
-          }
-          window.location.href = "/music/stradella/";
         }
       });
     }
@@ -258,6 +301,31 @@
     renderSongList(loadSongs());
     renderSyncPanel();
     attachEvents();
+    ["study", "setlist"].forEach(function (kind) {
+      var button = document.getElementById("songs-export-" + kind);
+      if (!button) return;
+      button.addEventListener("click", function () {
+        var store = Library.read(kind);
+        if (store.error) {
+          document.getElementById("songs-library-status").textContent = store.error;
+          return;
+        }
+        var url = URL.createObjectURL(new Blob([JSON.stringify(store.entries, null, 2)], { type: "application/json" }));
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = kind === "study" ? "bayan-practice.json" : "stradella-songs.json";
+        link.click();
+        setTimeout(function () {
+          URL.revokeObjectURL(url);
+        }, 1000);
+      });
+    });
+    window.addEventListener("storage", function (event) {
+      if (["musicWorkbenchSetlist", STORAGE_KEY, null].includes(event.key)) {
+        renderSongList(loadSongs());
+        renderSyncPanel();
+      }
+    });
   }
 
   if (document.readyState === "loading") {
@@ -287,8 +355,7 @@
       };
       var songs = loadSongs();
       songs.push(song);
-      saveSongs(songs);
-      return song;
+      return saveSongs(songs) ? song : null;
     },
   };
 })();

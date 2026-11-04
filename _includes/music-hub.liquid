@@ -1,0 +1,27 @@
+{% for section in site.data.music.navigation %}
+  <section class="music-hub-section" id="{{ section.id }}" aria-labelledby="{{ section.id }}-title">
+    <h2 id="{{ section.id }}-title">{{ section.title }}</h2>
+    {% if section.description %}
+      <p>{{ section.description }}</p>
+    {% endif %}
+    {% if section.compact %}
+      <ul class="music-index">
+        {% for item in section.items %}
+          <li>
+            <a href="{{ item.url | relative_url }}">{{ item.title | escape }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="music-landing-grid">
+        {% for item in section.items %}
+          <a class="music-landing-card" href="{{ item.url | relative_url }}">
+            <span class="music-landing-card__title">{{ item.title | escape }}</span>
+            <span class="music-landing-card__desc">{{ item.description | escape }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+{% endfor %}
+<p class="music-small">Andrey Risukhin, @bayandrey.</p>

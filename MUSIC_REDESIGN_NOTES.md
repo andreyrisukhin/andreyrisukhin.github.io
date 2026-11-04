@@ -4,15 +4,44 @@ Branch: `design/bayan-notebook`. The source audit is in [MUSIC_DESIGN_AUDIT.md](
 
 ## What changed
 
-- `/music/` is a compact tools hub: tool cards (workbench, chord recognizer, set-list builder, and the rest), sheets, and references. The progression workspace lives at `/music/workbench/`, initially Am7 → D7 → Gmaj7, or recovers the last local draft. Music has a direct navigation item and a homepage entry.
-- The shared music layout uses paper, ink, and lacquer colors. Dark mode uses a muted brass accent, not pink. Tools, Explore, Practice, Play, and Read link to existing material.
+- `/music/` groups Chords, Practice, Sheets, and References. Chords has two destinations: Workbench and Song library. Workbench starts with Am7 → D7 → Gmaj7 or recovers the last local study draft. Music has a direct navigation item and a homepage entry.
+- The shared music layout uses paper, ink, and lacquer colors. Dark mode uses a muted brass accent, not pink. Music returns to the hub; Chords, Practice, Sheets, and References link to its matching sections. Every music page marks its current group.
+- `_data/music/navigation.yml` supplies both the hub and shared navigation. Workbench contains the chord tools; the Song library lists their saved copies. Bass patterns, exercises, blues, and the simulator form Practice. Each destination appears once. Existing routes, share links, and the `#tools`, `#sheets`, and `#field-notes` anchors remain available.
 - Notes, staff notation, B-system buttons, Stradella recipes, and sound describe the same musical object. Focus and hover connect the representations.
 - Progressions retain the selected chord during transposition. Playback supports chords, upward rolls, tempo, looping, mute, and stop. Sound starts only after an explicit action.
 - Saved practice keeps its notes, inversions, key, and tempo in this browser. JSON backups append rather than replace the library. Shared links contain musical state, not saved names or the library.
-- Progression offers In a key, Matrix, Type, Pick notes, Transitions, and Patterns. The approved two-hand diagrams sit with the sequence and function explanations. Chord / notes retains its earlier direct-entry inspector. Wide notation and reference tables scroll within the page.
+- Workbench starts with an editable progression, Play/Stop, tempo, and the selected chord’s notes and bayan buttons. Progression options, theory, chord-entry tools, and hand adjustments stay behind disclosures. Chord / notes retains its earlier direct-entry inspector. Wide notation and reference tables scroll within the page.
 - The existing service worker caches the workbench and page shell. The installable app uses the notebook name and colors.
 
 ## Compatibility and boundaries
+
+### One Workbench, two document types
+
+Progression is the default editor. Single-chord study and the compatible timed
+set-list editor remain available without an up-front mode choice. Song charts live
+in Song library; whole-song and section links open the timed editor with their
+original key, beats, labels, and meter. Chart imports happen once and offer Undo
+for the previous timed draft. Recognition and recipes sit inside disclosures.
+Switching editors stops both players and keeps both drafts intact.
+Study progressions use four-beat tiles; timed set lists keep their own durations,
+section labels, meter, recipes, and sampled instrument. They are not silently
+converted into studies.
+
+`/music/build/`, `/music/stradella/`, and `/music/chord-recognizer/` redirect into
+Set list, preserving query parameters and share fragments. Recipes and recognition
+have direct Workbench anchors. New set-list share links target Workbench explicitly.
+
+The Song library at `/music/songs/` reads `musicWorkbenchSetlist` and
+`stradella-songs` without migrating or rewriting either. It opens each saved copy
+in the matching Workbench mode. Named loads are consumed once so reload recovers
+the edited draft instead of reopening the original. Studies retain their existing
+JSON import/export format. Set-list exports preserve original song records,
+including sync metadata, but never credentials. Only Stradella songs participate
+in the existing, explicitly triggered repository sync.
+
+Malformed stores stay untouched and show a warning. One unreadable store does not
+hide readable items from the other. Study rename/delete checks for concurrent
+changes and preserves unknown metadata.
 
 ### Two explicit study views
 
@@ -40,7 +69,7 @@ Buttons are 48px. Only the actual voiced MIDI notes are outlined, rather than ev
 
 All earlier music routes remain available. Existing Stradella song storage and share formats are unchanged. New share links open `/music/workbench/`; older `/music/?chords=…` links are forwarded there by the hub. The workbench reads the earlier prototype’s saved single-chord entries.
 
-Audio is synthesized with Web Audio, not sampled from an accordion. Recipes show whether their pitch set is exact, which tones are missing or extra, and when a stack is theoretical rather than ergonomic. Registers and omitted chord tones vary by instrument.
+Study audio is synthesized with Web Audio, not sampled from an accordion. Set-list playback retains its sampled piano, electric piano, and guitar voices. Recipes show whether their pitch set is exact, which tones are missing or extra, and when a stack is theoretical rather than ergonomic. Registers and omitted chord tones vary by instrument.
 
 The notation draft renders ABC but does not infer harmony. Arbitrary song-link imports remain unsupported. No personal recordings, artwork, or current practice activity were invented.
 
@@ -57,11 +86,25 @@ node _scripts/workbench-player-test.js
 node _scripts/bayan-keyboard-test.js
 node _scripts/workbench-session-test.js
 node _scripts/progression-composer-test.js
+node _scripts/music-library-test.js
+node _scripts/song-charts-test.js
 node _scripts/two-hands-prototype-test.js --production
 JEKYLL_ENV=production bundle exec jekyll build
 node _scripts/music-build-test.js
 node --check _site/sw.js
 ```
+
+Evaluate `_scripts/music-navigation-browser-check.js` on the hub and tool pages
+at mobile and desktop widths after building to check navigation targets,
+keyboard focus, touch sizes, and hub overflow.
+
+In an isolated browser, evaluate `_scripts/music-consolidation-browser-check.js`
+with `window.musicConsolidationStage` set to `setup` on Workbench, then `library`
+on Song library, `study` after opening its study, and `setlist` after opening its
+song. The `tools` stage exercises typed chords, recognition, chart timing, undo,
+and canonical share links. Setup writes synthetic fixtures only; do not run it
+in a browser containing personal music data. Run the existing Workbench/composer
+browser checks with a fresh synthetic study draft too.
 
 The local build used `.build-venv/bin` on `PATH` for its Python dependencies. Check the build log for YAML and Liquid exceptions as well as the exit status.
 

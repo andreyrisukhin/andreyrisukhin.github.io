@@ -47,6 +47,14 @@
     width: auto;
     height: auto;
   }
+  .composer-hands .tone-overviews {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .hand-options > section,
+  #chord-entry-tools > .workspace {
+    margin-top: 16px;
+  }
   .composer-hands .tone-overviews .staff-scroll {
     height: auto;
     min-height: 208px;

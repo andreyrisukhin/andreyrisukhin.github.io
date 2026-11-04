@@ -11,6 +11,9 @@
   const click = (selector) => {
     const element = document.querySelector(selector);
     if (!element || element.disabled) throw new Error("Unavailable control: " + selector);
+    for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+      if (parent.tagName === "DETAILS") parent.open = true;
+    }
     element.click();
   };
   const change = (id, value) => {

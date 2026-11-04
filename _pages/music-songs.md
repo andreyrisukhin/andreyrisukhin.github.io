@@ -1,14 +1,28 @@
 ---
 layout: music
-title: Songs
+title: Song library
 permalink: /music/songs/
 ---
 
-Songs you've saved from the Stradella tool. Storage is local to this browser; sync pushes them to the `songs-inbox` branch of the site repo so the laptop can pull them with `bin/songs-pull`.
+Saved studies and Stradella set lists, kept in this browser. Open either in [Workbench]({{ '/music/workbench/' | relative_url }}). Their original formats stay intact: studies keep note order, hand choices, and progression settings; set lists keep chord durations, meter, and recipes.
 
-<div id="songs-list" class="songs-list"></div>
+<p id="songs-library-status" role="status"></p>
+<div id="songs-list" class="songs-list" data-workbench-url="{{ '/music/workbench/' | relative_url }}"></div>
+<div class="music-share">
+  <button type="button" id="songs-export-study" class="music-share-btn">Export studies</button>
+  <button type="button" id="songs-export-setlist" class="music-share-btn">Export set lists</button>
+</div>
+<p class="music-small">Study backups can be imported from Workbench’s Saved practice drawer. Set-list backups keep the original song records. Backups contain no sync credentials.</p>
 
-<h2>Sync to repo</h2>
+<h2 id="song-charts-heading">Song charts</h2>
+
+<p>Open a whole song or one section in Workbench’s timed editor. Chord lengths, section labels, and meter stay intact. Loading a chart replaces the current timed draft; Undo restores it.</p>
+<div id="song-charts" class="song-charts" data-workbench-url="{{ '/music/workbench/' | relative_url }}"></div>
+<p id="song-charts-status" class="song-charts-status" role="status"></p>
+
+<details><summary>Set-list sync</summary>
+
+<p>Optional sync sends Stradella set lists to the <code>songs-inbox</code> branch so the laptop can pull them with <code>bin/songs-pull</code>. Studies stay local and are not included in sync.</p>
 
 <p class="songs-sync-help">
   Create a fine-grained GitHub token at <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">github.com/settings/personal-access-tokens</a>, scope it to <em>only</em> this repo, grant <strong>Contents: Read and write</strong>, then paste it below. The token stays in this browser's local storage; the page never sends it anywhere except <code>api.github.com</code>.
@@ -47,10 +61,20 @@ Songs you've saved from the Stradella tool. Storage is local to this browser; sy
 
 <p id="songs-sync-status" class="songs-sync-status"></p>
 
+</details>
+
 <noscript><p>This page needs JavaScript.</p></noscript>
 
+<script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script>window.SongChartData = {{ site.data.music.song_charts.charts | jsonify }};</script>
+<script src="{{ '/assets/js/music-build/charts.js?v=4' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-songs/library.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music-songs/main.js?v=2' | relative_url }}"></script>
 
 <style>
   .songs-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }

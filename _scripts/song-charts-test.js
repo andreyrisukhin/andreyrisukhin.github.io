@@ -15,7 +15,7 @@ vm.createContext(sandbox);
 );
 
 const { charts } = JSON.parse(fs.readFileSync(path.join(root, "_data/music/song_charts.json"), "utf8"));
-const { buildEntries } = sandbox.SongCharts;
+const { buildEntries, snapshotFor } = sandbox.SongCharts;
 const S = sandbox.StradellaData;
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
@@ -66,5 +66,19 @@ assert.ok(
   "Every Rises the Moon chord fills a 3/4 bar"
 );
 assert.throws(() => buildEntries({ ...rises, sections: [{ id: "x", label: "X", bars: ["C C7"] }], form: ["x"] }, null, 0), /whole beats/);
+
+const fromLibrary = plain(snapshotFor(charts, "rises-the-moon", "ending", "0"));
+assert.deepEqual(fromLibrary, { selected: concert, bpm: 137, meter: 3 }, "Library links keep exact pitches, beats, labels and meter");
+assert.deepEqual(
+  plain(snapshotFor(charts, rises.id, "ending", "1").selected),
+  plain(buildEntries(rises, ["ending"], 0)),
+  "Chosen guitar key survives the library link"
+);
+assert.equal(snapshotFor(charts, fly.id, null, null).selected.length, buildEntries(fly, null, 0).length, "Whole-song links keep the form");
+assert.throws(() => snapshotFor(charts, "missing", null, "0"), /not found/);
+assert.throws(() => snapshotFor(charts, rises.id, "missing", "0"), /Unknown section/);
+for (const key of ["-1", "99", "x", "1.5"]) {
+  assert.throws(() => snapshotFor(charts, rises.id, null, key), /key not found/);
+}
 
 console.log(`${charts.length} song charts, ${checked} chord cards resolved`);
