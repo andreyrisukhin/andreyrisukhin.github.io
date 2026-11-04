@@ -1,10 +1,12 @@
 import { Attempt, nextPuzzle, schedule } from "./endgame-session.js";
 import { Chessboard, INPUT_EVENT_TYPE } from "../vendor/cm-chessboard/src/Chessboard.js";
 import { Markers, MARKER_TYPE } from "../vendor/cm-chessboard/src/extensions/markers/Markers.js";
+import { Arrows, ARROW_TYPE } from "../vendor/cm-chessboard/src/extensions/arrows/Arrows.js";
 import { PromotionDialog, PROMOTION_DIALOG_RESULT_TYPE } from "../vendor/cm-chessboard/src/extensions/promotion-dialog/PromotionDialog.js";
 
 const el = (name) => document.getElementById("eg-" + name);
 const key = "chess-endgames:v1";
+const sideName = (color) => (color === "w" ? "White" : "Black");
 const lessons = {
   advancedPawn: "A pawn near promotion can tie down a whole piece. Count the moves to the last rank.",
   underPromotion: "Before taking a queen, check what a knight can attack and whether a queen would stalemate.",
@@ -39,7 +41,7 @@ async function init() {
   }
   const board = new Chessboard(el("board"), {
     assetsUrl: document.querySelector("#endgames").dataset.assets,
-    extensions: [{ class: Markers }, { class: PromotionDialog }],
+    extensions: [{ class: Markers }, { class: Arrows }, { class: PromotionDialog }],
   });
   let puzzle, attempt, pending;
   let moving = false;
@@ -65,13 +67,19 @@ async function init() {
     const history = attempt.game.history({ verbose: true });
     const last = history.at(-1);
     board.removeMarkers();
+    board.removeArrows();
+    board.addArrow(ARROW_TYPE.info, last.from, last.to);
     board.addMarker(MARKER_TYPE.square, last.from);
     board.addMarker(MARKER_TYPE.square, last.to);
     el("line").textContent = history.map((m) => m.san).join("  ");
+    const played = `${sideName(last.color)} played ${last.san}.`;
+    el("turn").textContent = attempt.game.turn() === attempt.side ? `${sideName(attempt.side)} to move. ${played}` : played;
     return animation;
   }
   async function computerTurn() {
     const reply = attempt.game.history({ verbose: true }).at(-1);
+    board.removeArrows();
+    el("turn").textContent = `${sideName(reply.color)} is moving…`;
     await board.setPosition(reply.before, !reducedMotion.matches && attempt.index > 1);
     board.removeMarkers();
     if (!reducedMotion.matches) await new Promise((resolve) => setTimeout(resolve, 220));
@@ -93,6 +101,8 @@ async function init() {
     const saved = state.active;
     puzzle = deck.find((p) => p.id === saved?.id) || nextPuzzle(deck, state.records, Date.now());
     counts();
+    board.removeArrows();
+    el("turn").textContent = "";
     el("lesson").textContent = "";
     controls(Boolean(puzzle));
     if (!puzzle) {
@@ -104,7 +114,7 @@ async function init() {
       return;
     }
     attempt = new Attempt(puzzle, saved?.id === puzzle.id ? saved : null);
-    el("heading").textContent = `${state.records[puzzle.id] ? "Review" : "New position"} · ${attempt.side === "w" ? "White" : "Black"} to play`;
+    el("heading").textContent = state.records[puzzle.id] ? "Review" : "New position";
     el("status").textContent = "Find the winning continuation.";
     el("next").textContent = "Next position";
     lockMoves(true);

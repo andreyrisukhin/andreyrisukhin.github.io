@@ -30,6 +30,16 @@
 
 .endgame-stage {
   position: relative;
+
+  .arrows {
+    pointer-events: none;
+  }
+}
+
+.endgame-turn {
+  min-height: 1.5em;
+  margin: 0 0 0.35rem;
+  font-weight: 700;
 }
 
 .endgame-result {

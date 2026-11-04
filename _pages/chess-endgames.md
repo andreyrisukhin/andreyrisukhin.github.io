@@ -7,6 +7,7 @@ description: Find the winning continuation in 1,000 positions from real games.
 
 <div class="chess-app" id="endgames" data-assets="{{ '/assets/js/vendor/cm-chessboard/assets/' | relative_url }}">
   <div>
+    <p class="endgame-turn" id="eg-turn" aria-live="polite"></p>
     <div class="endgame-stage">
       <div class="chess-board" id="eg-board" aria-label="Practice board"></div>
       <div class="endgame-result" id="eg-result" hidden>
@@ -40,5 +41,6 @@ Positions from the [Lichess open puzzle database](https://database.lichess.org/#
 
 <link rel="stylesheet" href="{{ '/assets/js/vendor/cm-chessboard/assets/chessboard.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/assets/js/vendor/cm-chessboard/assets/extensions/markers/markers.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/js/vendor/cm-chessboard/assets/extensions/arrows/arrows.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/assets/js/vendor/cm-chessboard/assets/extensions/promotion-dialog/promotion-dialog.css' | relative_url }}">
 <script type="module" src="{{ '/assets/js/chess/endgames.js' | relative_url | bust_file_cache }}"></script>
