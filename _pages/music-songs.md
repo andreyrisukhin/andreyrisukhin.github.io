@@ -14,7 +14,13 @@ Saved studies and Stradella set lists, kept in this browser. Open either in [Wor
 </div>
 <p class="music-small">Study backups can be imported from Workbench’s Saved practice drawer. Set-list backups keep the original song records. Backups contain no sync credentials.</p>
 
-<h2>Set-list sync</h2>
+<h2 id="song-charts-heading">Song charts</h2>
+
+<p>Open a whole song or one section in Workbench’s timed editor. Chord lengths, section labels, and meter stay intact. Loading a chart replaces the current timed draft; Undo restores it.</p>
+<div id="song-charts" class="song-charts" data-workbench-url="{{ '/music/workbench/' | relative_url }}"></div>
+<p id="song-charts-status" class="song-charts-status" role="status"></p>
+
+<details><summary>Set-list sync</summary>
 
 <p>Optional sync sends Stradella set lists to the <code>songs-inbox</code> branch so the laptop can pull them with <code>bin/songs-pull</code>. Studies stay local and are not included in sync.</p>
 
@@ -55,11 +61,17 @@ Saved studies and Stradella set lists, kept in this browser. Open either in [Wor
 
 <p id="songs-sync-status" class="songs-sync-status"></p>
 
+</details>
+
 <noscript><p>This page needs JavaScript.</p></noscript>
 
 <script src="{{ '/assets/js/vendor/tonal.min.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music/common.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/workbench/model.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/chord-name.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/music/stradella-data.js' | relative_url }}"></script>
+<script>window.SongChartData = {{ site.data.music.song_charts.charts | jsonify }};</script>
+<script src="{{ '/assets/js/music-build/charts.js?v=3' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/library.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/sync.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/music-songs/main.js' | relative_url }}"></script>

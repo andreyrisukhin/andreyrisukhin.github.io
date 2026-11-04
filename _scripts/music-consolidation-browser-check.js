@@ -1,5 +1,5 @@
 // Use only in an isolated browser. Set window.musicConsolidationStage before
-// evaluating: setup (writes synthetic fixtures), library, study, setlist, or tools.
+// evaluating: setup (writes synthetic fixtures), default, library, study, setlist, chart, or tools.
 (() => {
   const stage = window.musicConsolidationStage || "tools";
   let checks = 0;
@@ -45,6 +45,31 @@
     );
     return { stage, result: "seeded synthetic data" };
   }
+  if (stage === "default") {
+    assert(!$("workspace-study").hidden && $("workspace-setlist").hidden, "Progression opens without a mode choice");
+    assert($("hear-progression").checkVisibility() && $("composer-bpm").checkVisibility(), "Primary playback and tempo remain visible");
+    assert($("sequence").checkVisibility() && $("staff").checkVisibility(), "Editable progression and selected notes remain visible");
+    assert($("left-keyboard").checkVisibility() && $("keyboard").checkVisibility(), "Both bayan diagrams remain visible");
+    for (const id of [
+      "workspace-study-button",
+      "workspace-setlist-button",
+      "key-tonic",
+      "composer-loop",
+      "voicing",
+      "tab-key",
+      "function-listening",
+    ]) {
+      assert(!$(id).checkVisibility(), "Specialist control is disclosed: " + id);
+    }
+    const primary = [...document.querySelectorAll("#workbench-composer button")].filter(
+      (button) => button.checkVisibility() && !button.closest("#sequence, #keyboard, #left-keyboard")
+    );
+    assert(primary.length === 2, "Only Play and Stop are exposed outside the progression and instrument");
+    assert(!$("song-charts"), "Chart chooser lives only in Song library");
+    assert(!WorkbenchPlayer.isPlaying(), "Default does not autoplay");
+    assert(document.documentElement.scrollWidth <= innerWidth, "Default has no horizontal overflow");
+    return { stage, checks, width: innerWidth, result: "passed" };
+  }
   const fixtures = JSON.parse(localStorage.getItem("consolidationTestFixtures"));
   if (stage === "library") {
     assert(document.querySelectorAll("#songs-list .songs-card").length === 2, "Library shows both save types");
@@ -59,6 +84,7 @@
       hrefs.some((href) => href.includes("song=compat-song")),
       "Set list opens in Workbench"
     );
+    assert($("song-charts").querySelectorAll(".song-chart").length === 2, "Charts render in Song library");
     assert(!$("songs-library-status").textContent, "Both original stores are readable");
   } else if (stage === "study") {
     assert(!$("workspace-study").hidden && $("workspace-setlist").hidden, "Study opens the correct workspace");
@@ -87,7 +113,16 @@
       localStorage.getItem("stradella-setlist") === scratch && localStorage.getItem("musicWorkbenchDraft") === draft,
       "Switching does not rewrite either document"
     );
-  } else {
+  } else if (stage === "chart") {
+    assert(!$("workspace-setlist").hidden && $("workspace-study").hidden, "Library chart opens compatible timed editor");
+    const loaded = StradellaTool.getSnapshot();
+    const expected = SongCharts.snapshotFor(SongChartData, "rises-the-moon", "ending", "0");
+    assert(JSON.stringify(loaded.selected) === JSON.stringify(expected.selected), "Chart keeps exact notes, bass, beats, and section labels");
+    assert(loaded.meter === 3 && loaded.bpm === 137, "Chart keeps 3/4 meter and tempo");
+    assert(!new URL(location.href).searchParams.has("chart"), "Chart import is consumed once");
+    $("chart-undo").click();
+    assert(JSON.stringify(StradellaTool.getSnapshot()) === sessionStorage.getItem("chartPrevious"), "Undo restores the entire timed draft");
+  } else if (stage === "tools") {
     $("workspace-setlist-button").click();
     const before = StradellaTool.getSnapshot().selected.length;
     $("chord-search-input").value = "A-7/G";
@@ -98,13 +133,11 @@
     $("recognizer-text-input").dispatchEvent(new Event("input", { bubbles: true }));
     assert($("recognizer-result").textContent.includes("C"), "Embedded recognition names selected notes");
     assert($("stradella-catalog").querySelectorAll("[data-id]").length > 20, "Embedded recipe catalog renders");
-    const chart = document.querySelector('#song-charts .song-chart[data-chart="1"]');
-    chart.querySelector('[data-section="ending"]').click();
-    const loaded = StradellaTool.getSnapshot();
-    assert(loaded.meter === 3 && loaded.selected.every((entry) => entry.beats === 3), "Song charts retain 3/4 timing");
-    $("song-charts-status").querySelector('[data-action="undo"]').click();
-    assert(StradellaTool.getSnapshot().selected.length === added.length, "Chart load remains undoable");
+    assert(!$("song-charts"), "Charts no longer crowd Workbench");
+    sessionStorage.setItem("chartPrevious", JSON.stringify(StradellaTool.getSnapshot()));
     assert($("stradella-share-text").value.includes("/music/workbench/?workspace=setlist#load="), "New set-list links target Workbench");
+  } else {
+    throw new Error("Unknown test stage: " + stage);
   }
   assert(localStorage.getItem("musicWorkbenchSetlist") === fixtures.study, "Saved studies remain byte-for-byte intact");
   assert(localStorage.getItem("stradella-songs") === fixtures.songs, "Saved songs and sync metadata remain byte-for-byte intact");

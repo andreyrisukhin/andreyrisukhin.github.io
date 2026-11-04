@@ -10,16 +10,19 @@ Branch: `design/bayan-notebook`. The source audit is in [MUSIC_DESIGN_AUDIT.md](
 - Notes, staff notation, B-system buttons, Stradella recipes, and sound describe the same musical object. Focus and hover connect the representations.
 - Progressions retain the selected chord during transposition. Playback supports chords, upward rolls, tempo, looping, mute, and stop. Sound starts only after an explicit action.
 - Saved practice keeps its notes, inversions, key, and tempo in this browser. JSON backups append rather than replace the library. Shared links contain musical state, not saved names or the library.
-- Progression offers In a key, Matrix, Type, Pick notes, Transitions, and Patterns. The approved two-hand diagrams sit with the sequence and function explanations. Chord / notes retains its earlier direct-entry inspector. Wide notation and reference tables scroll within the page.
+- Workbench starts with an editable progression, Play/Stop, tempo, and the selected chord’s notes and bayan buttons. Progression options, theory, chord-entry tools, and hand adjustments stay behind disclosures. Chord / notes retains its earlier direct-entry inspector. Wide notation and reference tables scroll within the page.
 - The existing service worker caches the workbench and page shell. The installable app uses the notebook name and colors.
 
 ## Compatibility and boundaries
 
 ### One Workbench, two document types
 
-Study contains the existing Chord / notes and Progression views. Set list contains
-typed chord entry, song charts, note recognition, the Stradella catalog, and timed
-playback. Switching modes stops both players and keeps both drafts intact.
+Progression is the default editor. Single-chord study and the compatible timed
+set-list editor remain available without an up-front mode choice. Song charts live
+in Song library; whole-song and section links open the timed editor with their
+original key, beats, labels, and meter. Chart imports happen once and offer Undo
+for the previous timed draft. Recognition and recipes sit inside disclosures.
+Switching editors stops both players and keeps both drafts intact.
 Study progressions use four-beat tiles; timed set lists keep their own durations,
 section labels, meter, recipes, and sampled instrument. They are not silently
 converted into studies.

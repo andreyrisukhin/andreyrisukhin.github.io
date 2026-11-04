@@ -17,6 +17,9 @@
     });
     if (updateUrl) {
       var url = new URL(location.href);
+      ["chart", "section", "chartkey"].forEach(function (key) {
+        url.searchParams.delete(key);
+      });
       url.searchParams.set("workspace", mode);
       url.searchParams.delete("practice");
       url.searchParams.delete("song");
@@ -26,10 +29,20 @@
     }
   }
 
+  function revealAnchor(hash) {
+    if (!["#recognize", "#recipes", "#setlist-search"].includes(hash)) return;
+    var target = document.querySelector(hash);
+    for (var node = target; node; node = node.parentElement) {
+      if (node.tagName === "DETAILS") node.open = true;
+    }
+    target.scrollIntoView();
+  }
+
   function init() {
     var mode =
       initial.searchParams.get("workspace") === "setlist" ||
       initial.searchParams.has("song") ||
+      initial.searchParams.has("chart") ||
       initial.hash.startsWith("#load=") ||
       ["#recognize", "#recipes", "#setlist-search"].includes(initial.hash)
         ? "setlist"
@@ -44,6 +57,27 @@
       if (initial.searchParams.has("practice")) {
         var index = initial.searchParams.get("practice");
         if (!/^\d+$/.test(index) || !window.WorkbenchStudy.loadSaved(Number(index))) throw new Error("Saved study not found.");
+      } else if (initial.searchParams.has("chart")) {
+        var snapshot = window.SongCharts.snapshotFor(
+          window.SongChartData,
+          initial.searchParams.get("chart"),
+          initial.searchParams.get("section"),
+          initial.searchParams.get("chartkey")
+        );
+        var previous = window.StradellaTool.getSnapshot();
+        window.StradellaTool.loadSnapshot(snapshot);
+        var status = document.getElementById("workspace-status");
+        status.textContent = "Chart loaded. ";
+        var undo = document.createElement("button");
+        undo.type = "button";
+        undo.className = "music-share-btn";
+        undo.id = "chart-undo";
+        undo.textContent = "Undo chart load";
+        undo.addEventListener("click", function () {
+          window.StradellaTool.loadSnapshot(previous);
+          status.textContent = "Restored the previous timed draft.";
+        });
+        status.appendChild(undo);
       } else if (initial.searchParams.has("song")) {
         var library = window.MusicLibrary.read("setlist");
         if (library.error) throw new Error(library.error);
@@ -58,15 +92,21 @@
       url.searchParams.delete("practice");
       url.searchParams.delete("song");
       url.searchParams.set("workspace", mode);
+      ["chart", "section", "chartkey"].forEach(function (key) {
+        url.searchParams.delete(key);
+      });
       history.replaceState(null, "", url);
     } catch (error) {
       document.getElementById("workspace-status").textContent = error.message + " Your saved data has not been changed.";
     }
     if (["#recognize", "#recipes", "#setlist-search"].includes(initial.hash)) {
-      document.querySelector(initial.hash).scrollIntoView();
+      revealAnchor(initial.hash);
     }
     window.addEventListener("hashchange", function () {
-      if (["#recognize", "#recipes", "#setlist-search"].includes(location.hash)) choose("setlist", true);
+      if (["#recognize", "#recipes", "#setlist-search"].includes(location.hash)) {
+        choose("setlist", true);
+        revealAnchor(location.hash);
+      }
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
