@@ -6,6 +6,13 @@ export const ROOM_FLOOR = 269;
 export const DEPTH_LIFT = 0.15;
 export const ROOM_DEPTH = -340;
 export const GRATE = Object.freeze({ z: 6, left: 172, right: 308, top: 233, spacing: 13.6, radius: 1.6 });
+// The mantel shelf: its top edge on screen, and the depth band in front of the chimney it covers.
+export const SHELF = Object.freeze({ left: 100, right: 380, y: 79, back: -4, front: -28 });
+// Floorboards burn in patches of 8 by 4 screen pixels, from just in front of the hearth to the bottom edge.
+export const BOARDS = Object.freeze({ top: 272, width: 8, height: 4, cols: 60, rows: 12, z: -16 });
+// A rug on the boards in front of the hearth, in floor patches.
+export const RUG = Object.freeze({ col0: 23, col1: 37, row0: 0, row1: 6 });
+export const CANDLE_FLAME = Object.freeze({ x: 155, y: 41 });
 
 export function archTopAt(x) {
   const dx = (x - HEARTH.center) / HEARTH.archHalf;
@@ -25,6 +32,23 @@ export function floorAt(x, z) {
 }
 
 export const screenY = (y, z) => y - z * DEPTH_LIFT;
+
+export const shelfTop = (z) => SHELF.y + z * DEPTH_LIFT;
+
+// The floor patch under a point on the room floor, or -1 off the boards.
+export function boardAt(x, z) {
+  if (z > BOARDS.z) return -1;
+  const col = Math.floor(x / BOARDS.width);
+  const row = Math.floor((screenY(ROOM_FLOOR, z) - BOARDS.top) / BOARDS.height);
+  return col < 0 || row < 0 || col >= BOARDS.cols || row >= BOARDS.rows ? -1 : row * BOARDS.cols + col;
+}
+
+// A patch's middle, as a point on the floor.
+export function boardCenter(i) {
+  const x = ((i % BOARDS.cols) + 0.5) * BOARDS.width;
+  const sy = BOARDS.top + (Math.floor(i / BOARDS.cols) + 0.5) * BOARDS.height;
+  return { x, sy, z: (ROOM_FLOOR - sy) / DEPTH_LIFT };
+}
 
 export const clamp = (value, low, high) => (value < low ? low : value > high ? high : value);
 

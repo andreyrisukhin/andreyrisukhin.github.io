@@ -2,7 +2,26 @@
 // (rods with a radius), simulated with position-based dynamics. Each rod is two
 // Verlet particles joined by a distance constraint, so logs tip, roll off one
 // another, and slide to rest under gravity and friction.
-import { DEPTH_LIFT, GRATE, HEARTH, ROOM_DEPTH, ROOM_FLOOR, SCENE, archTopAt, clamp, floorAt, hash, insideOpening, screenY } from "./scene.mjs";
+import {
+  BOARDS,
+  CANDLE_FLAME,
+  DEPTH_LIFT,
+  GRATE,
+  HEARTH,
+  ROOM_DEPTH,
+  ROOM_FLOOR,
+  RUG,
+  SCENE,
+  SHELF,
+  archTopAt,
+  boardAt,
+  clamp,
+  floorAt,
+  hash,
+  insideOpening,
+  screenY,
+  shelfTop,
+} from "./scene.mjs";
 
 export const MATERIALS = Object.freeze({
   // ignite: temperature where wood catches; out: where a flame dies. sustain: the heat a
@@ -56,7 +75,43 @@ export const MATERIALS = Object.freeze({
     embers: 0.02,
     friction: 0.7,
   },
+  // Tightly bound pages: slow to catch, and a match alone only scorches a cover.
+  book: {
+    radius: 2.5,
+    length: 40,
+    weight: 1,
+    ignite: 0.5,
+    out: 0.25,
+    sustain: 0.7,
+    conduct: 0.5,
+    convect: 0.8,
+    warm: 0.22,
+    burn: 90,
+    char: 30,
+    flame: 0.75,
+    embers: 0,
+    friction: 1,
+  },
 });
+
+// Floorboards are harder to light than a log, and each patch only keeps burning
+// with burning neighbors or wood lying on it. Fire passed board to board weakens
+// (spread), so a floor fire runs a few boards out and dies, leaving char.
+// touch: how fast a board warms under burning or glowing wood resting on it.
+export const BOARD = Object.freeze({ ignite: 0.72, out: 0.3, sustain: 0.3, warm: 0.09, touch: 0.18, burn: 40, spread: 0.75, singe: 0.4 });
+// Wool singes at a lower heat than wood, catches sooner, and carries fire across itself further.
+export const RUG_PATCH = Object.freeze({ ignite: 0.55, out: 0.25, sustain: 0.3, warm: 0.14, touch: 0.25, burn: 18, spread: 0.92, singe: 0.28 });
+
+// The stack on the mantel, bottom to top, in screen pixels.
+const BOOKS = [
+  { left: 296, right: 338, y: 75.5 },
+  { left: 298, right: 334, y: 70.5 },
+  { left: 293, right: 333, y: 65.5 },
+  { left: 298, right: 332, y: 60.5 },
+];
+const BOOK_Z = -12;
+const DROP_LIMIT = 220;
+const STEAM_LIMIT = 160;
 
 export const SUPPLIES = Object.freeze({
   stick: { x: 68, y: 208, width: 44, height: 58 },
@@ -161,16 +216,48 @@ export class World {
     this.ids = 0;
     this.spareTimer = 0;
     this.statics = [];
+    this.fixtures = [];
+    this.drops = [];
+    this.steam = [];
+    this.events = [];
+    this.pourCarry = 0;
+    const patches = BOARDS.cols * BOARDS.rows;
+    this.boards = {
+      heat: new Float32Array(patches),
+      fire: new Float32Array(patches),
+      fuel: new Float32Array(patches).fill(1),
+      char: new Float32Array(patches),
+      vigor: new Float32Array(patches),
+      contact: new Float32Array(patches),
+      wet: new Float32Array(patches),
+      rug: new Uint8Array(patches),
+    };
+    for (let row = RUG.row0; row <= RUG.row1; row++) for (let col = RUG.col0; col <= RUG.col1; col++) this.boards.rug[row * BOARDS.cols + col] = 1;
     const bottom = HEARTH.floor - GRATE.radius;
     const bar = (a, b) => this.statics.push({ kind: "iron", static: true, a, b, r: GRATE.radius, length: length3(sub(a, b)) });
     for (let x = GRATE.left; x <= GRATE.right + 0.1; x += GRATE.spacing) bar({ x, y: bottom, z: GRATE.z }, { x, y: GRATE.top, z: GRATE.z });
     for (const y of [GRATE.top, GRATE.top + 9]) bar({ x: GRATE.left, y, z: GRATE.z }, { x: GRATE.right, y, z: GRATE.z });
+    // Books never move: they are fixed in place, and only fire reaching them can light them.
+    BOOKS.forEach((book, n) => {
+      const r = MATERIALS.book.radius;
+      const y = book.y + BOOK_Z * DEPTH_LIFT;
+      const item = this.make("book", { x: book.left + r, y, z: BOOK_Z }, { x: book.right - r, y, z: BOOK_Z }, { asleep: true, id: -1 - n });
+      item.static = true;
+      this.fixtures.push(item);
+    });
   }
 
   spawn(kind, a, b, state = {}) {
+    const item = this.make(kind, a, b, state);
+    this.items.push(item);
+    return item;
+  }
+
+  make(kind, a, b, state = {}) {
     const material = MATERIALS[kind];
+    const id = state.id ?? ++this.ids;
     const item = {
-      id: ++this.ids,
+      id,
       kind,
       a: particle(a),
       b: particle(b),
@@ -181,7 +268,7 @@ export class World {
       burning: false,
       asleep: false,
       still: 0,
-      seed: Math.floor(hash(this.options.seed, this.ids) * 65536),
+      seed: Math.floor(hash(this.options.seed, id) * 65536),
       ...state,
     };
     // Burning thins a log until it can no longer hold its place in a stack.
@@ -195,10 +282,11 @@ export class World {
     item.heat = fill(item.temp, state.heat);
     item.fire = fill(item.burning ? 1 : 0, state.fire);
     item.chars = fill(item.char, state.chars);
+    // Soaked sections cannot burn until they dry.
+    item.wet = fill(0, state.wet);
     summarize(item);
     item.r = item.r0;
     item.length = item.length0;
-    this.items.push(item);
     return item;
   }
 
@@ -279,7 +367,8 @@ export class World {
   spawnSpare() {
     for (const spot of PILE) {
       const free = this.items.every((item) => Math.hypot((item.a.x + item.b.x) / 2 - spot.x, (item.a.z + item.b.z) / 2 - spot.z) > 14);
-      if (!free) continue;
+      const patch = boardAt(spot.x, spot.z);
+      if (!free || (patch >= 0 && this.boards.fire[patch] > 0)) continue;
       const r = 6 + hash(this.ids, 3) * 0.8;
       const half = 34 + hash(this.ids, 5) * 6;
       this.spawn(
@@ -358,6 +447,8 @@ export class World {
   }
 
   release() {
+    const item = this.grab?.item;
+    if (item?.burning && Math.max(length3(motion(item.a)), length3(motion(item.b))) > 2) this.events.push({ type: "fling" });
     this.grab = null;
   }
 
@@ -403,11 +494,13 @@ export class World {
       for (let i = 0; i < items.length; i++) {
         for (let j = i + 1; j < items.length; j++) this.touch(items[i], items[j], iteration);
         for (const bar of this.statics) this.touch(items[i], bar, iteration);
+        for (const book of this.fixtures) this.touch(items[i], book, iteration);
       }
       for (const item of items) {
         if (item.asleep) continue;
-        this.bound(item.a, item.r);
-        this.bound(item.b, item.r);
+        const free = grab?.item !== item;
+        this.bound(item.a, item.r, free);
+        this.bound(item.b, item.r, free);
       }
     }
     this.friction();
@@ -510,7 +603,8 @@ export class World {
     }
   }
 
-  bound(p, r) {
+  // free: not in hand. A held item is lifted over the mantel shelf rather than caught on it.
+  bound(p, r, free = true) {
     p.x = clamp(p.x, r, SCENE.width - r);
     p.z = clamp(p.z, ROOM_DEPTH + r, HEARTH.depth - r);
     if (p.y < -60) p.y = -60;
@@ -521,6 +615,15 @@ export class World {
           p.x = clamp(p.x, HEARTH.left + r, HEARTH.right - r);
           p.y = Math.max(p.y, archTopAt(p.x) + r);
         } else p.z = -r;
+      }
+    }
+    if (free && p.x >= SHELF.left && p.x <= SHELF.right && p.z <= SHELF.back && p.z >= SHELF.front) {
+      const top = shelfTop(p.z) - r;
+      if (p.y > top && p.py <= top + 1.5) {
+        p.impact = Math.max(p.impact, p.y - p.py);
+        p.y = top;
+        p.contact = true;
+        return;
       }
     }
     const floor = floorAt(p.x, p.z) - r;
@@ -578,31 +681,57 @@ export class World {
 
   // Each section of wood warms toward the heat around it: hot gas from the fluid
   // (exposure, per section, set by the caller), radiation from nearby flames, the
-  // ember bed, a match, and conduction from the sections next to it.
+  // ember bed, a burning floor, the candle, a match, and conduction from the sections next to it.
   burn(dt, exposure) {
     const { burnScale, emberSeconds } = this.options;
     const match = this.match;
     const struck = match ? this.hitTest(match.x, match.y) : null;
     const removed = [];
     const radiant = this.radiation();
-    for (const item of [...this.items]) {
+    const boards = this.boards;
+    boards.contact.fill(0);
+    for (const item of [...this.items, ...this.fixtures]) {
+      if (item.spent) continue;
+      const fixed = !!item.static;
       const material = MATERIALS[item.kind];
       const n = item.heat.length;
       const gas = exposure.get(item);
       const rays = radiant.get(item);
       const before = Float32Array.from(item.heat);
+      const was = item.burning;
       const warm = Math.min(1, (material.warm * dt) / burnScale);
       const conduct = Math.min(0.5, (material.conduct * dt) / burnScale);
       const lit = struck && struck.item === item ? segmentAt(item, struck.s) : -9;
       const charRate = dt / (material.char * burnScale);
+      let candle = false;
       for (let k = 0; k < n; k++) {
         let heat = Math.max(gas ? gas[k] * material.convect : 0, rays ? rays[k] : 0);
         // A match is small: it lights paper or a twig, and only scorches a log.
         if (Math.abs(k - lit) <= (item.kind === "log" ? 0 : 1)) heat = Math.max(heat, 1.1);
         const p = centerOf(item, k);
+        if (!fixed && p.z < 0) {
+          const sy = screenY(p.y, p.z);
+          if (Math.abs(p.x - CANDLE_FLAME.x) <= item.r + 2 && sy >= CANDLE_FLAME.y - item.r - 5 && sy <= CANDLE_FLAME.y + item.r + 3) {
+            heat = Math.max(heat, item.kind === "log" ? 0.35 : 1.1);
+            candle = true;
+          }
+        }
         if (p.z >= -7 && p.y + item.r >= floorAt(p.x, p.z) - 3) {
           const column = this.emberColumn(p.x);
           if (column >= 0 && column < EMBER_COLUMNS) heat = Math.max(heat, this.embers[column] * 0.45);
+        } else if (!fixed && p.y + item.r >= ROOM_FLOOR - 3) {
+          const patch = boardAt(p.x, p.z);
+          if (patch >= 0) {
+            heat = Math.max(heat, boards.fire[patch] * 0.9);
+            const glow = item.heat[k] >= 0.5 ? item.heat[k] * 0.85 : 0;
+            if (item.fire[k] || glow) boards.contact[patch] = Math.max(boards.contact[patch], segmentFlame(item, k), glow);
+          }
+        }
+        if (item.wet[k] > 0) {
+          // Drying takes longer the cooler it is around the wood.
+          item.wet[k] = Math.max(0, item.wet[k] - (dt * (0.08 + 0.3 * Math.max(0, heat))) / burnScale);
+          heat = Math.min(heat, 0.15);
+          if (item.fire[k]) item.fire[k] = Math.max(0, item.fire[k] - dt * 2 * item.wet[k]);
         }
         const neighbors = (before[Math.max(0, k - 1)] + before[Math.min(n - 1, k + 1)]) / 2;
         if (item.fire[k]) {
@@ -619,6 +748,14 @@ export class World {
         }
       }
       const fire = summarize(item);
+      if (!was && item.burning) {
+        const near =
+          match &&
+          Math.hypot((item.a.x + item.b.x) / 2 - match.x, screenY((item.a.y + item.b.y) / 2, (item.a.z + item.b.z) / 2) - match.y) <
+            item.length / 2 + item.r + 12;
+        const source = struck?.item === item || near ? "match" : candle ? "candle" : "spread";
+        this.events.push({ type: "ignite", kind: item.kind, source, inHearth: inHearth(item) });
+      }
       if (fire > 0) {
         const rate = (dt / (material.burn * burnScale)) * fire;
         item.mass -= rate * (0.5 + 0.5 * item.char);
@@ -631,6 +768,17 @@ export class World {
             }
           }
         }
+      }
+      if (fixed) {
+        // A burnt book stays on the shelf as a charred husk.
+        if (item.mass < 0.2) {
+          item.spent = true;
+          item.fire.fill(0);
+          item.chars.fill(1);
+          item.heat.fill(0);
+          summarize(item);
+        }
+        continue;
       }
       if (item.asleep && item.mass < item.wakeMass) {
         this.wake(item);
@@ -646,6 +794,7 @@ export class World {
       else if (item.mass < 0.06) removed.push(item);
     }
     for (const item of removed) this.consume(item);
+    this.burnBoards(dt, exposure.floor);
     for (let c = 0; c < EMBER_COLUMNS; c++) {
       const cooled = (this.embers[c] * dt) / emberSeconds;
       this.embers[c] = Math.max(0, this.embers[c] - cooled);
@@ -659,12 +808,76 @@ export class World {
     }
   }
 
+  // Floor patches warm from burning wood lying on them, from neighbors that are
+  // alight, and a little from hot gas just above (gas, per patch, from the caller).
+  burnBoards(dt, gas) {
+    const { burnScale } = this.options;
+    const { heat, fire, fuel, char, vigor, contact, wet, rug } = this.boards;
+    const { cols, rows } = BOARDS;
+    const rates = [BOARD, RUG_PATCH].map((patch) => [Math.min(1, (patch.warm * dt) / burnScale), Math.min(1, (patch.touch * dt) / burnScale)]);
+    const previous = Float32Array.from(fire);
+    for (let i = 0; i < cols * rows; i++) {
+      if (fuel[i] <= 0) continue;
+      const patch = rug[i] ? RUG_PATCH : BOARD;
+      const [rate, touch] = rates[rug[i]];
+      const col = i % cols;
+      const row = (i / cols) | 0;
+      let around = 0;
+      let strongest = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if ((!dx && !dy) || col + dx < 0 || col + dx >= cols || row + dy < 0 || row + dy >= rows) continue;
+          const j = i + dy * cols + dx;
+          if (!previous[j]) continue;
+          around += previous[j] * (dx && dy ? 0.25 : 0.45);
+          strongest = Math.max(strongest, vigor[j]);
+        }
+      }
+      let target = Math.max(contact[i], gas ? gas[i] * 0.5 : 0, around);
+      if (wet[i] > 0) {
+        wet[i] = Math.max(0, wet[i] - (dt * (0.05 + 0.3 * target)) / burnScale);
+        target = Math.min(target, 0.15);
+        if (fire[i]) fire[i] = Math.max(0, fire[i] - dt * 2 * wet[i]);
+      }
+      if (fire[i]) {
+        if (contact[i] > 0.2) vigor[i] = 1;
+        const support = clamp((target + patch.sustain - patch.out) / (1 - patch.out), 0, 1);
+        const goal = support * vigor[i] * Math.min(1, fuel[i] * 3);
+        fire[i] += (goal - fire[i]) * Math.min(1, rate * 4);
+        fuel[i] = Math.max(0, fuel[i] - (dt / (patch.burn * burnScale)) * fire[i]);
+        char[i] = Math.max(char[i], 1 - fuel[i]);
+        if (fire[i] < 0.05 || fuel[i] <= 0.02) {
+          fire[i] = 0;
+          heat[i] = patch.out * 0.5;
+          if (fuel[i] <= 0.02) fuel[i] = 0;
+        } else heat[i] = 0.6 + 0.4 * fire[i];
+      } else {
+        heat[i] += (target - heat[i]) * (contact[i] > around ? touch : rate);
+        if (heat[i] > patch.singe) char[i] = Math.max(char[i], (heat[i] - patch.singe) * 0.5);
+        if (heat[i] >= patch.ignite) {
+          fire[i] = 0.3;
+          // Fire reaching the rug from the boards starts fresh there.
+          vigor[i] = contact[i] >= around ? 1 : rug[i] ? Math.max(0.85, strongest) * patch.spread : strongest * patch.spread;
+          this.events.push({ type: "floor", rug: !!rug[i] });
+        }
+      }
+    }
+  }
+
+  boardsBurning() {
+    let count = 0;
+    for (const value of this.boards.fire) if (value > 0) count++;
+    return count;
+  }
+
   // Burning sections heat nearby wood even where no hot gas reaches it, falling
-  // off roughly with the square of the gap between the two surfaces.
+  // off roughly with the square of the gap between the two surfaces. Flame
+  // touching a book heats it directly.
   radiation() {
     const heat = new Map();
     const sources = [];
-    for (const item of this.items) {
+    const all = [...this.items, ...this.fixtures];
+    for (const item of all) {
       if (!item.burning) continue;
       for (let k = 0; k < item.heat.length; k++) {
         // Charred wood still radiates: its heat moves from flame into glowing coal.
@@ -673,7 +886,8 @@ export class World {
       }
     }
     if (!sources.length) return heat;
-    for (const item of this.items) {
+    for (const item of all) {
+      if (item.spent) continue;
       const n = item.heat.length;
       let field = null;
       for (let k = 0; k < n; k++) {
@@ -687,6 +901,7 @@ export class World {
           // Flames lean up, so wood above a fire catches far sooner than wood beside or below it.
           const above = clamp(0.55 - (0.75 * dy) / distance, 0.25, 1.3);
           total += source.strength * 0.6 * above * (RADIANT_REACH / (gap + RADIANT_REACH)) ** 2;
+          if ((item.static || source.item.static) && gap < 3) total += source.strength * 0.8;
         }
         if (total > 0) {
           field ??= new Float32Array(n);
@@ -698,6 +913,130 @@ export class World {
     return heat;
   }
 
+  // Water from the mug falls as drops. amount: how much water leaves the mug this frame.
+  pour(x, y, amount) {
+    this.pourCarry += amount * 110;
+    const inside = insideOpening(x, y);
+    const onShelf = !inside && x >= SHELF.left && x <= SHELF.right && y < SHELF.y;
+    while (this.pourCarry >= 1 && this.drops.length < DROP_LIMIT) {
+      this.pourCarry -= 1;
+      this.drops.push({
+        x: x + (this.random() - 0.5) * 3,
+        y: y + this.random() * 2,
+        vx: (this.random() - 0.5) * 24,
+        vy: 30 + this.random() * 30,
+        z: inside ? HEARTH.depth / 2 : -20,
+        land: inside ? HEARTH.floor - 1 : onShelf ? SHELF.y : Math.max(BOARDS.top + 1, y + 6),
+        left: 3,
+        last: null,
+      });
+    }
+    if (this.pourCarry >= 1) this.pourCarry = 0;
+  }
+
+  // Each drop cools what it lands on. Hot surfaces hiss into steam.
+  updateDrops(dt) {
+    const kept = [];
+    for (const drop of this.drops) {
+      drop.vy += 700 * dt;
+      drop.x += drop.vx * dt;
+      drop.y += drop.vy * dt;
+      // A drop runs on down through the wood, wetting a few pieces on its way.
+      const hit = this.wetTarget(drop);
+      if (hit) {
+        if (this.douse(hit.item, segmentAt(hit.item, hit.s))) this.hiss(drop.x, drop.y, 3);
+        drop.last = hit.item;
+        drop.vy *= 0.4;
+        drop.vx += (this.random() - 0.5) * 30;
+        if (--drop.left <= 0) continue;
+      }
+      if (drop.y < drop.land) {
+        kept.push(drop);
+        continue;
+      }
+      if (drop.z >= 0) {
+        const column = this.emberColumn(drop.x);
+        let hot = false;
+        for (let c = column - 2; c <= column + 2; c++) {
+          if (c < 0 || c >= EMBER_COLUMNS) continue;
+          if (this.embers[c] > 0.05) hot = true;
+          this.embers[c] = Math.max(0, this.embers[c] * 0.7 - 0.05);
+        }
+        if (hot) this.hiss(drop.x, drop.land, 2);
+      } else if (drop.land >= BOARDS.top) {
+        const col = Math.floor(drop.x / BOARDS.width);
+        const row = Math.floor((drop.land - BOARDS.top) / BOARDS.height);
+        if (col >= 0 && col < BOARDS.cols && row >= 0 && row < BOARDS.rows) {
+          const { fire, heat } = this.boards;
+          const i = row * BOARDS.cols + col;
+          const hot = fire[i] > 0 || heat[i] > 0.3;
+          const was = fire[i] > 0;
+          fire[i] = Math.max(0, fire[i] - 0.5);
+          if (fire[i] < 0.05) fire[i] = 0;
+          heat[i] = Math.max(-0.6, Math.min(heat[i], 0.2) - 0.3);
+          this.boards.wet[i] = Math.min(3, this.boards.wet[i] + 1);
+          if (was && !fire[i]) this.events.push({ type: "douse" });
+          if (hot) this.hiss(drop.x, drop.land, 2);
+        }
+      }
+    }
+    this.drops = kept;
+    const steam = [];
+    for (const puff of this.steam) {
+      puff.age += dt;
+      if (puff.age >= puff.life) continue;
+      puff.vx *= 0.97;
+      puff.vy *= 0.985;
+      puff.x += puff.vx * dt;
+      puff.y += puff.vy * dt;
+      steam.push(puff);
+    }
+    this.steam = steam;
+  }
+
+  wetTarget(drop) {
+    for (const item of [...this.items, ...this.fixtures]) {
+      if (item === drop.last || (item.a.z + item.b.z) / 2 >= 0 !== drop.z >= 0) continue;
+      const ax = item.a.x;
+      const ay = screenY(item.a.y, item.a.z);
+      const dx = item.b.x - ax;
+      const dy = screenY(item.b.y, item.b.z) - ay;
+      const len2 = dx * dx + dy * dy;
+      const s = len2 > 1e-9 ? clamp(((drop.x - ax) * dx + (drop.y - ay) * dy) / len2, 0, 1) : 0.5;
+      if (Math.hypot(ax + dx * s - drop.x, ay + dy * s - drop.y) <= item.r + 1) return { item, s };
+    }
+    return null;
+  }
+
+  // Water knocks a flame down and soaks the wood, which must dry before it can catch again.
+  douse(item, k) {
+    const n = item.heat.length;
+    const was = item.fire[k] > 0;
+    const hot = was || item.heat[k] > 0.3;
+    for (let j = Math.max(0, k - 2); j <= Math.min(n - 1, k + 2); j++) {
+      const share = j === k ? 1 : Math.abs(j - k) === 1 ? 0.6 : 0.3;
+      item.fire[j] = Math.max(0, item.fire[j] - 0.8 * share);
+      if (item.fire[j] < 0.06) item.fire[j] = 0;
+      item.wet[j] = Math.min(3, item.wet[j] + 1.2 * share);
+      item.heat[j] = Math.max(-0.8, Math.min(item.heat[j], 0.3) - 0.5 * share);
+    }
+    summarize(item);
+    if (was && !item.fire[k]) this.events.push({ type: "douse" });
+    return hot;
+  }
+
+  hiss(x, y, count) {
+    for (let i = 0; i < count && this.steam.length < STEAM_LIMIT; i++) {
+      this.steam.push({
+        x: x + (this.random() - 0.5) * 6,
+        y: y - 2,
+        vx: (this.random() - 0.5) * 16,
+        vy: -(14 + this.random() * 22),
+        age: 0,
+        life: 0.7 + this.random() * 1.1,
+      });
+    }
+  }
   split(item) {
     const { a, b } = item;
     const axis = sub(b, a);
@@ -707,7 +1046,13 @@ export class World {
     const scale = 0.55 + 0.45 * item.mass;
     const state = { r0: item.r0, mass: item.mass, length0: half / scale };
     const n = item.heat.length;
-    const part = (from, to) => ({ ...state, heat: item.heat.slice(from, to), fire: item.fire.slice(from, to), chars: item.chars.slice(from, to) });
+    const part = (from, to) => ({
+      ...state,
+      heat: item.heat.slice(from, to),
+      fire: item.fire.slice(from, to),
+      chars: item.chars.slice(from, to),
+      wet: item.wet.slice(from, to),
+    });
     const end = (p, sign) => ({ x: p.x + unit.x * half * sign, y: p.y + unit.y * half * sign, z: p.z + unit.z * half * sign });
     const first = this.spawn(item.kind, a, end(a, 1), part(0, Math.ceil(n / 2)));
     const second = this.spawn(item.kind, end(b, -1), b, part(Math.floor(n / 2), n));
@@ -723,6 +1068,7 @@ export class World {
     }
     this.items.splice(this.items.indexOf(item), 1);
     this.wakeAround(item);
+    this.events.push({ type: "split" });
     const mid = lerp(a, b, 0.5);
     this.burst(mid.x, screenY(mid.y, mid.z), 26, 1);
   }
@@ -773,6 +1119,20 @@ export class World {
     }
   }
 
+  // A knot in the wood pops and throws an ember forward over the grate onto the floor in front.
+  pop(x, y) {
+    if (this.sparks.length >= SPARK_LIMIT) return;
+    this.sparks.push({
+      x,
+      y,
+      vx: (240 - x) * 0.3 + (this.random() - 0.5) * 50,
+      vy: -(90 + this.random() * 70),
+      land: BOARDS.top + 1 + this.random() * 22,
+      life: 2.4 + this.random(),
+      age: 0,
+    });
+  }
+
   // Sparks ride the hot gas, fall when it cools, and bounce on the hearth.
   updateSparks(dt, flowAt) {
     const kept = [];
@@ -780,8 +1140,9 @@ export class World {
       spark.age += dt;
       if (spark.age >= spark.life) continue;
       const flow = flowAt(spark.x, spark.y);
-      spark.vy += 160 * dt;
-      if (flow) {
+      // A popped ember is heavy enough to fly through the draft.
+      spark.vy += (spark.land ? 420 : 160) * dt;
+      if (flow && !spark.land) {
         spark.vx += (flow.u - spark.vx) * 0.12;
         spark.vy += (flow.v - spark.vy) * 0.12 - flow.t * 500 * dt;
       }
@@ -789,8 +1150,18 @@ export class World {
       spark.vy *= 0.985;
       spark.x += spark.vx * dt;
       spark.y += spark.vy * dt;
-      const floor = spark.x > HEARTH.left && spark.x < HEARTH.right ? HEARTH.floor - 1 : ROOM_FLOOR + 6;
+      const inside = !spark.land && spark.x > HEARTH.left && spark.x < HEARTH.right;
+      const floor = inside ? HEARTH.floor - 1 : spark.land || ROOM_FLOOR + 6;
       if (spark.y > floor) {
+        if (!inside && spark.vy > 40) {
+          const col = Math.floor(spark.x / BOARDS.width);
+          const row = Math.floor((floor - BOARDS.top) / BOARDS.height);
+          const i = row * BOARDS.cols + col;
+          if (col >= 0 && col < BOARDS.cols && row >= 0 && row < BOARDS.rows && this.boards.rug[i] && this.boards.fuel[i] > 0) {
+            this.boards.heat[i] = Math.min(1, this.boards.heat[i] + 0.04);
+            this.boards.char[i] = Math.min(1, this.boards.char[i] + 0.02);
+          }
+        }
         spark.y = floor;
         spark.vy *= -0.3;
         spark.vx *= 0.6;
