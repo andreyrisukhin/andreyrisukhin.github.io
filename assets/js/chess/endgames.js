@@ -42,6 +42,13 @@ async function init() {
     extensions: [{ class: Markers }, { class: PromotionDialog }],
   });
   let puzzle, attempt, pending;
+  let moving = false;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  function lockMoves(locked) {
+    moving = locked;
+    for (const id of ["hint", "show"]) el(id).disabled = locked;
+    el("form").querySelector("button").disabled = locked;
+  }
   const save = () => {
     try {
       localStorage.setItem(key, JSON.stringify(state));
@@ -53,14 +60,22 @@ async function init() {
     state.active = { id: puzzle.id, index: attempt.index, helped: attempt.helped };
     save();
   }
-  function position() {
-    board.setPosition(attempt.game.fen(), false);
+  function position(animated = false) {
+    const animation = board.setPosition(attempt.game.fen(), animated && !reducedMotion.matches);
     const history = attempt.game.history({ verbose: true });
     const last = history.at(-1);
     board.removeMarkers();
     board.addMarker(MARKER_TYPE.square, last.from);
     board.addMarker(MARKER_TYPE.square, last.to);
     el("line").textContent = history.map((m) => m.san).join("  ");
+    return animation;
+  }
+  async function computerTurn() {
+    const reply = attempt.game.history({ verbose: true }).at(-1);
+    await board.setPosition(reply.before, !reducedMotion.matches && attempt.index > 1);
+    board.removeMarkers();
+    if (!reducedMotion.matches) await new Promise((resolve) => setTimeout(resolve, 220));
+    await position(true);
   }
   function counts() {
     const records = Object.values(state.records);
@@ -70,10 +85,11 @@ async function init() {
   }
   function controls(playing) {
     for (const id of ["form", "hint", "show"]) el(id).hidden = !playing;
-    el("next").hidden = playing;
+    el("result").hidden = playing;
     el("analyze").hidden = true;
   }
-  function start() {
+  async function start() {
+    if (moving) return;
     const saved = state.active;
     puzzle = deck.find((p) => p.id === saved?.id) || nextPuzzle(deck, state.records, Date.now());
     counts();
@@ -82,15 +98,24 @@ async function init() {
     if (!puzzle) {
       const next = Math.min(...Object.values(state.records).map((r) => r.due));
       el("heading").textContent = "Caught up";
+      el("outcome").textContent = "Caught up";
+      el("next").textContent = "Check for reviews";
       el("status").textContent = `Next review: ${new Date(next).toLocaleString()}.`;
       return;
     }
     attempt = new Attempt(puzzle, saved?.id === puzzle.id ? saved : null);
     el("heading").textContent = `${state.records[puzzle.id] ? "Review" : "New position"} · ${attempt.side === "w" ? "White" : "Black"} to play`;
     el("status").textContent = "Find the winning continuation.";
-    board.setOrientation(attempt.side, false);
-    position();
+    el("next").textContent = "Next position";
+    lockMoves(true);
+    await board.setOrientation(attempt.side, false);
     checkpoint();
+    try {
+      if (saved?.id === puzzle.id) await position();
+      else await computerTurn();
+    } finally {
+      lockMoves(false);
+    }
   }
   function finish(revealed) {
     const clean = !revealed && !attempt.helped;
@@ -100,9 +125,11 @@ async function init() {
     save();
     controls(false);
     counts();
-    el("status").textContent = `${revealed ? "Line shown" : clean ? "Solved" : "Line completed with help"}. Review ${
-      clean ? "on " + new Date(result.due).toLocaleDateString() : "in 10 minutes"
-    }.`;
+    const outcome = revealed ? "Line shown" : clean ? "Solved" : "Line completed with help";
+    el("outcome").textContent = outcome;
+    el("next").focus({ preventScroll: true });
+    el("next").scrollIntoView({ block: "nearest", behavior: "instant" });
+    el("status").textContent = `${outcome}. Review ${clean ? "on " + new Date(result.due).toLocaleDateString() : "in 10 minutes"}.`;
     el("lesson").textContent = lessons[puzzle.motif];
     const link = el("analyze");
     link.hash = `fen=${puzzle.fen.replaceAll(" ", "_")}&m=${attempt.game
@@ -111,10 +138,21 @@ async function init() {
       .join(".")}&at=1&o=${attempt.side}`;
     link.hidden = false;
   }
-  function play(move) {
-    if (!state.active) return;
+  async function play(move) {
+    if (!state.active || moving) return;
     const outcome = attempt.play(move);
-    position();
+    lockMoves(true);
+    try {
+      if (outcome === "continue") {
+        checkpoint();
+        el("status").textContent = "Correct. Watch the reply.";
+        await computerTurn();
+      } else {
+        await position(outcome === "complete");
+      }
+    } finally {
+      lockMoves(false);
+    }
     if (outcome === "complete") return finish(false);
     el("status").textContent = {
       illegal: "That move isn’t legal here. Try again.",
@@ -124,7 +162,7 @@ async function init() {
     checkpoint();
   }
   board.enableMoveInput((event) => {
-    if (!state.active) return false;
+    if (!state.active || moving) return false;
     const { squareFrom: from, squareTo: to } = event;
     if (event.type === INPUT_EVENT_TYPE.moveInputStarted) {
       const moves = attempt.game.moves({ square: from, verbose: true });
@@ -143,8 +181,9 @@ async function init() {
     }
     if (event.type === INPUT_EVENT_TYPE.moveInputFinished) {
       board.removeMarkers(MARKER_TYPE.dot);
-      if (pending) play(pending);
+      const move = pending;
       pending = null;
+      if (move) play(move);
     }
   });
   el("form").onsubmit = (event) => {
@@ -164,7 +203,7 @@ async function init() {
     finish(true);
   };
   el("next").onclick = start;
-  start();
+  await start();
 }
 
 init().catch(() => {

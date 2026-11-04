@@ -7,7 +7,13 @@ description: Find the winning continuation in 1,000 positions from real games.
 
 <div class="chess-app" id="endgames" data-assets="{{ '/assets/js/vendor/cm-chessboard/assets/' | relative_url }}">
   <div>
-    <div class="chess-board" id="eg-board" aria-label="Practice board"></div>
+    <div class="endgame-stage">
+      <div class="chess-board" id="eg-board" aria-label="Practice board"></div>
+      <div class="endgame-result" id="eg-result" hidden>
+        <strong id="eg-outcome"></strong>
+        <button class="chess-button chess-button--primary" id="eg-next">Next position</button>
+      </div>
+    </div>
     <p class="chess-status" role="status" id="eg-status">Loading the first position…</p>
     <p class="chess-hint" id="eg-line"></p>
   </div>
@@ -21,7 +27,6 @@ description: Find the winning continuation in 1,000 positions from real games.
     <div class="chess-actions">
       <button class="chess-button" id="eg-hint">Hint</button>
       <button class="chess-button" id="eg-show">Show line</button>
-      <button class="chess-button chess-button--primary" id="eg-next" hidden>Next position</button>
     </div>
     <p id="eg-lesson"></p>
     <a id="eg-analyze" href="{{ '/chess/' | relative_url }}" hidden>Explore this line on the scenario board</a>
