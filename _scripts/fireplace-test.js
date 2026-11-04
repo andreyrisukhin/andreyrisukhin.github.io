@@ -404,8 +404,8 @@ async function main() {
 
   // Secrets unlock once and are remembered.
   const { ACHIEVEMENTS, STORAGE_KEY, createAchievements } = achievementsModule;
-  assert.equal(ACHIEVEMENTS.length, 10);
-  assert.equal(new Set(ACHIEVEMENTS.map((entry) => entry.id)).size, 10);
+  assert.equal(ACHIEVEMENTS.length, 11);
+  assert.equal(new Set(ACHIEVEMENTS.map((entry) => entry.id)).size, 11);
   const saved = new Map();
   const storage = { getItem: (key) => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value) };
   const calm = { burning: 3, floor: 0, embers: 0.3, heldBurning: false };
@@ -441,6 +441,7 @@ async function main() {
     },
   });
   assert.equal(blocked.observe([{ type: "split" }], calm, 1)[0].id, "timber", "secrets still work without storage");
+  assert.equal(blocked.observe([{ type: "boil" }], calm, 1)[0].id, "tea");
   function mount({ reduced = false, supported = true, search = "", saved = null } = {}) {
     class Element {
       constructor() {
@@ -608,12 +609,21 @@ async function main() {
   assert.equal(page.elements["hearth-toast"].hidden, false, "finding a secret shows a notice");
   assert.match(page.elements["hearth-toast"].textContent, /Secret found: Hiss/);
   assert.equal(page.elements["hearth-found"].hidden, false);
-  assert.equal(page.elements["hearth-found-count"].textContent, "1 of 10 found");
+  assert.equal(page.elements["hearth-found-count"].textContent, "1 of 11 found");
   assert.match(page.elements["hearth-found-list"].innerHTML, /Hiss/);
   assert.deepEqual(JSON.parse(page.store.get(achievementsModule.STORAGE_KEY)), ["hiss"]);
   const returning = mount({ saved: ["books", "floor"] });
-  assert.equal(returning.elements["hearth-found-count"].textContent, "2 of 10 found", "found secrets are listed on return");
+  assert.equal(returning.elements["hearth-found-count"].textContent, "2 of 11 found", "found secrets are listed on return");
   assert.equal(returning.elements["hearth-found"].hidden, false);
+  // Held over the fire, the mug of water boils: a secret.
+  const brew = mount();
+  for (let n = 0; n < 30 / STEP; n++) brew.fire().step(STEP);
+  brew.fire().events();
+  brew.canvas.events.pointerdown(at(385, 255));
+  brew.canvas.events.pointermove(at(236, 186));
+  for (let n = 1; n <= 300 && brew.elements["hearth-toast"].hidden; n++) brew.step(n * 50);
+  assert.match(brew.elements["hearth-toast"].textContent, /Secret found: Tea time/, "a mug held over the fire boils");
+  assert.match(brew.elements["hearth-status"].textContent, /boiling/);
   page.document.hidden = true;
   page.document.events.visibilitychange();
   assert.equal(page.frames.size, 0, "hidden tabs stop drawing");
@@ -630,7 +640,7 @@ async function main() {
   const unsupported = mount({ supported: false });
   assert.match(unsupported.elements["hearth-status"].textContent, /cannot draw/);
   console.log(
-    "Fireplace: teepee physics, fire spread, flames and light, collapse and embers, matches, carrying wood, bark, outdoor fires, hover highlights, the matchbox, books, shelf, candle, floorboards, the rug, water, secrets, pause, reduced motion, and canvas fallback passed."
+    "Fireplace: teepee physics, fire spread, flames and light, collapse and embers, matches, carrying wood, bark, outdoor fires, hover highlights, the matchbox, books, shelf, candle, floorboards, the rug, water, tea, secrets, pause, reduced motion, and canvas fallback passed."
   );
 }
 

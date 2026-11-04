@@ -68,6 +68,11 @@ if (!output || !ctx) {
   const MUG = { x: 370, y: 244, width: 30, height: 23 };
   // Seconds of pouring in a full mug.
   const POUR_SECONDS = 2.5;
+  // Held in the hot air over the fire, a full mug boils in several seconds; away from it, it cools slowly.
+  const MUG_WARMING = 0.25;
+  const MUG_WARM_FROM = 0.25;
+  const MUG_COOLING = 0.01;
+  const STEAM_COLORS = ["#857e76", "#b3aba1", "#d8d0c4"];
   const inBox = (box, x, y) => x >= box.x - 2 && x <= box.x + box.width + 2 && y >= box.y - 2 && y <= box.y + box.height + 2;
   const gray = (value) => `rgb(${value},${value},${value})`;
   const rect = (x, y, w, h, value) => {
@@ -387,6 +392,18 @@ if (!output || !ctx) {
         pixel(x + dx, y + dy, "#b8321f");
     }
     if (holdingMug && pointer) mugSprite(Math.round(pointer.x), Math.round(pointer.y), pouring);
+    if (mugHeat > 0.4 && water > 0 && !pouring && (pointer || !holdingMug)) {
+      const [mx, my] = holdingMug ? [Math.round(pointer.x) + 1, Math.round(pointer.y) - 1] : [MUG.x + 5, MUG.y];
+      const wisps = Math.round(1 + mugHeat * 3);
+      for (let n = 0; n < wisps; n++) {
+        const rise = (time * 9 + n * 5.3) % 14;
+        const sway = Math.round(Math.sin(time * 2 + n * 1.7 + rise * 0.4) * 1.5);
+        const fade = 1 - rise / 14;
+        if (fade * mugHeat < 0.15) continue;
+        pixel(mx + 1 + ((n * 3) % 7) + sway, my - Math.round(rise), STEAM_COLORS[fade > 0.6 ? 2 : fade > 0.3 ? 1 : 0]);
+      }
+      if (holdingMug && boiled) for (let dx = 1; dx < 8; dx++) if (Math.sin(time * 13 + dx * 2.1) > 0.6) pixel(mx - 1 + dx, my + 2, "#b9d2de");
+    }
     // The candle flame, one canvas pixel at a time.
     const lean = Math.sin(time * 2.3) > 0.6 ? 1 : 0;
     for (let y = 38; y < 45; y++) {
@@ -425,6 +442,9 @@ if (!output || !ctx) {
   let holdingMug = false;
   let pouring = false;
   let water = 1;
+  // How hot the water in the mug is: 1 boils.
+  let mugHeat = 0;
+  let boiled = false;
   let toastTimer = 0;
   let dragging = null;
   let pointer = null;
@@ -472,8 +492,16 @@ if (!output || !ctx) {
         achievements.watered();
         if (water <= 0) say("The mug is empty. Set it back down to fill it again.");
       }
+      const mugEvents = [];
+      const warmth = holdingMug && pointer && water > 0 ? fire.warmthAt(pointer.x + 4, pointer.y + 6) : 0;
+      mugHeat = Math.max(0, Math.min(1, mugHeat + elapsed * (Math.max(0, warmth - MUG_WARM_FROM) * MUG_WARMING - MUG_COOLING)));
+      if (mugHeat >= 1 && !boiled) {
+        boiled = true;
+        mugEvents.push({ type: "boil" });
+        say("The water in the mug is boiling. Time for tea.");
+      } else if (mugHeat < 0.9) boiled = false;
       fire.step(elapsed);
-      notice(achievements.observe(fire.events(), fire.stats(), elapsed));
+      notice(achievements.observe([...fire.events(), ...mugEvents], fire.stats(), elapsed));
       draw(time);
     }
     animation = requestAnimationFrame(tick);
@@ -521,7 +549,6 @@ if (!output || !ctx) {
     } else if (inBox(MUG, point.x, point.y)) {
       holdingMug = true;
       holdingMatch = false;
-      water = 1;
       say("You pick up the mug of water. Press and hold to pour.");
     } else if (inBox(MATCHBOX, point.x, point.y)) {
       holdingMatch = !holdingMatch;
@@ -551,6 +578,7 @@ if (!output || !ctx) {
   function setMugDown() {
     holdingMug = false;
     pouring = false;
+    mugHeat *= Math.max(0, water);
     water = 1;
     say("You set the mug down, and it is full again.");
   }

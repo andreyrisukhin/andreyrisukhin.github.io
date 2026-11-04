@@ -684,6 +684,29 @@ export function createFire(overrides = {}) {
     // Pour water at a point on screen. amount: the share of a full mug poured this frame.
     pour: (x, y, amount) => world.pour(x, y, amount),
     water: () => world.drops.length + world.steam.length,
+    // How hot it is at a point on screen, 0 to about 1: hot gas there, flames licking at it,
+    // and heat off burning wood, strongest above it.
+    warmthAt(x, y) {
+      let warmth = Math.max(insideOpening(x, y) ? inner.temperatureAt(x, y) : 0, outer.temperatureAt(x, y));
+      for (const parcel of flames) {
+        const d2 = (x - parcel.x) ** 2 + (y - parcel.y) ** 2;
+        if (d2 < 100) warmth += (parcel.heat * 0.05) / (1 + d2 / 16);
+      }
+      for (const item of [...world.items, ...world.fixtures]) {
+        if (!item.burning) continue;
+        const n = item.fire.length;
+        for (let k = 0; k < n; k++) {
+          const flame = segmentFlame(item, k);
+          if (!flame) continue;
+          const s = (k + 0.5) / n;
+          const px = item.a.x + (item.b.x - item.a.x) * s;
+          const sy = screenY(item.a.y + (item.b.y - item.a.y) * s, item.a.z + (item.b.z - item.a.z) * s);
+          const d2 = (x - px) ** 2 + (y - sy) ** 2;
+          warmth += (flame * (y < sy ? 0.25 : 0.1)) / (1 + d2 / 150);
+        }
+      }
+      return Math.min(1.2, warmth);
+    },
     heat: () => Float32Array.from(inner.t),
     outerHeat: () => Float32Array.from(outer.t),
     // What the pointer is over: an item (with its id) or a supply to take from.
