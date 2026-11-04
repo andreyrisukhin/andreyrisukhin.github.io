@@ -166,6 +166,16 @@ function itemColor(item, s, v, along, len, light, time, gx, gy) {
     if (burning && char > 0.55 && ring < 0.5) return ember(temp);
     return GRAIN[clamp(level - (Math.floor(ring * 4) % 2), 0, 4)];
   }
+  // Bark flakes off a burning log in patches, showing the paler inner wood, which chars into glowing cracks.
+  if (item.kind === "log" && hash(key + (gu >> 1) * 5, (gv >> 1) * 11 + 7) >= item.bark[k]) {
+    const deep = clamp((char - 0.2) * 1.6, 0, 1);
+    if (hash(gu * 11 + key, gv * 3 + 5) < deep * 1.25 - (v + 1) * 0.15) {
+      const crack = gu % 3 === 0 || (gv + Math.floor(gu / 3)) % 3 === 0;
+      if ((burning || temp > 0.3) && crack) return ember(Math.max(temp, 0.5));
+      return CHAR[level];
+    }
+    return GRAIN[clamp(level - (hash(gv * 13 + key, gu >> 3) < 0.3 ? 1 : 0), 0, 4)];
+  }
   if (hash(gu * 7 + key, gv * 13) < char * 1.35 - (v + 1) * 0.3 + 0.1) {
     // Hot char glows even after its flame has died.
     if ((burning || temp > 0.3) && hash(gu * 3 + key, gv * 5 + 1) < 0.25 * char) return ember(temp);
@@ -639,6 +649,7 @@ export function createFire(overrides = {}) {
     inHearth: inHearth(item),
     fire: Array.from(item.fire),
     heat: Array.from(item.heat),
+    bark: Array.from(item.bark),
   });
 
   return {
