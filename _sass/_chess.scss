@@ -33,13 +33,26 @@
 
   .arrows {
     pointer-events: none;
+    color: #334752;
+    opacity: 0.55;
+  }
+
+  .arrows .arrow-info .arrow-line {
+    stroke: currentColor;
+    stroke-width: 2.5px;
+    opacity: 1;
+  }
+
+  .arrows .arrow-info .arrow-head {
+    fill: currentColor;
   }
 }
 
 .endgame-turn {
   min-height: 1.5em;
   margin: 0 0 0.35rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
 .endgame-result {

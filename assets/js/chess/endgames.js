@@ -69,8 +69,6 @@ async function init() {
     board.removeMarkers();
     board.removeArrows();
     board.addArrow(ARROW_TYPE.info, last.from, last.to);
-    board.addMarker(MARKER_TYPE.square, last.from);
-    board.addMarker(MARKER_TYPE.square, last.to);
     el("line").textContent = history.map((m) => m.san).join("  ");
     const played = `${sideName(last.color)} played ${last.san}.`;
     el("turn").textContent = attempt.game.turn() === attempt.side ? `${sideName(attempt.side)} to move. ${played}` : played;
