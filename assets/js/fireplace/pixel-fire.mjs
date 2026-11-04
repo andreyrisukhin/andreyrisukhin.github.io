@@ -4,7 +4,7 @@
 // is drawn as solid 2×2 pixel cells from fixed palettes.
 import { Fluid } from "./fluid.mjs";
 import { LIGHT_H, LIGHT_W, findLights, lightAt, lightField, surfaceMap } from "./light.mjs";
-import { HEARTH, SCENE, archTopAt, clamp, generator, hash, insideOpening, noise, screenY } from "./scene.mjs";
+import { BOARDS, HEARTH, SCENE, archTopAt, boardCenter, clamp, generator, hash, insideOpening, noise, screenY } from "./scene.mjs";
 import { EMBER_COLUMNS, MATERIALS, STEP, SUPPLIES, World, flameStrength, inHearth, segmentAt, segmentFlame } from "./world.mjs";
 
 export { MATERIALS, STEP, SUPPLIES };
@@ -17,6 +17,14 @@ const GRAIN = ["#3a2819", "#5c3f27", "#7a5734", "#9a7447", "#b48a55"];
 const PAPER = ["#3d3a33", "#625c4f", "#8c8370", "#b9ae94", "#e2d8bf"];
 const IRON = ["#0f0c0c", "#1a1514", "#241c19", "#33251f", "#4a3328"];
 const ASH = ["#211b19", "#2c2522", "#3b3330"];
+const BOOK_COVERS = [
+  ["#1d0d0c", "#34160f", "#4f2216", "#6b2f1d", "#874026"],
+  ["#0e140e", "#182316", "#243421", "#30462c", "#3f5a38"],
+  ["#0e1117", "#171d27", "#232c3a", "#303c4f", "#3f4e65"],
+  ["#1c150b", "#30230f", "#4a3616", "#664a1e", "#826028"],
+];
+const WATER = ["#5f7f92", "#8db0c2"];
+const STEAM = ["#5a5550", "#857e76", "#b3aba1"];
 const VISIBLE = 0.1;
 const CELLS_W = SCENE.width / SCENE.pixel;
 const CELLS_H = SCENE.height / SCENE.pixel;
@@ -142,6 +150,15 @@ function itemColor(item, s, v, along, len, light, time, gx, gy) {
     if (burning && grain < char + 0.18) return FIRE_COLORS[5 + Math.floor(pulse * 3)];
     return PAPER[hash(gx * 7 + key, gy * 3) < 0.3 ? Math.max(0, level - 1) : level];
   }
+  if (item.kind === "book") {
+    const cover = BOOK_COVERS[(-item.id - 1) % BOOK_COVERS.length];
+    const grain = hash(gx * 5 + key, gy * 11 + 1);
+    if (grain < char * 1.2 - 0.1) return burning && hash(gx * 3 + key, gy + 2) < 0.35 ? ember(0.7) : CHAR[level];
+    if (burning && grain < char * 1.2 + 0.08) return FIRE_COLORS[4 + Math.floor(pulse * 3)];
+    if (v < -0.45) return cover[Math.min(4, level + 1)];
+    if (Math.abs(s - 0.18) < 0.03 || Math.abs(s - 0.82) < 0.03) return cover[Math.max(0, level - 1)];
+    return cover[level];
+  }
   const face = faceEnd(item);
   if ((s < 0 && face === "a") || (s > 1 && face === "b")) {
     const ring = Math.hypot(s < 0 ? -along : along - len, v * item.r) / Math.max(0.5, item.r);
@@ -205,6 +222,7 @@ export function createFire(overrides = {}) {
   const attached = new Uint8Array(CELLS_W * CELLS_H);
   const outlined = new Uint8Array(CELLS_W * CELLS_H);
   const queue = new Int32Array(CELLS_W * CELLS_H);
+  const wet = new Uint8Array(CELLS_W * CELLS_H);
   let steps = 0;
   let pending = 0;
   let output = 0;
@@ -215,7 +233,7 @@ export function createFire(overrides = {}) {
     fluid.block.set(fluid.wall);
     owner.fill(0);
     depth.fill(Infinity);
-    const items = world.items;
+    const items = [...world.items, ...world.fixtures];
     items.forEach((item, k) =>
       raster(item, fluid.x, fluid.y, fluid.cell, w, h, fluid.cell * 0.35, (gx, gy, s, v, z, distance, i) => {
         if (isInner ? z < -item.r : z >= -item.r) return;
@@ -254,6 +272,19 @@ export function createFire(overrides = {}) {
       fluid.add(j, value * 0.7, (value * 2) / fluid.cell);
       if (random() < 0.6 * (0.25 + 0.75 * jet)) emit(fluid, j, Math.min(1, value * 1.25), isInner, depth[i] + (random() * 2 - 1) * item.r);
     }
+    if (!isInner) {
+      // Burning floorboards give off low, flickering flame.
+      const boards = world.boards.fire;
+      for (let n = 0; n < boards.length; n++) {
+        if (!boards[n]) continue;
+        const center = boardCenter(n);
+        const j = fluid.cellAt(center.x + (random() - 0.5) * BOARDS.width, center.sy - BOARDS.height / 2 - 1);
+        if (j < 0) continue;
+        const value = boards[n] * 0.75 * (0.6 + 0.4 * noise(n * 0.37, time * 1.3));
+        fluid.add(j, value * 0.7, (value * 2) / fluid.cell);
+        if (random() < 0.45 * boards[n]) emit(fluid, j, Math.min(1, value * 1.2), false, center.z);
+      }
+    }
     if (isInner) {
       for (let c = 0; c < EMBER_COLUMNS; c++) {
         const glow = world.embers[c];
@@ -273,7 +304,13 @@ export function createFire(overrides = {}) {
   // The gas just around each section of wood: above it, to each side, and below.
   // Sampled in place, so wood hidden behind other wood still feels the heat.
   function expose(exposure) {
-    for (const item of world.items) {
+    const floor = new Float32Array(world.boards.fire.length);
+    for (let n = 0; n < floor.length; n++) {
+      const center = boardCenter(n);
+      floor[n] = outer.temperatureAt(center.x, center.sy - BOARDS.height);
+    }
+    exposure.floor = floor;
+    for (const item of [...world.items, ...world.fixtures]) {
       const n = item.heat.length;
       const felt = new Float32Array(n);
       for (let k = 0; k < n; k++) {
@@ -337,6 +374,26 @@ export function createFire(overrides = {}) {
     flames.length = kept;
   }
 
+  // Falling water cools the gas it passes through and knocks down flame around it.
+  function quench() {
+    wet.fill(0);
+    for (const drop of world.drops) {
+      const fluid = drop.z >= 0 ? inner : outer;
+      const i = fluid.cellAt(drop.x, drop.y);
+      if (i >= 0) fluid.t[i] *= 0.6;
+      const gx = Math.floor(drop.x / SCENE.pixel);
+      const gy = Math.floor(drop.y / SCENE.pixel);
+      for (let y = Math.max(0, gy - 2); y <= Math.min(CELLS_H - 1, gy + 2); y++) {
+        for (let x = Math.max(0, gx - 2); x <= Math.min(CELLS_W - 1, gx + 2); x++) wet[y * CELLS_W + x] = 1;
+      }
+    }
+    for (const parcel of flames) {
+      const gx = Math.floor(parcel.x / SCENE.pixel);
+      const gy = Math.floor(parcel.y / SCENE.pixel);
+      if (gx >= 0 && gy >= 0 && gx < CELLS_W && gy < CELLS_H && wet[gy * CELLS_W + gx]) parcel.heat *= 0.5;
+    }
+  }
+
   function flowAt(x, y) {
     const fluid = insideOpening(x, y) ? inner : outer;
     if (fluid.cellAt(x, y) < 0) return null;
@@ -372,11 +429,14 @@ export function createFire(overrides = {}) {
     moveFlames();
     expose(exposure);
     world.burn(STEP, exposure);
+    world.updateDrops(STEP);
+    if (world.drops.length) quench();
     world.updateSparks(STEP, flowAt);
     for (const item of world.items) {
       if (!item.burning || random() > flameStrength(item) * 0.12) continue;
       const point = { x: item.a.x + (item.b.x - item.a.x) * random(), y: Math.min(item.a.y, item.b.y) };
       world.burst(point.x, screenY(point.y, (item.a.z + item.b.z) / 2) - item.r, 1, 0.5);
+      if (item.kind === "log" && inHearth(item) && random() < 0.04) world.pop(point.x, screenY(point.y, (item.a.z + item.b.z) / 2) - item.r);
     }
   }
 
@@ -386,7 +446,7 @@ export function createFire(overrides = {}) {
   // highlight: id of an item to outline, such as the one under the pointer.
   function render(highlight = 0) {
     const time = steps * STEP;
-    const solids = [...world.items, ...world.statics];
+    const solids = [...world.items, ...world.fixtures, ...world.statics];
     let count = 0;
     cellsZ.fill(Infinity);
     solids.forEach((item, k) =>
@@ -412,7 +472,7 @@ export function createFire(overrides = {}) {
     if (world.match) outerLights.push({ ...world.match, power: 0.35 });
     output = lightField(light, { surfaces, inner: findLights(inner, HEARTH.depth / 2), outer: outerLights, occluders, candle: true, time });
 
-    const layers = { back: [], bed: [], flames: [], front: [], room: [], outer: [], sparks: [] };
+    const layers = { back: [], bed: [], flames: [], front: [], floor: [], room: [], outer: [], sparks: [], water: [], steam: [] };
     innerGrid.fill(0);
     outerGrid.fill(0);
     flameZ.fill(Infinity);
@@ -472,6 +532,32 @@ export function createFire(overrides = {}) {
     for (const spark of world.sparks) {
       const left = 1 - spark.age / spark.life;
       layers.sparks.push(Math.floor(spark.x / 2), Math.floor(spark.y / 2), FIRE_COLORS[left > 0.7 ? 8 : left > 0.45 ? 6 : left > 0.25 ? 4 : 2]);
+    }
+    // Scorched and burning floorboards.
+    const { fire: boardFire, char: boardChar } = world.boards;
+    for (let n = 0; n < boardFire.length; n++) {
+      if (boardChar[n] < 0.04 && !boardFire[n]) continue;
+      const x0 = ((n % BOARDS.cols) * BOARDS.width) / SCENE.pixel;
+      const y0 = (BOARDS.top + Math.floor(n / BOARDS.cols) * BOARDS.height) / SCENE.pixel;
+      for (let dy = 0; dy < BOARDS.height / SCENE.pixel; dy++) {
+        for (let dx = 0; dx < BOARDS.width / SCENE.pixel; dx++) {
+          const gx = x0 + dx;
+          const gy = y0 + dy;
+          const grain = hash(gx * 7 + 3, gy * 13 + 5);
+          if (boardFire[n] && grain < 0.2 + 0.6 * boardFire[n]) {
+            const glow = noise(gx * 0.8, time * 2 + gy);
+            layers.floor.push(gx, gy, FIRE_COLORS[1 + Math.floor(glow * 4.99 * boardFire[n])]);
+          } else if (grain < boardChar[n]) {
+            layers.floor.push(gx, gy, CHAR[clamp(Math.floor(lightAt(light, gx * 2 + 1, gy * 2 + 1) * 4), 0, 4)]);
+          }
+        }
+      }
+    }
+    for (const drop of world.drops)
+      layers.water.push(Math.floor(drop.x / 2), Math.floor(drop.y / 2), WATER[hash(Math.floor(drop.x), Math.floor(drop.y)) < 0.4 ? 1 : 0]);
+    for (const puff of world.steam) {
+      const left = 1 - puff.age / puff.life;
+      layers.steam.push(Math.floor(puff.x / 2), Math.floor(puff.y / 2), STEAM[left > 0.6 ? 2 : left > 0.3 ? 1 : 0]);
     }
     layers.light = light;
     return layers;
@@ -568,12 +654,25 @@ export function createFire(overrides = {}) {
     stats: () => ({
       output,
       items: world.items.length,
-      burning: world.items.filter((item) => item.burning).length,
+      burning: world.items.filter((item) => item.burning).length + world.fixtures.filter((item) => item.burning).length,
+      floor: world.boardsBurning(),
+      heldBurning: !!world.grab?.item.burning,
       embers: world.embers.reduce((sum, value) => sum + value, 0) / EMBER_COLUMNS,
       sparks: world.sparks.length,
       outside: outer.active > 0,
     }),
     items: () => world.items.map(snapshot),
+    books: () => world.fixtures.map(snapshot),
+    boards: () => ({
+      fire: Float32Array.from(world.boards.fire),
+      char: Float32Array.from(world.boards.char),
+      rug: Uint8Array.from(world.boards.rug),
+    }),
+    // What happened since the last call: things catching, water putting out flame, a log breaking, a throw.
+    events: () => world.events.splice(0),
+    // Pour water at a point on screen. amount: the share of a full mug poured this frame.
+    pour: (x, y, amount) => world.pour(x, y, amount),
+    water: () => world.drops.length + world.steam.length,
     heat: () => Float32Array.from(inner.t),
     outerHeat: () => Float32Array.from(outer.t),
     // What the pointer is over: an item (with its id) or a supply to take from.

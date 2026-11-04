@@ -12,6 +12,7 @@ async function main() {
   const pixelFire = await load("fireplace/pixel-fire.mjs");
   const scene = await load("fireplace/scene.mjs");
   const light = await load("fireplace/light.mjs");
+  const achievementsModule = await load("fireplace/achievements.mjs");
   const { createFire, fireOptions, heatIndex, FIRE_COLORS, STEP, SUPPLIES } = pixelFire;
   const { HEARTH, screenY } = scene;
   const run = (fire, seconds) => {
@@ -216,7 +217,205 @@ async function main() {
   assert.equal(paletteIndex(-1, 15, 0.1), 0);
   assert.equal(paletteIndex(2, 15, 0.1), 14);
 
-  function mount({ reduced = false, supported = true, search = "" } = {}) {
+  // Books on the mantel cannot be picked up or lit with a match; fire has to reach them.
+  const middle = (item) => ({ x: (item.a.x + item.b.x) / 2, y: screenY((item.a.y + item.b.y) / 2, (item.a.z + item.b.z) / 2) });
+  const shelf = createFire({ lit: 0 });
+  assert.equal(shelf.books().length, 4);
+  assert.equal(shelf.hover(315, 68), null, "books cannot be picked up");
+  assert.equal(shelf.grab(315, 68), false);
+  shelf.strike(315, 68);
+  run(shelf, 4);
+  assert.ok(
+    shelf.books().every((book) => !book.burning),
+    "a match only scorches a book"
+  );
+  assert.ok(shelf.grab(SUPPLIES.paper.x + 20, SUPPLIES.paper.y + 8));
+  shelf.drag(250, 60);
+  run(shelf, 1);
+  shelf.release();
+  run(shelf, 2);
+  const rested = shelf.items().find((item) => item.kind === "paper" && !item.inHearth);
+  assert.ok(Math.abs(middle(rested).y + rested.r - scene.SHELF.y) < 2, "things set on the mantel rest on it");
+  assert.ok(shelf.grab(SUPPLIES.paper.x + 20, SUPPLIES.paper.y + 8));
+  shelf.drag(light.CANDLE.x, light.CANDLE.y + 2);
+  run(shelf, 2);
+  assert.ok(shelf.stats().heldBurning, "paper held in the candle flame catches");
+  assert.ok(shelf.events().some((event) => event.type === "ignite" && event.source === "candle"));
+
+  // A burning stick held against the books lights them, and fire climbs the stack.
+  const study = createFire();
+  run(study, 20);
+  assert.ok(study.grab(SUPPLIES.stick.x + 22, SUPPLIES.stick.y + 17));
+  for (const [x, y] of [
+    [150, 200],
+    [220, 215],
+    [240, 225],
+  ]) {
+    study.drag(x, y);
+    run(study, 0.5);
+  }
+  for (let t = 0; t < 20 && !study.stats().heldBurning; t++) run(study, 0.5);
+  assert.ok(study.stats().heldBurning, "a stick held in the fire catches");
+  for (const [x, y] of [
+    [260, 150],
+    [300, 90],
+    [316, 70],
+  ]) {
+    study.drag(x, y);
+    run(study, 0.4);
+  }
+  for (let t = 0; t < 40 && !study.books().some((book) => book.burning); t++) run(study, 0.5);
+  assert.ok(
+    study.books().some((book) => book.burning),
+    "a torch lights a book"
+  );
+  assert.ok(study.events().some((event) => event.type === "ignite" && event.kind === "book"));
+  study.release();
+  run(study, 30);
+  assert.ok(study.books().filter((book) => book.burning).length >= 3, "fire spreads up the stack of books");
+
+  // Two burning logs on the floorboards light them. The floor fire spreads a few boards, then dies, leaving char.
+  const room = createFire();
+  run(room, 40);
+  for (const [n, chosen] of logs(room)
+    .filter((item) => item.burning)
+    .slice(0, 2)
+    .entries()) {
+    const from = middle(room.items().find((item) => item.id === chosen.id));
+    assert.ok(room.grab(from.x, from.y));
+    for (const [x, y] of [
+      [from.x, 200],
+      [200, 250],
+      [140, 290],
+      [110, 296 + n * 6],
+    ]) {
+      room.drag(x, y);
+      run(room, 0.4);
+    }
+    room.release();
+    run(room, 1);
+  }
+  let lit = null;
+  for (let t = 0; t < 30 && lit === null; t++) {
+    run(room, 1);
+    if (room.stats().floor) lit = t;
+  }
+  assert.ok(lit !== null && lit > 2, "the floor takes a while to catch under burning logs");
+  assert.ok(room.events().some((event) => event.type === "floor"));
+  let peak = 0;
+  for (let t = 0; t < 150 && (t < 10 || room.stats().floor); t++) {
+    run(room, 1);
+    peak = Math.max(peak, room.stats().floor);
+  }
+  const charred = room.boards().char.filter((value) => value > 0.5).length;
+  assert.equal(room.stats().floor, 0, "a floor fire burns itself out");
+  assert.ok(peak > 4 && charred > 4, "fire spreads across a few boards");
+  assert.ok(charred < 150, "but not across the whole room");
+  assert.ok(room.render().floor.length > 0, "burnt boards stay charred");
+
+  // Embers popping out of the grate singe the rug in front without setting it alight.
+  const hearthRug = createFire();
+  run(hearthRug, 60);
+  const rugIndex = [...hearthRug.boards().rug.keys()].filter((i) => hearthRug.boards().rug[i]);
+  assert.ok(rugIndex.length > 50, "a rug lies in front of the hearth");
+  assert.ok(
+    rugIndex.some((i) => hearthRug.boards().char[i] > 0.04),
+    "popping embers singe the rug"
+  );
+  assert.equal(hearthRug.stats().floor, 0, "a few embers do not set the rug alight");
+
+  // One burning log is not enough for bare boards, but the rug catches quickly and burns out to char.
+  const rugLog = middle(logs(hearthRug).find((item) => item.burning));
+  assert.ok(hearthRug.grab(rugLog.x, rugLog.y));
+  for (const [x, y] of [
+    [rugLog.x, 200],
+    [240, 250],
+    [240, 284],
+  ]) {
+    hearthRug.drag(x, y);
+    run(hearthRug, 0.4);
+  }
+  hearthRug.release();
+  let rugLit = null;
+  const rugEvents = [];
+  for (let t = 0; t < 20 && rugLit === null; t++) {
+    run(hearthRug, 1);
+    rugEvents.push(...hearthRug.events());
+    if (hearthRug.stats().floor) rugLit = t;
+  }
+  assert.ok(rugLit !== null, "a burning log sets the rug alight");
+  assert.ok(rugEvents.some((event) => event.type === "floor" && event.rug));
+  for (let t = 0; t < 200 && hearthRug.stats().floor; t++) run(hearthRug, 1);
+  assert.equal(hearthRug.stats().floor, 0, "the rug fire burns itself out");
+  assert.ok(rugIndex.filter((i) => hearthRug.boards().char[i] > 0.5).length > 20, "the rug is left charred");
+  // A mug of water puts out a fire and sends up steam.
+  const wet = createFire();
+  run(wet, 30);
+  const flame = () => wet.items().reduce((sum, item) => sum + item.fire.reduce((a, b) => a + b, 0), 0);
+  const flameBefore = flame();
+  assert.ok(flameBefore > 10);
+  for (let i = 0; i < 60; i++) {
+    wet.pour(240 + Math.sin(i / 4) * 45, 190, 1 / 60);
+    run(wet, STEP);
+  }
+  assert.ok(wet.water() > 0, "poured water falls and steams");
+  run(wet, 2);
+  assert.ok(flame() < flameBefore * 0.15, "a mug of water puts out most of a fire");
+  assert.ok(wet.events().some((event) => event.type === "douse"));
+  run(wet, 3);
+  assert.ok(flame() < flameBefore * 0.2, "soaked wood does not catch again right away");
+
+  // Throwing something on fire is noticed.
+  const toss = createFire();
+  run(toss, 3);
+  const thrown = toss.items().find((item) => item.kind === "paper" && item.burning);
+  const hand = middle(thrown);
+  assert.ok(toss.grab(hand.x, hand.y));
+  toss.drag(hand.x + 120, hand.y - 60);
+  run(toss, STEP);
+  toss.release();
+  assert.ok(toss.events().some((event) => event.type === "fling"));
+
+  // Secrets unlock once and are remembered.
+  const { ACHIEVEMENTS, STORAGE_KEY, createAchievements } = achievementsModule;
+  assert.equal(ACHIEVEMENTS.length, 10);
+  assert.equal(new Set(ACHIEVEMENTS.map((entry) => entry.id)).size, 10);
+  const saved = new Map();
+  const storage = { getItem: (key) => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value) };
+  const calm = { burning: 3, floor: 0, embers: 0.3, heldBurning: false };
+  const secrets = createAchievements(storage);
+  assert.deepEqual(secrets.observe([], calm, 0.1), []);
+  const first = secrets.observe([{ type: "ignite", kind: "book", source: "spread", inHearth: false }, { type: "douse" }], calm, 0.1);
+  assert.deepEqual(
+    first.map((entry) => entry.id),
+    ["books", "hiss"]
+  );
+  assert.deepEqual(secrets.observe([{ type: "douse" }], calm, 0.1), [], "a secret is found only once");
+  for (let i = 0; i < 3; i++) secrets.observe([], { ...calm, heldBurning: true }, 1);
+  assert.deepEqual(
+    secrets.observe([], { ...calm, heldBurning: true }, 1).map((entry) => entry.id),
+    ["torch"]
+  );
+  secrets.watered();
+  assert.deepEqual(secrets.observe([], { ...calm, burning: 0, embers: 0 }, 1), [], "a doused fire did not burn out on its own");
+  secrets.observe([{ type: "ignite", kind: "paper", source: "match", inHearth: true }], calm, 1);
+  assert.deepEqual(
+    secrets.observe([], { ...calm, burning: 0, embers: 0.01 }, 1).map((entry) => entry.id),
+    ["ashes"]
+  );
+  assert.deepEqual(JSON.parse(saved.get(STORAGE_KEY)), ["books", "hiss", "torch", "kindled", "ashes"]);
+  assert.equal(createAchievements(storage).found().length, 5, "found secrets are remembered");
+  assert.equal(createAchievements({ getItem: () => "not json", setItem() {} }).found().length, 0);
+  const blocked = createAchievements({
+    getItem() {
+      throw new Error("blocked");
+    },
+    setItem() {
+      throw new Error("blocked");
+    },
+  });
+  assert.equal(blocked.observe([{ type: "split" }], calm, 1)[0].id, "timber", "secrets still work without storage");
+  function mount({ reduced = false, supported = true, search = "", saved = null } = {}) {
     class Element {
       constructor() {
         this.events = {};
@@ -255,7 +454,11 @@ async function main() {
     const elements = {
       fireplace: canvas,
       "hearth-status": new Element(),
+      "hearth-toast": new Element(),
+      "hearth-found-count": new Element(),
+      "hearth-found-list": new Element(),
     };
+    const store = new Map(saved ? [[achievementsModule.STORAGE_KEY, JSON.stringify(saved)]] : []);
     const media = new Element();
     media.matches = reduced;
     const document = new Element();
@@ -270,9 +473,16 @@ async function main() {
       ...pixelFire,
       ...scene,
       ...light,
+      ...achievementsModule,
       document,
+      setTimeout: () => 1,
+      clearTimeout: () => {},
       URLSearchParams,
-      window: { matchMedia: () => media, location: { search: search || "?burn=2&flame=abc" } },
+      window: {
+        matchMedia: () => media,
+        location: { search: search || "?burn=2&flame=abc" },
+        localStorage: { getItem: (key) => store.get(key) ?? null, setItem: (key, value) => store.set(key, value) },
+      },
       requestAnimationFrame: (callback) => {
         frames.set(++id, callback);
         return id;
@@ -284,6 +494,7 @@ async function main() {
     vm.runInNewContext(code, sandbox);
     return {
       elements,
+      store,
       canvas,
       media,
       document,
@@ -299,6 +510,8 @@ async function main() {
   }
 
   const page = mount();
+  assert.equal(page.elements["hearth-found-count"].textContent, "0 of 10 found");
+  assert.equal(page.elements["hearth-toast"].hidden, true);
   assert.equal(page.fire().options.burnScale, 2, "URL parameters tune the fire");
   assert.equal(page.fire().options.flameHeight, pixelFire.DEFAULTS.flameHeight);
   assert.equal(page.paints(), 1, "draw an initial frame immediately");
@@ -344,6 +557,34 @@ async function main() {
   assert.equal(page.frames.size, 0);
   page.canvas.events.keydown(space);
   assert.equal(page.frames.size, 1);
+  // The mug: pick it up, hold to pour, set it back down to refill.
+  page.canvas.events.pointermove(at(385, 255));
+  assert.equal(page.canvas.style.cursor, "pointer", "the mug answers the pointer");
+  page.canvas.events.pointerdown(at(385, 255));
+  assert.match(page.elements["hearth-status"].textContent, /mug/);
+  page.canvas.events.pointermove(at(240, 190));
+  assert.equal(page.canvas.style.cursor, "none");
+  page.canvas.events.pointerdown(at(240, 190));
+  for (let n = 1; n <= 6; n++) page.step(1000 + n * 50);
+  assert.ok(page.fire().water() > 0, "holding the button pours water");
+  page.canvas.events.pointerup(at(240, 190));
+  page.canvas.events.keydown({ key: "Escape", preventDefault() {} });
+  assert.match(page.elements["hearth-status"].textContent, /full again/, "Escape sets the mug back down");
+  page.canvas.events.pointermove(at(240, 190));
+  assert.notEqual(page.canvas.style.cursor, "none");
+  // A secret found while the fire runs shows a notice and joins the list.
+  page.fire().events();
+  for (let n = 1; n <= 60 && page.elements["hearth-toast"].hidden; n++) {
+    page.fire().pour(236 + (n % 5) * 3, 222, 0.05);
+    page.step(2000 + n * 50);
+  }
+  assert.equal(page.elements["hearth-toast"].hidden, false, "finding a secret shows a notice");
+  assert.match(page.elements["hearth-toast"].textContent, /Secret found: Hiss/);
+  assert.equal(page.elements["hearth-found-count"].textContent, "1 of 10 found");
+  assert.match(page.elements["hearth-found-list"].innerHTML, /Hiss/);
+  assert.deepEqual(JSON.parse(page.store.get(achievementsModule.STORAGE_KEY)), ["hiss"]);
+  const returning = mount({ saved: ["books", "floor"] });
+  assert.equal(returning.elements["hearth-found-count"].textContent, "2 of 10 found", "found secrets are listed on return");
   page.document.hidden = true;
   page.document.events.visibilitychange();
   assert.equal(page.frames.size, 0, "hidden tabs stop drawing");
@@ -360,7 +601,7 @@ async function main() {
   const unsupported = mount({ supported: false });
   assert.match(unsupported.elements["hearth-status"].textContent, /cannot draw/);
   console.log(
-    "Fireplace: teepee physics, fire spread, flames and light, collapse and embers, matches, carrying wood, outdoor fires, hover highlights, the matchbox, pause, reduced motion, and canvas fallback passed."
+    "Fireplace: teepee physics, fire spread, flames and light, collapse and embers, matches, carrying wood, outdoor fires, hover highlights, the matchbox, books, shelf, candle, floorboards, the rug, water, secrets, pause, reduced motion, and canvas fallback passed."
   );
 }
 

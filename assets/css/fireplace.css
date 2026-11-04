@@ -62,7 +62,69 @@
 }
 
 .hearth-scene {
+  position: relative;
   margin: 0 auto 1.75rem;
+}
+
+.hearth-toast {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  max-width: calc(100% - 2rem);
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #514235;
+  border-radius: 4px;
+  background: rgba(16, 14, 13, 0.92);
+  color: #ead8bc;
+  font-size: 0.8125rem;
+  transform: translateX(-50%);
+  animation: hearth-toast-in 0.3s ease-out;
+  pointer-events: none;
+}
+
+.hearth-toast[hidden] {
+  display: none;
+}
+
+@keyframes hearth-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -0.4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hearth-toast {
+    animation: none;
+  }
+}
+
+.hearth-found {
+  max-width: 28rem;
+  margin: 0.5rem auto 0;
+  color: #a39484;
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.hearth-found summary {
+  text-align: center;
+  cursor: pointer;
+}
+
+.hearth-found ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.hearth-found li {
+  margin: 0.25rem 0;
+}
+
+.hearth-found strong {
+  color: #dfc9ac;
+  font-weight: 600;
 }
 
 #fireplace {

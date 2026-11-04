@@ -32,13 +32,18 @@ permalink: /fireplace/
           height="320"
           role="img"
           tabindex="0"
-          aria-label="A pixel-art stone fireplace. Three logs lean together over kindling and paper behind an iron grate, and the fire lights the room around it. Spare logs, a basket of kindling, a stack of newspaper, and a box of matches sit nearby. Drag wood into the hearth and take a match from the box to light it. Press Space to pause."
+          aria-label="A pixel-art stone fireplace. Three logs lean together over kindling and paper behind an iron grate, and the fire lights the room around it. Spare logs, a basket of kindling, a stack of newspaper, a box of matches, a candle, a stack of books, and a mug of water sit nearby. Drag wood into the hearth and take a match from the box to light it. Pick up the mug and hold to pour. Press Space to pause, or Escape to put down what you hold."
         >
-          A fire in a stone fireplace, with spare logs, kindling, newspaper, matches, a candle, books, and a cup nearby.
+          A fire in a stone fireplace, with spare logs, kindling, newspaper, matches, a candle, books, and a mug of water nearby.
         </canvas>
+        <p id="hearth-toast" class="hearth-toast" role="status" hidden></p>
         <figcaption>Drag wood into the hearth. The matches are on the mantel.</figcaption>
       </figure>
       <p id="hearth-status" class="hearth-status" role="status"></p>
+      <details class="hearth-found">
+        <summary id="hearth-found-count">0 of 10 found</summary>
+        <ul id="hearth-found-list"></ul>
+      </details>
       <noscript><p class="hearth-status">The fire needs JavaScript to glow.</p></noscript>
     </main>
     <footer class="hearth-footer"><span>A little warmth, a few pixels.</span><a href="{{ '/ditherer/' | relative_url }}">The ditherer ↗</a></footer>
