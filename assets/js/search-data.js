@@ -51,6 +51,13 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/color/";
               },
+            },{id: "dropdown-fireplace",
+              title: "fireplace",
+              description: "",
+              section: "Dropdown",
+              handler: () => {
+                window.location.href = "/fireplace/";
+              },
             },{id: "dropdown-kata",
               title: "kata",
               description: "",
