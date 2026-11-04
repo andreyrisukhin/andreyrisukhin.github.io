@@ -1,0 +1,63 @@
+- title: Chords
+  id: tools
+  description: Start with Workbench to explore harmony, or use a focused tool for a specific task.
+  items:
+    - title: Workbench
+      url: /music/workbench/
+      description: Build a progression and see each chord as notes, buttons, and sound.
+    - title: Set-list builder
+      url: /music/build/
+      description: Turn chord names and song charts into a Stradella set list.
+    - title: Chord recognizer
+      url: /music/chord-recognizer/
+      description: Enter notes to name the chord and see its inversions.
+    - title: Stradella recipes
+      url: /music/stradella/
+      description: Browse chords made from left-hand bass buttons.
+    - title: Saved songs
+      url: /music/songs/
+      description: Manage saved Stradella set lists and sync them to the site repo.
+
+- title: Practice
+  id: practice
+  description: Play the keyboard, work on a pattern, or follow a practice loop.
+  items:
+    - title: Exercises
+      url: /music/exercises/
+      description: Practice loops with right-hand patterns and theory notes.
+    - title: Bass patterns
+      url: /music/bass-patterns/
+      description: Write a left-hand pattern, assign fingers, and keep a pattern code.
+    - title: 12-bar blues
+      url: /music/blues/
+      description: Pick a key, see the progression and blues scale.
+    - title: Bayan simulator
+      url: /music/bayan-simulator/
+      description: Play a B-system button keyboard with Minecraft note-block sounds.
+
+- title: Sheets
+  id: sheets
+  items:
+    - title: Cogwork Dancers
+      url: /music/sheet/cogwork-dancers/
+      description: Christopher Larkin’s music, arranged for organ.
+    - title: Reclaiming Entropy
+      url: /music/sheet/reclaiming-entropy/
+      description: James Primate’s music from Rain World.
+    - title: Reconstructing More Science
+      url: /music/sheet/reconstructing-more-science/
+      description: From the Portal 2 soundtrack. Eight-bar two-hand exercise in F minor.
+    - title: Señorita
+      url: /music/sheet/senorita/
+      description: Accordion arrangement, first draft. Sixteen bars in A minor.
+
+- title: References
+  id: field-notes
+  compact: true
+  items:
+    - title: Scales & modes
+      url: /music/scales/
+    - title: Chords from scales
+      url: /music/chords/
+    - title: Intervals
+      url: /music/intervals/

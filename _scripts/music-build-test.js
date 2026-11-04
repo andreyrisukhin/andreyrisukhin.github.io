@@ -9,6 +9,7 @@ const routes = [
   "",
   "workbench/",
   "exercises/",
+  "bass-patterns/",
   "stradella/",
   "build/",
   "scales/",
@@ -39,6 +40,54 @@ for (const route of routes) {
   }
 }
 const hub = fs.readFileSync(path.join(site, "music/index.html"), "utf8");
+const sections = [
+  ["tools", "Chords", ["workbench/", "build/", "chord-recognizer/", "stradella/", "songs/"]],
+  ["practice", "Practice", ["exercises/", "bass-patterns/", "blues/", "bayan-simulator/"]],
+  ["sheets", "Sheets", routes.filter((route) => route.startsWith("sheet/"))],
+  ["field-notes", "References", ["scales/", "chords/", "intervals/"]],
+];
+const hubRoutes = [];
+for (const [id, title, members] of sections) {
+  const section = hub.match(new RegExp(`<section\\b[^>]*id="${id}"[^>]*>([\\s\\S]*?)</section>`));
+  assert.ok(section, title + " has a hub section");
+  assert.ok(section[1].includes(`>${title}</h2>`), title + " uses the navigation label");
+  const urls = [...section[1].matchAll(/href="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(
+    urls,
+    members.map((route) => "/music/" + route),
+    title + " groups its tools once"
+  );
+  hubRoutes.push(...urls);
+}
+assert.equal(new Set(hubRoutes).size, hubRoutes.length, "Hub lists each destination only once");
+assert.deepEqual(
+  [...hubRoutes].sort(),
+  routes
+    .filter(Boolean)
+    .map((route) => "/music/" + route)
+    .sort(),
+  "Hub covers every music tool"
+);
+for (const route of routes) {
+  const page = fs.readFileSync(path.join(site, "music", route, "index.html"), "utf8");
+  const nav = page.match(/<nav\b[^>]*class="music-section-nav"[^>]*>([\s\S]*?)<\/nav>/)[1];
+  const anchors = [...nav.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)];
+  assert.deepEqual(
+    anchors.map((match) => match[2].trim()),
+    ["Music", ...sections.map((section) => section[1])],
+    route + " has consistent navigation"
+  );
+  assert.deepEqual(
+    anchors.map((match) => match[1].match(/href="([^"]+)"/)[1]),
+    ["/music/", ...sections.map((section) => "/music/#" + section[0])],
+    route + " links to hub sections"
+  );
+  const current = anchors.filter((match) => match[1].includes("aria-current="));
+  assert.equal(current.length, 1, route + " has one current navigation item");
+  const expected = route ? sections.find((section) => section[2].includes(route))[1] : "Music";
+  assert.equal(current[0][2].trim(), expected, route + " marks its own group");
+  assert.ok(current[0][1].includes(`aria-current="${route ? "location" : "page"}"`), route + " uses the correct current scope");
+}
 for (const tool of ["/music/workbench/", "/music/chord-recognizer/", "/music/build/", "/music/songs/", "/music/sheet/reconstructing-more-science/"]) {
   assert.ok(hub.includes(`href="${tool}"`), "Tools hub links to " + tool);
 }

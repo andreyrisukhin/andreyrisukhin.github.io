@@ -5,7 +5,8 @@ Branch: `design/bayan-notebook`. The source audit is in [MUSIC_DESIGN_AUDIT.md](
 ## What changed
 
 - `/music/` is a compact tools hub: tool cards (workbench, chord recognizer, set-list builder, and the rest), sheets, and references. The progression workspace lives at `/music/workbench/`, initially Am7 → D7 → Gmaj7, or recovers the last local draft. Music has a direct navigation item and a homepage entry.
-- The shared music layout uses paper, ink, and lacquer colors. Dark mode uses a muted brass accent, not pink. Tools, Explore, Practice, Play, and Read link to existing material.
+- The shared music layout uses paper, ink, and lacquer colors. Dark mode uses a muted brass accent, not pink. Music returns to the hub; Chords, Practice, Sheets, and References link to its matching sections. Every music page marks its current group.
+- `_data/music/navigation.yml` supplies both the hub and shared navigation. Workbench leads the chord tools; saved songs sit with set lists, and bass patterns, exercises, blues, and the simulator form Practice. Each destination appears once. Existing routes, share links, and the `#tools`, `#sheets`, and `#field-notes` anchors remain available.
 - Notes, staff notation, B-system buttons, Stradella recipes, and sound describe the same musical object. Focus and hover connect the representations.
 - Progressions retain the selected chord during transposition. Playback supports chords, upward rolls, tempo, looping, mute, and stop. Sound starts only after an explicit action.
 - Saved practice keeps its notes, inversions, key, and tempo in this browser. JSON backups append rather than replace the library. Shared links contain musical state, not saved names or the library.
@@ -62,6 +63,10 @@ JEKYLL_ENV=production bundle exec jekyll build
 node _scripts/music-build-test.js
 node --check _site/sw.js
 ```
+
+Evaluate `_scripts/music-navigation-browser-check.js` on the hub and tool pages
+at mobile and desktop widths after building to check navigation targets,
+keyboard focus, touch sizes, and hub overflow.
 
 The local build used `.build-venv/bin` on `PATH` for its Python dependencies. Check the build log for YAML and Liquid exceptions as well as the exit status.
 

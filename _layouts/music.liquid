@@ -8,30 +8,19 @@ layout: default
       {% if page.permalink == '/music/' %}
         aria-current="page"
       {% endif %}
-      >Tools</a
+      >Music</a
     >
-    <a
-      href="{{ '/music/workbench/' | relative_url }}"
-      {% if page.permalink == '/music/workbench/' %}
-        aria-current="page"
-      {% endif %}
-      >Explore</a
-    >
-    <a
-      href="{{ '/music/exercises/' | relative_url }}"
-      {% if page.permalink == '/music/exercises/' %}
-        aria-current="page"
-      {% endif %}
-      >Practice</a
-    >
-    <a
-      href="{{ '/music/bayan-simulator/' | relative_url }}"
-      {% if page.permalink == '/music/bayan-simulator/' %}
-        aria-current="page"
-      {% endif %}
-      >Play</a
-    >
-    <a href="{{ '/music/#field-notes' | relative_url }}">Read</a>
+    {% for section in site.data.music.navigation %}
+      {% assign section_routes = section.items | map: 'url' %}
+      <a
+        href="{{ '/music/#' | append: section.id | relative_url }}"
+        {% if section_routes contains page.permalink %}
+          aria-current="location"
+        {% endif %}
+      >
+        {{- section.title -}}
+      </a>
+    {% endfor %}
   </nav>
   <article>
     <header class="music-page-header">

@@ -132,6 +132,7 @@
   }
   .music-section-nav {
     display: flex;
+    flex-wrap: wrap;
     gap: 1.5rem;
     border-bottom: 1px solid var(--music-rule);
     a {
