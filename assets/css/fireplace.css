@@ -1,0 +1,117 @@
+.fireplace-page,
+.fireplace-page * {
+  box-sizing: border-box;
+}
+
+.fireplace-page {
+  margin: 0;
+  padding: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: #100e0d;
+  color: #dfc9ac;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 1rem;
+  color-scheme: dark;
+}
+
+.fireplace-page a {
+  color: #b5a28c;
+  text-decoration: none;
+}
+
+.fireplace-page a:hover {
+  color: #f8d69b;
+}
+
+.hearth-header,
+.hearth-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem 3rem;
+  color: #a39484;
+  font-size: 0.875rem;
+}
+
+.hearth-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1120px;
+  margin: auto;
+  padding: 2rem 1.5rem 1rem;
+  text-align: center;
+}
+
+.hearth-eyebrow {
+  margin: 0 0 0.75rem;
+  color: #b5a28c;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hearth-title h1 {
+  margin: 0;
+  color: #ead8bc;
+  font-size: 2.5rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.hearth-scene {
+  margin: 0 auto 1.75rem;
+}
+
+#fireplace {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.hearth-scene figcaption {
+  margin-top: -1rem;
+  color: #b5a28c;
+  font-size: 0.875rem;
+}
+
+.fireplace-page :focus-visible {
+  outline: 2px solid #f8d69b;
+  outline-offset: 5px;
+}
+
+.hearth-status {
+  min-height: 1.5em;
+  margin: 0.75rem 0 0;
+  color: #b5a28c;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .hearth-header,
+  .hearth-footer {
+    padding: 1.25rem;
+    font-size: 0.75rem;
+  }
+
+  .hearth-header > span {
+    display: none;
+  }
+
+  .hearth-main {
+    padding: 2rem 0 1rem;
+  }
+
+  .hearth-scene {
+    margin-top: 2rem;
+  }
+
+  .hearth-scene figcaption {
+    margin-top: 1rem;
+  }
+}

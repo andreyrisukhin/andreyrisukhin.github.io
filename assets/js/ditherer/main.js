@@ -1,3 +1,5 @@
+import { ign, luminance } from "./texture.mjs";
+
 const fileInput = document.getElementById("ditherer-file");
 const presetSelect = document.getElementById("ditherer-preset");
 const paletteInput = document.getElementById("ditherer-palette");
@@ -112,9 +114,7 @@ function setPaletteHex(nextPalette, options = {}) {
     return;
   }
   if (recordHistory) {
-    const lastSnapshot = paletteHistory.length
-      ? paletteHistory[paletteHistory.length - 1].join("|")
-      : null;
+    const lastSnapshot = paletteHistory.length ? paletteHistory[paletteHistory.length - 1].join("|") : null;
     if (currentSnapshot !== lastSnapshot) {
       paletteHistory.push(paletteHex.slice());
     }
@@ -172,9 +172,7 @@ function renderPaletteEditor() {
     handle.addEventListener("dragend", () => {
       dragIndex = null;
       item.classList.remove("is-dragging");
-      paletteEditor
-        .querySelectorAll(".ditherer-swatch-item.is-drop-target")
-        .forEach((el) => el.classList.remove("is-drop-target"));
+      paletteEditor.querySelectorAll(".ditherer-swatch-item.is-drop-target").forEach((el) => el.classList.remove("is-drop-target"));
     });
 
     const swatch = document.createElement("button");
@@ -250,10 +248,6 @@ function renderPaletteEditor() {
   });
 }
 
-function luminance(r, g, b) {
-  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-}
-
 function rgbToHsl(r, g, b) {
   const r01 = r / 255;
   const g01 = g / 255;
@@ -303,14 +297,6 @@ function sortPaletteBy(mode) {
     return firstKey - secondKey;
   });
   setPaletteHex(nextPalette, { recordHistory: true });
-}
-
-function fract(value) {
-  return value - Math.floor(value);
-}
-
-function ign(x, y) {
-  return fract(52.9829189 * fract(0.06711056 * x + 0.00583715 * y));
 }
 
 function nearestColor(colors, r, g, b) {
@@ -632,8 +618,7 @@ if (sortButtons) {
 
 if (paletteEditor) {
   paletteEditor.addEventListener("keydown", (event) => {
-    const isRedo =
-      (event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z"));
+    const isRedo = (event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z"));
     const isUndo = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z";
     if (isRedo) {
       event.preventDefault();

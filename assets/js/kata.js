@@ -94,7 +94,10 @@
     updateMotion();
   });
   reduced.addEventListener("change", updateMotion);
-  const initial = recipes.find((recipe) => `#${recipe.id}` === window.location.hash) || recipes[0];
+  const hour = new Date().getHours();
+  const scene = hour >= 6 && hour < 18 ? "morning" : "night";
+  const initial =
+    recipes.find((recipe) => `#${recipe.id}` === window.location.hash) || recipes.find((recipe) => recipe.dataset.scene === scene) || recipes[0];
   select(initial.id, false);
   updateMotion();
   practice.classList.add("is-ready");
