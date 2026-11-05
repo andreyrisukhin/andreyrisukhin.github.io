@@ -1032,6 +1032,7 @@ export class World {
   }
 
   hiss(x, y, count) {
+    if (!this.events.some((event) => event.type === "hiss")) this.events.push({ type: "hiss" });
     for (let i = 0; i < count && this.steam.length < STEAM_LIMIT; i++) {
       this.steam.push({
         x: x + (this.random() - 0.5) * 6,
@@ -1100,6 +1101,7 @@ export class World {
 
   // Turn this step's collisions into kicked-up embers where something hot was hit.
   kick() {
+    if (this.impacts.some((hit) => hit.strength > 1.8 && hit.items.some((item) => item.kind === "log"))) this.events.push({ type: "impact" });
     for (const hit of this.impacts) {
       let hot = hit.items.some((item) => item.burning) ? 1 : 0;
       if (hit.z >= -7) {
