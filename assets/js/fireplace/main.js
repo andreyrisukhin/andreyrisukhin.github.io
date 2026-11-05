@@ -42,7 +42,6 @@ if (!output || !ctx) {
   for (const [param, option] of Object.entries(names)) if (query.has(param)) tuning[option] = query.get(param);
   const fire = createFire(tuning);
   const sound = createHearthSound();
-  let interacted = false;
   const CW = W / SCENE.pixel;
   const CH = H / SCENE.pixel;
   // The room is drawn once as plain surface brightness. Each frame multiplies it
@@ -516,7 +515,7 @@ if (!output || !ctx) {
     cancelAnimationFrame(animation);
     last = null;
     if (!paused && !document.hidden) {
-      if (interacted) sound.wake();
+      sound.wake();
       animation = requestAnimationFrame(tick);
     } else sound.pause();
   }
@@ -546,8 +545,6 @@ if (!output || !ctx) {
   }
   canvas.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
-    interacted = true;
-    if (!paused) sound.wake();
     const point = scenePoint(event);
     event.preventDefault();
     if (holdingMug) {
@@ -621,7 +618,6 @@ if (!output || !ctx) {
       return;
     }
     if (event.key !== " ") return;
-    interacted = true;
     event.preventDefault();
     paused = !paused;
     say(paused ? "Paused. Press Space to resume." : "");
@@ -634,6 +630,16 @@ if (!output || !ctx) {
     syncAnimation();
   });
   document.addEventListener("visibilitychange", syncAnimation);
+  // If autoplay was blocked, retry in the gesture itself (touch activates on release).
+  for (const gesture of ["pointerdown", "pointerup", "keydown"]) {
+    document.addEventListener(
+      gesture,
+      () => {
+        if (!paused && !document.hidden) sound.wake();
+      },
+      true
+    );
+  }
   if (paused) say("Motion is off to match your device setting. Press Space on the scene to play.");
   draw(time);
   syncAnimation();
