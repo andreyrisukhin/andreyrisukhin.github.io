@@ -13,6 +13,7 @@ async function main() {
   const scene = await load("fireplace/scene.mjs");
   const light = await load("fireplace/light.mjs");
   const achievementsModule = await load("fireplace/achievements.mjs");
+  const soundModule = await load("fireplace/sound.mjs");
   const { createFire, fireOptions, heatIndex, FIRE_COLORS, STEP, SUPPLIES } = pixelFire;
   const { HEARTH, screenY } = scene;
   const run = (fire, seconds) => {
@@ -502,6 +503,7 @@ async function main() {
       ...scene,
       ...light,
       ...achievementsModule,
+      ...soundModule,
       document,
       setTimeout: () => 1,
       clearTimeout: () => {},
