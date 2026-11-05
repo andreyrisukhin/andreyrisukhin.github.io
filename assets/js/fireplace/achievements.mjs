@@ -66,7 +66,7 @@ export function createAchievements(storage) {
       if (stats.burning >= BONFIRE) unlock("bonfire");
       const burning = stats.burning + stats.floor > 0;
       if (burning) lit = true;
-      else if (lit && stats.embers < 0.05) {
+      else if (lit && stats.embers < 0.05 && !stats.coals) {
         if (!watered) unlock("ashes");
         lit = false;
         watered = false;

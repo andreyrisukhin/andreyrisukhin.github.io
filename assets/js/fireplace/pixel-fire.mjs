@@ -30,6 +30,8 @@ const CELLS_W = SCENE.width / SCENE.pixel;
 const CELLS_H = SCENE.height / SCENE.pixel;
 const FLAME_LIMIT = 2600;
 const FLAME_EDGE = 0.16;
+// A cell already showing flame stays lit down to this, so edges do not blink on and off.
+const FLAME_HOLD = 0.12;
 const POCKET_REACH = 6;
 
 export const DEFAULTS = Object.freeze({
@@ -138,6 +140,9 @@ function itemColor(item, s, v, along, len, light, time, gx, gy) {
   const char = item.chars[k];
   const burning = item.fire[k] > 0;
   const temp = item.heat[k];
+  const coal = item.coal ? item.coal[k] : 0;
+  // How brightly charred wood glows here: flame heat while it burns, then the coal it leaves.
+  const glow = burning ? temp : Math.max(coal, temp > 0.3 ? temp : 0);
   const key = item.seed;
   const gu = Math.floor(along / 2);
   const gv = Math.floor((v + 1) * item.r * 0.5);
@@ -163,7 +168,7 @@ function itemColor(item, s, v, along, len, light, time, gx, gy) {
   if ((s < 0 && face === "a") || (s > 1 && face === "b")) {
     const ring = Math.hypot(s < 0 ? -along : along - len, v * item.r) / Math.max(0.5, item.r);
     if (char > 0.3 && ring > 0.7) return CHAR[level];
-    if (burning && char > 0.55 && ring < 0.5) return ember(temp);
+    if ((burning || coal > 0.15) && char > 0.55 && ring < 0.5) return ember(glow);
     return GRAIN[clamp(level - (Math.floor(ring * 4) % 2), 0, 4)];
   }
   // Bark flakes off a burning log in patches, showing the paler inner wood, which chars into glowing cracks.
@@ -171,14 +176,14 @@ function itemColor(item, s, v, along, len, light, time, gx, gy) {
     const deep = clamp((char - 0.2) * 1.6, 0, 1);
     if (hash(gu * 11 + key, gv * 3 + 5) < deep * 1.25 - (v + 1) * 0.15) {
       const crack = gu % 3 === 0 || (gv + Math.floor(gu / 3)) % 3 === 0;
-      if ((burning || temp > 0.3) && crack) return ember(Math.max(temp, 0.5));
+      if (glow > 0.15 && crack) return ember(Math.max(glow, 0.5));
       return CHAR[level];
     }
     return GRAIN[clamp(level - (hash(gv * 13 + key, gu >> 3) < 0.3 ? 1 : 0), 0, 4)];
   }
   if (hash(gu * 7 + key, gv * 13) < char * 1.35 - (v + 1) * 0.3 + 0.1) {
     // Hot char glows even after its flame has died.
-    if ((burning || temp > 0.3) && hash(gu * 3 + key, gv * 5 + 1) < 0.25 * char) return ember(temp);
+    if (glow > 0.15 && hash(gu * 3 + key, gv * 5 + 1) < (0.25 + 0.3 * coal) * char) return ember(glow);
     return CHAR[level];
   }
   const index = hash(key + (gu >> 2), gv * 7 + 3) < 0.3 ? Math.max(0, level - 1) : level;
@@ -211,7 +216,10 @@ export function createFire(overrides = {}) {
     fluid.part = new Float32Array(n);
   }
   const surfaces = surfaceMap();
+  // Light is worked out once per step; frames between steps blend the last two.
   const light = new Float32Array(LIGHT_W * LIGHT_H).fill(0.13);
+  const lightBefore = new Float32Array(LIGHT_W * LIGHT_H).fill(0.13);
+  const lightAfter = new Float32Array(LIGHT_W * LIGHT_H).fill(0.13);
   const occluders = new Float32Array(LIGHT_W * LIGHT_H);
   const cellsZ = new Float32Array(CELLS_W * CELLS_H);
   const cellItem = new Int32Array(CELLS_W * CELLS_H);
@@ -233,6 +241,12 @@ export function createFire(overrides = {}) {
   const outlined = new Uint8Array(CELLS_W * CELLS_H);
   const queue = new Int32Array(CELLS_W * CELLS_H);
   const wet = new Uint8Array(CELLS_W * CELLS_H);
+  const shown = new Map([
+    [innerGrid, new Uint8Array(CELLS_W * CELLS_H)],
+    [outerGrid, new Uint8Array(CELLS_W * CELLS_H)],
+  ]);
+  // Where things were at the start of the current step, for drawing between steps.
+  const startOfStep = new Map();
   let steps = 0;
   let pending = 0;
   let output = 0;
@@ -268,7 +282,12 @@ export function createFire(overrides = {}) {
       const segment = segmentAt(item, part[i]);
       const gx = i % w;
       const strength = segmentFlame(item, segment);
-      if (!strength) continue;
+      if (!strength) {
+        // Glowing coal warms the air just above it, without flame.
+        const coal = item.coal ? item.coal[segment] : 0;
+        if (coal > 0.05) fluid.add(i - w, coal * 0.22, 0.05);
+        continue;
+      }
       // Burning gas leaves any exposed face; one tucked under another item escapes through the first gap above it.
       let j = i - w;
       for (let up = 0; up < 4 && j >= w && block[j] && owner[j] !== owner[i] && !fluid.wall[j]; up++) j -= w;
@@ -349,7 +368,21 @@ export function createFire(overrides = {}) {
     if (flames.length >= FLAME_LIMIT) return;
     const x = fluid.x + ((j % fluid.w) + random()) * fluid.cell;
     const y = fluid.y + (Math.floor(j / fluid.w) + random()) * fluid.cell;
-    flames.push({ x, y, px: x, py: y, vx: 0, vy: -(0.8 + heat * 1.4), heat, z, age: 0, cool: 0.045 + 0.045 * random(), inner: isInner });
+    flames.push({
+      x,
+      y,
+      px: x,
+      py: y,
+      vx: 0,
+      vy: -(0.8 + heat * 1.4),
+      heat,
+      ph: heat,
+      z,
+      age: 0,
+      cool: 0.045 + 0.045 * random(),
+      wobble: random() * 1000,
+      inner: isInner,
+    });
   }
 
   function moveFlames() {
@@ -358,12 +391,15 @@ export function createFire(overrides = {}) {
       const fluid = parcel.inner ? inner : outer;
       const gx = (parcel.x - fluid.x) / fluid.cell - 0.5;
       const gy = (parcel.y - fluid.y) / fluid.cell - 0.5;
-      parcel.vx += (fluid.sample(fluid.u, gx, gy) * fluid.cell - parcel.vx) * 0.35 + (random() - 0.5) * 0.5 * options.turbulence;
+      // Turbulence wanders smoothly over a parcel's life rather than jolting it each step.
+      const wander = noise(parcel.wobble, parcel.age * 0.3) - 0.5;
+      parcel.vx += (fluid.sample(fluid.u, gx, gy) * fluid.cell - parcel.vx) * 0.35 + (wander * 0.7 + (random() - 0.5) * 0.15) * options.turbulence;
       parcel.vy += (fluid.sample(fluid.v, gx, gy) * fluid.cell - parcel.vy) * 0.04 - 0.3 * parcel.heat;
       parcel.vx = clamp(parcel.vx, -6, 6);
       parcel.vy = clamp(parcel.vy, -9, 3);
       parcel.px = parcel.x;
       parcel.py = parcel.y;
+      parcel.ph = parcel.heat;
       parcel.x += parcel.vx;
       parcel.y += parcel.vy;
       let i = fluid.cellAt(parcel.x, parcel.y);
@@ -414,6 +450,8 @@ export function createFire(overrides = {}) {
   }
 
   function advance(physicsOnly = false) {
+    startOfStep.clear();
+    for (const item of world.items) startOfStep.set(item, [{ ...item.a }, { ...item.b }]);
     world.physics(STEP);
     if (physicsOnly) {
       world.impacts = [];
@@ -448,15 +486,13 @@ export function createFire(overrides = {}) {
       world.burst(point.x, screenY(point.y, (item.a.z + item.b.z) / 2) - item.r, 1, 0.5);
       if (item.kind === "log" && inHearth(item) && random() < 0.04) world.pop(point.x, screenY(point.y, (item.a.z + item.b.z) / 2) - item.r);
     }
+    lightBefore.set(lightAfter);
+    const solids = [...world.items, ...world.fixtures, ...world.statics];
+    output = updateLight(lightAfter, solids, rasterSolids(solids), time);
   }
 
-  for (let i = 0; i < 60; i++) advance(true);
-  for (let i = 0; i < 24; i++) advance();
-
-  // highlight: id of an item to outline, such as the one under the pointer.
-  function render(highlight = 0) {
-    const time = steps * STEP;
-    const solids = [...world.items, ...world.fixtures, ...world.statics];
+  // Each solid's nearest surface in every 2×2 cell it covers. Returns how many cells were touched.
+  function rasterSolids(solids) {
     let count = 0;
     cellsZ.fill(Infinity);
     solids.forEach((item, k) =>
@@ -471,6 +507,10 @@ export function createFire(overrides = {}) {
         cellLength[i] = len;
       })
     );
+    return count;
+  }
+
+  function updateLight(field, solids, count, time) {
     occluders.fill(-Infinity);
     for (let n = 0; n < count; n++) {
       const i = touched[n];
@@ -480,16 +520,44 @@ export function createFire(overrides = {}) {
     }
     const outerLights = outer.active > 0 ? findLights(outer, -20, 4, 4) : [];
     if (world.match) outerLights.push({ ...world.match, power: 0.35 });
-    output = lightField(light, { surfaces, inner: findLights(inner, HEARTH.depth / 2), outer: outerLights, occluders, candle: true, time });
+    return lightField(field, { surfaces, inner: findLights(inner, HEARTH.depth / 2), outer: outerLights, occluders, candle: true, time });
+  }
+
+  // An item as it stands part way through the current step. The item in hand is drawn where it is.
+  function between(item, blend) {
+    const start = startOfStep.get(item);
+    if (!start || blend >= 1 || world.grab?.item === item) return item;
+    const at = (from, to) => ({ x: from.x + (to.x - from.x) * blend, y: from.y + (to.y - from.y) * blend, z: from.z + (to.z - from.z) * blend });
+    const view = Object.create(item);
+    view.a = at(start[0], item.a);
+    view.b = at(start[1], item.b);
+    return view;
+  }
+
+  for (let i = 0; i < 60; i++) advance(true);
+  for (let i = 0; i < 24; i++) advance();
+
+  // highlight: id of an item to outline, such as the one under the pointer.
+  // blend: how far the frame falls between the previous step (0) and the latest (1).
+  function render(highlight = 0, blend = 1) {
+    blend = clamp(blend, 0, 1);
+    const time = (steps - 1 + blend) * STEP;
+    const solids = [...world.items.map((item) => between(item, blend)), ...world.fixtures, ...world.statics];
+    const count = rasterSolids(solids);
+    for (let i = 0; i < light.length; i++) light[i] = lightBefore[i] + (lightAfter[i] - lightBefore[i]) * blend;
 
     const layers = { back: [], bed: [], flames: [], front: [], floor: [], room: [], outer: [], sparks: [], water: [], steam: [] };
     innerGrid.fill(0);
     outerGrid.fill(0);
     flameZ.fill(Infinity);
     for (const root of roots.values()) root.fill(0);
-    for (const parcel of flames) splat(parcel.inner ? innerGrid : outerGrid, parcel);
+    for (const parcel of flames) splat(parcel.inner ? innerGrid : outerGrid, parcel, blend);
+    for (const [grid, was] of shown) {
+      for (let i = 0; i < grid.length; i++) if (was[i] && grid[i] >= FLAME_HOLD && grid[i] < FLAME_EDGE) grid[i] = FLAME_EDGE;
+    }
     attach(innerGrid);
     attach(outerGrid);
+    for (const [grid, was] of shown) for (let i = 0; i < grid.length; i++) was[i] = grid[i] >= FLAME_EDGE ? 1 : 0;
     for (const [grid, list] of [
       [innerGrid, layers.flames],
       [outerGrid, layers.outer],
@@ -541,7 +609,9 @@ export function createFire(overrides = {}) {
     }
     for (const spark of world.sparks) {
       const left = 1 - spark.age / spark.life;
-      layers.sparks.push(Math.floor(spark.x / 2), Math.floor(spark.y / 2), FIRE_COLORS[left > 0.7 ? 8 : left > 0.45 ? 6 : left > 0.25 ? 4 : 2]);
+      const sx = spark.px + (spark.x - spark.px) * blend;
+      const sy = spark.py + (spark.y - spark.py) * blend;
+      layers.sparks.push(Math.floor(sx / 2), Math.floor(sy / 2), FIRE_COLORS[left > 0.7 ? 8 : left > 0.45 ? 6 : left > 0.25 ? 4 : 2]);
     }
     // Scorched and burning floorboards.
     const { fire: boardFire, char: boardChar } = world.boards;
@@ -573,16 +643,22 @@ export function createFire(overrides = {}) {
     return layers;
   }
 
-  // A parcel paints a soft disc, hotter ones larger, plus its path since the last step.
-  function splat(grid, parcel) {
-    const radius = 0.7 + parcel.heat * 1.7;
-    const moved = Math.hypot(parcel.x - parcel.px, parcel.y - parcel.py) / SCENE.pixel;
+  // A parcel paints a soft disc, hotter ones larger, plus a trail one step long behind it.
+  // Between steps it is drawn part way along its last move.
+  function splat(grid, parcel, blend) {
+    const dx = parcel.x - parcel.px;
+    const dy = parcel.y - parcel.py;
+    const hx = parcel.px + dx * blend;
+    const hy = parcel.py + dy * blend;
+    const now = parcel.ph + (parcel.heat - parcel.ph) * blend;
+    const radius = 0.7 + now * 1.7;
+    const moved = Math.hypot(dx, dy) / SCENE.pixel;
     const samples = Math.min(4, Math.ceil(moved / radius));
     for (let k = 0; k <= samples; k++) {
       const f = samples ? k / samples : 1;
-      const cx = (parcel.px + (parcel.x - parcel.px) * f) / SCENE.pixel;
-      const cy = (parcel.py + (parcel.y - parcel.py) * f) / SCENE.pixel;
-      const heat = parcel.heat * (0.8 + 0.2 * f);
+      const cx = (hx - dx * (1 - f)) / SCENE.pixel;
+      const cy = (hy - dy * (1 - f)) / SCENE.pixel;
+      const heat = now * (0.8 + 0.2 * f);
       for (let gy = Math.max(0, Math.floor(cy - radius)); gy <= Math.min(CELLS_H - 1, Math.floor(cy + radius)); gy++) {
         for (let gx = Math.max(0, Math.floor(cx - radius)); gx <= Math.min(CELLS_W - 1, Math.floor(cx + radius)); gx++) {
           const d = Math.hypot(gx + 0.5 - cx, gy + 0.5 - cy) / radius;
@@ -650,6 +726,7 @@ export function createFire(overrides = {}) {
     fire: Array.from(item.fire),
     heat: Array.from(item.heat),
     bark: Array.from(item.bark),
+    coal: Array.from(item.coal),
   });
 
   return {
@@ -662,6 +739,8 @@ export function createFire(overrides = {}) {
       }
     },
     render,
+    // Where the next frame falls between the last two steps, for render's blend.
+    blend: () => pending / STEP,
     stats: () => ({
       output,
       items: world.items.length,
@@ -669,6 +748,7 @@ export function createFire(overrides = {}) {
       floor: world.boardsBurning(),
       heldBurning: !!world.grab?.item.burning,
       embers: world.embers.reduce((sum, value) => sum + value, 0) / EMBER_COLUMNS,
+      coals: world.items.filter((item) => item.coals > 0.02).length,
       sparks: world.sparks.length,
       outside: outer.active > 0,
     }),

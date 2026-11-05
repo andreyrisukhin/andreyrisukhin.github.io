@@ -140,10 +140,14 @@ async function main() {
   const fast = createFire({ burnScale: 0.08 });
   const start = logs(fast);
   let sparks = 0;
+  const fell = new Map();
   for (let i = 0; i < 60; i++) {
     run(fast, 1);
     sparks = Math.max(sparks, fast.stats().sparks);
+    for (const item of logs(fast)) if (start.some((log) => log.id === item.id) && !upright(item) && !fell.has(item.id)) fell.set(item.id, i);
   }
+  assert.equal(fell.size, start.length, "every teepee log falls");
+  assert.ok(Math.max(...fell.values()) - Math.min(...fell.values()) <= 1, "the teepee falls in together, not one log at a time");
   const burnt = fast.items().filter((item) => item.inHearth && item.kind === "log");
   assert.ok(
     burnt.every((item) => item.char > 0.5 && item.mass < 1),
@@ -152,6 +156,36 @@ async function main() {
   assert.ok(burnt.length < start.length || burnt.some((item) => !upright(item)), "the teepee collapses as the logs burn");
   assert.ok(sparks > 10, "burning and falling logs throw sparks");
   assert.ok(fast.stats().embers > 0.05, "burnt wood leaves embers");
+
+  // Charred wood whose flame dies keeps glowing as coal, and gives off heat, rather than going dark at once.
+  const coals = createFire({ burnScale: 0.1 });
+  const glowing = () => {
+    for (const item of logs(coals)) {
+      for (let k = 0; k < item.coal.length; k++) if (item.coal[k] > 0.3 && !item.fire[k]) return { id: item.id, k };
+    }
+    return null;
+  };
+  let coal = null;
+  for (let t = 0; t < 240 && !coal; t++) {
+    run(coals, 1);
+    coal = glowing();
+  }
+  assert.ok(coal, "a charred section left without flame glows as coal");
+  const section = () => coals.items().find((item) => item.id === coal.id);
+  assert.ok(section().heat[coal.k] > 0.3, "a coal stays hot");
+  run(coals, 3);
+  assert.ok(section() && (section().coal[coal.k] > 0.1 || section().fire[coal.k] > 0), "a coal glows on for a while, or flares back up");
+  assert.ok(coals.stats().coals > 0 || coals.stats().burning > 0);
+
+  // Frames between steps are drawn part way along, so motion does not jump a whole step at a time.
+  const smooth = createFire();
+  run(smooth, 10);
+  smooth.step(STEP / 2);
+  assert.ok(smooth.blend() > 0 && smooth.blend() < 1, "the fire knows where a frame falls between steps");
+  const flameCells = (layers) => layers.flames.filter((value) => typeof value !== "string").join();
+  const resting = smooth.items();
+  assert.notEqual(flameCells(smooth.render(0, 0)), flameCells(smooth.render(0, 1)), "flames move between steps");
+  assert.deepEqual(smooth.items(), resting, "blending does not move anything");
 
   // Lighting and moving things by hand.
   const cold = createFire({ lit: 0 });
@@ -545,9 +579,9 @@ async function main() {
   assert.equal(page.paints(), 1, "draw an initial frame immediately");
   assert.equal(page.frames.size, 1);
   page.step(0);
+  page.step(8);
+  assert.equal(page.paints(), 1, "cap rendering at about 60 fps");
   page.step(20);
-  assert.equal(page.paints(), 1, "cap rendering at 24 fps");
-  page.step(50);
   assert.equal(page.paints(), 2);
   const at = (x, y) => ({ button: 0, clientX: x * 2, clientY: y * 2, pointerId: 2, preventDefault() {} });
   page.canvas.events.pointermove(at(178, 75));

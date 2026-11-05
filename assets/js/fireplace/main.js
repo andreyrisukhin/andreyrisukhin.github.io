@@ -335,7 +335,7 @@ if (!output || !ctx) {
 
   let layers = null;
   function draw(time) {
-    layers = fire.render(hovered?.type === "item" ? hovered.id : 0);
+    layers = fire.render(hovered?.type === "item" ? hovered.id : 0, fire.blend());
     const albedo = albedos[holdingMug ? 0 : 1];
     for (let gy = 0; gy < CH; gy++) {
       for (let gx = 0; gx < CW; gx++) cellLight[gy * CW + gx] = lightAt(layers.light, gx * 2 + 1, gy * 2 + 1) * GAIN;
@@ -425,13 +425,17 @@ if (!output || !ctx) {
     output.putImageData(frame, 0, 0);
     const state = fire.stats();
     if (state.burning + state.floor > 0) everLit = true;
-    const out = everLit && state.burning + state.floor === 0 && state.embers < 0.05;
+    const out = everLit && state.burning + state.floor + state.coals === 0 && state.embers < 0.05;
     if (out !== burnedOut) {
       burnedOut = out;
       if (out) say("The fire has burned down. Add wood and strike a match to start again.");
     }
   }
 
+  // Frames are drawn at up to about 60 a second. The fire advances in fixed steps of 1/24 s,
+  // and each frame is drawn part way between the last two steps, so motion stays even
+  // whatever the display's refresh rate.
+  const FRAME_MS = 1000 / 60 - 2;
   let paused = reducedMotion.matches;
   let animation = 0;
   let last = null;
@@ -481,7 +485,7 @@ if (!output || !ctx) {
     animation = 0;
     if (paused || document.hidden) return;
     if (last === null) last = now;
-    if (now - last >= 1000 / 24) {
+    if (now - last >= FRAME_MS) {
       const elapsed = Math.min((now - last) / 1000, 0.1);
       time += elapsed;
       last = now;
