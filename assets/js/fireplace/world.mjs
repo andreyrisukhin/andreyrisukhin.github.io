@@ -1111,6 +1111,7 @@ export class World {
   }
 
   hiss(x, y, count) {
+    if (!this.events.some((event) => event.type === "hiss")) this.events.push({ type: "hiss" });
     for (let i = 0; i < count && this.steam.length < STEAM_LIMIT; i++) {
       this.steam.push({
         x: x + (this.random() - 0.5) * 6,
@@ -1185,6 +1186,7 @@ export class World {
   kick() {
     this.ticks++;
     if (this.knocks.size > 256) this.knocks.clear();
+    if (this.impacts.some((hit) => hit.strength > 1.8 && hit.items.some((item) => item.kind === "log"))) this.events.push({ type: "impact" });
     for (const hit of this.impacts) {
       const key = hit.items
         .map((item) => item.id ?? "bar")

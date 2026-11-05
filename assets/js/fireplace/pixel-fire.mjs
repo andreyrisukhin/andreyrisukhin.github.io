@@ -747,6 +747,7 @@ export function createFire(overrides = {}) {
       burning: world.items.filter((item) => item.burning).length + world.fixtures.filter((item) => item.burning).length,
       floor: world.boardsBurning(),
       heldBurning: !!world.grab?.item.burning,
+      barkBurning: world.items.some((item) => item.kind === "log" && item.burning && item.bark.some((bark, k) => bark > 0.1 && item.fire[k] > 0)),
       embers: world.embers.reduce((sum, value) => sum + value, 0) / EMBER_COLUMNS,
       coals: world.items.filter((item) => item.coals > 0.02).length,
       sparks: world.sparks.length,

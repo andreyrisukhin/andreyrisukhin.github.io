@@ -1,6 +1,7 @@
 import { ign, luminance, paletteIndex } from "../ditherer/texture.mjs";
 import { ACHIEVEMENTS, createAchievements } from "./achievements.mjs";
 import { lightAt } from "./light.mjs";
+import { createHearthSound } from "./sound.mjs";
 import { FIRE_COLORS, HIGHLIGHT, SUPPLIES, createFire } from "./pixel-fire.mjs";
 import { BOARDS, RUG, SCENE, insideOpening } from "./scene.mjs";
 
@@ -40,6 +41,7 @@ if (!output || !ctx) {
   const tuning = {};
   for (const [param, option] of Object.entries(names)) if (query.has(param)) tuning[option] = query.get(param);
   const fire = createFire(tuning);
+  const sound = createHearthSound();
   const CW = W / SCENE.pixel;
   const CH = H / SCENE.pixel;
   // The room is drawn once as plain surface brightness. Each frame multiplies it
@@ -505,7 +507,10 @@ if (!output || !ctx) {
         say("The water in the mug is boiling. Time for tea.");
       } else if (mugHeat < 0.9) boiled = false;
       fire.step(elapsed);
-      notice(achievements.observe([...fire.events(), ...mugEvents], fire.stats(), elapsed));
+      const events = [...fire.events(), ...mugEvents],
+        state = fire.stats();
+      sound.tick(events, state);
+      notice(achievements.observe(events, state, elapsed));
       draw(time);
     }
     animation = requestAnimationFrame(tick);
@@ -513,7 +518,10 @@ if (!output || !ctx) {
   function syncAnimation() {
     cancelAnimationFrame(animation);
     last = null;
-    if (!paused && !document.hidden) animation = requestAnimationFrame(tick);
+    if (!paused && !document.hidden) {
+      sound.wake();
+      animation = requestAnimationFrame(tick);
+    } else sound.pause();
   }
   // A still scene still answers the pointer.
   const refresh = () => {
@@ -547,6 +555,7 @@ if (!output || !ctx) {
       if (inBox(MUG, point.x, point.y)) setMugDown();
       else {
         pouring = true;
+        if (!paused && water > 0) sound.play("pour");
         canvas.setPointerCapture(event.pointerId);
         if (water <= 0) say("The mug is empty. Set it back down to fill it again.");
       }
@@ -559,6 +568,7 @@ if (!output || !ctx) {
       say(holdingMatch ? "You take a match. Click anywhere to strike it." : "You put the match back.");
     } else if (holdingMatch) {
       fire.strike(point.x, point.y);
+      if (!paused) sound.play("strike");
       holdingMatch = false;
       say("You strike the match.");
     } else if (fire.grab(point.x, point.y)) {
@@ -624,6 +634,16 @@ if (!output || !ctx) {
     syncAnimation();
   });
   document.addEventListener("visibilitychange", syncAnimation);
+  // If autoplay was blocked, retry in the gesture itself (touch activates on release).
+  for (const gesture of ["pointerdown", "pointerup", "keydown"]) {
+    document.addEventListener(
+      gesture,
+      () => {
+        if (!paused && !document.hidden) sound.wake();
+      },
+      true
+    );
+  }
   if (paused) say("Motion is off to match your device setting. Press Space on the scene to play.");
   draw(time);
   syncAnimation();

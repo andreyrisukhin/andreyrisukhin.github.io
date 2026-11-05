@@ -13,6 +13,7 @@ async function main() {
   const scene = await load("fireplace/scene.mjs");
   const light = await load("fireplace/light.mjs");
   const achievementsModule = await load("fireplace/achievements.mjs");
+  const soundModule = await load("fireplace/sound.mjs");
   const { createFire, fireOptions, heatIndex, FIRE_COLORS, STEP, SUPPLIES } = pixelFire;
   const { HEARTH, screenY } = scene;
   const run = (fire, seconds) => {
@@ -476,7 +477,7 @@ async function main() {
   });
   assert.equal(blocked.observe([{ type: "split" }], calm, 1)[0].id, "timber", "secrets still work without storage");
   assert.equal(blocked.observe([{ type: "boil" }], calm, 1)[0].id, "tea");
-  function mount({ reduced = false, supported = true, search = "", saved = null } = {}) {
+  function mount({ reduced = false, supported = true, search = "", saved = null, sound = null } = {}) {
     class Element {
       constructor() {
         this.events = {};
@@ -536,6 +537,7 @@ async function main() {
       ...scene,
       ...light,
       ...achievementsModule,
+      ...soundModule,
       document,
       setTimeout: () => 1,
       clearTimeout: () => {},
@@ -552,6 +554,7 @@ async function main() {
       cancelAnimationFrame: (key) => frames.delete(key),
     };
     let created;
+    if (sound) sandbox.createHearthSound = () => sound;
     sandbox.createFire = (options) => (created = pixelFire.createFire(options));
     vm.runInNewContext(code, sandbox);
     return {
@@ -571,6 +574,20 @@ async function main() {
     };
   }
 
+  let wakes = 0,
+    pauses = 0;
+  const audioPage = mount({ sound: { wake: () => wakes++, pause: () => pauses++ } });
+  assert.equal(wakes, 1, "attempt autoplay without a gesture");
+  audioPage.document.events.pointerup();
+  assert.equal(wakes, 2, "a touch release anywhere retries blocked autoplay");
+  audioPage.document.hidden = true;
+  audioPage.document.events.visibilitychange();
+  audioPage.document.events.keydown();
+  assert.equal(pauses, 1);
+  assert.equal(wakes, 2, "do not wake hidden audio");
+  audioPage.document.hidden = false;
+  audioPage.document.events.visibilitychange();
+  assert.equal(wakes, 3, "resume on return without another click");
   const page = mount();
   assert.equal(page.elements["hearth-found"].hidden, true, "no hint of secrets before one is found");
   assert.equal(page.elements["hearth-toast"].hidden, true);
