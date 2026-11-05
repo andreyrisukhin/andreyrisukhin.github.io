@@ -132,6 +132,19 @@ const SEGMENT = 8;
 // Bark is dense and corky: it takes more heat to light and warms slowly. Burning chars it
 // and flakes it off (seconds at full flame), exposing the inner wood, which burns freely.
 const BARK_LAYER = Object.freeze({ shield: 0.1, slow: 0.35, seconds: 45 });
+// When flame leaves well-charred wood it keeps glowing as coal. char: how charred a section must be.
+// seconds: how long a coal glows in still air; hot surroundings slow the fade. heat: its temperature
+// at full glow. radiate: the most heat a pile of coals gives its neighbors, kept below what lights
+// a log so coals alone glow on rather than flare up again. burn and embers: how fast coal
+// is consumed and feeds the bed, relative to flame.
+const COAL = Object.freeze({ char: 0.35, seconds: 150, heat: 0.55, radiate: 0.3, burn: 0.2, embers: 0.3 });
+const COAL_KINDS = new Set(["log", "stick"]);
+// Fastest a piece of wood shrinks as it catches up with its burnt mass, in pixels per second.
+const SHRINK = Object.freeze({ length: 12, r: 1.5 });
+// Collisions throw sparks only when they are real knocks, and the same pair of things knocking
+// again soon after (settling, sliding) throws none. Seconds of spark budget refill steadily.
+const KNOCK = Object.freeze({ speed: 2, cooldown: 12, most: 18 });
+const SPARK_BUDGET = Object.freeze({ most: 40, perSecond: 30 });
 const PILE = [
   { x: 52, z: -70 },
   { x: 60, z: -110 },
@@ -194,7 +207,10 @@ function summarize(item) {
     heat = Math.max(heat, item.heat[k]);
     char += item.chars[k];
   }
+  let coal = 0;
+  for (let k = 0; k < item.coal.length; k++) coal += item.coal[k];
   item.burning = fire > 0;
+  item.coals = coal / item.coal.length;
   item.temp = heat;
   item.char = char / item.heat.length;
   return fire / item.heat.length;
@@ -224,6 +240,9 @@ export class World {
     this.steam = [];
     this.events = [];
     this.pourCarry = 0;
+    this.sparkBudget = SPARK_BUDGET.most;
+    this.ticks = 0;
+    this.knocks = new Map();
     const patches = BOARDS.cols * BOARDS.rows;
     this.boards = {
       heat: new Float32Array(patches),
@@ -274,8 +293,6 @@ export class World {
       seed: Math.floor(hash(this.options.seed, id) * 65536),
       ...state,
     };
-    // Burning thins a log until it can no longer hold its place in a stack.
-    item.wakeMass ??= item.kind === "log" ? 0.45 + 0.3 * hash(item.seed, 7) : item.kind === "stick" ? 0.7 : 0.3;
     item.length0 ??= length3(sub(b, a));
     const n = Math.max(1, Math.round(item.length0 / SEGMENT));
     const fill = (value, from) =>
@@ -288,9 +305,13 @@ export class World {
     // Soaked sections cannot burn until they dry.
     item.wet = fill(0, state.wet);
     item.bark = fill(kind === "log" ? 1 : 0, state.bark);
+    item.coal = fill(0, state.coal);
+    // Burning thins a log until it can no longer hold its place in a stack.
+    item.wakeMass ??= item.kind === "log" ? 0.45 + 0.3 * hash(item.seed, 7) : item.kind === "stick" ? 0.7 : 0.3;
     summarize(item);
     item.r = item.r0;
     item.length = item.length0;
+    item.shape = { r: item.r, length: item.length };
     return item;
   }
 
@@ -360,12 +381,29 @@ export class World {
     item.still = 0;
   }
 
-  wakeAround(item) {
+  // Wakes what touches item (only what rests on top of it, with above) and returns what it woke.
+  wakeAround(item, above = false) {
+    const woken = [];
     for (const other of this.items) {
       if (other === item || !other.asleep) continue;
       const [s, t] = closestParams(item.a, item.b, other.a, other.b);
-      if (length3(sub(lerp(item.a, item.b, s), lerp(other.a, other.b, t))) < item.r + other.r + 2) this.wake(other);
+      const mine = lerp(item.a, item.b, s);
+      const theirs = lerp(other.a, other.b, t);
+      if (above && theirs.y > mine.y - item.r * 0.5) continue;
+      // A log leaning in a stack is held by the others until it has burned thin itself.
+      if (above && other.kind === "log" && other.mass >= other.wakeMass && Math.abs(other.a.y - other.b.y) > 0.5 * other.length) continue;
+      if (length3(sub(mine, theirs)) < item.r + other.r + 2) {
+        this.wake(other);
+        woken.push(other);
+      }
     }
+    return woken;
+  }
+
+  // A stack moves as one: wake everything resting against item, and what rests against those.
+  wakeConnected(item) {
+    const queue = [item];
+    while (queue.length) queue.push(...this.wakeAround(queue.pop()));
   }
 
   spawnSpare() {
@@ -522,7 +560,7 @@ export class World {
           p.y = p.py + (p.y - p.py) * k;
           p.z = p.pz + (p.z - p.pz) * k;
         }
-        if (p.impact > 1.2) this.impacts.push({ x: p.x, y: p.y, z: p.z, strength: p.impact, items: [item] });
+        if (p.impact > KNOCK.speed) this.impacts.push({ x: p.x, y: p.y, z: p.z, strength: p.impact, items: [item] });
       }
     }
   }
@@ -593,7 +631,7 @@ export class World {
       const mA = lerp(motion(pa), motion(qa), s);
       const mB = B.static ? { x: 0, y: 0, z: 0 } : lerp(motion(pb), motion(qb), t);
       const approach = -dot(sub(mA, mB), n);
-      if (approach > 1) this.impacts.push({ ...c2, strength: approach, items: [A, B] });
+      if (approach > KNOCK.speed) this.impacts.push({ ...c2, strength: approach, items: [A, B] });
     }
     const k = depth / g;
     for (const axis of ["x", "y", "z"]) {
@@ -736,16 +774,30 @@ export class World {
           item.wet[k] = Math.max(0, item.wet[k] - (dt * (0.08 + 0.3 * Math.max(0, heat))) / burnScale);
           heat = Math.min(heat, 0.15);
           if (item.fire[k]) item.fire[k] = Math.max(0, item.fire[k] - dt * 2 * item.wet[k]);
+          item.coal[k] = Math.max(0, item.coal[k] - dt * 2 * item.wet[k]);
         }
         const neighbors = (before[Math.max(0, k - 1)] + before[Math.min(n - 1, k + 1)]) / 2;
         if (item.fire[k]) {
           // A flame grows with the heat feeding it: its own, plus what the fire around it adds.
           const support = clamp((heat + material.sustain - material.out) / (1 - material.out), 0, 1);
           item.fire[k] += (support - item.fire[k]) * warm;
-          if (item.fire[k] < 0.06) item.fire[k] = 0;
-          item.heat[k] = item.fire[k] ? 0.6 + 0.4 * item.fire[k] : material.out;
+          if (item.fire[k] < 0.06) {
+            item.fire[k] = 0;
+            if (COAL_KINDS.has(item.kind) && !item.wet[k] && item.chars[k] > COAL.char) item.coal[k] = Math.min(1, 0.5 + 0.5 * item.chars[k]);
+          }
+          item.heat[k] = item.fire[k] ? 0.6 + 0.4 * item.fire[k] : Math.max(material.out, COAL.heat * item.coal[k]);
           item.chars[k] = Math.min(1, item.chars[k] + charRate * (1 - item.chars[k]) * (0.4 + 0.6 * item.fire[k]));
           if (item.bark[k] > 0) item.bark[k] = Math.max(0, item.bark[k] - (dt / (BARK_LAYER.seconds * burnScale)) * (0.3 + 0.7 * item.fire[k]));
+        } else if (item.coal[k] > 0) {
+          const fade = (dt / (COAL.seconds * burnScale)) * (1 - Math.min(0.8, heat * 1.6));
+          item.coal[k] = Math.max(0, item.coal[k] - fade);
+          item.heat[k] = Math.max(heat, COAL.heat * item.coal[k]);
+          item.chars[k] = Math.min(1, item.chars[k] + charRate * 0.2 * (1 - item.chars[k]));
+          // Fresh heat from new wood or a draft brings a coal back into flame.
+          if (heat >= material.ignite) {
+            item.fire[k] = 0.3;
+            item.coal[k] = 0;
+          }
         } else {
           const bark = item.bark[k];
           const t = before[k] + (heat - before[k]) * warm * (1 - BARK_LAYER.slow * bark) + (neighbors - before[k]) * conduct;
@@ -761,6 +813,17 @@ export class World {
             item.length / 2 + item.r + 12;
         const source = struck?.item === item || near ? "match" : candle ? "candle" : "spread";
         this.events.push({ type: "ignite", kind: item.kind, source, inHearth: inHearth(item) });
+      }
+      if (item.coals > 0) {
+        const rate = (dt / (material.burn * burnScale)) * COAL.burn * item.coals;
+        item.mass -= rate;
+        if (inHearth(item)) {
+          for (let k = 0; k < n; k++) {
+            if (!item.coal[k]) continue;
+            const c = this.emberColumn(centerOf(item, k).x);
+            if (c >= 0 && c < EMBER_COLUMNS) this.embers[c] = Math.min(1, this.embers[c] + (rate * COAL.embers * 9 * item.coal[k]) / n);
+          }
+        }
       }
       if (fire > 0) {
         const rate = (dt / (material.burn * burnScale)) * fire;
@@ -788,12 +851,23 @@ export class World {
       }
       if (item.asleep && item.mass < item.wakeMass) {
         this.wake(item);
-        this.wakeAround(item);
+        // A log giving way brings down the stack it holds up; kindling only stirs its neighbors.
+        if (item.kind === "log") this.wakeConnected(item);
+        else this.wakeAround(item);
       }
       if (item.kind === "paper") item.r = item.r0 * (0.35 + 0.65 * item.mass);
       else if (!item.asleep) {
-        item.length = item.length0 * (0.55 + 0.45 * item.mass);
-        item.r = Math.max(item.kind === "stick" ? 0.8 : 1.5, item.r0 * Math.sqrt(item.mass));
+        // A sleeping piece keeps its size; once awake it shrinks to match its mass over a second
+        // or so, rather than all at once, so it settles instead of dropping.
+        const length = item.length0 * (0.55 + 0.45 * item.mass);
+        const r = Math.max(item.kind === "stick" ? 0.8 : 1.5, item.r0 * Math.sqrt(item.mass));
+        item.length += clamp(length - item.length, -SHRINK.length * dt, SHRINK.length * dt);
+        item.r += clamp(r - item.r, -SHRINK.r * dt, SHRINK.r * dt);
+      }
+      // Whatever rests on a thinning log wakes to settle into the gap.
+      if (item.kind === "log" && (Math.abs(item.r - item.shape.r) > 0.25 || Math.abs(item.length - item.shape.length) > 1)) {
+        this.wakeAround(item, true);
+        item.shape = { r: item.r, length: item.length };
       }
       const breakable = item.kind === "log" && item.burning && item.mass < 0.55 && item.char > 0.75 && item.length > item.r * 5;
       if (breakable && this.grab?.item !== item && this.random() < dt * 0.03) this.split(item);
@@ -884,11 +958,12 @@ export class World {
     const sources = [];
     const all = [...this.items, ...this.fixtures];
     for (const item of all) {
-      if (!item.burning) continue;
+      if (!item.burning && !item.coals) continue;
       for (let k = 0; k < item.heat.length; k++) {
-        // Charred wood still radiates: its heat moves from flame into glowing coal.
-        const strength = MATERIALS[item.kind].flame * Math.sqrt(Math.max(0, item.mass)) * item.fire[k];
-        if (strength > 0) sources.push({ item, p: centerOf(item, k), r: item.r, strength });
+        const size = Math.sqrt(Math.max(0, item.mass));
+        const strength = MATERIALS[item.kind].flame * size * item.fire[k];
+        if (strength > 0) sources.push({ item, p: centerOf(item, k), r: item.r, strength, coal: false });
+        else if (item.coal[k] > 0) sources.push({ item, p: centerOf(item, k), r: item.r, strength: 0.6 * size * item.coal[k], coal: true });
       }
     }
     if (!sources.length) return heat;
@@ -899,6 +974,7 @@ export class World {
       for (let k = 0; k < n; k++) {
         const p = centerOf(item, k);
         let total = 0;
+        let glow = 0;
         for (const source of sources) {
           if (source.item === item) continue;
           const dy = p.y - source.p.y;
@@ -906,9 +982,12 @@ export class World {
           const gap = Math.max(0, distance - item.r - source.r);
           // Flames lean up, so wood above a fire catches far sooner than wood beside or below it.
           const above = clamp(0.55 - (0.75 * dy) / distance, 0.25, 1.3);
-          total += source.strength * 0.6 * above * (RADIANT_REACH / (gap + RADIANT_REACH)) ** 2;
-          if ((item.static || source.item.static) && gap < 3) total += source.strength * 0.8;
+          const received = source.strength * 0.6 * above * (RADIANT_REACH / (gap + RADIANT_REACH)) ** 2;
+          if (source.coal) glow += received;
+          else total += received;
+          if (!source.coal && (item.static || source.item.static) && gap < 3) total += source.strength * 0.8;
         }
+        total += Math.min(COAL.radiate, glow);
         if (total > 0) {
           field ??= new Float32Array(n);
           field[k] = Math.min(1, total);
@@ -1050,6 +1129,7 @@ export class World {
     const len = length3(axis) || 1;
     const unit = { x: axis.x / len, y: axis.y / len, z: axis.z / len };
     const half = len / 2 - item.r * 0.4;
+    const glow = (item.fire.reduce((sum, value) => sum + value, 0) + item.coal.reduce((sum, value) => sum + value, 0)) / item.fire.length;
     const scale = 0.55 + 0.45 * item.mass;
     const state = { r0: item.r0, mass: item.mass, length0: half / scale };
     const n = item.heat.length;
@@ -1060,6 +1140,7 @@ export class World {
       chars: item.chars.slice(from, to),
       wet: item.wet.slice(from, to),
       bark: item.bark.slice(from, to),
+      coal: item.coal.slice(from, to),
     });
     const end = (p, sign) => ({ x: p.x + unit.x * half * sign, y: p.y + unit.y * half * sign, z: p.z + unit.z * half * sign });
     const first = this.spawn(item.kind, a, end(a, 1), part(0, Math.ceil(n / 2)));
@@ -1078,7 +1159,7 @@ export class World {
     this.wakeAround(item);
     this.events.push({ type: "split" });
     const mid = lerp(a, b, 0.5);
-    this.burst(mid.x, screenY(mid.y, mid.z), 26, 1);
+    this.burst(mid.x, screenY(mid.y, mid.z), Math.round(6 + 14 * Math.min(1, glow)), 1);
   }
 
   consume(item) {
@@ -1096,30 +1177,48 @@ export class World {
       }
     }
     const mid = lerp(item.a, item.b, 0.5);
-    this.burst(mid.x, screenY(mid.y, mid.z), item.kind === "log" ? 30 : 10, item.kind === "paper" ? 0.5 : 0.8);
+    // Wood is removed once almost nothing is left of it, so it crumbles with a few sparks, not a blast.
+    const sparks = item.kind === "log" ? 4 : item.kind === "stick" ? 1 : 0;
+    if (sparks && (item.burning || item.coals)) this.burst(mid.x, screenY(mid.y, mid.z), sparks, 0.6);
   }
 
   // Turn this step's collisions into kicked-up embers where something hot was hit.
   kick() {
+    this.ticks++;
+    if (this.knocks.size > 256) this.knocks.clear();
     if (this.impacts.some((hit) => hit.strength > 1.8 && hit.items.some((item) => item.kind === "log"))) this.events.push({ type: "impact" });
     for (const hit of this.impacts) {
-      let hot = hit.items.some((item) => item.burning) ? 1 : 0;
+      const key = hit.items
+        .map((item) => item.id ?? "bar")
+        .sort()
+        .join(":");
+      const last = this.knocks.get(key);
+      if (last !== undefined && this.ticks - last < KNOCK.cooldown) continue;
+      let hot = hit.items.some((item) => item.burning) ? 1 : hit.items.some((item) => item.coals > 0.05) ? 0.6 : 0;
       if (hit.z >= -7) {
         const column = this.emberColumn(hit.x);
-        if (column >= 0 && column < EMBER_COLUMNS) hot = Math.max(hot, this.embers[column] * 1.6);
+        if (column >= 0 && column < EMBER_COLUMNS) hot = Math.max(hot, this.embers[column]);
       }
       if (hot < 0.05) continue;
-      const count = Math.min(36, Math.round(hit.strength * 4 * hot));
+      const count = Math.min(KNOCK.most, Math.round(hit.strength * 3 * hot));
+      if (!count) continue;
+      this.knocks.set(key, this.ticks);
       this.burst(hit.x, screenY(hit.y, hit.z), count, Math.min(1.6, 0.4 + hit.strength * 0.18));
     }
     this.impacts = [];
   }
 
   burst(x, y, count, power) {
+    count = Math.min(count, Math.floor(this.sparkBudget));
+    this.sparkBudget -= Math.max(0, count);
     for (let i = 0; i < count && this.sparks.length < SPARK_LIMIT; i++) {
+      const sx = x + (this.random() - 0.5) * 6;
+      const sy = y - this.random() * 4;
       this.sparks.push({
-        x: x + (this.random() - 0.5) * 6,
-        y: y - this.random() * 4,
+        x: sx,
+        y: sy,
+        px: sx,
+        py: sy,
         vx: (this.random() - 0.5) * 170 * power,
         vy: -(50 + this.random() * 230) * power,
         life: 0.5 + this.random() * 1.7,
@@ -1134,6 +1233,8 @@ export class World {
     this.sparks.push({
       x,
       y,
+      px: x,
+      py: y,
       vx: (240 - x) * 0.3 + (this.random() - 0.5) * 50,
       vy: -(90 + this.random() * 70),
       land: BOARDS.top + 1 + this.random() * 22,
@@ -1144,8 +1245,11 @@ export class World {
 
   // Sparks ride the hot gas, fall when it cools, and bounce on the hearth.
   updateSparks(dt, flowAt) {
+    this.sparkBudget = Math.min(SPARK_BUDGET.most, this.sparkBudget + SPARK_BUDGET.perSecond * dt);
     const kept = [];
     for (const spark of this.sparks) {
+      spark.px = spark.x;
+      spark.py = spark.y;
       spark.age += dt;
       if (spark.age >= spark.life) continue;
       const flow = flowAt(spark.x, spark.y);
