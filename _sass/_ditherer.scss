@@ -109,7 +109,9 @@
   margin-bottom: 0.75rem;
 }
 
+// The panel scrolls, so rings outside the thumbnail get clipped at its edges; draw them inside.
 .ditherer .ditherer-sample {
+  position: relative;
   aspect-ratio: 1;
   padding: 0;
   overflow: hidden;
@@ -122,9 +124,20 @@
     object-fit: cover;
   }
 
-  &.is-selected {
-    outline: 2px solid var(--global-text-color);
-    outline-offset: 2px;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  &.is-selected::after {
+    border: 2px solid var(--global-text-color);
+    box-shadow: inset 0 0 0 2px var(--global-bg-color);
+  }
+
+  &:focus-visible {
+    outline-offset: -2px;
   }
 }
 

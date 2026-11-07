@@ -24,6 +24,17 @@ and small uppercase labels. Put advanced controls, analysis notes, and the
 “why I made this” copy behind a quiet `details` disclosure, leaving the intro
 at one line.
 
+Check layout changes to these tools in a built page at desktop (1440 × 900)
+and mobile (390 × 844) widths:
+
+```sh
+agent-browser eval --stdin < _scripts/ditherer-browser-check.js
+agent-browser eval --stdin < _scripts/color-outfit-browser-check.js
+```
+
+Each prints its passed checks or throws on the first failure. Read the output:
+`agent-browser` can exit 0 after an evaluation error.
+
 ### 1. Images need room to breathe
 
 Pictures lose impact when crammed against text. A photo separated from the surrounding paragraphs by clear vertical space reads as deliberate; a photo flush against text reads as filler.
