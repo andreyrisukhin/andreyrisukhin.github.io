@@ -22,6 +22,7 @@
   const figure = $("outfit-figure");
   const skinEl = $("outfit-skin");
   const notesEl = $("outfit-notes");
+  const whyFlag = $("outfit-why-flag");
   const examplesEl = $("outfit-examples");
   const saveName = $("outfit-save-name");
   const saveButton = $("outfit-save");
@@ -155,7 +156,15 @@
     return { x: geo.center + Math.sin(angle) * hsv.s * geo.radius, y: geo.center - Math.cos(angle) * hsv.s * geo.radius };
   }
 
-  function buildWheelImage(geo, v) {
+  // The wheel is a map, so it is drawn partway toward the paper; the dots carry the true colors.
+  const WHEEL_PAPER_MIX = 0.22;
+
+  function paperRgb() {
+    const hex = O.normalizeHex(getComputedStyle(root).getPropertyValue("--paper").trim());
+    return hex ? O.hexToRgb(hex) : null;
+  }
+
+  function buildWheelImage(geo, v, paper) {
     const px = Math.round(geo.size * geo.ratio);
     const image = new ImageData(px, px);
     const r = geo.radius * geo.ratio;
@@ -168,9 +177,10 @@
         if (dist > r + 1) continue;
         const rgb = O.hsvToRgb({ h: (Math.atan2(dx, -dy) * 180) / Math.PI, s: Math.min(1, dist / r), v });
         const i = (y * px + x) * 4;
-        image.data[i] = rgb.r;
-        image.data[i + 1] = rgb.g;
-        image.data[i + 2] = rgb.b;
+        const mix = (channel, target) => (paper ? Math.round(channel + (target - channel) * WHEEL_PAPER_MIX) : channel);
+        image.data[i] = mix(rgb.r, paper && paper.r);
+        image.data[i + 1] = mix(rgb.g, paper && paper.g);
+        image.data[i + 2] = mix(rgb.b, paper && paper.b);
         image.data[i + 3] = dist > r ? Math.round(255 * (r + 1 - dist)) : 255;
       }
     }
@@ -189,9 +199,10 @@
       wheel.height = px;
     }
     const v = Math.max(0.12, hsv.v);
-    const key = px + ":" + v.toFixed(2);
+    const paper = paperRgb();
+    const key = px + ":" + v.toFixed(2) + ":" + (paper ? paper.r + "," + paper.g + "," + paper.b : "");
     if (key !== wheelCacheKey) {
-      wheelImage = buildWheelImage(geo, v);
+      wheelImage = buildWheelImage(geo, v, paper);
       wheelCacheKey = key;
     }
     const ctx = wheel.getContext("2d");
@@ -631,6 +642,8 @@
         return li;
       })
     );
+    const toCheck = notes.filter((note) => note.level === "warn").length;
+    whyFlag.textContent = toCheck ? ` · ${toCheck} to check` : "";
   }
 
   // ----- Ideas -----
@@ -647,9 +660,8 @@
       .filter(hasChoices)
       .map((p) => `${p.options.map((hex) => colorName(hex).toLowerCase()).join(" or ")} ${nameOf(p).toLowerCase()}`);
     const choiceText = choosing.length ? ` Choosing between ${choosing.join("; ")}.` : "";
-    const lockTip = locked.length ? "" : " Lock pieces you can’t change and ideas will work around them.";
     ideasNote.textContent = ideas.length
-      ? `Built around ${describe(base)}.${keeping}${choiceText} Click one to try it.${lockTip}`
+      ? `Built around ${describe(base)}.${keeping}${choiceText}`
       : locked.length === state.pieces.length
         ? "Every piece is locked. Unlock one to get ideas for it."
         : "Add a piece to get ideas.";

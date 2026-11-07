@@ -5,11 +5,9 @@ permalink: /color/outfit/
 description: "Plan an outfit’s colors and how much of the look each one covers."
 ---
 
-Pick a color for each piece, then size it by how much of you it covers. Olive shorts cover less than olive chinos, so the same white tee and olive bottoms make a different look. Compare the two examples below. Lock the pieces you already own, and the ideas will build around them.
-
 <div class="outfit" data-outfit>
   <div class="outfit-panel">
-    <h2>Color</h2>
+    <h2 class="sr-only">Color</h2>
     <p class="outfit-selected" id="outfit-selected-label"></p>
     <canvas id="outfit-wheel" class="outfit-wheel" role="img" aria-label="Color wheel. Click to set the selected piece’s hue and saturation; drag a dot to move that piece."></canvas>
     <div class="outfit-field">
@@ -43,24 +41,18 @@ Pick a color for each piece, then size it by how much of you it covers. Olive sh
       <div class="outfit-bar" id="outfit-bar"></div>
       <p class="outfit-hint"><span id="outfit-auto-note"></span> <button type="button" class="outfit-link-button" id="outfit-auto" hidden>Reset to garment sizes</button></p>
     </section>
-    <section class="outfit-section" aria-labelledby="outfit-ideas-title">
-      <div class="outfit-section__head">
-        <h2 id="outfit-ideas-title">Ideas</h2>
-        <button type="button" id="outfit-more">More ideas</button>
-      </div>
-      <p class="outfit-hint outfit-hint--top" id="outfit-ideas-note"></p>
-      <ul class="outfit-ideas" id="outfit-ideas"></ul>
-    </section>
     <div class="outfit-split">
       <section class="outfit-section" aria-labelledby="outfit-pieces-title">
         <h2 id="outfit-pieces-title">Pieces</h2>
-        <p class="outfit-hint outfit-hint--top">Lock a piece whose color you can’t change, like shorts you already own. Ideas never repaint it. If you own it in a few colors, like gray or brown shoes, add them and ideas pick the best one.</p>
         <ol class="outfit-pieces" id="outfit-pieces"></ol>
         <div class="outfit-add">
           <select id="outfit-add-garment" aria-label="Garment to add"></select>
           <button type="button" id="outfit-add">Add piece</button>
         </div>
-        <ul class="outfit-notes" id="outfit-notes" aria-live="polite"></ul>
+        <details class="tool-more outfit-why">
+          <summary>Why it works<span class="outfit-why__flag" id="outfit-why-flag"></span></summary>
+          <ul class="outfit-notes" id="outfit-notes"></ul>
+        </details>
       </section>
       <section class="outfit-section outfit-figure-wrap" aria-label="Preview">
         <svg class="outfit-figure" id="outfit-figure" viewBox="0 0 160 312" role="img" aria-label="Figure wearing the outfit">
@@ -95,20 +87,34 @@ Pick a color for each piece, then size it by how much of you it covers. Olive sh
         </div>
       </section>
     </div>
+    <section class="outfit-section" aria-labelledby="outfit-ideas-title">
+      <div class="outfit-section__head">
+        <h2 id="outfit-ideas-title">Ideas</h2>
+        <button type="button" id="outfit-more">More ideas</button>
+      </div>
+      <p class="outfit-hint outfit-hint--top" id="outfit-ideas-note"></p>
+      <ul class="outfit-ideas" id="outfit-ideas"></ul>
+    </section>
     <section class="outfit-section" aria-labelledby="outfit-saved-title">
       <h2 id="outfit-saved-title">Outfits</h2>
-      <span class="outfit-field__label">Examples</span>
+      <span class="tool-label">Examples</span>
       <ul class="outfit-chips" id="outfit-examples"></ul>
       <ul class="outfit-chips" id="outfit-saved" hidden></ul>
       <div class="outfit-save">
         <input id="outfit-save-name" type="text" placeholder="Name this outfit" aria-label="Outfit name">
-        <button type="button" id="outfit-save">Save</button>
+        <button type="button" class="tool-button--primary" id="outfit-save">Save</button>
         <button type="button" id="outfit-copy">Copy link</button>
       </div>
       <p class="outfit-hint" id="outfit-status" role="status"></p>
     </section>
   </div>
 </div>
+
+<details class="tool-footnote tool-more">
+  <summary>How it works</summary>
+  <p>Pick a color for each piece, then size it by how much of you it covers. Olive shorts cover less than olive chinos, so the same white tee and olive bottoms make a different look. Compare the Olive chinos and Olive shorts examples.</p>
+  <p>Lock a piece whose color you can’t change, like shorts you already own. Ideas never repaint it. If you own it in a few colors, like gray or brown shoes, add them and ideas pick the best one.</p>
+</details>
 
 <script defer src="{{ '/assets/js/color-outfit/model.js' | relative_url | bust_file_cache }}"></script>
 <script defer src="{{ '/assets/js/color-outfit/main.js' | relative_url | bust_file_cache }}"></script>

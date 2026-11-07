@@ -4,7 +4,6 @@ const fileInput = document.getElementById("ditherer-file");
 const presetSelect = document.getElementById("ditherer-preset");
 const paletteInput = document.getElementById("ditherer-palette");
 const paletteEditor = document.getElementById("ditherer-palette-editor");
-const paletteAddButton = document.getElementById("ditherer-palette-add");
 const paletteUndoButton = document.getElementById("ditherer-palette-undo");
 const paletteRedoButton = document.getElementById("ditherer-palette-redo");
 const sortButtons = document.querySelector(".ditherer-sort-buttons");
@@ -17,7 +16,7 @@ const blurValue = document.getElementById("ditherer-blur-value");
 const methodSelect = document.getElementById("ditherer-method");
 const stochasticToggle = document.getElementById("ditherer-stochastic");
 const stochasticRow = document.getElementById("ditherer-stochastic-row");
-const previewsEl = document.querySelector(".ditherer-previews");
+const viewportEl = document.getElementById("ditherer-viewport");
 const resetButton = document.getElementById("ditherer-reset");
 const downloadButton = document.getElementById("ditherer-download");
 const statusEl = document.getElementById("ditherer-status");
@@ -155,13 +154,8 @@ function renderPaletteEditor() {
     item.className = "ditherer-swatch-item";
     item.dataset.index = String(index);
 
-    const handle = document.createElement("button");
-    handle.type = "button";
-    handle.className = "ditherer-swatch-handle";
-    handle.textContent = "drag";
-    handle.setAttribute("aria-label", `Reorder color ${index + 1}`);
-    handle.draggable = true;
-    handle.addEventListener("dragstart", (event) => {
+    item.draggable = true;
+    item.addEventListener("dragstart", (event) => {
       dragIndex = index;
       item.classList.add("is-dragging");
       if (event.dataTransfer) {
@@ -169,7 +163,7 @@ function renderPaletteEditor() {
         event.dataTransfer.setData("text/plain", String(index));
       }
     });
-    handle.addEventListener("dragend", () => {
+    item.addEventListener("dragend", () => {
       dragIndex = null;
       item.classList.remove("is-dragging");
       paletteEditor.querySelectorAll(".ditherer-swatch-item.is-drop-target").forEach((el) => el.classList.remove("is-drop-target"));
@@ -179,8 +173,8 @@ function renderPaletteEditor() {
     swatch.type = "button";
     swatch.className = "ditherer-swatch";
     swatch.style.setProperty("--swatch-color", hex);
-    swatch.setAttribute("aria-label", `Edit color ${index + 1}`);
-    swatch.title = "Alt+Left or Alt+Right to swap";
+    swatch.setAttribute("aria-label", `Edit color ${index + 1}, ${hex}`);
+    swatch.title = `${hex}. Drag, or Alt+Left and Alt+Right, to reorder`;
     swatch.addEventListener("click", () => {
       colorPicker.value = hex;
       colorPicker.dataset.index = String(index);
@@ -202,7 +196,7 @@ function renderPaletteEditor() {
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "ditherer-swatch-remove";
-    remove.textContent = "x";
+    remove.textContent = "×";
     remove.setAttribute("aria-label", `Remove color ${index + 1}`);
     remove.disabled = paletteHex.length <= 1;
     remove.addEventListener("click", () => {
@@ -214,7 +208,6 @@ function renderPaletteEditor() {
       setPaletteHex(nextPalette, { recordHistory: true });
     });
 
-    item.appendChild(handle);
     item.appendChild(swatch);
     item.appendChild(remove);
     paletteEditor.appendChild(item);
@@ -246,6 +239,13 @@ function renderPaletteEditor() {
       setPaletteHex(nextPalette, { recordHistory: true });
     });
   });
+  const add = document.createElement("button");
+  add.type = "button";
+  add.className = "ditherer-palette-add";
+  add.textContent = "+";
+  add.setAttribute("aria-label", "Add color");
+  add.addEventListener("click", addPaletteColor);
+  paletteEditor.appendChild(add);
 }
 
 function rgbToHsl(r, g, b) {
@@ -474,7 +474,24 @@ function scheduleRender() {
   requestAnimationFrame(() => {
     applyDither();
     drawSourcePreview();
-    updateLayoutDirection();
+  });
+}
+
+function setSourceImage(img) {
+  sourceImage = img;
+  downloadButton.disabled = false;
+  if (viewportEl) {
+    viewportEl.classList.remove("tool-fade-in");
+    void viewportEl.offsetWidth;
+    viewportEl.classList.add("tool-fade-in");
+  }
+}
+
+function markSample(activeButton) {
+  sampleButtons.forEach((button) => {
+    const isActive = button === activeButton;
+    button.classList.toggle("is-selected", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
   });
 }
 
@@ -486,23 +503,13 @@ function loadImage(file) {
   reader.onload = () => {
     const img = new Image();
     img.onload = () => {
-      sourceImage = img;
-      downloadButton.disabled = false;
+      setSourceImage(img);
+      markSample(null);
       scheduleRender();
     };
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
-}
-
-function loadImageFromUrl(url) {
-  const img = new Image();
-  img.onload = () => {
-    sourceImage = img;
-    downloadButton.disabled = false;
-    scheduleRender();
-  };
-  img.src = url;
 }
 
 function resetControls() {
@@ -537,14 +544,6 @@ function resetControls() {
 function updateOptionVisibility() {
   const showStochastic = methodSelect.value === "closest";
   stochasticRow.style.display = showStochastic ? "grid" : "none";
-}
-
-function updateLayoutDirection() {
-  if (!previewsEl || !sourceImage) {
-    return;
-  }
-  const isPortrait = sourceImage.height >= sourceImage.width;
-  previewsEl.dataset.layout = isPortrait ? "vertical" : "horizontal";
 }
 
 function undoPalette() {
@@ -666,9 +665,6 @@ paletteHex = parsePalette(paletteInput.value).map((color) => color.hex);
 renderPaletteEditor();
 updateUndoRedoButtons();
 updateOptionVisibility();
-updateLayoutDirection();
-
-window.addEventListener("resize", () => updateLayoutDirection());
 
 const sampleConfigs = {
   llamamerc: {
@@ -704,7 +700,8 @@ sampleButtons.forEach((button) => {
     }
     const img = new Image();
     img.onload = () => {
-      sourceImage = img;
+      setSourceImage(img);
+      markSample(button);
       presetSelect.value = "custom";
       paletteInput.value = config.palette;
       const nextPalette = parsePalette(paletteInput.value).map((color) => color.hex);
@@ -716,18 +713,21 @@ sampleButtons.forEach((button) => {
       setPaletteHex(nextPalette, { recordHistory: true, updateInput: false });
       updateOptionVisibility();
       fileInput.value = "";
-      downloadButton.disabled = false;
     };
     img.src = url;
   });
 });
 
-paletteAddButton.addEventListener("click", () => {
+function addPaletteColor() {
   const fallback = paletteHex[paletteHex.length - 1] || "#ffffff";
   const nextPalette = paletteHex.slice();
   nextPalette.push(fallback);
   setPaletteHex(nextPalette, { recordHistory: true });
-});
+}
+
+if (sampleButtons.length) {
+  sampleButtons[0].click();
+}
 
 colorPicker.addEventListener("input", (event) => {
   const index = parseInt(event.target.dataset.index, 10);

@@ -17,10 +17,7 @@ description: "Tools for picking colors and putting them to work."
   </a>
   <a class="color-hub__card" href="{{ '/ditherer/' | relative_url }}">
     <span class="color-hub__swatch" aria-hidden="true">
-      <span style="flex-basis: 25%; background: #0f380f"></span>
-      <span style="flex-basis: 25%; background: #306230"></span>
-      <span style="flex-basis: 25%; background: #8bac0f"></span>
-      <span style="flex-basis: 25%; background: #9bbc0f"></span>
+      <img src="{{ '/assets/img/ditherer/hub-preview.png' | relative_url }}" alt="" width="604" height="192" loading="lazy">
     </span>
     <span class="color-hub__title">Ditherer</span>
     <span class="color-hub__desc">Reduce an image to a few colors with interleaved gradient noise.</span>

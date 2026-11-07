@@ -17,6 +17,13 @@ landscape, with stars, fractured plains, and a distant campfire for Sleep Form.
 Only the scenery fades; text remains legible. Keep navigation stationary, pause
 step motion on hover or focus, offer a motion toggle, and honor reduced motion.
 
+Tools on these pages (ditherer, outfit palette, color hub) share
+`_sass/_creative-tools.scss`. Show the result first and largest. Keep
+containers square and unboxed, and separate control groups with hairline rules
+and small uppercase labels. Put advanced controls, analysis notes, and the
+“why I made this” copy behind a quiet `details` disclosure, leaving the intro
+at one line.
+
 ### 1. Images need room to breathe
 
 Pictures lose impact when crammed against text. A photo separated from the surrounding paragraphs by clear vertical space reads as deliberate; a photo flush against text reads as filler.
