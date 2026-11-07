@@ -39,7 +39,8 @@ $max-content-width: {{ site.max_width }};
   "kata",
   "chess",
   "post-reading",
-  "project-series",
+  "project-series",{% if jekyll.environment == 'development' %}
+  "palette-preview",{% endif %}
   "font-awesome/fontawesome",
   "font-awesome/brands",
   "font-awesome/solid",
