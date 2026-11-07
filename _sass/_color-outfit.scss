@@ -2,20 +2,35 @@
 .color-hub {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
 }
 
 .color-hub__card {
   display: grid;
-  gap: 0.5rem;
-  padding: 0 0 1rem;
+  grid-template-rows: auto auto 1fr;
+  gap: 0.35rem;
+  padding: 0 0 1.1rem;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-card-bg-color);
   color: inherit;
   text-decoration: none;
+  transition: border-color 0.12s ease;
+
+  > :not(.color-hub__swatch) {
+    padding: 0 1.1rem;
+  }
 
   &:hover,
   &:focus-visible {
+    border-color: var(--global-text-color);
     color: inherit;
     text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--global-theme-color);
+    outline-offset: 2px;
   }
 
   &:hover .color-hub__title,
@@ -28,8 +43,9 @@
 .color-hub__swatch {
   display: flex;
   height: 6rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   overflow: hidden;
+  border-bottom: 1px solid var(--global-divider-color);
 
   img {
     width: 100%;
@@ -55,7 +71,6 @@
 .outfit {
   display: grid;
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-  gap: 1.5rem;
   align-items: start;
   gap: 2.5rem;
   margin-top: 1.5rem;
