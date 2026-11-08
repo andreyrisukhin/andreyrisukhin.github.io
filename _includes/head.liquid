@@ -1,15 +1,41 @@
 <!-- Metadata, OpenGraph and Schema.org -->
 {% include metadata.liquid %}
 
+<!--
+  Theme before first paint: set the theme and canvas color before any stylesheet loads.
+  The two colors mirror --color-canvas in _sass/_themes.scss.
+-->
+{% if site.enable_darkmode %}
+  <script>
+    (function () {
+      var setting = localStorage.getItem('theme');
+      if (setting !== 'dark' && setting !== 'light') setting = 'system';
+      var theme = setting;
+      if (setting === 'system') {
+        theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme-setting', setting);
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+{% endif %}
+<style>
+  html {
+    background-color: #faf7f0;
+  }
+  html[data-theme='dark'] {
+    background-color: #201d1a;
+  }
+</style>
+
 <!-- Bootstrap & MDB -->
 <link rel="stylesheet" href="{{ '/assets/css/bootstrap.min.css' | relative_url | bust_file_cache }}">
-<link
-  rel="stylesheet"
-  href="{{ site.third_party_libraries.mdb.url.css }}"
-  integrity="{{ site.third_party_libraries.mdb.integrity.css }}"
-  crossorigin="anonymous"
->
-
+{% comment %}
+  mdbootstrap, self-hosted to avoid a blocking third-party connection. It sits in
+  vendor/ so the deploy's PurgeCSS pass (assets/css/*.css) leaves it whole, as it
+  was on the CDN: MDB's JavaScript adds classes that no page's HTML mentions.
+{% endcomment %}
+<link rel="stylesheet" href="{{ '/assets/css/vendor/mdb.min.css' | relative_url | bust_file_cache }}">
 {% if page.pretty_table %}
   <!-- Bootstrap Table -->
   <link
@@ -21,17 +47,27 @@
   >
 {% endif %}
 
-<!-- Fonts & Icons -->
-<link defer rel="stylesheet" href="{{ '/assets/css/academicons.min.css' | relative_url | bust_file_cache }}">
-<link defer rel="stylesheet" href="{{ '/assets/css/scholar-icons.css' | relative_url | bust_file_cache }}">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Fonts & Icons: none of these block rendering; text shows in the fallback face until Nunito Sans arrives. -->
 <link
-  defer
-  rel="stylesheet"
-  type="text/css"
-  href="{{ site.third_party_libraries.google_fonts.url.fonts }}"
+  rel="preload"
+  as="style"
+  href="{{ '/assets/css/academicons.min.css' | relative_url | bust_file_cache }}"
+  onload="this.onload=null;this.rel='stylesheet'"
 >
-
+<link
+  rel="preload"
+  as="style"
+  href="{{ '/assets/css/scholar-icons.css' | relative_url | bust_file_cache }}"
+  onload="this.onload=null;this.rel='stylesheet'"
+>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="{{ site.third_party_libraries.google_fonts.url.fonts }}" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+  <link rel="stylesheet" href="{{ '/assets/css/academicons.min.css' | relative_url | bust_file_cache }}">
+  <link rel="stylesheet" href="{{ '/assets/css/scholar-icons.css' | relative_url | bust_file_cache }}">
+  <link rel="stylesheet" href="{{ site.third_party_libraries.google_fonts.url.fonts }}">
+</noscript>
 <!-- Code Syntax Highlighting -->
 <link
   defer
