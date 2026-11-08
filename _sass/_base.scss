@@ -536,6 +536,14 @@ ul.task-list input[type="checkbox"] {
   }
 }
 
+// content-box keeps the theme toggle's padding (in _themes.scss) outside the 1em glyph.
+.ui-icon {
+  box-sizing: content-box;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.1em;
+}
+
 #light-toggle,
 #search-toggle {
   padding: 0;
