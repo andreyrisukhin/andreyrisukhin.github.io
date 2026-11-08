@@ -97,6 +97,8 @@ const PRECACHE_URLS = [
   '/assets/js/sheet-music/transpose.js',
   '/assets/js/sheet-music/page.js',
   '/assets/js/sheet-music/local-file.js',
+  '/assets/js/sheet-music/correction-model.js',
+  '/assets/js/sheet-music/corrections.js',
   '/assets/js/sheet-music/practice-inspector.js',
   '/assets/js/sheet-music/dev-annotator.css',
 

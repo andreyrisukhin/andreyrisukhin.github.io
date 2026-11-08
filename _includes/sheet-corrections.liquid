@@ -1,0 +1,81 @@
+<div class="sheet-correction-tools" hidden>
+  <div class="sheet-inspector-actions">
+    <button type="button" class="music-share-btn" data-correction-toggle aria-pressed="false" disabled>Edit notes</button>
+    <button type="button" class="music-share-btn" data-correction-undo disabled>Undo</button>
+    <button type="button" class="music-share-btn" data-correction-redo disabled>Redo</button>
+    <button type="button" class="music-share-btn" data-correction-download disabled>Download edited MusicXML</button>
+  </div>
+  <p class="practice-help" data-correction-status role="status">Corrections stay in memory. Download a copy to keep them.</p>
+</div>
+<dialog id="sheet-correction-dialog" class="sheet-note-inspector" aria-labelledby="sheet-correction-title">
+  <form data-correction-form>
+    <header class="sheet-inspector-heading">
+      <div>
+        <p data-correction-location class="practice-help"></p>
+        <h2 id="sheet-correction-title">Correct note</h2>
+      </div>
+      <button type="button" data-correction-close>Cancel</button>
+    </header>
+    <label
+      >Note in this group
+      <select data-correction-member></select
+    ></label>
+    <fieldset class="sheet-correction-fields" data-correction-pitch>
+      <legend>Written pitch</legend>
+      <label
+        >Note
+        <select data-correction-step>
+          <option>C</option>
+          <option>D</option>
+          <option>E</option>
+          <option>F</option>
+          <option>G</option>
+          <option>A</option>
+          <option>B</option>
+        </select>
+      </label>
+      <label
+        >Accidental
+        <select data-correction-alter>
+          <option value="-2">Double flat ♭♭</option>
+          <option value="-1">Flat ♭</option>
+          <option value="0">Natural ♮</option>
+          <option value="1">Sharp ♯</option>
+          <option value="2">Double sharp 𝄪</option>
+        </select>
+      </label>
+      <label>Octave <input type="number" min="0" max="9" step="1" required data-correction-octave></label>
+    </fieldset>
+    <p class="practice-help" data-correction-pitch-help></p>
+    <details>
+      <summary>Rhythm correction</summary>
+      <fieldset class="sheet-correction-fields" data-correction-rhythm>
+        <legend>Duration for this note group</legend>
+        <label
+          >Note value
+          <select data-correction-type>
+            <option value="">Keep current value</option>
+            <option value="whole">Whole</option>
+            <option value="half">Half</option>
+            <option value="quarter">Quarter</option>
+            <option value="eighth">Eighth</option>
+            <option value="16th">Sixteenth</option>
+            <option value="32nd">Thirty-second</option>
+            <option value="64th">Sixty-fourth</option>
+          </select>
+        </label>
+        <label
+          >Dots
+          <select data-correction-dots>
+            <option value="0">None</option>
+            <option value="1">One</option>
+            <option value="2">Two</option>
+          </select></label
+        >
+      </fieldset>
+      <p class="practice-help" data-correction-rhythm-help></p>
+    </details>
+    <p data-correction-error class="practice-help" role="status"></p>
+    <button type="submit" data-correction-apply>Apply correction</button>
+  </form>
+</dialog>

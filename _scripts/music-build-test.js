@@ -143,6 +143,14 @@ assert.ok(!opener.includes("data-musicxml-url="), "Local reader has no hosted sc
 assert.ok(!opener.includes("/sheet-music/dev-annotator.js"), "Local reader never loads the annotation sidecar client");
 assert.ok(!opener.includes('class="sheet-downloads"'), "Local reader has no hosted score download links");
 assert.ok(opener.includes("/sheet-music/local-file.js"), "Local reader loads the file validator");
+for (const file of ["correction-model.js", "corrections.js"]) {
+  assert.ok(opener.includes("/sheet-music/" + file), "Local reader loads " + file);
+  assert.ok(precache.includes("/assets/js/sheet-music/" + file), "Offline cache includes " + file);
+}
+assert.ok(
+  opener.includes('id="sheet-correction-dialog"') && opener.includes("Download edited MusicXML"),
+  "Local reader has correction and export controls"
+);
 assert.ok(opener.includes('data-playback="true"') && opener.includes("/sheet-music/playback.js"), "Local reader includes full-score playback");
 assert.ok(opener.includes('data-playback-instrument="acoustic_grand_piano"'), "Local scores default to piano");
 assert.ok(!opener.includes('data-playback-stradella="true"'), "Local scores play written pitches, not inferred Stradella buttons");
@@ -217,6 +225,7 @@ assert.ok(!otherSheet.includes('class="practice-settings"'), "Read-only sheet hi
 for (const name of ["senorita", "reconstructing-more-science", "cogwork-dancers", "reclaiming-entropy"]) {
   const content = fs.readFileSync(path.join(site, "music/sheet", name, "index.html"), "utf8");
   assert.ok(content.includes("sheet-reader"), name + " uses the common reader shell");
+  assert.ok(!content.includes("/sheet-music/corrections.js") && !content.includes('id="sheet-correction-dialog"'), name + " stays read-only");
   assert.ok(content.includes('class="sheet-downloads"'), name + " has common downloads");
   assert.ok(content.includes('id="sheet-inspector"'), name + " has common inspection");
   assert.ok(!content.includes("/sheet-music/practice.js"), name + " does not load the retired player controller");

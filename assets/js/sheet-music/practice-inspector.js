@@ -148,7 +148,7 @@
     return bridge.resolveNoteAt(rect.left + rect.width / 2 + window.scrollX, rect.top + rect.height / 2 + window.scrollY, 80, element);
   }
   let focusIndex = -1;
-  document.getElementById("osmd-container").addEventListener("sheet-clear", () => {
+  const clearInspection = () => {
     selection = recipe = selectedElement = null;
     cells = [];
     notes = [];
@@ -166,7 +166,8 @@
     ])
       $(id).replaceChildren();
     status.textContent = "";
-  });
+  };
+  ["sheet-clear", "sheet-score-changing"].forEach((name) => document.getElementById("osmd-container").addEventListener(name, clearInspection));
   function bindScore() {
     const selectedIndex = notes.indexOf(selectedElement);
     notes = [...bridge.container.querySelectorAll(".vf-stavenote")].filter((note) => note.querySelector(".vf-notehead"));
@@ -174,7 +175,7 @@
       note.setAttribute("tabindex", index === 0 ? "0" : "-1");
       note.setAttribute("role", "button");
       note.setAttribute("aria-haspopup", "dialog");
-      note.setAttribute("aria-label", "Inspect note group " + (index + 1));
+      note.setAttribute("aria-label", (page.dataset.correctionMode === "true" ? "Correct" : "Inspect") + " note group " + (index + 1));
     });
     if (selectedIndex >= 0) {
       selectedElement = notes[selectedIndex];
@@ -204,7 +205,11 @@
       const element = event.target.closest(".vf-stavenote");
       if (!element) return;
       const hit = hitFor(element);
-      if (hit?.pitches.length) element.setAttribute("aria-label", "Inspect " + hit.pitches.map(pretty).join(", ") + ", measure " + hit.measureNumber);
+      if (hit?.pitches.length)
+        element.setAttribute(
+          "aria-label",
+          (page.dataset.correctionMode === "true" ? "Correct " : "Inspect ") + hit.pitches.map(pretty).join(", ") + ", measure " + hit.measureNumber
+        );
     });
     bridge.container.addEventListener("keydown", (event) => {
       const element = event.target.closest(".vf-stavenote");

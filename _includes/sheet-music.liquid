@@ -46,6 +46,7 @@
       <p id="sheet-file-help">Uncompressed .musicxml or .xml, up to 10 MB. Scores are not saved; reopening this page clears them.</p>
       <p id="osmd-status" class="sheet-music-status" role="status">Choose a MusicXML file to begin.</p>
     </div>
+    {% include sheet-corrections.liquid %}
   {% endif %}
   <div class="sheet-music-controls">
     <button id="osmd-zoom-out" class="music-share-btn" type="button" aria-label="Smaller notes">−</button>
@@ -128,3 +129,7 @@
   <script src="{{ '/assets/js/sheet-music/local-file.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {% endif %}
 <script defer src="{{ '/assets/js/sheet-music/page.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% if include.local_file %}
+  <script src="{{ '/assets/js/sheet-music/correction-model.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+  <script defer src="{{ '/assets/js/sheet-music/corrections.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% endif %}

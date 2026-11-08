@@ -193,12 +193,44 @@ disposes its player, transport listeners, and playhead, including pending audio 
 `sheet-score-ready` mounts playback for each file; the bridge’s one-shot
 `readyPromise` is used only by hosted scores.
 
+### Browser corrections
+
+Open a file, turn on **Edit notes**, then tap a note (or focus it and press
+Enter). The correction dialog selects an individual chord tone and edits its
+written letter, accidental, and octave. Pitch changes follow the complete
+linked tie. Editing resets playback transposition to the written key.
+
+The rhythm disclosure changes note value and zero to two dots for the whole
+chord. Later notes shift within that voice, with trailing rests adjusted to
+keep its span and other voices unchanged. Lengthening without enough trailing
+rest is rejected. Tied, grace, tuplet, mixed-staff, changing-division, and
+unequal-duration chord rhythms remain read-only, as do annotated or hidden rests.
+This is a correction tool,
+not a full notation editor.
+
+The XML document is the source of truth. `correction-model.js` clones it and
+changes only the affected notes and rhythm padding. Notation is matched by
+part, measure, staff, voice, onset, and pitch, never by SVG order. Ambiguous
+matches cannot be edited. `corrections.js` retains up to 20 undo steps within
+a 32 MiB history budget, warns before discarding unexported changes, and
+downloads a separate `-edited.musicxml` file through a browser-local Blob URL.
+It never writes score content or history to storage or a server.
+
+`page.js` reloads corrected XML through `replaceLocalXML`, stops the old player
+before reloading, and rolls back if rendering fails. Practice speed and sound
+survive the correction, but playback stays paused. Closing or replacing a
+file clears history, selection, form contents, and pending correction loads.
+The four hosted sheets do not load correction controls or scripts.
+
 At desktop and mobile widths:
 
 ```sh
+node _scripts/sheet-correction-test.js
 agent-browser eval --stdin < _scripts/sheet-file-browser-check.js
+agent-browser eval --stdin < _scripts/sheet-correction-browser-check.js
 # After a trusted Play click has unlocked audio:
 agent-browser eval --stdin < _scripts/sheet-file-playback-check.js
+agent-browser eval --stdin < _scripts/sheet-correction-audio-check.js
 ```
 
 Use a local file picker to test private scores; never add them as public fixtures.

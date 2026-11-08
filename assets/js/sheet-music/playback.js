@@ -108,7 +108,7 @@
   };
   if (page.dataset.localFile === "true") {
     page.addEventListener("sheet-score-ready", mount);
-    document.getElementById("osmd-container").addEventListener("sheet-clear", () => dispose());
+    ["sheet-clear", "sheet-score-changing"].forEach((name) => document.getElementById("osmd-container").addEventListener(name, () => dispose()));
   } else {
     bridge.readyPromise.then(mount);
   }

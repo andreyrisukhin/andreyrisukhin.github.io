@@ -19,8 +19,8 @@
     return;
   }
 
-  const createOsmd = () =>
-    new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
+  const createOsmd = (target = container) =>
+    new opensheetmusicdisplay.OpenSheetMusicDisplay(target, {
       backend: "svg",
       drawTitle: scoreHeading,
       drawComposer: scoreHeading,
@@ -133,6 +133,7 @@
       clearTimeout(resizeTimer);
       osmd = null;
       bridge.osmd = bridge.xml = null;
+      bridge.localFileName = null;
       bridge.ready = false;
       container.dispatchEvent(new CustomEvent("sheet-clear"));
       container.replaceChildren();
@@ -143,10 +144,61 @@
       setControls(false);
       status.textContent = "Choose a MusicXML file to begin.";
     }
-    close.addEventListener("click", clearScore);
+    close.addEventListener("click", () => {
+      if (window.SheetCorrections?.confirmDiscard() !== false) clearScore();
+    });
+    bridge.replaceLocalXML = async (doc) => {
+      const request = generation;
+      const previous = { osmd, xml: bridge.xml, scrollY: window.scrollY };
+      if (!previous.osmd) return false;
+      window.SheetReader?.player?.pause();
+      const state = window.SheetReader?.player?.snapshot();
+      container.dispatchEvent(new CustomEvent("sheet-score-changing"));
+      previous.nodes = [...container.childNodes];
+      window.WorkbenchPlayer?.stop();
+      const dialog = document.getElementById("sheet-inspector");
+      if (dialog.open) dialog.close();
+      container.setAttribute("aria-busy", "true");
+      const publish = (nodes) => {
+        container.replaceChildren(...nodes);
+        bridge.osmd = osmd;
+        showScore();
+        window.scrollTo({ top: previous.scrollY, behavior: "instant" });
+        sheetPage.dispatchEvent(new CustomEvent("sheet-score-ready", { detail: { correction: true } }));
+        const player = window.SheetReader?.player;
+        if (player && state) {
+          player.setRate(state.rate);
+          player.setInstrument(state.instrument);
+          player.setLoop(state.loop.start, state.loop.end, state.loop.enabled);
+          player.seek(state.measure);
+        }
+      };
+      try {
+        const surface = document.createElement("div");
+        const next = createOsmd(surface);
+        await next.load(doc);
+        if (request !== generation) return false;
+        osmd = next;
+        bridge.xml = doc;
+        publish([surface]);
+        return true;
+      } catch (_) {
+        if (request !== generation) return false;
+        osmd = previous.osmd;
+        bridge.xml = previous.xml;
+        publish(previous.nodes);
+        throw new Error("The renderer could not display that correction. The previous score was restored.");
+      } finally {
+        if (request === generation) container.removeAttribute("aria-busy");
+      }
+    };
     input.addEventListener("change", async () => {
       const file = input.files[0];
       if (!file) return;
+      if (window.SheetCorrections?.confirmDiscard() === false) {
+        input.value = "";
+        return;
+      }
       clearScore();
       const request = generation;
       close.disabled = false;
@@ -170,6 +222,7 @@
         osmd = next;
         bridge.osmd = next;
         bridge.xml = doc;
+        bridge.localFileName = file.name;
         userZoomed = false;
         zoom = fitZoom();
         showScore();
