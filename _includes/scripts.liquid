@@ -195,7 +195,19 @@
   <script async src="https://badge.dimensions.ai/badge.js"></script>
 {% endif %}
 
-{% if site.enable_math %}
+{% comment %}
+  MathJax is over 1 MB uncompressed, so pages load it only when they could hold math:
+  the inline delimiter is "$", so any page whose visible text has one qualifies.
+  Tags are stripped first because attributes such as figure.liquid's onerror use "$(".
+{% endcomment %}
+{% assign page_may_have_math = false %}
+{% assign page_text = content | strip_html %}
+{% if page.math or page.pseudocode %}
+  {% assign page_may_have_math = true %}
+{% elsif page_text contains '$' or page_text contains '\(' or page_text contains '\[' %}
+  {% assign page_may_have_math = true %}
+{% endif %}
+{% if site.enable_math and page_may_have_math %}
   <!-- MathJax -->
   <script
     defer

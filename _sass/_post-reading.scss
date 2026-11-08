@@ -81,31 +81,16 @@ html:not([data-theme="dark"]) .post-reading {
   --global-text-color: #1f1e1d;
 }
 
-// Paper variant: Flexoki palette from the sheet music pages (_sheet-music.scss).
+// Paper variant: a lifted sheet on the site's own paper palette (_themes.scss).
 body:has(.post-reading--paper) {
-  --global-bg-color: #f2f0e5;
-  --global-text-color: #100f0f;
-  --global-text-color-light: #6f6e69;
-  --global-divider-color: #dad8ce;
-  --global-theme-color: #24837b;
-
   background:
     radial-gradient(circle at top left, rgba(250, 238, 198, 0.38), transparent 18rem) no-repeat,
     var(--global-bg-color);
 }
 
-// Dark sheet is lifted well above the page so it still reads as paper, and
-// text steps are brighter than Flexoki's defaults to keep serif body and
-// small metadata legible on it.
 html[data-theme="dark"] body:has(.post-reading--paper) {
-  --global-bg-color: #100f0f;
-  --global-text-color: #dad8ce;
-  --global-text-color-light: #a3a19a;
-  --global-divider-color: #45433f;
-  --global-theme-color: #3aa99f;
-
   background:
-    radial-gradient(circle at top left, rgba(58, 48, 14, 0.5), transparent 22rem) no-repeat,
+    radial-gradient(circle at top left, rgba(219, 182, 150, 0.07), transparent 22rem) no-repeat,
     var(--global-bg-color);
 }
 
@@ -113,28 +98,25 @@ html[data-theme="dark"] body:has(.post-reading--paper) {
   max-width: 48rem;
   margin: 1.5rem auto 3rem;
   padding: clamp(1.25rem, 5vw, 3.5rem);
-  border: 1px solid #dad8ce;
+  border: 1px solid var(--color-border);
   border-radius: 0.55rem;
-  background: #fffcf0;
-  box-shadow: 0 1.25rem 3rem rgba(16, 15, 15, 0.12);
+  background: var(--color-surface);
+  box-shadow: 0 1.25rem 3rem rgba(41, 37, 31, 0.1);
 }
 
 html[data-theme="dark"] .post-reading--paper {
-  border-color: #3a3835;
-  background: #211f1c;
   box-shadow:
-    inset 0 1px 0 rgba(255, 252, 240, 0.05),
-    0 1.25rem 3rem rgba(0, 0, 0, 0.55);
+    inset 0 1px 0 rgba(255, 250, 244, 0.04),
+    0 1.25rem 3rem rgba(0, 0, 0, 0.45);
 
   #markdown-content blockquote {
-    border-left-color: #6f6e69;
+    border-left-color: color-mix(in srgb, var(--color-text-muted) 45%, transparent);
   }
 
   img {
     filter: brightness(0.92);
   }
 }
-
 @media (max-width: 576px) {
   .post-reading--paper {
     margin: 0.5rem -0.5rem 2rem;
