@@ -1,0 +1,11 @@
+# Browser tab icons for site sections. The first prefix that matches the
+# start of a page URL wins; every other page uses the site icon. Pages with
+# layout: none (such as /fireplace/) link their icon in their own <head>.
+- prefix: /chess/
+  icon: /assets/img/navigation/chess.svg
+- prefix: /color/
+  icon: /assets/img/navigation/color.svg
+- prefix: /kata/
+  icon: /assets/img/favicons/kata.svg
+- prefix: /projects/lego/
+  icon: /assets/img/favicons/lego.svg

@@ -59,14 +59,21 @@
   >
 {% endif %}
 
-{% if site.icon.size <= 4 %}
-  <link
-    rel="shortcut icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>{{ site.icon }}</text></svg>"
-  >
-{% elsif site.icon != blank %}
-  <link rel="shortcut icon" href="{{ site.icon | prepend: '/assets/img/' | relative_url | bust_file_cache}}">
+{% assign page_icon = null %}
+{% for entry in site.data.page_icons %}
+  {% assign url_start = page.url | slice: 0, entry.prefix.size %}
+  {% if url_start == entry.prefix %}
+    {% assign page_icon = entry.icon %}
+    {% break %}
+  {% endif %}
+{% endfor %}
+{% if page_icon %}
+  <link rel="icon" type="image/svg+xml" href="{{ page_icon | relative_url | bust_file_cache }}">
+{% else %}
+  <link rel="icon" href="{{ '/assets/img/favicon.ico' | relative_url | bust_file_cache }}" sizes="32x32">
+  <link rel="icon" type="image/svg+xml" href="{{ site.icon | prepend: '/assets/img/' | relative_url | bust_file_cache }}">
 {% endif %}
+<link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/img/pwa/apple-touch-icon-180.png' | relative_url }}">
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url | bust_css_cache }}">
 <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
 

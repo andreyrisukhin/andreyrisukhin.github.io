@@ -6,11 +6,6 @@
   <meta name="apple-mobile-web-app-title" content="Bayan">
   <meta name="theme-color" content="#faf7f0" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#201d1a" media="(prefers-color-scheme: dark)">
-  <link
-    rel="apple-touch-icon"
-    sizes="180x180"
-    href="{{ '/assets/img/pwa/apple-touch-icon-180.png' | relative_url }}"
-  >
   <script>
     (function () {
       if (!('serviceWorker' in navigator)) return;
@@ -19,9 +14,6 @@
         navigator.serviceWorker
           .register(swUrl, { scope: '{{ "/music/" | relative_url }}' })
           .then(function (reg) {
-            if (navigator.storage && navigator.storage.persist) {
-              navigator.storage.persist().catch(function () {});
-            }
             setInterval(
               function () {
                 reg.update().catch(function () {});
