@@ -131,7 +131,7 @@
             <!-- Search -->
             <li class="nav-item">
               <button id="search-toggle" title="Search" onclick="openSearchModal()">
-                <span class="nav-link">ctrl k <i class="ti ti-search"></i></span>
+                <span class="nav-link"><span class="search-shortcut-key">ctrl</span> k {% include ui-icon.liquid name="search" %}</span>
               </button>
             </li>
           {% endif %}
@@ -139,9 +139,9 @@
             <!-- Toogle theme mode -->
             <li class="toggle-container">
               <button id="light-toggle" title="Change theme">
-                <i class="ti ti-sun-moon" id="light-toggle-system"></i>
-                <i class="ti ti-moon-filled" id="light-toggle-dark"></i>
-                <i class="ti ti-sun-filled" id="light-toggle-light"></i>
+                {% include ui-icon.liquid name="sun-moon" id="light-toggle-system" %}
+                {% include ui-icon.liquid name="moon-filled" id="light-toggle-dark" %}
+                {% include ui-icon.liquid name="sun-filled" id="light-toggle-light" %}
               </button>
             </li>
           {% endif %}
