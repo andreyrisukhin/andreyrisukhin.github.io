@@ -6,7 +6,7 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1794124821';
+const VERSION = '1794125365';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
@@ -23,6 +23,7 @@ const PRECACHE_URLS = [
   '/music/chords/',
   '/music/intervals/',
   '/music/songs/',
+  '/music/sheet/open/',
   '/music/sheet/cogwork-dancers/',
   '/music/sheet/reclaiming-entropy/',
   '/music/sheet/reconstructing-more-science/',
@@ -91,6 +92,7 @@ const PRECACHE_URLS = [
   '/assets/js/sheet-music/playhead.js',
   '/assets/js/sheet-music/transpose.js',
   '/assets/js/sheet-music/page.js',
+  '/assets/js/sheet-music/local-file.js',
   '/assets/js/sheet-music/practice-inspector.js',
   '/assets/js/sheet-music/dev-annotator.css',
 
