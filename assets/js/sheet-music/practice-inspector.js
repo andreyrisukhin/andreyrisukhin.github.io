@@ -148,6 +148,25 @@
     return bridge.resolveNoteAt(rect.left + rect.width / 2 + window.scrollX, rect.top + rect.height / 2 + window.scrollY, 80, element);
   }
   let focusIndex = -1;
+  document.getElementById("osmd-container").addEventListener("sheet-clear", () => {
+    selection = recipe = selectedElement = null;
+    cells = [];
+    notes = [];
+    focusIndex = -1;
+    for (const id of [
+      "sheet-note-title",
+      "sheet-note-location",
+      "sheet-note-pitches",
+      "sheet-note-context",
+      "sheet-left-recipe",
+      "sheet-left-detail",
+      "sheet-button-detail",
+      "sheet-left-keyboard",
+      "sheet-right-keyboard",
+    ])
+      $(id).replaceChildren();
+    status.textContent = "";
+  });
   function bindScore() {
     const selectedIndex = notes.indexOf(selectedElement);
     notes = [...bridge.container.querySelectorAll(".vf-stavenote")].filter((note) => note.querySelector(".vf-notehead"));

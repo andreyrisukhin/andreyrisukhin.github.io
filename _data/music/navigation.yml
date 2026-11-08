@@ -33,6 +33,9 @@
 - title: Sheets
   id: sheets
   items:
+    - title: Open MusicXML
+      url: /music/sheet/open/
+      description: Read a file on your device without uploading or publishing it.
     - title: Cogwork Dancers
       url: /music/sheet/cogwork-dancers/
       description: Christopher Larkin’s music, arranged for organ.

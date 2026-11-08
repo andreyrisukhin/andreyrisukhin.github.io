@@ -19,6 +19,7 @@ const routes = [
   "blues/",
   "bayan-simulator/",
   "chord-recognizer/",
+  "sheet/open/",
   "sheet/cogwork-dancers/",
   "sheet/reclaiming-entropy/",
   "sheet/reconstructing-more-science/",
@@ -136,6 +137,13 @@ for (const dependency of ["/assets/js/theme.js", "/assets/js/vanilla-back-to-top
   assert.ok(precache.includes(dependency), "Offline page shell includes " + dependency);
 }
 const senorita = fs.readFileSync(path.join(site, "music/sheet/senorita/index.html"), "utf8");
+const opener = fs.readFileSync(path.join(site, "music/sheet/open/index.html"), "utf8");
+assert.ok(opener.includes('data-local-file="true"') && opener.includes('id="sheet-file"'), "Local reader has a file picker");
+assert.ok(!opener.includes("data-musicxml-url="), "Local reader has no hosted score URL");
+assert.ok(!opener.includes("/sheet-music/dev-annotator.js"), "Local reader never loads the annotation sidecar client");
+assert.ok(!opener.includes('class="sheet-downloads"'), "Local reader has no hosted score download links");
+assert.ok(opener.includes("/sheet-music/local-file.js"), "Local reader loads the file validator");
+assert.ok(precache.includes("/music/sheet/open/") && precache.includes("/assets/js/sheet-music/local-file.js"), "Local reader is available offline");
 assert.ok(senorita.includes('data-playback-instrument="accordion"'), "Señorita plays on accordion");
 assert.ok(senorita.includes("/sheet-music/playback.js"), "Señorita has sheet playback");
 assert.ok(

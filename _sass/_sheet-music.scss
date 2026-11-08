@@ -22,6 +22,26 @@
   color: var(--sheet-ink);
 }
 
+.sheet-file-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  input {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  p {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+}
+
 .sheet-music-page--flexoki .sheet-music-controls {
   display: flex;
   flex-wrap: wrap;

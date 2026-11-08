@@ -6,41 +6,44 @@
   if (!sheetPage || !container || !status) return;
 
   const url = sheetPage.dataset.musicxmlUrl;
+  const localFile = sheetPage.dataset.localFile === "true";
   const scoreHeading = sheetPage.dataset.scoreHeading !== "false";
 
   if (!window.opensheetmusicdisplay) {
-    status.textContent = "OSMD failed to load from CDN.";
+    status.textContent = "The notation renderer failed to load. Reload this page to try again.";
     return;
   }
 
-  if (!url) {
+  if (!url && !localFile) {
     status.textContent = "Missing MusicXML URL.";
     return;
   }
 
-  const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
-    backend: "svg",
-    drawTitle: scoreHeading,
-    drawComposer: scoreHeading,
-    drawSubtitle: scoreHeading,
-    drawPartNames: scoreHeading,
-    drawPartAbbreviations: scoreHeading,
-    drawChordSymbols: false,
-    autoResize: false,
-    // Flexoki cyan instead of OSMD's neon green; callers scroll it themselves.
-    cursorsOptions: [{ type: 0, color: "#24837B", alpha: 0.35, follow: false }],
-  });
+  const createOsmd = () =>
+    new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
+      backend: "svg",
+      drawTitle: scoreHeading,
+      drawComposer: scoreHeading,
+      drawSubtitle: scoreHeading,
+      drawPartNames: scoreHeading,
+      drawPartAbbreviations: scoreHeading,
+      drawChordSymbols: localFile,
+      autoResize: false,
+      // Flexoki cyan instead of OSMD's neon green; callers scroll it themselves.
+      cursorsOptions: [{ type: 0, color: "#24837B", alpha: 0.35, follow: false }],
+    });
 
-  if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = false;
+  let osmd = localFile ? null : createOsmd();
 
   const renderPreservingScroll = () => {
+    if (!osmd?.Sheet) return;
     const y = window.scrollY;
     container.dispatchEvent(new CustomEvent("sheet-before-render"));
     osmd.render();
     if (window.scrollY !== y) {
       window.scrollTo({ top: y, behavior: "instant" in window ? "instant" : "auto" });
     }
-    watchAndHide();
+    if (!localFile) watchAndHide();
     container.dispatchEvent(new CustomEvent("sheet-render"));
   };
 
@@ -49,6 +52,7 @@
   let userZoomed = false;
   let zoom = fitZoom();
   const applyZoom = () => {
+    if (!osmd?.Sheet) return;
     osmd.Zoom = zoom;
     renderPreservingScroll();
   };
@@ -102,29 +106,105 @@
     chordHideObs.observe(container, { childList: true, subtree: true });
   };
 
-  const source = fetch(url)
-    .then((response) => {
-      if (!response.ok) throw new Error("Score could not be downloaded.");
-      return response.text();
-    })
-    .then((xml) => {
-      window.__sheetMusic.xml = new DOMParser().parseFromString(xml, "application/xml");
-      return xml;
+  function showScore() {
+    if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = localFile;
+    osmd.Zoom = zoom;
+    renderPreservingScroll();
+    lastWidth = container.clientWidth;
+    window.__sheetMusic.register(osmd, container, { rerender: renderPreservingScroll });
+  }
+
+  if (localFile) {
+    const input = document.getElementById("sheet-file");
+    const close = document.getElementById("sheet-file-clear");
+    const controls = sheetPage.querySelectorAll(".sheet-music-controls button");
+    const bridge = window.__sheetMusic;
+    let generation = 0;
+    const setControls = (enabled) =>
+      controls.forEach((button) => {
+        button.disabled = !enabled;
+      });
+    function clearScore() {
+      generation++;
+      window.WorkbenchPlayer?.stop();
+      const dialog = document.getElementById("sheet-inspector");
+      if (dialog.open) dialog.close();
+      if (sheetPage.classList.contains("sheet-music-page--focus")) document.getElementById("osmd-focus-toggle").click();
+      clearTimeout(resizeTimer);
+      osmd = null;
+      bridge.osmd = bridge.xml = null;
+      bridge.ready = false;
+      container.dispatchEvent(new CustomEvent("sheet-clear"));
+      container.replaceChildren();
+      container.hidden = true;
+      container.removeAttribute("aria-busy");
+      input.value = "";
+      close.disabled = true;
+      setControls(false);
+      status.textContent = "Choose a MusicXML file to begin.";
+    }
+    close.addEventListener("click", clearScore);
+    input.addEventListener("change", async () => {
+      const file = input.files[0];
+      if (!file) return;
+      clearScore();
+      const request = generation;
+      close.disabled = false;
+      status.textContent = "Opening score…";
+      container.setAttribute("aria-busy", "true");
+      let doc;
+      try {
+        doc = await window.SheetLocalFile.read(file);
+      } catch (err) {
+        if (request !== generation) return;
+        clearScore();
+        status.textContent = err.message;
+        return;
+      }
+      if (request !== generation) return;
+      try {
+        container.hidden = false;
+        const next = createOsmd();
+        await next.load(doc);
+        if (request !== generation) return;
+        osmd = next;
+        bridge.osmd = next;
+        bridge.xml = doc;
+        userZoomed = false;
+        zoom = fitZoom();
+        showScore();
+        setControls(true);
+        container.removeAttribute("aria-busy");
+        const count = next.Sheet.SourceMeasures.length;
+        status.textContent = file.name + " · " + count + (count === 1 ? " measure" : " measures");
+      } catch (_) {
+        if (request !== generation) return;
+        clearScore();
+        status.textContent = "Could not render this MusicXML. Try exporting it again.";
+      }
     });
-  source
-    .then((xml) => osmd.load(xml))
-    .then(() => {
-      status.textContent = "";
-      if (osmd.EngravingRules) osmd.EngravingRules.RenderChordSymbols = false;
-      osmd.Zoom = zoom;
-      renderPreservingScroll();
-      lastWidth = container.clientWidth;
-      if (window.__sheetMusic) window.__sheetMusic.register(osmd, container, { rerender: renderPreservingScroll });
-    })
-    .catch((err) => {
-      console.error(err);
-      status.textContent = "Could not load score: " + err;
-    });
+    clearScore();
+  } else {
+    const source = fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error("Score could not be downloaded.");
+        return response.text();
+      })
+      .then((xml) => {
+        window.__sheetMusic.xml = new DOMParser().parseFromString(xml, "application/xml");
+        return xml;
+      });
+    source
+      .then((xml) => osmd.load(xml))
+      .then(() => {
+        status.textContent = "";
+        showScore();
+      })
+      .catch((err) => {
+        console.error(err);
+        status.textContent = "Could not load score: " + err;
+      });
+  }
 
   document.getElementById("osmd-zoom-in").addEventListener("click", () => {
     userZoomed = true;

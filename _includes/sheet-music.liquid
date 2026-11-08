@@ -8,7 +8,11 @@
   class="sheet-music-page sheet-music-page--flexoki sheet-reader"
   data-playback="{{ include.playback | default: false }}"
   data-score-heading="{% if include.score_heading == false %}false{% else %}true{% endif %}"
-  data-musicxml-url="{{ musicxml_path | relative_url }}?v={{ site.time | date: '%s' }}"
+  {% if include.local_file %}
+    data-local-file="true"
+  {% else %}
+    data-musicxml-url="{{ musicxml_path | relative_url }}?v={{ site.time | date: '%s' }}"
+  {% endif %}
   {% if include.rendered_audio %}
     data-rendered-label="{{ include.rendered_label | default: 'Recording' | escape }}"
     data-rendered-audio-url="{{ include.rendered_audio | relative_url }}"
@@ -29,6 +33,20 @@
     data-key-mode="{{ include.key_mode }}"
   {% endif %}
 >
+  {% if include.local_file %}
+    <div class="sheet-file-controls">
+      <label for="sheet-file">Choose MusicXML</label>
+      <input
+        id="sheet-file"
+        type="file"
+        accept=".musicxml,.xml,application/vnd.recordare.musicxml+xml,application/xml,text/xml"
+        aria-describedby="sheet-file-help"
+      >
+      <button id="sheet-file-clear" class="music-share-btn" type="button" disabled>Close score</button>
+      <p id="sheet-file-help">Uncompressed .musicxml or .xml, up to 10 MB. Scores are not saved; reopening this page clears them.</p>
+      <p id="osmd-status" class="sheet-music-status" role="status">Choose a MusicXML file to begin.</p>
+    </div>
+  {% endif %}
   <div class="sheet-music-controls">
     <button id="osmd-zoom-out" class="music-share-btn" type="button" aria-label="Smaller notes">−</button>
     <button id="osmd-zoom-reset" class="music-share-btn" type="button">Reset zoom</button>
@@ -41,26 +59,35 @@
   {% endif %}
   <p class="practice-score-help">Tap a note to inspect it. Keyboard: Tab to the score, then use arrow keys and Enter.</p>
   <div id="osmd-container" class="sheet-music-container" tabindex="0" role="region" aria-label="Sheet music, scroll sideways if needed"></div>
-  <p id="osmd-status" class="sheet-music-status">Loading score…</p>
-  <details class="sheet-downloads">
-    <summary>Score files and credits</summary>
-    {% if include.credits %}
-      <p>{{ include.credits | escape }}</p>
-    {% endif %}
-    <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
-    <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
-    <p>Notation rendered with <a href="https://opensheetmusicdisplay.org/">OpenSheetMusicDisplay</a>.</p>
-  </details>
+  {% unless include.local_file %}
+    <p id="osmd-status" class="sheet-music-status" role="status">Loading score…</p>
+    <details class="sheet-downloads">
+      <summary>Score files and credits</summary>
+      {% if include.credits %}
+        <p>{{ include.credits | escape }}</p>
+      {% endif %}
+      <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
+      <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
+      <p>Notation rendered with <a href="https://opensheetmusicdisplay.org/">OpenSheetMusicDisplay</a>.</p>
+    </details>
+  {% endunless %}
   {% include sheet-inspector.liquid %}
 
   <noscript>
     <p>
-      This page renders sheet music client-side with JavaScript. Download the MusicXML or `.{{ source_ext }}` above to view it in another application.
+      {% if include.local_file %}
+        Enable JavaScript to open and render a file in your browser.
+      {% else %}
+        This page renders sheet music client-side with JavaScript. Download the MusicXML or `.{{ source_ext }}` above to view it in another
+        application.
+      {% endif %}
     </p>
   </noscript>
 </div>
 
-<link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css?v=5' | relative_url }}">
+{% unless include.local_file %}
+  <link rel="stylesheet" href="{{ '/assets/js/sheet-music/dev-annotator.css?v=5' | relative_url }}">
+{% endunless %}
 
 <script>
   window.StradellaButtons = {
@@ -84,7 +111,9 @@
 <script src="{{ '/assets/js/workbench/voicings.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/practice-inspector.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
-<script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% unless include.local_file %}
+  <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% endunless %}
 {% if include.playback %}
   <script src="{{ '/assets/js/sheet-music/practice-timeline.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
   <script src="{{ '/assets/js/sheet-music/practice-player.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
@@ -95,4 +124,7 @@
   <script defer src="{{ '/assets/js/sheet-music/playback.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {% endif %}
 <script src="{{ '/assets/js/vendor/opensheetmusicdisplay.min.js' | relative_url }}"></script>
+{% if include.local_file %}
+  <script src="{{ '/assets/js/sheet-music/local-file.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% endif %}
 <script defer src="{{ '/assets/js/sheet-music/page.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

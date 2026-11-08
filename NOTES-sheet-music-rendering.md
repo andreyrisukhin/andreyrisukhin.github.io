@@ -170,6 +170,26 @@ agent-browser eval --stdin < _scripts/sheet-playback-articulation-check.js
 agent-browser eval --stdin < _scripts/sheet-playback-stradella-check.js
 ```
 
+## Local MusicXML reader
+
+`/music/sheet/open/` opens uncompressed `.musicxml` and `.xml` files up to
+10 MB. It uses the shared zoom, focus mode, and note inspector, without full-score
+playback. Compressed `.mxl` files must be exported as uncompressed MusicXML first.
+
+Files and filenames stay in page memory, not URLs, browser storage, or server
+uploads. Closing the score or reloading the page clears it. The page does not load
+the development annotator, even on localhost or with `?dev`. XML entity
+declarations are rejected; external artwork and links are removed before rendering.
+The application shell is cached for offline reading, not the selected score.
+
+At desktop and mobile widths:
+
+```sh
+agent-browser eval --stdin < _scripts/sheet-file-browser-check.js
+```
+
+Use a local file picker to test private scores; never add them as public fixtures.
+
 ## References
 
 - OSMD homepage: https://opensheetmusicdisplay.org/
