@@ -13,7 +13,25 @@
         "name": "Andrey Risukhin",
         "@context": "https://schema.org"
     }
-  </script> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5"> <link defer rel="stylesheet" href="/assets/css/scholar-icons.css?62b2ac103a88034e6882a5be5f3e2772"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300..800;1,6..12,300..800&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="icon" href="/assets/img/favicon.ico?8ef7d63419d89f824a9bdb537414edf7" sizes="32x32"> <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg?a703f5629474aaec22156c6d00787281"> <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/pwa/apple-touch-icon-180.png"> <link rel="stylesheet" href="/assets/css/main.css?18e2ea0c674d0a1644f6a23d43d0ff5b"> <link rel="canonical" href="https://andreyrisukhin.github.io/music/bayan-simulator/"> <script src="/assets/js/theme.js?a81d82887dd692e91686b43de4542f18"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>
+  </script> <script>
+    (function () {
+      var setting = localStorage.getItem('theme');
+      if (setting !== 'dark' && setting !== 'light') setting = 'system';
+      var theme = setting;
+      if (setting === 'system') {
+        theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme-setting', setting);
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script> <style>
+  html {
+    background-color: #faf7f0;
+  }
+  html[data-theme='dark'] {
+    background-color: #201d1a;
+  }
+</style> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="/assets/css/vendor/mdb.min.css?62a43d1430ddb46fc4886f9d0e3b49b8"> <link rel="preload" as="style" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5" onload="this.onload=null;this.rel='stylesheet'"> <link rel="preload" as="style" href="/assets/css/scholar-icons.css?62b2ac103a88034e6882a5be5f3e2772" onload="this.onload=null;this.rel='stylesheet'"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300..800;1,6..12,300..800&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'"> <noscript> <link rel="stylesheet" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5"> <link rel="stylesheet" href="/assets/css/scholar-icons.css?62b2ac103a88034e6882a5be5f3e2772"> <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300..800;1,6..12,300..800&amp;display=swap"> </noscript> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="icon" href="/assets/img/favicon.ico?8ef7d63419d89f824a9bdb537414edf7" sizes="32x32"> <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg?a703f5629474aaec22156c6d00787281"> <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/pwa/apple-touch-icon-180.png"> <link rel="stylesheet" href="/assets/css/main.css?18e2ea0c674d0a1644f6a23d43d0ff5b"> <link rel="canonical" href="https://andreyrisukhin.github.io/music/bayan-simulator/"> <script src="/assets/js/theme.js?335b72c0863b02c279a1677defe0611f"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>
     initTheme();
   </script> <link rel="manifest" href="/manifest.webmanifest"> <meta name="apple-mobile-web-app-capable" content="yes"> <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <meta name="apple-mobile-web-app-title" content="Bayan"> <meta name="theme-color" content="#faf7f0" media="(prefers-color-scheme: light)"> <meta name="theme-color" content="#201d1a" media="(prefers-color-scheme: dark)"> <script>
     (function () {
