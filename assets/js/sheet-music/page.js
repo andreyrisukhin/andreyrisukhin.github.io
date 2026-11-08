@@ -177,6 +177,7 @@
         container.removeAttribute("aria-busy");
         const count = next.Sheet.SourceMeasures.length;
         status.textContent = file.name + " · " + count + (count === 1 ? " measure" : " measures");
+        sheetPage.dispatchEvent(new CustomEvent("sheet-score-ready"));
       } catch (_) {
         if (request !== generation) return;
         clearScore();

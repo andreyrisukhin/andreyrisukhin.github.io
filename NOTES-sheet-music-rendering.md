@@ -173,19 +173,32 @@ agent-browser eval --stdin < _scripts/sheet-playback-stradella-check.js
 ## Local MusicXML reader
 
 `/music/sheet/open/` opens uncompressed `.musicxml` and `.xml` files up to
-10 MB. It uses the shared zoom, focus mode, and note inspector, without full-score
-playback. Compressed `.mxl` files must be exported as uncompressed MusicXML first.
+10 MB. It uses the shared zoom, focus mode, note inspector, and full-score player.
+Piano is the default, with speed, passage loops, measure seeking, transposition,
+and a moving playhead. Nothing plays until Play is pressed. Compressed `.mxl`
+files must be exported as uncompressed MusicXML first.
+
+Playback follows the written measures in order and explicit tempo values. It is
+not an expressive performance: repeats, pedal, fermatas, and text-only tempo
+instructions are not fully interpreted. Soundfont samples download on demand;
+the score is never sent with these requests. Offline playback needs cached samples.
 
 Files and filenames stay in page memory, not URLs, browser storage, or server
 uploads. Closing the score or reloading the page clears it. The page does not load
 the development annotator, even on localhost or with `?dev`. XML entity
 declarations are rejected; external artwork and links are removed before rendering.
 The application shell is cached for offline reading, not the selected score.
+Local files neither restore nor save practice settings. Closing or replacing one
+disposes its player, transport listeners, and playhead, including pending audio loads.
+`sheet-score-ready` mounts playback for each file; the bridge’s one-shot
+`readyPromise` is used only by hosted scores.
 
 At desktop and mobile widths:
 
 ```sh
 agent-browser eval --stdin < _scripts/sheet-file-browser-check.js
+# After a trusted Play click has unlocked audio:
+agent-browser eval --stdin < _scripts/sheet-file-playback-check.js
 ```
 
 Use a local file picker to test private scores; never add them as public fixtures.

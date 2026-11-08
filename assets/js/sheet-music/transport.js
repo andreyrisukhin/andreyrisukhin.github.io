@@ -12,12 +12,15 @@ window.SheetTransport = (function () {
   };
 
   function mount(page, player, key, bridge) {
+    const events = new AbortController();
+    const on = (target, name, handler, options = {}) => target?.addEventListener(name, handler, { ...options, signal: events.signal });
+    const persistent = page.dataset.localFile !== "true";
     const settings = page.querySelector(".practice-settings");
     const $ = (name) => page.querySelector("[data-practice-" + name + "]");
     const storageKey = "sheet-reader:" + location.pathname;
     let saved;
     try {
-      saved = JSON.parse(localStorage.getItem(storageKey) || localStorage.getItem("sheet-practice:" + location.pathname));
+      saved = persistent ? JSON.parse(localStorage.getItem(storageKey) || localStorage.getItem("sheet-practice:" + location.pathname)) : null;
       if (saved?.version === 1) {
         player.setRate(saved.rate);
         player.setInstrument(saved.instrument);
@@ -28,7 +31,10 @@ window.SheetTransport = (function () {
         $("follow").checked = saved.follow !== false;
       }
     } catch (_) {}
+    if (!persistent) $("follow").checked = true;
+    settings.hidden = false;
     const save = () => {
+      if (!persistent) return;
       const { rate, instrument, mode, transpose, measure, loop } = player.snapshot();
       try {
         localStorage.setItem(
@@ -107,7 +113,7 @@ window.SheetTransport = (function () {
       $(name).max = player.snapshot().count;
     });
     let lastMap, lastMeasure, lastKey, lastState;
-    player.subscribe((state, message) => {
+    const unsubscribe = player.subscribe((state, message) => {
       if (lastState !== state.state) {
         const loading = state.state === "loading";
         const playing = state.state === "playing";
@@ -168,37 +174,37 @@ window.SheetTransport = (function () {
       }
       if (message) status.textContent = message;
     });
-    play.addEventListener("click", () => {
+    on(play, "click", () => {
       status.textContent = "";
       player.toggle();
       save();
     });
-    find('[data-pb-action="reset"]').addEventListener("click", () => {
+    on(find('[data-pb-action="reset"]'), "click", () => {
       player.restart();
       save();
     });
-    instrument.addEventListener("change", () => {
+    on(instrument, "change", () => {
       player.setInstrument(instrument.value);
       save();
     });
-    mode?.addEventListener("change", () => {
+    on(mode, "change", () => {
       player.setMode(mode.value);
       status.textContent = "Sound changed. Press Play when ready.";
       save();
     });
-    clickSeek.addEventListener("click", () => {
+    on(clickSeek, "click", () => {
       clickSeek.setAttribute("aria-pressed", String(clickSeek.getAttribute("aria-pressed") !== "true"));
       save();
     });
     root.querySelectorAll("[data-pb-transpose]").forEach((button) =>
-      button.addEventListener("click", () => {
+      on(button, "click", () => {
         const state = player.snapshot();
         player.setTranspose(state.transpose + Number(button.dataset.pbTranspose));
         if (state.mode === "recording" && player.snapshot().mode === "live") status.textContent = "Transposing uses live sound.";
         save();
       })
     );
-    find("[data-pb-key-reset]")?.addEventListener("click", () => {
+    on(find("[data-pb-key-reset]"), "click", () => {
       player.setTranspose(0);
       save();
     });
@@ -215,21 +221,21 @@ window.SheetTransport = (function () {
       return index + 1;
     };
     let dragging = false;
-    track.addEventListener("pointerdown", (event) => {
+    on(track, "pointerdown", (event) => {
       if (event.button !== 0) return;
       dragging = true;
       track.setPointerCapture(event.pointerId);
       seek(measureAt(event.clientX));
     });
-    track.addEventListener("pointermove", (event) => {
+    on(track, "pointermove", (event) => {
       if (dragging && measureAt(event.clientX) !== player.snapshot().measure) seek(measureAt(event.clientX));
     });
     ["pointerup", "pointercancel"].forEach((name) =>
-      track.addEventListener(name, () => {
+      on(track, name, () => {
         dragging = false;
       })
     );
-    track.addEventListener("keydown", (event) => {
+    on(track, "keydown", (event) => {
       const state = player.snapshot();
       const steps = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 4, PageDown: -4 };
       const target = event.key in steps ? state.measure + steps[event.key] : event.key === "Home" ? 1 : event.key === "End" ? state.count : null;
@@ -237,7 +243,8 @@ window.SheetTransport = (function () {
       event.preventDefault();
       seek(Math.max(1, Math.min(state.count, target)));
     });
-    bridge.container.addEventListener(
+    on(
+      bridge.container,
       "click",
       (event) => {
         if (clickSeek.getAttribute("aria-pressed") !== "true" || event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
@@ -247,17 +254,17 @@ window.SheetTransport = (function () {
         event.preventDefault();
         event.stopPropagation();
       },
-      true
+      { capture: true }
     );
-    $("rate").addEventListener("change", () => {
+    on($("rate"), "change", () => {
       player.setRate(Number($("rate").value));
       status.textContent = "";
       save();
     });
-    $("follow").addEventListener("change", save);
-    page.addEventListener("sheet-settings-change", save);
+    on($("follow"), "change", save);
+    on(page, "sheet-settings-change", save);
     ["start", "end", "loop"].forEach((name) =>
-      $(name).addEventListener("change", () => {
+      on($(name), "change", () => {
         const valid = player.setLoop(Number($("start").value), Number($("end").value), $("loop").checked);
         status.textContent = valid
           ? $("loop").checked
@@ -268,14 +275,31 @@ window.SheetTransport = (function () {
         save();
       })
     );
-    $("jump").addEventListener("submit", (event) => {
+    on($("jump"), "submit", (event) => {
       event.preventDefault();
       if (player.seek(Number($("measure").value))) {
         status.textContent = "Ready at measure " + player.snapshot().measure + ".";
         save();
       }
     });
-    return { save, follow: () => $("follow").checked, dispose: () => resize.disconnect() };
+    return {
+      save,
+      follow: () => $("follow").checked,
+      dispose() {
+        events.abort();
+        unsubscribe();
+        resize.disconnect();
+        root.remove();
+        document.documentElement.style.removeProperty("--sheet-transport-height");
+        settings.querySelectorAll("input, select, button").forEach((control) => {
+          control.disabled = true;
+        });
+        if (!persistent) {
+          settings.hidden = true;
+          settings.open = false;
+        }
+      },
+    };
   }
   return { mount };
 })();

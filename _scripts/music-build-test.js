@@ -143,6 +143,10 @@ assert.ok(!opener.includes("data-musicxml-url="), "Local reader has no hosted sc
 assert.ok(!opener.includes("/sheet-music/dev-annotator.js"), "Local reader never loads the annotation sidecar client");
 assert.ok(!opener.includes('class="sheet-downloads"'), "Local reader has no hosted score download links");
 assert.ok(opener.includes("/sheet-music/local-file.js"), "Local reader loads the file validator");
+assert.ok(opener.includes('data-playback="true"') && opener.includes("/sheet-music/playback.js"), "Local reader includes full-score playback");
+assert.ok(opener.includes('data-playback-instrument="acoustic_grand_piano"'), "Local scores default to piano");
+assert.ok(!opener.includes('data-playback-stradella="true"'), "Local scores play written pitches, not inferred Stradella buttons");
+assert.ok(/<details\b[^>]*class="practice-settings"[^>]*\bhidden/.test(opener), "Empty local reader hides practice settings");
 assert.ok(precache.includes("/music/sheet/open/") && precache.includes("/assets/js/sheet-music/local-file.js"), "Local reader is available offline");
 assert.ok(senorita.includes('data-playback-instrument="accordion"'), "Señorita plays on accordion");
 assert.ok(senorita.includes("/sheet-music/playback.js"), "Señorita has sheet playback");

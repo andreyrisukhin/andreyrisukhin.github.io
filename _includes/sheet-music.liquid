@@ -55,7 +55,7 @@
     <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Focus score</button>
   </div>
   {% if include.playback %}
-    {% include sheet-practice.liquid %}
+    {% include sheet-practice.liquid local_file=include.local_file %}
   {% endif %}
   <p class="practice-score-help">Tap a note to inspect it. Keyboard: Tab to the score, then use arrow keys and Enter.</p>
   <div id="osmd-container" class="sheet-music-container" tabindex="0" role="region" aria-label="Sheet music, scroll sideways if needed"></div>
