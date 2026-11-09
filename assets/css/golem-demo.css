@@ -9,8 +9,30 @@
   min-height: 100vh;
   background: radial-gradient(circle at 20% 20%, #1a2026, #0b0b0d 60%);
   color: var(--golem-text);
+  font-family: "Nunito Sans", "Helvetica Neue", Arial, sans-serif;
   display: flex;
   flex-direction: column;
+}
+
+/* main.css colors every heading, div, and span with the light-theme text color. */
+#golem-demo-root h1,
+#golem-demo-root div,
+#golem-demo-root span {
+  color: inherit;
+}
+
+.golem-home {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+  color: #c6d0d6;
+  text-decoration: none;
+}
+
+.golem-home:hover,
+.golem-home:focus-visible {
+  color: var(--golem-accent);
+  text-decoration: underline;
 }
 
 #golem-header {
@@ -19,8 +41,9 @@
 
 #golem-header h1 {
   margin: 0 0 8px;
-  font-size: clamp(24px, 4vw, 40px);
-  letter-spacing: 0.02em;
+  font-size: 2.5rem;
+  line-height: 1.2;
+  font-weight: 700;
 }
 
 #golem-header p {
@@ -52,14 +75,17 @@
   padding: 6px 10px;
   background: rgba(0, 0, 0, 0.55);
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--golem-text);
-  letter-spacing: 0.02em;
 }
 
 @media (max-width: 700px) {
   #golem-header {
     padding: 20px 18px 8px;
+  }
+
+  #golem-header h1 {
+    font-size: 1.5rem;
   }
 
   #golem-stage {
