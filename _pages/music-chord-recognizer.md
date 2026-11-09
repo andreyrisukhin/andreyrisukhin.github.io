@@ -1,6 +1,6 @@
 ---
 layout: music
-title: Chord Recognizer
+title: Chord recognizer
 permalink: /music/chord-recognizer/
 workspace_anchor: "#recognize"
 ---

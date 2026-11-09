@@ -1,6 +1,6 @@
 ---
 layout: music
-title: 12-Bar Blues Jam Helper
+title: 12-bar blues jam helper
 permalink: /music/blues/
 ---
 
