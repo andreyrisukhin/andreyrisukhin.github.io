@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://andreyrisukhin.github.io/sitemap.xml
+Sitemap: https://andrey.risukh.in/sitemap.xml

@@ -4,13 +4,13 @@ const ninja = document.querySelector('ninja-keys');
 // add the home and posts menu items
 ninja.data = [{
     id: "nav-about",
-    title: "about",
+    title: "About",
     section: "Navigation",
     handler: () => {
       window.location.href = "/";
     },
   },{id: "nav-writing",
-          title: "writing",
+          title: "Writing",
           description: "",
           section: "Navigation",
           handler: () => {
@@ -51,6 +51,13 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/color/";
               },
+            },{id: "dropdown-ditherer",
+              title: "ditherer",
+              description: "",
+              section: "Dropdown",
+              handler: () => {
+                window.location.href = "/ditherer/";
+              },
             },{id: "dropdown-fireplace",
               title: "fireplace",
               description: "",
@@ -72,11 +79,18 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/projects/lego/";
               },
+            },{id: "dropdown-terrarium",
+              title: "terrarium",
+              description: "",
+              section: "Dropdown",
+              handler: () => {
+                window.location.href = "/terrarium/";
+              },
             },{id: "post-lego-logbook-from-boxes-to-blender",
         
           title: "LEGO logbook: from boxes to Blender",
         
-        description: "March 31, 2026. Real stud geometry, washed-out colors, a mirrored model, and the same two-brick test.",
+        description: "Real stud geometry, washed-out colors, a mirrored model, and the same two-brick test.",
         section: "Posts",
         handler: () => {
           
@@ -87,7 +101,7 @@ ninja.data = [{
         
           title: "LEGO logbook: the first reconstruction pipeline",
         
-        description: "March 28–29, 2026. An end-to-end pipeline, a start-token bug, and invalid training assemblies.",
+        description: "An end-to-end pipeline, a start-token bug, and invalid training assemblies.",
         section: "Posts",
         handler: () => {
           
