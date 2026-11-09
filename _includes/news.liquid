@@ -1,6 +1,7 @@
 <div class="news">
   {% if site.news != blank %}
     {% assign news_size = site.news | size %}
+    {% assign news_collection = site.collections | where: 'label', 'news' | first %}
     <div
       class="table-responsive"
       {% if include.limit and page.announcements.scrollable and page.announcements.limit and news_size > page.announcements.limit %}
@@ -16,12 +17,14 @@
         {% endif %}
         {% for item in news limit: news_limit %}
           <tr>
-            <th scope="row" style="width: 20%">{{ item.date | date: '%b %d, %Y' }}</th>
+            <th scope="row" class="news__date">{{ item.date | date: '%b %-d, %Y' }}</th>
             <td>
               {% if item.inline %}
                 {{ item.content | remove: '<p>' | remove: '</p>' | emojify }}
-              {% else %}
+              {% elsif news_collection.output %}
                 <a class="news-title" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+              {% else %}
+                {{ item.title }}
               {% endif %}
             </td>
           </tr>
