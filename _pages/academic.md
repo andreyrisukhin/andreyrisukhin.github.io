@@ -1,6 +1,7 @@
 ---
 layout: page
 title: academic
+sitemap: false
 nav: true
 nav_order: 2
 dropdown: true

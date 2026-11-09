@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <pattern id="d25" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f4f2ec" />
+      <rect width="4" height="4" fill="#3b4a6b" />
+    </pattern>
+    <pattern id="d50" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f4f2ec" />
+      <path d="M0 0h4v4H0zM4 4h4v4H4z" fill="#3b4a6b" />
+    </pattern>
+    <pattern id="d75" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#3b4a6b" />
+      <rect width="4" height="4" fill="#f4f2ec" />
+    </pattern>
+  </defs>
+  <rect width="64" height="64" fill="#f4f2ec" />
+  <rect x="16" width="16" height="64" fill="url(#d25)" />
+  <rect x="32" width="16" height="64" fill="url(#d50)" />
+  <rect x="48" width="16" height="64" fill="url(#d75)" />
+  <circle cx="32" cy="32" r="14" fill="none" stroke="#c46c4e" stroke-width="4" />
+</svg>

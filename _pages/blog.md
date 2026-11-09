@@ -1,7 +1,8 @@
 ---
 layout: default
 permalink: /blog/
-title: writing
+title: Writing
+nav_title: writing
 nav: true
 nav_order: 1
 pagination:
@@ -21,13 +22,12 @@ pagination:
 {% assign blog_name_size = site.blog_name | size %}
 {% assign blog_description_size = site.blog_description | size %}
 
-{% if blog_name_size > 0 or blog_description_size > 0 %}
-
-  <div class="header-bar">
-    <h1>{{ site.blog_name }}</h1>
-    <h2>{{ site.blog_description }}</h2>
-  </div>
+<header class="post-header">
+  <h1 class="post-title">{{ page.title }}</h1>
+  {% if blog_description_size > 0 %}
+  <p class="post-description">{{ site.blog_description }}</p>
   {% endif %}
+</header>
 
 {% if site.display_tags and site.display_tags.size > 0 or site.display_categories and site.display_categories.size > 0 %}
 
@@ -73,7 +73,7 @@ pagination:
 <div class="float-right">
 <i class="fa-solid fa-thumbtack fa-xs"></i>
 </div>
-<h3 class="card-title text-lowercase">{{ post.title }}</h3>
+<h3 class="card-title">{{ post.title }}</h3>
 <p class="card-text">{{ post.description }}</p>
 
                     {% if post.external_source == blank %}
@@ -118,7 +118,13 @@ pagination:
     {% endif %}
     {% assign year = post.date | date: "%Y" %}
     {% assign tags = post.tags | join: "" %}
-    {% assign categories = post.categories | join: "" %}
+    {% assign shown_categories = "" | split: "" %}
+    {% for category in post.categories %}
+      {% unless post.tags contains category %}
+        {% assign shown_categories = shown_categories | push: category %}
+      {% endunless %}
+    {% endfor %}
+    {% assign categories = shown_categories | join: "" %}
 
     <li>
 
@@ -164,7 +170,7 @@ pagination:
 
           {% if categories != "" %}
           &nbsp; &middot; &nbsp;
-            {% for category in post.categories %}
+            {% for category in shown_categories %}
             <a href="{{ category | slugify | prepend: '/blog/category/' | relative_url }}">
               <i class="fa-solid fa-tag fa-sm"></i> {{ category }}</a>
               {% unless forloop.last %}
@@ -179,7 +185,7 @@ pagination:
 </div>
 
   <div class="col-sm-3">
-    <img class="card-img" src="{{ post.thumbnail | relative_url }}" style="object-fit: cover; height: 90%" alt="image">
+    <img class="card-img" src="{{ post.thumbnail | relative_url }}" style="object-fit: cover; height: 90%" alt="">
   </div>
 </div>
 {% endif %}

@@ -20,6 +20,10 @@
   margin-top: 0;
 }
 
+.homepage-section + .homepage-section {
+  margin-top: 2.5rem;
+}
+
 .homepage-intro__content > :last-child {
   margin-bottom: 0;
 }
@@ -31,7 +35,7 @@
 .homepage-intro__sketch {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: var(--homepage-sketch-width, 100%);
   height: 3.75rem;
   margin-bottom: var(--homepage-sketch-text-gap);

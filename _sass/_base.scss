@@ -32,9 +32,11 @@ li {
   line-height: $type-line-body;
 }
 
+// One H1 style for pages, posts, and archives (MDB sets headings at 300).
 h1,
 .post-title {
   font-size: $type-size-h1;
+  font-weight: 700;
   line-height: $type-line-tight;
 }
 
@@ -55,7 +57,7 @@ hr {
 table {
   td,
   th {
-    font-size: 1rem;
+    font-size: $type-size-body;
     padding: 1px 1rem 1px 0;
   }
 
@@ -90,7 +92,7 @@ blockquote {
   border-left: 5px solid var(--global-theme-color);
   margin: 1.5em 0;
   padding: 1em;
-  font-size: 1.2rem;
+  font-size: $type-size-h3;
 
   p {
     margin-bottom: 0;
@@ -227,8 +229,14 @@ ul.task-list input[type="checkbox"] {
 
   .more-info {
     margin-bottom: 5px;
-    margin-top: 5px;
-    font-family: monospace;
+    margin-top: 0.5rem;
+    color: var(--global-text-color-light);
+    font-size: $type-size-small;
+    line-height: $type-line-small;
+
+    p {
+      color: inherit;
+    }
 
     p {
       display: inline-block;
@@ -322,8 +330,8 @@ ul.task-list input[type="checkbox"] {
       color: var(--global-text-color);
       background: transparent;
       text-decoration: none;
-      outline: 3px solid var(--global-theme-color);
-      outline-offset: -3px;
+      outline: 2px solid var(--global-theme-color);
+      outline-offset: -2px;
     }
 
     &.active,
@@ -562,23 +570,32 @@ ul.task-list input[type="checkbox"] {
   text-align: center;
 
   .contact-icons {
-    font-size: 4rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.75rem;
+    font-size: 1.75rem;
+    line-height: 1;
 
     a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+
       img {
-        width: 3.2rem;
-        height: 3.2rem;
-        margin-bottom: 1rem;
+        width: 1.75rem;
+        height: 1.75rem;
       }
 
       svg {
-        width: 3.5rem;
-        height: 4rem;
-        margin-bottom: 0.5rem;
+        width: 1.75rem;
+        height: 1.75rem;
 
         image {
-          width: 3.5rem;
-          height: 3.5rem;
+          width: 1.75rem;
+          height: 1.75rem;
         }
       }
 
@@ -598,7 +615,10 @@ ul.task-list input[type="checkbox"] {
   }
 
   .contact-note {
-    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    color: var(--global-text-color-light);
+    font-size: $type-size-small;
+    line-height: $type-line-small;
   }
 }
 
@@ -656,11 +676,14 @@ footer.fixed-bottom {
 
 footer.sticky-bottom {
   border-top: 1px solid var(--global-divider-color);
-  padding-top: 40px;
-  padding-bottom: 40px;
-  font-size: 0.9rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  color: var(--global-text-color-light);
+  font-size: $type-size-small;
+  line-height: $type-line-small;
 
   .container {
+    color: inherit;
     text-align: center;
   }
 }
@@ -880,11 +903,11 @@ footer.sticky-bottom {
   }
 
   h2.bibliography {
-    color: var(--global-divider-color);
+    color: var(--global-text-color-light);
     border-top: 1px solid var(--global-divider-color);
     padding-top: 1rem;
     margin-top: 2rem;
-    text-align: right;
+    text-align: left;
   }
 
   ol.bibliography {
@@ -895,7 +918,20 @@ footer.sticky-bottom {
     li {
       margin-bottom: 1rem;
 
-      .preview {
+      // Previews are often tall screenshots; crop to a fixed frame so one
+      // thumbnail cannot outgrow the entry, especially on phones.
+      img.preview {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        object-position: top center;
+      }
+
+      @media (max-width: 575.98px) {
+        img.preview {
+          max-width: 12rem;
+          margin-bottom: 0.75rem;
+        }
       }
 
       .abbr {
@@ -942,6 +978,7 @@ footer.sticky-bottom {
         }
 
         > span.more-authors {
+          white-space: nowrap;
           color: var(--global-text-color-light);
           border-bottom: 1px dashed var(--global-text-color-light);
           cursor: pointer;
@@ -957,6 +994,8 @@ footer.sticky-bottom {
         a.btn {
           color: var(--global-text-color);
           border: 1px solid var(--global-text-color);
+          font-size: $type-size-tiny;
+          line-height: $type-line-tiny;
           padding-left: 1rem;
           padding-right: 1rem;
           padding-top: 0.25rem;
@@ -989,7 +1028,7 @@ footer.sticky-bottom {
       }
 
       .hidden {
-        font-size: 0.875rem;
+        font-size: $type-size-small;
         max-height: 0px;
         overflow: hidden;
         text-align: justify;
@@ -1165,7 +1204,7 @@ progress::-moz-progress-bar {
     border-radius: 0.3rem;
     border-style: none;
     color: var(--global-text-color);
-    font-size: medium;
+    font-size: $type-size-body;
     opacity: 0;
     position: absolute;
     right: 0.2rem;
@@ -1233,12 +1272,12 @@ nav[data-toggle="toc"] {
   top: 5rem;
 
   .nav .nav > li > a {
-    font-size: 0.75rem;
+    font-size: $type-size-tiny;
   }
 
   .nav > li > a {
     color: var(--global-text-color);
-    font-size: 0.75rem;
+    font-size: $type-size-tiny;
 
     &:hover {
       color: var(--global-hover-color);
@@ -1249,7 +1288,7 @@ nav[data-toggle="toc"] {
   .nav-link.active {
     color: var(--global-theme-color);
     border-left-color: var(--global-theme-color);
-    font-size: 0.75rem;
+    font-size: $type-size-tiny;
 
     &:hover {
       color: var(--global-hover-color);
@@ -1461,7 +1500,7 @@ ninja-keys::part(ninja-input-wrapper) {
   .newsletter-loading-button,
   .newsletter-success,
   .newsletter-error {
-    font-size: 16px !important;
+    font-size: $type-size-body !important;
   }
   .newsletter-form-container {
     margin-right: 20px;

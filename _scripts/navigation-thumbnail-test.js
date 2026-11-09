@@ -4,14 +4,14 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const site = path.resolve(__dirname, "../_site");
-const destinations = ["/publications/", "/teaching/", "/chess/", "/color/", "/fireplace/", "/kata/", "/projects/lego/"];
+const destinations = ["/publications/", "/teaching/", "/chess/", "/color/", "/ditherer/", "/fireplace/", "/kata/", "/projects/lego/", "/terrarium/"];
 
 for (const route of ["", "projects/lego/"]) {
   const html = fs.readFileSync(path.join(site, route, "index.html"), "utf8");
   const navbar = html.match(/<nav\b[^>]*id="navbar"[\s\S]*?<\/nav>/)?.[0];
   assert.ok(navbar, `${route || "/"} has navigation`);
   const items = [...navbar.matchAll(/<a\b[^>]*class="dropdown-item[^"]*"[^>]*>[\s\S]*?<\/a>/g)].map((match) => match[0]);
-  assert.equal(items.length, destinations.length, "All seven dropdown destinations remain present");
+  assert.equal(items.length, destinations.length, "All nine dropdown destinations remain present");
   for (const destination of destinations) {
     const item = items.find((item) => item.includes(`href="${destination}"`));
     assert.ok(item, `Menu links to ${destination}`);
@@ -31,4 +31,4 @@ for (const route of ["", "projects/lego/"]) {
     assert.match(lego, /class="[^"]*\bactive\b/, "LEGO keeps its active menu state");
   }
 }
-console.log("Navigation thumbnails: all seven links, decorative images, dimensions, asset paths, labels, and active state passed.");
+console.log("Navigation thumbnails: all nine links, decorative images, dimensions, asset paths, labels, and active state passed.");

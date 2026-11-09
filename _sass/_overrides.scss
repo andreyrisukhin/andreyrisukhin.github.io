@@ -53,3 +53,164 @@ figure.figure-spaced:not(.highlight):not(.cover) + figure.figure-spaced:not(.hig
 .figure-pair figure:not(.highlight):not(.cover) + figure:not(.highlight):not(.cover) {
   margin-top: 0.5rem;
 }
+
+// Skip link and keyboard focus. The doubled element selectors outrank
+// Bootstrap's `button:focus` and `.btn:focus` resets so every control
+// shares one ring.
+.skip-link {
+  position: absolute;
+  top: -4rem;
+  left: 1rem;
+  z-index: 1100;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 0.25rem;
+  background: var(--global-bg-color);
+  color: var(--global-text-color);
+  font-size: $type-size-small;
+
+  &:focus {
+    top: 0.5rem;
+    color: var(--global-text-color);
+  }
+}
+
+[role="main"]:focus {
+  outline: none;
+}
+
+html body :where(a, button, summary, input, select, textarea, [role="button"], [tabindex]):focus-visible,
+html body .btn:focus-visible {
+  outline: 2px solid var(--global-theme-color);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+// Links inside running text get an underline so they do not rely on color
+// alone. Classed links (buttons, cards, titles, nav) keep their own styling.
+:where([role="main"]) :where(p, li, td, dd, figcaption, blockquote) a:not([class]),
+footer a:not([class]) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.heading-link {
+  color: inherit;
+
+  &:hover {
+    color: var(--global-theme-color);
+    text-decoration: none;
+  }
+}
+
+// Search toggle: the shortcut hint only helps with a keyboard.
+#search-toggle {
+  .search-shortcut {
+    display: inline-flex;
+    gap: 0.15rem;
+    margin-right: 0.35rem;
+  }
+
+  kbd {
+    padding: 0 0.3rem;
+    border: 1px solid var(--global-divider-color);
+    border-radius: 0.25rem;
+    background: transparent;
+    box-shadow: none;
+    color: var(--global-text-color-light);
+    font-family: inherit;
+    font-size: $type-size-tiny;
+    line-height: $type-line-tiny;
+  }
+}
+
+@media (hover: none) and (pointer: coarse), (max-width: 575.98px) {
+  #search-toggle .search-shortcut {
+    display: none;
+  }
+}
+
+// Section headings match the bold page title and post headings.
+.post article h2,
+.post article h3,
+.homepage-section > h2 {
+  font-weight: 700;
+}
+
+// Homepage news table: dates hug their text and align with the heading.
+.news .table {
+  th,
+  td {
+    padding: 0.3rem 1rem 0.3rem 0;
+    vertical-align: baseline;
+  }
+
+  th.news__date {
+    width: 1%;
+    white-space: nowrap;
+  }
+}
+
+// Blog year, tag, and category archives.
+.archive-list {
+  width: 100%;
+  margin-bottom: 2rem;
+
+  th,
+  td {
+    padding: 0.4rem 1rem 0.4rem 0;
+    vertical-align: baseline;
+  }
+
+  &__date {
+    width: 1%;
+    white-space: nowrap;
+    color: var(--global-text-color-light);
+    font-size: $type-size-small;
+    font-weight: 400;
+  }
+}
+
+// Teaching evaluations: a grid of screenshots that open full size.
+.teaching-feedback {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  align-items: start;
+  gap: 1.5rem;
+  margin: 1.5rem 0 2.5rem;
+
+  figure {
+    margin: 0;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--global-divider-color);
+    border-radius: 0.25rem;
+  }
+
+  .caption {
+    margin-bottom: 0;
+    text-align: left;
+  }
+}
+
+// Plots and diagrams exported on white: frame them as a deliberate panel so
+// they do not read as a stray bright slab on the paper or dark theme.
+.figure-plot img {
+  padding: 0.5rem;
+  border: 1px solid var(--global-divider-color);
+  border-radius: 0.25rem;
+  background: #fff;
+}
+
+html[data-theme="dark"] .figure-plot img {
+  filter: none;
+}
