@@ -34,6 +34,29 @@
     min-width: 0;
   }
 
+  input[type="file"] {
+    color: var(--sheet-muted);
+    font: inherit;
+    font-size: 0.875rem;
+
+    &::file-selector-button {
+      min-height: 2.75rem;
+      margin-right: 0.75rem;
+      padding: 0 1rem;
+      border: 1px solid var(--sheet-border);
+      border-radius: 0.375rem;
+      background: var(--sheet-paper);
+      color: var(--sheet-ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    &:hover::file-selector-button {
+      border-color: var(--sheet-accent);
+      background: var(--sheet-accent-soft);
+    }
+  }
+
   p {
     flex-basis: 100%;
     margin: 0;
@@ -47,7 +70,29 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
-  margin: 0 0 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.sheet-music-zoom {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.sheet-music-page--flexoki .sheet-music-controls .sheet-music-zoom__step {
+  min-width: 2.75rem;
+  justify-content: center;
+}
+
+.sheet-music-page--flexoki .sheet-music-controls .sheet-music-zoom__level {
+  min-width: 4rem;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-music-readonly {
+  margin: 0 0 0 auto;
+  color: var(--sheet-muted);
+  font-size: 0.875rem;
 }
 
 .sheet-music-page--flexoki .sheet-music-controls .music-share-btn {
@@ -116,6 +161,20 @@ html[data-theme="dark"] .sheet-music-page--flexoki {
   color: #cecdc3;
 }
 
+// The paper stays warm in dark mode, one step dimmer so it does not glare.
+html[data-theme="dark"] .sheet-music-page--flexoki .sheet-music-container {
+  background: #e6e4d9;
+}
+
+html[data-theme="dark"] .sheet-music-page--flexoki .sheet-file-controls input[type="file"]::file-selector-button {
+  background: #282726;
+  color: #cecdc3;
+}
+
+html[data-theme="dark"] .sheet-music-readonly {
+  color: #878580;
+}
+
 html[data-theme="dark"] .sheet-music-page--flexoki .sheet-music-controls .music-share-btn {
   border-color: var(--sheet-border);
   background: #282726;
@@ -170,8 +229,13 @@ html.sheet-music-focus-open body {
   }
 
   .sheet-music-page--flexoki .sheet-music-container {
-    padding: 0.5rem;
+    padding: 0.25rem;
     border-radius: 0.4rem;
+  }
+
+  .sheet-music-readonly {
+    flex-basis: 100%;
+    margin: 0;
   }
 
   .sheet-music-page--flexoki.sheet-music-page--focus {
@@ -362,6 +426,16 @@ html.sheet-music-focus-open body {
   font-variant-numeric: tabular-nums;
 }
 
+// Desktop shows every control in one row; phones fold key and sound
+// behind the more button.
+.sheet-transport__extras {
+  display: contents;
+}
+
+.sheet-transport__more {
+  display: none;
+}
+
 .sheet-transport__select {
   display: inline-flex;
   flex: none;
@@ -510,7 +584,7 @@ html.sheet-music-focus-open body {
 
 .sheet-transport__key-offset {
   color: var(--sheet-accent);
-  font-size: 0.8125em;
+  font-size: 0.75rem;
   font-weight: 600;
 
   &:empty {
@@ -605,8 +679,34 @@ html.sheet-music-focus-open body {
     min-width: 0;
   }
 
+  .sheet-transport__track {
+    flex-basis: 4rem;
+    min-width: 4rem;
+  }
+
+  .sheet-transport__more {
+    display: inline-grid;
+  }
+
+  .sheet-transport__more[aria-expanded="true"] {
+    border-color: var(--sheet-accent);
+    background: var(--sheet-accent-soft);
+    color: var(--sheet-ink);
+  }
+
+  .sheet-transport__extras {
+    display: none;
+  }
+
+  .sheet-transport.is-expanded .sheet-transport__extras {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
   .sheet-transport__select {
-    flex: 1 1 auto;
+    flex: 1 1 8rem;
 
     select {
       width: 100%;
@@ -681,8 +781,7 @@ html[data-theme="dark"] .sheet-transport {
   }
 
   .sheet-transport__pos,
-  .sheet-transport__select,
-  .sheet-transport__toggle {
+  .sheet-transport__select {
     color: #878580;
   }
 
@@ -703,8 +802,7 @@ html[data-theme="dark"] .sheet-transport {
     color: #fffcf0;
   }
 
-  .sheet-transport__toggle:hover,
-  .sheet-transport__toggle[aria-pressed="true"] {
+  .sheet-transport__more[aria-expanded="true"] {
     color: #fffcf0;
   }
 }
