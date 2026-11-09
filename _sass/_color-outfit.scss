@@ -112,7 +112,7 @@
 .outfit-selected__dot {
   width: 1rem;
   height: 1rem;
-  border-radius: 50%;
+  border-radius: 0;
   border: 1px solid rgba(0, 0, 0, 0.3);
   flex: none;
 }
@@ -198,8 +198,8 @@
 }
 
 .outfit-swatches--small .outfit-swatch {
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .outfit-bar {
@@ -492,6 +492,8 @@
 .outfit .outfit-piece__remove {
   border: 0;
   background: none;
+  min-width: 2rem;
+  min-height: 2rem;
   font-size: 1.125rem;
   line-height: 1;
   padding: 0.25rem 0.4rem;
@@ -625,17 +627,38 @@
     max-height: none;
   }
 
+  // Result first on narrow screens: the look and the figure lead, the picker follows the pieces.
+  .outfit {
+    gap: 1.75rem;
+  }
+
+  .outfit-workspace {
+    display: contents;
+  }
+
+  .outfit-workspace > .outfit-section:first-child {
+    order: -2;
+  }
+
+  .outfit-split {
+    order: -1;
+  }
+
   .outfit-panel {
     padding-right: 0;
-    padding-bottom: 1.5rem;
+    padding-top: 1.25rem;
     border-right: 0;
-    border-bottom: 1px solid var(--global-divider-color);
+    border-top: 1px solid var(--global-divider-color);
   }
 }
 
 @media (max-width: 560px) {
   .outfit-split {
     grid-template-columns: 1fr;
+  }
+
+  .outfit-figure-wrap {
+    order: -1;
   }
 
   .outfit-figure {

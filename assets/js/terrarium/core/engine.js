@@ -5,6 +5,7 @@ export function createEngine(canvas, { onFps } = {}) {
 
   const state = {
     paused: false,
+    userPaused: false,
     scene: null,
     speed: 1,
     fixedDt: 1 / 120,
@@ -48,9 +49,14 @@ export function createEngine(canvas, { onFps } = {}) {
     setScene(state.scene);
   }
 
+  function setPaused(paused) {
+    state.userPaused = Boolean(paused);
+    state.paused = state.userPaused || document.hidden;
+    return state.userPaused;
+  }
+
   function togglePause() {
-    state.paused = !state.paused;
-    return state.paused;
+    return setPaused(!state.userPaused);
   }
 
   function loop(t) {
@@ -89,7 +95,7 @@ export function createEngine(canvas, { onFps } = {}) {
     ctx.fillStyle = "rgb(15,15,18)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     document.addEventListener("visibilitychange", () => {
-      state.paused = document.hidden;
+      state.paused = state.userPaused || document.hidden;
     });
     requestAnimationFrame(loop);
   }
@@ -99,6 +105,10 @@ export function createEngine(canvas, { onFps } = {}) {
     setScene,
     resetScene,
     togglePause,
+    setPaused,
+    isPaused() {
+      return state.userPaused;
+    },
     setSpeed(value) {
       state.speed = Math.max(0, value || 0);
     },

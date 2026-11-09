@@ -47,7 +47,7 @@ permalink: /fireplace/
       </details>
       <noscript><p class="hearth-status">The fire needs JavaScript to glow.</p></noscript>
     </main>
-    <footer class="hearth-footer"><span>A little warmth, a few pixels.</span><a href="{{ '/ditherer/' | relative_url }}">The ditherer ↗</a></footer>
-    <script type="module" src="{{ '/assets/js/fireplace/main.js' | relative_url }}"></script>
+    <footer class="hearth-footer"><span>A little warmth, a few pixels.</span><a href="{{ '/ditherer/' | relative_url }}">The ditherer</a></footer>
+    <script type="module" src="{{ '/assets/js/fireplace/main.js' | relative_url | bust_file_cache }}"></script>
   </body>
 </html>

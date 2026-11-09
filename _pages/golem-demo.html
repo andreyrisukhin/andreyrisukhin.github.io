@@ -1,0 +1,38 @@
+---
+layout: none
+permalink: /golem-demo/
+title: Golem Demo
+sitemap: false
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{{ page.title }} | {{ site.first_name }} {{ site.last_name }}</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="{{ site.third_party_libraries.google_fonts.url.fonts }}" />
+    <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url | bust_css_cache }}" />
+    <link rel="stylesheet" href="{{ '/assets/css/golem-demo.css' | relative_url | bust_file_cache }}" />
+  </head>
+  <body class="golem-demo-page">
+    <div id="golem-demo-root">
+      <header id="golem-header">
+        <a class="golem-home" href="{{ '/' | relative_url }}">{{ site.first_name }} {{ site.last_name }}</a>
+        <h1>Golem Demo</h1>
+        <p>Bevy and WebAssembly sandbox. Build the wasm output to see the game render.</p>
+      </header>
+      <main id="golem-stage">
+        <canvas id="golem-canvas" aria-label="Game canvas"></canvas>
+        <div id="golem-status" role="status" aria-live="polite"></div>
+      </main>
+    </div>
+
+    <script>
+      window.__GOLEM_WASM_URL__ = "{{ '/assets/wasm/golem-demo/golem_demo.js' | relative_url }}";
+    </script>
+    <script type="module" src="{{ '/assets/js/golem-demo/main.js' | relative_url | bust_file_cache }}"></script>
+  </body>
+</html>
