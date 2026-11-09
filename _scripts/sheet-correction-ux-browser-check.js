@@ -107,7 +107,7 @@
     assert(document.querySelector(".practice-score-help").textContent.includes("changes pitch"), "Help reflects edit mode");
     assert(getComputedStyle(document.querySelector(".sheet-transport")).display === "none", "Playback does not cover music in edit mode");
     scrollBy(0, 1600);
-    await sleep(30);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
     const navBottom = document.querySelector("nav.navbar")?.getBoundingClientRect().bottom || 0;
     assert($("toggle").getBoundingClientRect().top >= navBottom, "Sticky edit actions remain fully below the site navigation");
     document.querySelector(".sheet-reader").scrollIntoView({ block: "start" });
