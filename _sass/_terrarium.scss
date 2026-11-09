@@ -1,6 +1,5 @@
-/* assets/css/terrarium.scss */
-html,
-body {
+/* Compiled into main.css for every page, so page-level rules stay scoped. */
+body.terrarium-page {
   margin: 0;
   padding: 0;
   height: 100%;

@@ -13,7 +13,7 @@ registry and a shared render loop. Scenes are plain ES modules under `assets/js/
 1. Create a scene module in `assets/js/terrarium/scenes/`.
 2. Export a scene object with the lifecycle methods below.
 3. Register the scene in `assets/js/terrarium/main.js`.
-4. Add a button in `/_pages/terrarium.md` (optional but recommended).
+4. Add a button in `/_pages/terrarium.html` (optional but recommended).
 
 ### Scene contract
 

@@ -73,7 +73,7 @@ from there.
   hit-test in OSMD's coordinate space — it snaps to whichever
   `GraphicalNote` is closest to the cursor, including rests in adjacent
   voices. The bridge now walks `graphic.MusicPages → MusicSystems →
-  StaffLines → Measures → staffEntries → graphicalVoiceEntries → notes`
+StaffLines → Measures → staffEntries → graphicalVoiceEntries → notes`
   and returns the GraphicalNote whose `vfnote.attrs.id` matches the
   clicked `.vf-stavenote` id (after stripping VexFlow's `vf-` prefix).
   For chord stacks, it disambiguates by matching the clicked
@@ -110,7 +110,7 @@ from there.
     16 stave-ties are all slurs)
   - source-of-truth agreement (sample 60+ stavenotes; for each, the
     bridge's `isRest` must equal `sourceNote.isRestFlag`)
-  Latest count: 58 passed, 0 failed.
+    Latest count: 58 passed, 0 failed.
 
 ## How we got here
 
@@ -195,6 +195,7 @@ Numbers in parentheses are commit shorthashes from `git log`.
 18. **(this commit)** — unified interaction model. Rewrote
     `chord-inspector.js` into a 3-stage progressive-disclosure
     machine:
+
     - hover ≥ 250 ms → quiet `.chord-tag` (chord name + clicked
       pitch) at cursor; fades when the cursor leaves the
       stavenote;
@@ -208,9 +209,9 @@ Numbers in parentheses are commit shorthashes from `git log`.
 
     `dev-annotator.js` is now opt-in. The IIFE reads
     `?dev=0|1` first (mirroring to localStorage) and falls back
-    to the existing `sheet-dev-mode` localStorage key. On any
-    state, it renders a small `[data-sheet-dev-toggle]` pill
-    inside the score container (bottom-right). Click flips the
+    to the existing `sheet-dev-mode` localStorage key. Only when
+    dev mode is on does it render the small `[data-sheet-dev-toggle]`
+    pill (fixed, bottom-right); `?dev=0` hides it again. Click flips the
     flag, drops the `?dev` param, and `location.replace`s so the
     next init sees the new state. When dev mode is OFF: no
     annotator listeners, no sidebar, no shift-preview, no pins;
