@@ -113,6 +113,18 @@ check("Shared schedule expands Stradella chords without changing written notes",
   assert.equal(note.Pitch.getHalfTone(), 45);
 });
 
+check("Score key follows written mode, then page hint, then inference for opened files", () => {
+  window.SheetTranspose = require(path.join(root, "assets/js/sheet-music/transpose.js"));
+  const osmd = { Sheet: { SourceMeasures: [{ FirstInstructionsStaffEntries: [{ Instructions: [{ keyType: 4, Mode: 0 }] }] }] } };
+  const cSharpMinor = { pc: 1, minor: true };
+  const read = (hint, profile) => window.SheetScore.readScoreKey(osmd, hint, profile).mode;
+  assert.equal(read("major", { mode: "minor" }), "minor");
+  assert.equal(read("minor", { infer: true, firstChord: { pc: 4, minor: false } }), "minor");
+  assert.equal(read(undefined, { infer: true, firstChord: cSharpMinor }), "minor");
+  assert.equal(read(undefined, { firstChord: cSharpMinor }), "major", "published pages without a hint keep OSMD's reading");
+  assert.equal(read(undefined), "major");
+});
+
 function harness() {
   let clock = 0,
     contexts = 0,
