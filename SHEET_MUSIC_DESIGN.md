@@ -96,11 +96,15 @@ from `assets/js/sheet-music/transport.js`. There is no separate practice reader.
 
 - The bar is one horizontal ledge: play, back to start, a measure track,
   the measure count, the key stepper, and the sound picker. It sticks under
-  the site nav on desktop and docks at the bottom on phones as one row;
-  there the key stepper and sound picker fold behind a “…” button, and the
+  the site nav without covering the bottom of the score. On phones it stays
+  one row; the key stepper and sound picker fold behind a “…” button, and the
   sound picker hides while a recording plays. Click-to-jump lives in
   Practice settings. Select captions are for screen readers only; the
   chosen value names itself.
+- While correcting a local copy, the edit/history toolbar occupies the sticky
+  area and playback is hidden. The toolbar retains the active filename,
+  save state, and exact selected pitch. Secondary view/instrument controls
+  stay in a disclosure.
 - The key stepper transposes the notation and the live sound together, one
   semitone at a time up to a tritone each way. The key name is the reset
   button. Notes are respelled by interval from the tonic (`transpose.js`),

@@ -299,7 +299,7 @@
   }
   .sheet-correction-tools {
     position: static;
-    top: 0;
+    top: var(--sheet-transport-top, 4.25rem);
     z-index: 20;
     padding-block: 8px;
     background: var(--music-paper);
@@ -429,7 +429,7 @@
   }
   .sheet-transport {
     position: sticky;
-    top: 0;
+    top: var(--sheet-transport-top, 4.25rem);
     bottom: auto;
     left: auto;
     right: auto;
@@ -449,6 +449,12 @@
   }
   &[data-correction-mode="true"] .sheet-correction-tools {
     position: sticky;
+  }
+  &.sheet-music-page--focus {
+    .sheet-correction-tools,
+    .sheet-transport {
+      top: 3.25rem;
+    }
   }
 }
 .music-page:has(.sheet-reader) h1 {
