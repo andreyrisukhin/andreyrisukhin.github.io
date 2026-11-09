@@ -1,6 +1,6 @@
 ---
 layout: music
-title: Scale Reference
+title: Scale reference
 permalink: /music/scales/
 description: Scale formulas, note names, modes, and the relationships between major and minor keys.
 ---

@@ -2,150 +2,50 @@
 layout: music
 title: Chords from scales
 permalink: /music/chords/
+description: The triad and seventh chord built on each degree of ten common scales.
 ---
 
-Notes:
+Columns I–VII are the scale degrees. Melodic minor uses its ascending (jazz) form.
 
-- **Scale type** = diatonic collection (mode or scalar system)
-- **Chord structure** = tertian stack (triads, seventh chords)
-- Columns I–VII correspond to scale degrees
+## Triads
 
----
+<div class="music-table-scroll" tabindex="0" role="region" aria-label="Triads from scales, scroll horizontally" markdown="1">
 
-<div class="music-table-scroll" tabindex="0" role="region" aria-label="Chords from scales, scroll horizontally">
-<table>
-  <thead>
-    <tr>
-      <th>Scale type</th>
-      <th>Chord structure</th>
-      <th>I</th>
-      <th>II</th>
-      <th>III</th>
-      <th>IV</th>
-      <th>V</th>
-      <th>VI</th>
-      <th>VII</th>
-    </tr>
-  </thead>
-  <tbody>
+| Scale                   | I   | II  | III | IV  | V   | VI  | VII |
+| ----------------------- | --- | --- | --- | --- | --- | --- | --- |
+| Major (Ionian)          | M   | m   | m   | M   | M   | m   | dim |
+| Natural minor (Aeolian) | m   | dim | M   | m   | m   | M   | M   |
+| Harmonic minor          | m   | dim | aug | m   | M   | M   | dim |
+| Melodic minor           | m   | m   | aug | M   | M   | dim | dim |
+| Harmonic major          | M   | dim | m   | m   | M   | aug | dim |
+| Dorian                  | m   | m   | M   | M   | m   | dim | M   |
+| Phrygian                | m   | M   | M   | m   | dim | M   | m   |
+| Lydian                  | M   | M   | m   | dim | M   | m   | m   |
+| Mixolydian              | M   | m   | dim | M   | m   | m   | M   |
+| Locrian                 | dim | M   | m   | m   | M   | M   | m   |
 
-    <!-- Major / Ionian -->
-    <tr>
-      <td rowspan="2"><b>Major (Ionian)</b></td>
-      <td>Triads</td>
-      <td>M</td><td>m</td><td>m</td><td>M</td><td>M</td><td>m</td><td>dim</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>maj7</td><td>m7</td><td>m7</td><td>maj7</td><td>7</td><td>m7</td><td>ø7</td>
-    </tr>
-
-    <!-- Natural Minor / Aeolian -->
-    <tr>
-      <td rowspan="2"><b>Natural Minor (Aeolian)</b></td>
-      <td>Triads</td>
-      <td>m</td><td>dim</td><td>M</td><td>m</td><td>m</td><td>M</td><td>M</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>m7</td><td>ø7</td><td>maj7</td><td>m7</td><td>m7</td><td>maj7</td><td>7</td>
-    </tr>
-
-    <!-- Harmonic Minor -->
-    <tr>
-      <td rowspan="2"><b>Harmonic Minor</b></td>
-      <td>Triads</td>
-      <td>m</td><td>dim</td><td>aug</td><td>m</td><td>M</td><td>M</td><td>dim</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>maj7</td><td>ø7</td><td>+maj7</td><td>m7</td><td>7</td><td>maj7</td><td>°7</td>
-    </tr>
-
-    <!-- Melodic Minor -->
-    <tr>
-      <td rowspan="2"><b>Melodic Minor (ascending / jazz)</b></td>
-      <td>Triads</td>
-      <td>m</td><td>m</td><td>aug</td><td>M</td><td>M</td><td>dim</td><td>dim</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>maj7</td><td>m7</td><td>+maj7</td><td>7</td><td>7</td><td>ø7</td><td>ø7</td>
-    </tr>
-
-    <!-- Harmonic Major -->
-    <tr>
-      <td rowspan="2"><b>Harmonic Major</b></td>
-      <td>Triads</td>
-      <td>M</td><td>dim</td><td>m</td><td>m</td><td>M</td><td>aug</td><td>dim</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>maj7</td><td>ø7</td><td>m7</td><td>m7</td><td>7</td><td>+maj7</td><td>°7</td>
-    </tr>
-
-    <!-- Dorian -->
-    <tr>
-      <td rowspan="2"><b>Dorian</b></td>
-      <td>Triads</td>
-      <td>m</td><td>m</td><td>M</td><td>M</td><td>m</td><td>dim</td><td>M</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>m7</td><td>m7</td><td>maj7</td><td>7</td><td>m7</td><td>ø7</td><td>maj7</td>
-    </tr>
-
-    <!-- Phrygian -->
-    <tr>
-      <td rowspan="2"><b>Phrygian</b></td>
-      <td>Triads</td>
-      <td>m</td><td>M</td><td>M</td><td>m</td><td>dim</td><td>M</td><td>m</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>m7</td><td>maj7</td><td>7</td><td>m7</td><td>ø7</td><td>maj7</td><td>m7</td>
-    </tr>
-
-    <!-- Lydian -->
-    <tr>
-      <td rowspan="2"><b>Lydian</b></td>
-      <td>Triads</td>
-      <td>M</td><td>M</td><td>m</td><td>dim</td><td>M</td><td>m</td><td>m</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>maj7</td><td>7</td><td>m7</td><td>ø7</td><td>maj7</td><td>m7</td><td>m7</td>
-    </tr>
-
-    <!-- Mixolydian -->
-    <tr>
-      <td rowspan="2"><b>Mixolydian</b></td>
-      <td>Triads</td>
-      <td>M</td><td>m</td><td>dim</td><td>M</td><td>m</td><td>m</td><td>M</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>7</td><td>m7</td><td>ø7</td><td>maj7</td><td>m7</td><td>m7</td><td>maj7</td>
-    </tr>
-
-    <!-- Locrian -->
-    <tr>
-      <td rowspan="2"><b>Locrian</b></td>
-      <td>Triads</td>
-      <td>dim</td><td>M</td><td>m</td><td>m</td><td>M</td><td>M</td><td>m</td>
-    </tr>
-    <tr>
-      <td>7th chords</td>
-      <td>ø7</td><td>maj7</td><td>m7</td><td>m7</td><td>7</td><td>maj7</td><td>m7</td>
-    </tr>
-
-  </tbody>
-</table>
 </div>
 
----
+## Seventh chords
 
-Abbreviations:
+<div class="music-table-scroll" tabindex="0" role="region" aria-label="Seventh chords from scales, scroll horizontally" markdown="1">
+
+| Scale                   | I    | II   | III   | IV   | V    | VI    | VII  |
+| ----------------------- | ---- | ---- | ----- | ---- | ---- | ----- | ---- |
+| Major (Ionian)          | maj7 | m7   | m7    | maj7 | 7    | m7    | ø7   |
+| Natural minor (Aeolian) | m7   | ø7   | maj7  | m7   | m7   | maj7  | 7    |
+| Harmonic minor          | maj7 | ø7   | +maj7 | m7   | 7    | maj7  | °7   |
+| Melodic minor           | maj7 | m7   | +maj7 | 7    | 7    | ø7    | ø7   |
+| Harmonic major          | maj7 | ø7   | m7    | m7   | 7    | +maj7 | °7   |
+| Dorian                  | m7   | m7   | maj7  | 7    | m7   | ø7    | maj7 |
+| Phrygian                | m7   | maj7 | 7     | m7   | ø7   | maj7  | m7   |
+| Lydian                  | maj7 | 7    | m7    | ø7   | maj7 | m7    | m7   |
+| Mixolydian              | 7    | m7   | ø7    | maj7 | m7   | m7    | maj7 |
+| Locrian                 | ø7   | maj7 | m7    | m7   | 7    | maj7  | m7   |
+
+</div>
+
+## Abbreviations
 
 - M = major triad
 - m = minor triad
