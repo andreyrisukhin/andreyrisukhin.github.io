@@ -28,6 +28,7 @@ const PRECACHE_URLS = [
   '/music/intervals/',
   '/music/songs/',
   '/music/sheet/open/',
+  '/music/sheet/into-the-unknown/',
   '/music/sheet/cogwork-dancers/',
   '/music/sheet/reclaiming-entropy/',
   '/music/sheet/reconstructing-more-science/',

@@ -20,6 +20,7 @@ const routes = [
   "bayan-simulator/",
   "chord-recognizer/",
   "sheet/open/",
+  "sheet/into-the-unknown/",
   "sheet/cogwork-dancers/",
   "sheet/reclaiming-entropy/",
   "sheet/reconstructing-more-science/",
@@ -222,7 +223,27 @@ const otherSheet = fs.readFileSync(path.join(site, "music/sheet/reclaiming-entro
 assert.ok(otherSheet.includes("/sheet-music/practice-inspector.js"), "Read-only sheet uses shared inspection");
 assert.ok(!otherSheet.includes("/sheet-music/playback.js"), "Read-only sheet has no player");
 assert.ok(!otherSheet.includes('class="practice-settings"'), "Read-only sheet hides playback settings");
-for (const name of ["senorita", "reconstructing-more-science", "cogwork-dancers", "reclaiming-entropy"]) {
+const unknown = fs.readFileSync(path.join(site, "music/sheet/into-the-unknown/index.html"), "utf8");
+assert.ok(unknown.includes('data-playback-instrument="acoustic_grand_piano"'), "Into the Unknown defaults to piano");
+assert.equal((unknown.match(/<a\b[^>]*\bdownload(?:\s|=|>)/g) || []).length, 1, "MusicXML-only scores have one download, not duplicate source links");
+assert.ok(
+  unknown.includes("J. Rubenstein") && unknown.includes("transcription may still contain errors"),
+  "Into the Unknown preserves credits and transcription provenance"
+);
+const unknownXML = fs.readFileSync(path.join(site, "assets/music/sheet-music/into-the-unknown/into-the-unknown.musicxml"), "utf8");
+assert.equal((unknownXML.match(/<measure\b/g) || []).length, 41, "Into the Unknown keeps all measures");
+assert.equal((unknownXML.match(/<note>/g) || []).length, 305, "Into the Unknown keeps all notes");
+const correctedChord = unknownXML
+  .match(/<measure number="22">([\s\S]*?)<\/measure>/)[1]
+  .match(/<note>[\s\S]*?<\/note>/g)
+  .slice(0, 2);
+assert.ok(correctedChord[0].includes("<step>A</step><octave>3</octave>"), "Measure 22 keeps the edited A3");
+assert.ok(correctedChord[1].includes("<step>C</step><alter>1</alter><octave>4</octave>"), "Measure 22 keeps the edited C-sharp 4 pitch");
+assert.ok(
+  correctedChord.every((note) => !note.includes("<accidental>")),
+  "Key-signature accidentals are not forced on the corrected chord"
+);
+for (const name of ["senorita", "reconstructing-more-science", "cogwork-dancers", "reclaiming-entropy", "into-the-unknown"]) {
   const content = fs.readFileSync(path.join(site, "music/sheet", name, "index.html"), "utf8");
   assert.ok(content.includes("sheet-reader"), name + " uses the common reader shell");
   assert.ok(!content.includes("/sheet-music/corrections.js") && !content.includes('id="sheet-correction-dialog"'), name + " stays read-only");
