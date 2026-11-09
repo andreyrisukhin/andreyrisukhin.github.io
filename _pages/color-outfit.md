@@ -2,6 +2,7 @@
 layout: page
 title: Outfit palette
 permalink: /color/outfit/
+breadcrumbs: false
 description: "Plan an outfit’s colors and how much of the look each one covers."
 ---
 

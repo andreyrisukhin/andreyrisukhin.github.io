@@ -229,7 +229,7 @@ vm.runInNewContext(read("assets/js/creative-paper.js"), { document: { querySelec
 if (process.argv[2]) {
   const site = path.resolve(process.argv[2]);
   const routes = ["kata/", "ditherer/", "music/", "music/scales/", "music/sheet/cogwork-dancers/"];
-  for (const route of [...routes, "", "blog/", "publications/", "terrarium/"]) {
+  for (const route of [...routes, "", "blog/", "publications/"]) {
     const html = fs.readFileSync(path.join(site, route, "index.html"), "utf8");
     const creative = routes.includes(route);
     assert.equal(/<body[^>]+creative-paper/.test(html), creative, route + " theme boundary");

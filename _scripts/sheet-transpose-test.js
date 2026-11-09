@@ -113,6 +113,35 @@ check("page hint overrides OSMD's default major", () => {
   assert.equal(T.modeFromOsmd(3), "major");
 });
 
+check("written modes read as minor or major, and a missing mode stays unknown", () => {
+  assert.equal(T.modeFromXml("minor"), "minor");
+  assert.equal(T.modeFromXml(" Aeolian "), "minor");
+  assert.equal(T.modeFromXml("major"), "major");
+  assert.equal(T.modeFromXml("dorian"), "major");
+  assert.equal(T.modeFromXml(""), null);
+  assert.equal(T.modeFromXml(undefined), null);
+});
+
+check("a tonic first chord settles the mode", () => {
+  const flat = new Array(12).fill(1);
+  assert.equal(T.inferMode(0, flat, { pc: 9, minor: true }), "minor");
+  assert.equal(T.inferMode(0, flat, { pc: 0, minor: false }), "major");
+  assert.equal(T.inferMode(4, flat, { pc: 1, minor: true }), "minor", "C# minor in four sharps");
+});
+
+check("without a tonic chord, note weights choose the mode", () => {
+  const weights = (entries) => {
+    const w = new Array(12).fill(0.5);
+    Object.entries(entries).forEach(([pc, value]) => (w[pc] = value));
+    return w;
+  };
+  const cMajor = weights({ 0: 5, 4: 3, 7: 4, 2: 1, 5: 1, 9: 1, 11: 1 });
+  const aMinor = weights({ 9: 5, 0: 3, 4: 4, 8: 2, 11: 1, 2: 1 });
+  assert.equal(T.inferMode(0, cMajor, { pc: 7, minor: false }), "major", "a dominant first chord is ignored");
+  assert.equal(T.inferMode(0, aMinor, null), "minor");
+  assert.equal(T.inferMode(0, new Array(12).fill(0), null), "major", "an empty score falls back to major");
+});
+
 if (failures) {
   console.error(`${failures} transpose check(s) failed`);
   process.exit(1);

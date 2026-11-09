@@ -70,13 +70,21 @@ window.SheetScore = (function () {
     }
   }
 
-  function readScoreKey(osmd, modeHint) {
+  // Mode precedence: the file's own <mode>, then the page's hint, then
+  // (for opened files, which have no page hint) inference from the notes.
+  // OSMD reads a missing <mode> as major, so it cannot tell the cases apart.
+  function readScoreKey(osmd, modeHint, profile = {}) {
+    const T = window.SheetTranspose;
     try {
       const first = osmd.Sheet.SourceMeasures[0];
       for (const entry of first.FirstInstructionsStaffEntries || []) {
         for (const ins of (entry && entry.Instructions) || []) {
           if (typeof ins.keyType === "number") {
-            return { fifths: ins.keyType, mode: window.SheetTranspose.modeFromOsmd(ins.Mode, modeHint) };
+            let mode = profile.mode;
+            if (!mode && modeHint !== "minor" && modeHint !== "major" && profile.infer) {
+              mode = T.inferMode(ins.keyType, profile.weights, profile.firstChord);
+            }
+            return { fifths: ins.keyType, mode: mode || T.modeFromOsmd(ins.Mode, modeHint) };
           }
         }
       }
@@ -208,6 +216,76 @@ window.SheetScore = (function () {
     const written = m[3] || "";
     const suffix = written in CHORD_WORD_SUFFIX ? CHORD_WORD_SUFFIX[written] : written;
     return { pc: (pc + 12) % 12, suffix, tones: CHORD_QUALITIES[suffix] };
+  }
+
+  const HARMONY_STEP_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+  // What a score says about its key and left-hand notation, read from the
+  // MusicXML rather than OSMD so a missing <mode> stays missing.
+  //   mode:       written mode of the first key, or null
+  //   weights:    sounding beats per pitch class before the first key change
+  //   firstChord: { pc, minor } of the first chord symbol or chord word
+  //   stradella:  the lower staff carries chord words over single notes,
+  //               the Stradella convention the reader plays as buttons
+  function profileXml(doc, timeline) {
+    const T = window.SheetTranspose;
+    const profile = { mode: null, weights: new Array(12).fill(0), firstChord: null, stradella: false };
+    const parts = doc ? [...doc.querySelectorAll("score-partwise > part")] : [];
+    if (!parts.length) return profile;
+    const own = (node, name) => [...node.children].filter((el) => el.tagName === name);
+    const measuresOf = (part) => own(part, "measure");
+    let fifths = null;
+    let cutoff = Infinity;
+    measuresOf(parts[0]).forEach((measure, index) => {
+      const key = measure.querySelector("attributes > key");
+      const value = key && key.querySelector("fifths");
+      if (!value) return;
+      const next = Number(value.textContent);
+      if (fifths === null) {
+        fifths = next;
+        profile.mode = T.modeFromXml(key.querySelector("mode")?.textContent);
+      } else if (next !== fifths && cutoff === Infinity) {
+        cutoff = timeline && timeline.beatStarts ? timeline.beatStarts[index] : Infinity;
+      }
+    });
+    for (const event of (timeline && timeline.events) || []) {
+      if (event.beat < cutoff) profile.weights[event.midi % 12] += event.endBeat - event.beat;
+    }
+    for (const node of doc.querySelectorAll("harmony, direction words")) {
+      if (node.tagName === "harmony") {
+        const pc = HARMONY_STEP_PC[node.querySelector("root-step")?.textContent.trim()];
+        if (pc === undefined) continue;
+        const alter = Number(node.querySelector("root-alter")?.textContent || 0);
+        profile.firstChord = { pc: (pc + alter + 12) % 12, minor: /^minor/.test(node.querySelector("kind")?.textContent.trim() || "") };
+        break;
+      }
+      const chord = parseChordWord(node.textContent);
+      if (chord) {
+        profile.firstChord = { pc: chord.pc, minor: chord.suffix === "m" || chord.suffix === "m7" };
+        break;
+      }
+    }
+    for (const part of parts) {
+      const staves = Number(part.querySelector("attributes > staves")?.textContent || 1);
+      if (staves < 2) continue;
+      const lower = (node) => own(node, "staff")[0]?.textContent.trim() === String(staves);
+      let words = 0;
+      let notes = 0;
+      let stacked = 0;
+      for (const measure of measuresOf(part)) {
+        for (const node of measure.children) {
+          if (!lower(node)) continue;
+          if (node.tagName === "direction" && [...node.querySelectorAll("words")].some((w) => parseChordWord(w.textContent))) words++;
+          if (node.tagName === "note" && node.querySelector("pitch")) {
+            notes++;
+            if (node.querySelector("chord")) stacked++;
+          }
+        }
+      }
+      // Piano left hands stack chord tones; Stradella writes one button.
+      if (words >= 2 && notes && stacked / notes < 0.25) profile.stradella = true;
+    }
+    return profile;
   }
 
   function expressionTexts(multiExpression) {
@@ -353,5 +431,5 @@ window.SheetScore = (function () {
     };
   }
 
-  return { build, spellingTransposer, restoreWrittenKeys, readScoreKey, instruments: INSTRUMENT_CHOICES };
+  return { build, spellingTransposer, restoreWrittenKeys, readScoreKey, profileXml, instruments: INSTRUMENT_CHOICES };
 })();

@@ -7,7 +7,7 @@
   <summary>Practice settings</summary>
   {% if include.local_file %}
     <p class="practice-help">
-      Piano samples download on first Play; your score stays in your browser. Playback follows measures in order and explicit tempos, not all
+      Sound samples download on first Play; your score stays in your browser. Playback follows measures in order and explicit tempos, not all
       expressive markings.
     </p>
   {% endif %}
@@ -38,5 +38,15 @@
       <button type="submit" disabled>Go</button>
     </form>
     <label class="practice-check"><input data-practice-follow type="checkbox" checked> Follow playback in the score</label>
+    {% if include.local_file %}
+      <fieldset>
+        <legend>Accordion left hand</legend>
+        <label class="practice-check"><input data-practice-stradella type="checkbox" disabled> Play the lower staff as Stradella buttons</label>
+        <p class="practice-help">
+          Notes below D3 sound as single basses. Higher notes sound the chord named above them. Turns on by itself when the lower staff has chord
+          names over single notes.
+        </p>
+      </fieldset>
+    {% endif %}
   </div>
 </details>
