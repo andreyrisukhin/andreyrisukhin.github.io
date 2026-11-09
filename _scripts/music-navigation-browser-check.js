@@ -25,6 +25,7 @@
     );
     const destinations = sections.flatMap((section) => [...section.querySelectorAll("a")].map((link) => link.pathname));
     assert(destinations.length >= sections.length && new Set(destinations).size === destinations.length, "Each destination appears once");
+    assert(destinations.includes("/music/sheet/into-the-unknown/"), "Into the Unknown appears in sheet navigation");
     for (const link of links.slice(1)) {
       assert(document.querySelector(new URL(link.href).hash), "Section link resolves");
     }

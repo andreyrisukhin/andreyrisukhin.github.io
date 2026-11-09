@@ -89,7 +89,9 @@
       {% if include.notes %}
         <p>{{ include.notes }}</p>
       {% endif %}
-      <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
+      {% unless source_path == musicxml_path %}
+        <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
+      {% endunless %}
       <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
       <p>
         Source files live under <code>{{ '/assets/music/sheet-music/' | append: sheet_dir | append: '/' }}</code>. Notation rendered with
