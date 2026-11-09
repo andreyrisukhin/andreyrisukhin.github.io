@@ -4,7 +4,9 @@
     {% if section.description %}
       <p>{{ section.description }}</p>
     {% endif %}
-    {% if section.compact %}
+    {% if section.id == 'sheets' %}
+      {% include music-books.liquid %}
+    {% elsif section.compact %}
       <ul class="music-index">
         {% for item in section.items %}
           <li>
