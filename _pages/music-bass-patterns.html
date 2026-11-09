@@ -9,7 +9,6 @@ description: A notebook for the left hand.
 <section class="bass-patterns" id="bass-patterns" aria-label="Bass pattern notebook">
   <div class="bp-toolbar">
     <button type="button" id="bp-new">New bassline</button>
-    <label>Tempo <input id="bp-tempo" type="number" min="40" max="240" value="96" aria-label="Tempo in quarter notes per minute" /></label>
   </div>
   <details id="bp-workspace" open>
     <summary>Staff editor</summary>
@@ -77,7 +76,10 @@ description: A notebook for the left hand.
         Lock beat
       </button>
       <button type="button" id="bp-remove">Delete</button>
-      <button type="button" id="bp-play-draft">Play</button>
+    </div>
+    <div class="bp-toolbar bp-transport" aria-label="Playback">
+      <button type="button" id="bp-play-draft" class="bp-primary">Play</button>
+      <label>Tempo <input id="bp-tempo" type="number" min="40" max="240" value="96" aria-label="Tempo in quarter notes per minute" /></label>
       <label class="bp-repeat"><input id="bp-repeat" type="checkbox" /> Repeat twice</label>
     </div>
     <p id="bp-staff-hint" class="bp-small">
