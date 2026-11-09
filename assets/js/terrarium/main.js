@@ -264,9 +264,24 @@ function setScene(sceneId, { pushHistory = true } = {}) {
 }
 
 document.getElementById("btn-reset")?.addEventListener("click", () => engine.resetScene());
-document.getElementById("btn-pause")?.addEventListener("click", (e) => {
-  const paused = engine.togglePause();
-  e.target.textContent = paused ? "Resume" : "Pause";
+const pauseButton = document.getElementById("btn-pause");
+
+function syncPauseButton() {
+  if (pauseButton) pauseButton.textContent = engine.isPaused() ? "Play" : "Pause";
+}
+
+pauseButton?.addEventListener("click", () => {
+  engine.togglePause();
+  syncPauseButton();
+});
+
+// Scenes still render while paused, so a reduced-motion visitor sees a still frame and can press Play.
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+engine.setPaused(reducedMotion.matches);
+syncPauseButton();
+reducedMotion.addEventListener?.("change", (event) => {
+  engine.setPaused(event.matches);
+  syncPauseButton();
 });
 
 document.querySelectorAll("[data-scene]").forEach((button) => {
