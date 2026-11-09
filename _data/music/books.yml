@@ -1,0 +1,27 @@
+# Size uses the longest MusicXML part's measure count, not file bytes.
+- title: Games
+  books:
+    - slug: reconstructing-more-science
+      source: Portal 2
+      measures: 8
+      motif: glados
+    - slug: reclaiming-entropy
+      source: Rain World
+      measures: 42
+      motif: rain
+    - slug: cogwork-dancers
+      source: Hollow Knight · Silksong
+      measures: 79
+      motif: cog
+- title: Pop
+  books:
+    - slug: senorita
+      source: Shawn Mendes & Camila Cabello
+      measures: 16
+      motif: sun
+- title: Autumn
+  books:
+    - slug: into-the-unknown
+      source: Over the Garden Wall
+      measures: 41
+      motif: leaf

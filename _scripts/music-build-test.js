@@ -57,15 +57,21 @@ const sections = [
 ];
 const hubRoutes = [];
 for (const [id, title, members] of sections) {
-  const section = hub.match(new RegExp(`<section\\b[^>]*id="${id}"[^>]*>([\\s\\S]*?)</section>`));
-  assert.ok(section, title + " has a hub section");
-  assert.ok(section[1].includes(`>${title}</h2>`), title + " uses the navigation label");
-  const urls = [...section[1].matchAll(/href="([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(
-    urls,
-    members.map((route) => "/music/" + route),
-    title + " groups its tools once"
-  );
+  const opening = hub.match(new RegExp(`<section\\b[^>]*id="${id}"[^>]*>`));
+  assert.ok(opening, title + " has a hub section");
+  const tags = /<\/?section\b[^>]*>/g;
+  const start = opening.index + opening[0].length;
+  tags.lastIndex = start;
+  let depth = 1;
+  let closing;
+  while (depth && (closing = tags.exec(hub))) {
+    depth += closing[0].startsWith("</") ? -1 : 1;
+  }
+  assert.equal(depth, 0, title + " has a matching closing section");
+  const section = hub.slice(start, closing.index);
+  assert.ok(section.includes(`>${title}</h2>`), title + " uses the navigation label");
+  const urls = [...section.matchAll(/href="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual([...urls].sort(), members.map((route) => "/music/" + route).sort(), title + " groups its tools once");
   hubRoutes.push(...urls);
 }
 assert.equal(new Set(hubRoutes).size, hubRoutes.length, "Hub lists each destination only once");
