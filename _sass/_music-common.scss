@@ -1,5 +1,17 @@
 /* ===== Shared music tool styles ===== */
 
+$music-font: "Nunito Sans", "Noto Music", "Noto Sans Symbols 2", "Segoe UI Symbol", "Apple Symbols", "Helvetica Neue", Arial, sans-serif;
+
+/* Edge shadows appear only on a side with hidden content: the local covers scroll with it. */
+@mixin music-scroll-shadow($bg) {
+  background:
+    linear-gradient(to right, $bg 30%, transparent) left / 32px 100% no-repeat local,
+    linear-gradient(to left, $bg 30%, transparent) right / 32px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.18), transparent) left / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.18), transparent) right / 12px 100% no-repeat scroll;
+  background-color: $bg;
+}
+
 /* ── Key bar (12-note button strip) ── */
 
 .music-key-bar {
@@ -44,7 +56,7 @@
 
   &.is-active {
     background: var(--global-theme-color);
-    color: #fff;
+    color: var(--music-on-accent, #fff);
     border-color: var(--global-theme-color);
   }
 }
@@ -60,6 +72,7 @@
 }
 
 .music-share label {
+  margin: 0;
   font-weight: 600;
   font-size: $type-size-small;
 }
@@ -78,6 +91,7 @@
 
 .music-share-btn {
   font-size: $type-size-small;
+  white-space: nowrap;
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
   border: 1px solid var(--global-divider-color);
@@ -95,7 +109,7 @@
 
 .chord-search-result {
   margin: -0.75rem 0 1rem;
-  font-size: 0.95rem;
+  font-size: $type-size-body;
   line-height: 1.35;
   min-height: 1.35em;
 }
@@ -107,7 +121,7 @@
 
 .chord-search-result__recipe {
   font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
-  font-size: 0.88rem;
+  font-size: $type-size-small;
   color: var(--global-text-color);
   opacity: 0.8;
 }
@@ -226,7 +240,7 @@
 
   &.is-active {
     background: var(--global-theme-color);
-    color: #fff;
+    color: var(--music-on-accent, #fff);
     border-color: var(--global-theme-color);
   }
 }
