@@ -146,5 +146,44 @@
     .grid-footer {
       flex-wrap: wrap;
     }
+    /* Keep four columns, but shrink the tiles so the whole bar fits without sideways scrolling. */
+    .sequence.chord-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      min-width: 0;
+      padding: 2px;
+    }
+    .chord-grid-cell,
+    .chord-grid-cell > .sequence-card,
+    .chord-grid-cell > .grid-empty,
+    .grid-draft {
+      min-height: 112px;
+      border-radius: 8px;
+    }
+    .chord-grid-cell .sequence-card {
+      padding: 8px 6px 38px;
+      overflow-wrap: anywhere;
+      .name {
+        font-size: 18px;
+      }
+    }
+    .chord-grid-cell .grid-empty {
+      font-size: 12px;
+      span:first-child {
+        font-size: 18px;
+      }
+    }
+    .grid-edit {
+      right: 0;
+      min-width: 0;
+      width: 100%;
+      text-align: right;
+    }
+    .grid-draft {
+      padding: 6px;
+      input {
+        font-size: 18px;
+      }
+    }
   }
 }

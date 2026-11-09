@@ -38,7 +38,9 @@
   cursor: pointer;
 }
 .bass-patterns button:disabled {
-  opacity: 0.45;
+  opacity: 1;
+  color: var(--music-muted);
+  border-style: dashed;
   cursor: default;
 }
 .bass-patterns :focus-visible {
@@ -68,6 +70,10 @@
 .bp-score svg {
   color: var(--music-ink);
 }
+/* abcjs writes Arial into each text node; CSS outranks SVG presentation attributes. */
+.bp-score svg text {
+  font-family: "Nunito Sans", "Noto Music", "Helvetica Neue", Arial, sans-serif;
+}
 .bp-score [data-bp-step] {
   cursor: pointer;
   scroll-margin-top: 100px;
@@ -79,12 +85,17 @@
   fill: var(--music-accent);
   stroke: var(--music-accent);
 }
+/* Edge shadows show which side of the wide staff is scrolled out of view. */
 .bp-interactive-score {
-  border: 1px solid var(--music-rule);
-  border-radius: 6px;
+  border-block: 1px solid var(--music-rule);
   margin: 8px 0;
   padding: 0;
-  background: var(--music-surface);
+  background:
+    linear-gradient(to right, var(--music-paper) 30%, transparent) left / 32px 100% no-repeat local,
+    linear-gradient(to left, var(--music-paper) 30%, transparent) right / 32px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), transparent) left / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), transparent) right / 12px 100% no-repeat scroll;
+  background-color: var(--music-paper);
 }
 .bp-interactive-score svg {
   display: block;
@@ -115,20 +126,40 @@
   stroke-width: 0.7;
   opacity: 0.65;
 }
+/* Hint text changes with the tool mode; a fixed height keeps the staff from jumping. */
 #bp-staff-hint {
   min-height: 4.5em;
 }
-.bp-music-tools [aria-pressed="true"] {
-  border-color: var(--music-accent);
-  box-shadow: inset 0 -3px var(--music-accent);
+.bp-music-tools,
+.bp-transport {
+  align-items: center;
 }
-.bass-patterns .bp-repeat {
+.bass-patterns :is(.bp-music-tools, .bp-transport) label {
   flex-direction: row;
   align-items: center;
+  gap: 8px;
+}
+.bass-patterns :is(.bp-music-tools, .bp-steps) [aria-pressed="true"] {
+  border-color: var(--music-accent);
+  background: var(--music-accent);
+  color: var(--music-on-accent);
+  box-shadow: none;
+}
+.bass-patterns .bp-primary {
+  border-color: var(--music-accent);
+  background: var(--music-accent);
+  color: var(--music-on-accent);
+  font-weight: 600;
+}
+.bass-patterns .bp-repeat {
   min-height: 44px;
 }
-.bp-repeat input {
-  min-height: auto;
+.bass-patterns .bp-repeat input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  padding: 0;
+  accent-color: var(--music-accent);
 }
 .bp-card {
   border-block-end: 1px solid var(--music-rule);
@@ -153,6 +184,7 @@
 #bp-workspace > summary {
   cursor: pointer;
   font-size: 24px;
+  font-weight: 700;
   padding: 8px 0;
 }
 .bp-steps {
@@ -165,13 +197,12 @@
   min-width: 64px;
   flex-shrink: 0;
 }
-.bp-steps [aria-pressed="true"] {
-  border-color: var(--music-accent);
-  box-shadow: inset 0 -3px var(--music-accent);
-}
 .bp-steps small {
   display: block;
   color: var(--music-muted);
+}
+.bp-steps [aria-pressed="true"] small {
+  color: inherit;
 }
 .bp-editor {
   margin: 20px 0;

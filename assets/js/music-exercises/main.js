@@ -767,9 +767,9 @@
     svg += "</svg>";
 
     var html = '<div class="exercises-circle">';
-    html +=
-      '<div class="exercises-circle__legend">Circle of fifths. The <strong>shaded 180° arc</strong> is the diatonic half of the key: every chord root of a major key lives there, which is why only half the circle lights up in any transposition. The ringed node is <strong>home</strong>. Arrows walk counter-clockwise (each a descending 5th); the <strong>dashed diameter</strong> is the tritone between IV and VII, a literal diameter of the circle, and the only "shortcut" the progression takes across the gap. Hit Play to watch the playhead traverse.</div>';
     html += '<div class="exercises-circle__wrap">' + svg + "</div>";
+    html +=
+      '<p class="exercises-circle__legend">Circle of fifths. The <strong>shaded 180° arc</strong> is the diatonic half of the key: every chord root of a major key lives there, which is why only half the circle lights up in any transposition. The ringed node is <strong>home</strong>. Arrows walk counter-clockwise (each a descending 5th); the <strong>dashed diameter</strong> is the tritone between IV and VII, a literal diameter of the circle, and the only “shortcut” the progression takes across the gap. Hit Play to watch the playhead traverse.</p>';
     html += "</div>";
     return html;
   }
@@ -925,7 +925,7 @@
     var shortText = expandTokens(ex.theory.short, tokens);
     var longHtml = expandTokens(ex.theory.long_html, tokens);
     var html = '<details class="exercises-theory"' + (open ? " open" : "") + ' data-ex="' + M.esc(ex.id) + '">';
-    html += "<summary><strong>Theory</strong> \u2014 " + M.esc(shortText) + "</summary>";
+    html += "<summary><strong>Theory:</strong> " + M.esc(shortText) + "</summary>";
     html += '<div class="exercises-theory__body">' + longHtml + "</div>";
     html += "</details>";
     return html;
@@ -949,8 +949,10 @@
     var share = buildShareString(ex);
     var stradellaUrl = "/music/stradella/#load=" + encodeURIComponent(share);
     var html = '<div class="music-share exercises-share">';
-    html += "<label>Share:</label>";
-    html += '<input type="text" class="music-share-text" data-share-input value="' + M.esc(share) + '" spellcheck="false">';
+    var inputId = "exercises-share-" + ex.id;
+    html += '<label for="' + M.esc(inputId) + '">Share</label>';
+    html +=
+      '<input type="text" id="' + M.esc(inputId) + '" class="music-share-text" data-share-input value="' + M.esc(share) + '" spellcheck="false">';
     html += '<button class="music-share-btn" data-action="share-copy">Copy</button>';
     html += '<button class="music-share-btn" data-action="share-load">Load</button>';
     html += '<a class="music-share-btn" data-action="open-stradella" href="' + M.esc(stradellaUrl) + '">Open in Stradella</a>';

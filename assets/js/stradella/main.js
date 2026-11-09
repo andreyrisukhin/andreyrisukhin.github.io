@@ -474,7 +474,7 @@
     el.classList.toggle("is-waltz", chart && state.meter === 3);
 
     if (state.selected.length === 0) {
-      el.innerHTML = '<p class="stradella-empty">No chords selected. Use the catalog to add chords.</p>';
+      el.innerHTML = '<p class="stradella-empty">No chords yet. Choose one under “Browse Stradella recipes” or “Add a chord by name.”</p>';
       return;
     }
 
@@ -679,7 +679,11 @@
     var html = '<button class="' + cls + '" data-id="' + c.id + '">';
     html += '<span class="stradella-catalog-item__name">' + M.esc(c.suffix || "maj") + "</span>";
     if (state.show.recipe) {
-      html += '<span class="stradella-catalog-item__recipe">' + M.esc(S.renderRecipe(c, key, state.hasDim7)) + "</span>";
+      var recipe = S.renderRecipe(c, key, state.hasDim7);
+      html +=
+        recipe === "\u2014"
+          ? '<span class="stradella-catalog-item__none">No button recipe</span>'
+          : '<span class="stradella-catalog-item__recipe">' + M.esc(recipe) + "</span>";
     }
     var info = M.chordInfo(key, c.suffix);
     if (info && state.show.notes) {

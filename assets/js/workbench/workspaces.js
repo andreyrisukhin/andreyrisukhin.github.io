@@ -35,7 +35,10 @@
     for (var node = target; node; node = node.parentElement) {
       if (node.tagName === "DETAILS") node.open = true;
     }
-    target.scrollIntoView();
+    // A target already visible from the top keeps the page title and section links in view.
+    var top = target.getBoundingClientRect().top + window.scrollY;
+    if (top + 160 < window.innerHeight) window.scrollTo(0, 0);
+    else target.scrollIntoView();
   }
 
   function init() {
@@ -101,6 +104,9 @@
     }
     if (["#recognize", "#recipes", "#setlist-search"].includes(initial.hash)) {
       revealAnchor(initial.hash);
+    } else if (mode === "setlist" && document.querySelector("#stradella-setlist .stradella-empty")) {
+      // An empty set list has nothing to show, so start with the catalog that fills it.
+      document.getElementById("recipes").open = true;
     }
     window.addEventListener("hashchange", function () {
       if (["#recognize", "#recipes", "#setlist-search"].includes(location.hash)) {

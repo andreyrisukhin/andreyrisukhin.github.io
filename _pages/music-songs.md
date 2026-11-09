@@ -25,7 +25,7 @@ Saved studies and Stradella set lists, kept in this browser. Open either in [Wor
 <p>Optional sync sends Stradella set lists to the <code>songs-inbox</code> branch so the laptop can pull them with <code>bin/songs-pull</code>. Studies stay local and are not included in sync.</p>
 
 <p class="songs-sync-help">
-  Create a fine-grained GitHub token at <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">github.com/settings/personal-access-tokens</a>, scope it to <em>only</em> this repo, grant <strong>Contents: Read and write</strong>, then paste it below. The token stays in this browser's local storage; the page never sends it anywhere except <code>api.github.com</code>.
+  Create a fine-grained GitHub token at <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">github.com/settings/personal-access-tokens</a>, scope it to <em>only</em> this repo, grant <strong>Contents: Read and write</strong>, then paste it below. The token stays in this browser’s local storage; the page never sends it anywhere except <code>api.github.com</code>.
 </p>
 
 <div class="songs-sync-grid">
@@ -78,10 +78,10 @@ Saved studies and Stradella set lists, kept in this browser. Open either in [Wor
 
 <style>
   .songs-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
-  .songs-empty { color: var(--global-text-color-light, #888); font-style: italic; }
-  .songs-card { border: 1px solid var(--global-divider-color, #ddd); border-radius: 6px; padding: 0.75rem 1rem; }
+  .songs-empty { margin: 0; color: var(--global-text-color-light, #888); }
+  .songs-card { border-top: 1px solid var(--global-divider-color, #ddd); padding: 0.75rem 0; }
   .songs-card__header { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
-  .songs-card__name { margin: 0; font-size: 1.1rem; }
+  .songs-card__name { margin: 0; font-size: 1.125rem; }
   .songs-card__badge { font-size: 0.75rem; padding: 0.1rem 0.4rem; border-radius: 4px; }
   .songs-card__badge.is-pending { background: #fef3c7; color: #92400e; }
   .songs-card__badge.is-synced { background: #dcfce7; color: #166534; }

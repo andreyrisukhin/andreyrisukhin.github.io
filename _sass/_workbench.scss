@@ -56,7 +56,7 @@
 
   &.is-active {
     background: var(--global-theme-color);
-    color: #fff;
+    color: var(--music-on-accent, #fff);
     border-color: var(--global-theme-color);
   }
 }
@@ -140,7 +140,7 @@
   }
 
   &.is-active text {
-    fill: #fff;
+    fill: var(--music-on-accent, #fff);
   }
 }
 

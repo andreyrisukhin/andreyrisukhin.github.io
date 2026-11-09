@@ -11,11 +11,9 @@
   --error: var(--music-accent);
   min-width: 0;
   color: var(--ink);
-  font:
-    16px/1.5 -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: $music-font;
+  font-size: $type-size-body;
+  line-height: 1.5;
 
   @import "composer-base", "composer-chooser", "composer-hands", "composer-buttons";
 
@@ -24,9 +22,10 @@
     font-family: inherit;
   }
   .chord-heading h2 {
-    font:
-      40px/1.2 Georgia,
-      serif;
+    font-family: $music-font;
+    font-size: $type-size-h1;
+    font-weight: 700;
+    line-height: 1.2;
     overflow-wrap: anywhere;
   }
   .composer-hand-drawer {
@@ -34,13 +33,33 @@
     border-bottom: 1px solid var(--rule);
   }
   .composer-hand-drawer > summary {
-    font-size: 18px;
+    font-size: $type-size-small;
+  }
+  summary {
+    font-weight: 600;
+  }
+  /* Every music Play button uses the same lacquer fill. */
+  .primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+  .primary:hover {
+    background: var(--accent);
+    border-color: var(--ink);
   }
   .composer-transport {
     margin-top: 16px;
   }
+  .composer-transport label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
   .composer-transport input[type="number"] {
     width: 80px;
+    height: 44px;
     display: inline-block;
   }
   .composer-transport input[type="checkbox"] {
