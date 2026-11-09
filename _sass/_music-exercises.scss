@@ -8,11 +8,8 @@
 }
 
 .exercises-card {
-  border: 1px solid var(--global-divider-color);
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  background: var(--global-card-bg-color);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-top: 1px solid var(--global-divider-color);
+  padding: 1.25rem 0 0;
 }
 
 .exercises-card__header {
@@ -21,16 +18,15 @@
 
 .exercises-card__title {
   margin: 0 0 0.25rem;
-  font-size: 1.25rem;
+  font-size: $type-size-h2;
   font-weight: 700;
   color: var(--global-text-color);
 }
 
 .exercises-attribution {
   margin: 0;
-  font-size: 0.85rem;
-  opacity: 0.75;
-  font-style: italic;
+  font-size: $type-size-small;
+  color: var(--global-text-color-light);
 }
 
 .exercises-key-bar {
@@ -40,9 +36,10 @@
 
 /* ── Progression row ── */
 
+/* Progressions are four- and eight-bar phrases, so four columns keep bars in rows. */
 .exercises-progression {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
   margin-bottom: 1rem;
 }
@@ -54,17 +51,16 @@
   background: var(--global-bg-color);
 }
 
+/* Roman-numeral case carries chord quality (vi is minor, VI is major); never transform it. */
 .exercises-chord__roman {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: $type-size-tiny;
+  line-height: 1.4;
+  font-weight: 700;
   color: var(--global-theme-color);
-  opacity: 0.85;
 }
 
 .exercises-chord__name {
-  font-size: 1.05rem;
+  font-size: $type-size-h3;
   font-weight: 700;
   line-height: 1.2;
   color: var(--global-text-color);
@@ -72,17 +68,15 @@
 
 .exercises-chord__recipe {
   font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
-  font-size: 0.75rem;
+  font-size: $type-size-tiny;
   color: var(--global-text-color);
-  opacity: 0.75;
   margin-top: 0.15rem;
 }
 
 .exercises-chord__rh {
   font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
-  font-size: 0.7rem;
-  color: var(--global-text-color);
-  opacity: 0.55;
+  font-size: $type-size-tiny;
+  color: var(--global-text-color-light);
   margin-top: 0.2rem;
   padding-top: 0.2rem;
   border-top: 1px dashed var(--global-divider-color);
@@ -99,10 +93,9 @@
 }
 
 .exercises-rh-pills__label {
-  font-size: 0.85rem;
+  font-size: $type-size-small;
   font-weight: 600;
   color: var(--global-text-color);
-  opacity: 0.85;
 }
 
 .exercises-rh-pill {
@@ -110,15 +103,14 @@
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: $type-size-small;
   background: var(--global-theme-color);
-  color: #fff;
+  color: var(--music-on-accent, #fff);
 }
 
 .exercises-rh-desc {
   margin: 0 0 1rem;
-  font-size: 0.85rem;
-  opacity: 0.8;
+  font-size: $type-size-body;
   color: var(--global-text-color);
 }
 
@@ -133,8 +125,8 @@
 }
 
 .exercises-share-code {
-  font-size: 0.75rem;
-  opacity: 0.6;
+  font-size: $type-size-tiny;
+  color: var(--global-text-color-light);
   font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", monospace;
   overflow-x: auto;
   white-space: nowrap;
@@ -150,10 +142,9 @@
 
   summary {
     cursor: pointer;
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-size: $type-size-small;
+    line-height: 1.5;
     color: var(--global-text-color);
-    opacity: 0.9;
 
     &:hover {
       color: var(--global-theme-color);
@@ -163,12 +154,12 @@
 
 .exercises-theory__body {
   margin-top: 0.75rem;
-  font-size: 0.95rem;
-  line-height: 1.55;
+  font-size: $type-size-body;
+  line-height: 1.5;
 
   h4 {
     margin: 1.25rem 0 0.4rem;
-    font-size: 1rem;
+    font-size: $type-size-body;
     font-weight: 700;
   }
 
@@ -196,11 +187,11 @@
 }
 
 .exercises-circle__legend {
-  font-size: 0.8rem;
-  opacity: 0.75;
-  max-width: 36rem;
-  text-align: center;
-  line-height: 1.35;
+  align-self: stretch;
+  max-width: 42rem;
+  margin: 0;
+  font-size: $type-size-body;
+  line-height: 1.5;
 }
 
 .exercises-circle__wrap {
@@ -224,11 +215,11 @@
 }
 
 .exercises-circle__note-label {
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
   fill: var(--global-text-color);
-  opacity: 0.55;
+  opacity: 0.7;
   transition:
     fill 0.15s,
     opacity 0.15s;
@@ -253,7 +244,7 @@
     filter: drop-shadow(0 0 4px color-mix(in srgb, var(--global-theme-color) 70%, transparent));
   }
   .exercises-circle__note-label {
-    fill: #fff;
+    fill: var(--music-on-accent, #fff);
     opacity: 1;
   }
 }
@@ -348,11 +339,12 @@
 
 .exercises-sheet {
   margin-bottom: 1rem;
+  overflow-x: auto;
 }
 
 .exercises-sheet__legend {
-  font-size: 0.8rem;
-  opacity: 0.7;
+  font-size: $type-size-small;
+  color: var(--global-text-color-light);
   margin-bottom: 0.4rem;
 }
 
@@ -368,7 +360,7 @@
   width: 2rem;
   flex: 0 0 2rem;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: $type-size-small;
   text-align: right;
   color: var(--global-text-color);
 }
@@ -377,11 +369,12 @@
   visibility: hidden;
 }
 
+/* At least 24px per slot keeps every rhythm step a usable tap target; narrow screens scroll. */
 .exercises-sheet__staff {
   position: relative;
   flex: 1 1 auto;
-  height: 2.2rem;
-  min-width: 0;
+  height: 2.75rem;
+  min-width: calc(var(--slots, 16) * 24px + 0.5rem);
   padding: 0 0.25rem;
 }
 
@@ -413,9 +406,9 @@
   top: 50%;
   transform: translate(-50%, -50%);
   width: calc((100% - 0.5rem) / var(--slots));
-  max-width: 1.6rem;
-  min-width: 0.85rem;
-  height: 1.6rem;
+  max-width: 2.75rem;
+  min-width: 24px;
+  height: 2.75rem;
   left: calc((var(--slot) + 0.5) / var(--slots) * (100% - 0.5rem) + 0.25rem);
   padding: 0;
   border: none;
@@ -439,13 +432,12 @@
 
   &.is-on {
     color: var(--global-theme-color);
-    font-size: 1.15rem;
+    font-size: $type-size-h3;
   }
 
   &.is-beatstart:not(.is-on) {
-    color: var(--global-text-color);
-    opacity: 0.45;
-    font-size: 0.95rem;
+    color: var(--global-text-color-light);
+    font-size: $type-size-body;
   }
 
   &.is-current {
@@ -458,13 +450,11 @@
   top: 0.1rem;
   transform: translateX(-50%);
   left: calc((var(--slot) + 0.5) / var(--slots, 16) * (100% - 0.5rem) + 0.25rem);
-  font-size: 0.65rem;
+  font-size: $type-size-tiny;
   font-family: ui-monospace, "SF Mono", monospace;
-  color: var(--global-text-color);
-  opacity: 0.45;
+  color: var(--global-text-color-light);
 
   &.is-beat {
-    opacity: 0.85;
     font-weight: 700;
     color: var(--global-theme-color);
   }
@@ -486,10 +476,14 @@
   margin-bottom: 1rem;
 }
 
-.exercises-play.is-playing {
-  background: var(--global-theme-color);
-  color: #fff;
+.music-share-btn.exercises-play,
+.music-share-btn.exercises-play:hover {
+  padding: 0.5rem 1rem;
   border-color: var(--global-theme-color);
+  border-radius: 3px;
+  background: var(--global-theme-color);
+  color: var(--music-on-accent, #fff);
+  font-weight: 600;
 }
 
 .exercises-play.is-loading {
@@ -501,7 +495,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
+  margin: 0;
+  font-size: $type-size-small;
   font-weight: 600;
   color: var(--global-text-color);
 }
@@ -517,14 +512,14 @@
   border: 1px solid var(--global-divider-color);
   background: var(--global-bg-color);
   color: var(--global-text-color);
-  font-size: 0.85rem;
+  font-size: $type-size-small;
 }
 
 .exercises-rh-table {
   width: 100%;
   border-collapse: collapse;
   margin: 0.5rem 0 1rem;
-  font-size: 0.9rem;
+  font-size: $type-size-small;
 
   th,
   td {
@@ -536,5 +531,11 @@
   th {
     background: var(--global-bg-color);
     font-weight: 600;
+  }
+}
+
+@media (max-width: 600px) {
+  .exercises-progression {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

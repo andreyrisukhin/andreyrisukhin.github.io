@@ -353,15 +353,15 @@
   z-index: 9996;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(0, 0, 0, 0.2);
-  color: rgba(0, 0, 0, 0.7);
+  color: #100f0f;
   border-radius: 999px;
   padding: 0.3rem 0.7rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.7rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.4;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
-  opacity: 0.7;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition:
     opacity 120ms ease-out,
@@ -384,7 +384,7 @@
 html[data-theme="dark"] .sheet-dev-toggle {
   background: rgba(40, 42, 54, 0.95);
   border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.75);
+  color: #cecdc3;
 }
 html[data-theme="dark"] .sheet-dev-toggle.is-on {
   background: #4fc3d7;

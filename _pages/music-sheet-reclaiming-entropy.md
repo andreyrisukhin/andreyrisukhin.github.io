@@ -1,11 +1,14 @@
 ---
 layout: music
-title: "Sheet Music: Reclaiming Entropy"
+title: "Reclaiming Entropy"
 permalink: /music/sheet/reclaiming-entropy/
 ---
 
-By James Primate (from _Rain World_). Rendered from MusicXML via
-[OpenSheetMusicDisplay](https://opensheetmusicdisplay.org/). Source `.mscz` and
-converted `.musicxml` live under `/assets/music/sheet-music/reclaiming-entropy/`.
+James Primate’s music from _Rain World_, for piano.
 
-{% include sheet-music.liquid slug="reclaiming-entropy" playback=false %}
+{% include sheet-music.liquid
+  slug="reclaiming-entropy"
+  playback=false
+  score_heading=false
+  credits="Music by James Primate, from the Rain World soundtrack."
+%}

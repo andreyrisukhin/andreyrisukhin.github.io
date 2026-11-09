@@ -20,6 +20,10 @@
   margin-top: 0;
 }
 
+.homepage-section + .homepage-section {
+  margin-top: 2.5rem;
+}
+
 .homepage-intro__content > :last-child {
   margin-bottom: 0;
 }

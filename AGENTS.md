@@ -61,7 +61,7 @@ If `vale` is installed in the repo, run it before responding and fold its output
 
 - Jekyll + al-folio. Upstream is `alshedivat/al-folio`; check there before assuming a bug is mine.
 - Template example posts (`_posts/2015-*` through `_posts/2025-*`) are excluded in `_config.yml`. My posts are dated 2026 onward.
-- The broken-links workflow excludes Liquid-templated pages (`_pages/kata.md`, `terrarium.md`, `golem-demo.md`, `_projects/3_project.md`). If a new page uses Liquid in URLs, add it to that exclude list.
+- The broken-links workflow excludes Liquid-templated pages (`_pages/kata.md`, `terrarium.html`, `golem-demo.html`, `_projects/3_project.md`). If a new page uses Liquid in URLs, add it to that exclude list.
 - `.lycheeignore` covers bot-blocked domains (linkedin, reddit, unsplash, intmath).
 
 ## Local preview

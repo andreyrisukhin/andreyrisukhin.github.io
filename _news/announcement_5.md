@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-I'm eager to join UIUC in the fall! Looking for spring/summer work aligned with my research interests.
+I’m eager to join UIUC in the fall! Looking for spring/summer work aligned with my research interests.

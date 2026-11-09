@@ -60,12 +60,16 @@
     });
     // Keep developer controls outside the observed notation surface.
     const host = document.querySelector(".sheet-annotation-tools");
-    if (host) host.appendChild(btn);
+    if (host) {
+      host.querySelector("[data-sheet-dev-enable]").hidden = devOn;
+      host.appendChild(btn);
+    }
   }
 
+  // Readers never see the toggle; ?dev=1 turns dev mode on and shows it.
   const isDev = readDevMode();
-  renderDevToggle(isDev);
   if (!isDev) return;
+  renderDevToggle(isDev);
 
   const STORAGE_KEY = "sheet-annotator:" + location.pathname;
   const SIDECAR = "http://127.0.0.1:4001";

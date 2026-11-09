@@ -3,7 +3,7 @@ layout: post
 title: >-
   LEGO logbook: from boxes to Blender
 date: 2026-10-31 12:00:00+0000
-description: March 31, 2026. Real stud geometry, washed-out colors, a mirrored model, and the same two-brick test.
+description: Real stud geometry, washed-out colors, a mirrored model, and the same two-brick test.
 tags: [lego, machine-learning]
 categories: [lego]
 related_posts: false

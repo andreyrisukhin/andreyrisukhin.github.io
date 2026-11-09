@@ -1,6 +1,6 @@
 ---
 layout: page
-title: ditherer
+title: Ditherer
 permalink: /ditherer/
 description: "Image ditherer with interleaved gradient noise."
 ---
@@ -32,10 +32,10 @@ description: "Image ditherer with interleaved gradient noise."
           <img src="{{ '/assets/img/ditherer/FlyMeAccorded.jpg' | relative_url }}" alt="Accordion and guitar on a small stage">
         </button>
         <button class="ditherer-sample" type="button" data-sample="llamamerc" data-url="{{ '/assets/img/ditherer/llamamerc.png' | relative_url }}" aria-pressed="false">
-          <img src="{{ '/assets/img/ditherer/llamamerc.png' | relative_url }}" alt="llamamerc sample">
+          <img src="{{ '/assets/img/ditherer/llamamerc.png' | relative_url }}" alt="Voxel farm with a field of crops">
         </button>
         <button class="ditherer-sample" type="button" data-sample="brightsignals" data-url="{{ '/assets/img/ditherer/BrightSignals.jpg' | relative_url }}" aria-pressed="false">
-          <img src="{{ '/assets/img/ditherer/BrightSignals.jpg' | relative_url }}" alt="BrightSignals sample">
+          <img src="{{ '/assets/img/ditherer/BrightSignals.jpg' | relative_url }}" alt="Traffic lights against a blue sky">
         </button>
       </div>
       <input id="ditherer-file" type="file" accept="image/*" aria-label="Upload your own image">

@@ -9,6 +9,7 @@ window.SheetTransport = (function () {
     error: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="10.75" y="5" width="2.5" height="9" rx="1"/><circle cx="12" cy="18" r="1.5"/></svg>',
     minus: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.75" width="14" height="2.5" rx="1"/></svg>',
     plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.75" width="14" height="2.5" rx="1"/><rect x="10.75" y="5" width="2.5" height="14" rx="1"/></svg>',
+    more: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18.5" cy="12" r="2"/></svg>',
   };
 
   function mount(page, player, key, bridge) {
@@ -70,10 +71,13 @@ window.SheetTransport = (function () {
         <span class="sheet-transport__progress" data-pb-progress></span>
       </div>
       <span class="sheet-transport__pos" data-pb-pos aria-hidden="true"></span>
-      <details class="sheet-transport__more"><summary>Sound / key</summary><div class="sheet-inspector-actions">
+      <button type="button" class="sheet-transport__btn sheet-transport__more" data-pb-more aria-expanded="false" aria-controls="sheet-transport-extras" aria-label="Key and sound" title="Key and sound">${
+        ICONS.more
+      }</button>
+      <div class="sheet-transport__extras" id="sheet-transport-extras">
       ${
         page.dataset.renderedAudioUrl
-          ? `<label class="sheet-transport__select"><span>Audio</span><select data-pb-mode title="Audio"><option value="recording"></option><option value="live">Live sound</option></select></label>`
+          ? `<label class="sheet-transport__select"><span>Audio</span><select data-pb-mode title="Audio" aria-label="Audio"><option value="recording"></option><option value="live">Live sound</option></select></label>`
           : ""
       }
       ${
@@ -86,12 +90,20 @@ window.SheetTransport = (function () {
       </div>`
           : ""
       }
-      <label class="sheet-transport__select"><span>Sound</span><select data-pb-instrument title="Sound"></select></label>
-      <button type="button" class="sheet-transport__toggle" data-pb-click-seek aria-pressed="false">Click score to jump</button>
-      </div></details>
+      <label class="sheet-transport__select" data-pb-instrument-field><span>Sound</span><select data-pb-instrument title="Sound" aria-label="Sound"></select></label>
+      </div>
       <p data-practice-status class="practice-help sheet-transport__status" role="status"></p>
     `;
     page.insertBefore(root, page.querySelector(".sheet-reader-secondary") || settings);
+    // Click-to-jump is a reading preference, so it lives with the other
+    // practice settings and keeps the transport to one row.
+    const clickSeek = document.createElement("button");
+    clickSeek.type = "button";
+    clickSeek.className = "sheet-transport__toggle";
+    clickSeek.setAttribute("data-pb-click-seek", "");
+    clickSeek.setAttribute("aria-pressed", "false");
+    clickSeek.textContent = "Click score to jump";
+    settings.querySelector(".practice-settings-grid").append(clickSeek);
     const measureHeight = () => document.documentElement.style.setProperty("--sheet-transport-height", root.offsetHeight + "px");
     const resize = new ResizeObserver(measureHeight);
     resize.observe(root);
@@ -103,7 +115,8 @@ window.SheetTransport = (function () {
     const progress = find("[data-pb-progress]");
     const instrument = find("[data-pb-instrument]");
     const mode = find("[data-pb-mode]");
-    const clickSeek = find("[data-pb-click-seek]");
+    const instrumentField = find("[data-pb-instrument-field]");
+    const more = find("[data-pb-more]");
     const status = $("status");
     if (mode) mode.options[0].textContent = page.dataset.renderedLabel || "Recording";
     window.SheetScore.instruments.forEach(([value, label]) => instrument.add(new Option(label, value)));
@@ -156,6 +169,7 @@ window.SheetTransport = (function () {
       if (mode) mode.value = state.mode;
       instrument.value = state.instrument;
       instrument.disabled = state.mode === "recording";
+      instrumentField.hidden = state.mode === "recording";
       $("rate").value = String(state.rate);
       $("loop").checked = state.loop.enabled;
       ["start", "end"].forEach((name) => {
@@ -193,6 +207,11 @@ window.SheetTransport = (function () {
       player.setMode(mode.value);
       status.textContent = "Sound changed. Press Play when ready.";
       save();
+    });
+    on(more, "click", () => {
+      const open = more.getAttribute("aria-expanded") !== "true";
+      more.setAttribute("aria-expanded", String(open));
+      root.classList.toggle("is-expanded", open);
     });
     on(clickSeek, "click", () => {
       clickSeek.setAttribute("aria-pressed", String(clickSeek.getAttribute("aria-pressed") !== "true"));
@@ -292,6 +311,7 @@ window.SheetTransport = (function () {
         unsubscribe();
         resize.disconnect();
         root.remove();
+        clickSeek.remove();
         document.documentElement.style.removeProperty("--sheet-transport-height");
         settings.querySelectorAll("input, select, button").forEach((control) => {
           control.disabled = true;

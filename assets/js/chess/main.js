@@ -53,6 +53,7 @@ function init(app) {
     style: { animationDuration: 200 },
     extensions: [{ class: Markers }, { class: PromotionDialog }, { class: RightClickAnnotator }],
   });
+  board.view.svg.setAttribute("aria-label", "Scenario board");
 
   let mode = "play";
   let pendingMove = null;

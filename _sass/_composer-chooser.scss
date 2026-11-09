@@ -16,7 +16,7 @@
 h2 {
   font-size: 24px;
   line-height: 1.3;
-  font-weight: 400;
+  font-weight: 700;
 }
 h3 {
   font-size: 18px;
@@ -30,7 +30,9 @@ h3 {
   line-height: 1.5;
 }
 button:disabled {
-  opacity: 0.45;
+  opacity: 1;
+  color: var(--muted);
+  border-style: dashed;
   cursor: default;
 }
 button[aria-pressed="true"],
@@ -403,7 +405,6 @@ td:empty::after {
   scroll-margin-top: 20px;
 }
 .candidate h2 {
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 24px;
   margin: 12px 0;
   overflow-wrap: anywhere;

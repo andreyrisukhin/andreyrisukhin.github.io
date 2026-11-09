@@ -1,4 +1,9 @@
 /* ===== Chess scenarios page ===== */
+.chess-app,
+#endgames {
+  --chess-muted: color-mix(in srgb, var(--global-text-color) 70%, var(--global-bg-color));
+}
+
 .chess-app {
   display: grid;
   grid-template-columns: minmax(0, 34rem) minmax(16rem, 1fr);
@@ -11,8 +16,14 @@
   }
 
   h2 {
-    font-size: 1rem;
+    font-size: $type-size-h3;
+    line-height: 1.35;
     margin: 0 0 0.5rem;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--global-theme-color);
+    outline-offset: 2px;
   }
 }
 
@@ -26,6 +37,11 @@
   width: 100%;
   aspect-ratio: 1;
   touch-action: none;
+
+  // Coordinates are sized in board units; 7px renders below 12px on phones.
+  .cm-chessboard .coordinates .coordinate {
+    font-size: 7.5px;
+  }
 }
 
 .endgame-stage {
@@ -72,7 +88,7 @@
   align-items: center;
   gap: 0.35rem;
   min-height: 1.9rem;
-  font-size: 0.9rem;
+  font-size: $type-size-small;
 }
 
 .chess-material__side {
@@ -112,13 +128,14 @@
 
   button {
     flex: 1;
+    min-height: 2.25rem;
     padding: 0.4rem 0;
-    font-size: 1.1rem;
+    font-size: $type-size-h3;
     line-height: 1;
     color: var(--global-text-color);
     background: var(--global-card-bg-color);
     border: 1px solid var(--global-divider-color);
-    border-radius: 8px;
+    border-radius: 0;
     cursor: pointer;
   }
 
@@ -135,8 +152,8 @@
 
 .chess-hint {
   margin: 0;
-  font-size: 0.85rem;
-  opacity: 0.7;
+  font-size: $type-size-small;
+  color: var(--chess-muted);
 }
 
 .chess-app__panel {
@@ -148,8 +165,8 @@
 
 .chess-label {
   display: block;
-  font-size: 0.85rem;
-  opacity: 0.75;
+  font-size: $type-size-small;
+  color: var(--chess-muted);
   margin-bottom: -0.5rem;
 }
 
@@ -160,7 +177,7 @@
   color: var(--global-text-color);
   background: var(--global-bg-color);
   border: 1px solid var(--global-divider-color);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .chess-moves {
@@ -169,7 +186,7 @@
   overflow-y: auto;
   padding: 0.5rem;
   border: 1px solid var(--global-divider-color);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--global-card-bg-color);
   line-height: 1.9;
   position: relative;
@@ -177,7 +194,7 @@
 
 .chess-moves__empty {
   margin: 0;
-  opacity: 0.6;
+  color: var(--chess-muted);
 }
 
 .chess-move {
@@ -188,7 +205,7 @@
   color: var(--global-text-color);
   background: none;
   border: 0;
-  border-radius: 5px;
+  border-radius: 0;
   cursor: pointer;
 
   &:hover {
@@ -230,7 +247,7 @@
 .chess-variation {
   padding: 0 0.4rem 0 0.5rem;
   border-left: 2px solid var(--global-divider-color);
-  border-radius: 0 6px 6px 0;
+  border-radius: 0;
   background: color-mix(in srgb, var(--global-divider-color) 25%, transparent);
 }
 
@@ -245,12 +262,13 @@
 }
 
 .chess-button {
+  min-height: 2rem;
   padding: 0.35rem 0.7rem;
-  font-size: 0.9rem;
+  font-size: $type-size-small;
   color: var(--global-text-color);
   background: var(--global-card-bg-color);
   border: 1px solid var(--global-divider-color);
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
 
   &:disabled {
@@ -265,30 +283,58 @@
   border-color: var(--global-theme-color);
 }
 
-.chess-actions--quiet .chess-button {
-  font-size: 0.8rem;
-  padding: 0.25rem 0.55rem;
+.chess-more,
+.chess-import {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--global-divider-color);
+
+  > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2rem;
+    font-size: $type-size-small;
+    color: var(--chess-muted);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      content: "";
+      width: 0.4rem;
+      height: 0.4rem;
+      border-right: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+      transform: rotate(-45deg);
+    }
+
+    &:hover {
+      color: var(--global-text-color);
+    }
+  }
+
+  &[open] > summary::before {
+    transform: rotate(45deg);
+  }
+
+  &[open] > summary {
+    margin-bottom: 0.5rem;
+  }
 }
 
 .chess-toast {
   min-height: 1.5em;
   margin: 0;
-  font-size: 0.9rem;
+  font-size: $type-size-small;
   color: var(--global-theme-color);
 }
 
 .chess-import {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--global-divider-color);
-  border-radius: 12px;
-
-  summary {
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-
   p {
-    font-size: 0.85rem;
+    font-size: $type-size-small;
     margin: 0.5rem 0;
   }
 
@@ -305,11 +351,11 @@
   width: 100%;
   padding: 0.4rem 0.6rem;
   font-family: var(--global-code-font, monospace);
-  font-size: 0.8rem;
+  font-size: $type-size-tiny;
   color: var(--global-text-color);
   background: var(--global-bg-color);
   border: 1px solid var(--global-divider-color);
-  border-radius: 8px;
+  border-radius: 0;
   resize: vertical;
 }
 
@@ -320,16 +366,14 @@
 .chess-app--drop {
   outline: 2px dashed var(--global-theme-color);
   outline-offset: 0.5rem;
-  border-radius: 12px;
 }
 
 .chess-setup {
   padding: 0.75rem;
   border: 1px solid var(--global-theme-color);
-  border-radius: 12px;
 
   p {
-    font-size: 0.85rem;
+    font-size: $type-size-small;
     margin: 0 0 0.5rem;
   }
 
@@ -354,7 +398,7 @@
     color: var(--global-text-color);
     background: var(--global-card-bg-color);
     border: 1px solid var(--global-divider-color);
-    border-radius: 6px;
+    border-radius: 0;
     cursor: pointer;
   }
 
@@ -371,6 +415,7 @@
 
   .chess-moves,
   .chess-app__panel > .chess-actions,
+  .chess-more,
   .chess-import,
   .chess-saved {
     display: none;
@@ -384,8 +429,8 @@
 }
 
 .chess-saved__empty {
-  font-size: 0.9rem;
-  opacity: 0.6;
+  font-size: $type-size-small;
+  color: var(--chess-muted);
 }
 
 .chess-saved__item {
@@ -409,17 +454,18 @@
 }
 
 .chess-saved__meta {
-  font-size: 0.8rem;
-  opacity: 0.6;
+  font-size: $type-size-tiny;
+  color: var(--chess-muted);
   white-space: nowrap;
 }
 
 .chess-saved__remove {
+  min-width: 2rem;
+  min-height: 2rem;
   padding: 0 0.4rem;
-  font-size: 1.1rem;
-  color: var(--global-text-color);
+  font-size: $type-size-h3;
+  color: var(--chess-muted);
   background: none;
   border: 0;
-  opacity: 0.5;
   cursor: pointer;
 }

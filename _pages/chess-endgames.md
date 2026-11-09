@@ -9,7 +9,7 @@ description: Find the winning continuation in 1,000 positions from real games.
   <div>
     <p class="endgame-turn" id="eg-turn" aria-live="polite"></p>
     <div class="endgame-stage">
-      <div class="chess-board" id="eg-board" aria-label="Practice board"></div>
+      <div class="chess-board" id="eg-board"></div>
       <div class="endgame-result" id="eg-result" hidden>
         <strong id="eg-outcome"></strong>
         <button class="chess-button chess-button--primary" id="eg-next">Next position</button>

@@ -8,17 +8,15 @@ middle_name:
 last_name: Risukhin
 contact_note: >
   The best way to reach me is email.
-description: > # the ">" symbol means to ignore newlines until "footer_text:"
-  A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
-footer_text: >
-  Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
-  Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
-  Photos by Andrey!
-keywords: jekyll, jekyll-theme, academic-website, portfolio-website # add your own keywords or leave empty
+description: >-
+  Andrey Risukhin works on self-improving coding agents at Factory in San Francisco. Writing, research, LEGO reconstruction, and music tools.
+footer_text: >-
+  Built with <a href="https://jekyllrb.com/">Jekyll</a> and <a href="https://github.com/alshedivat/al-folio">al-folio</a>, hosted on <a href="https://pages.github.com/">GitHub Pages</a>. Photos are my own.
+keywords: Andrey Risukhin, coding agents, implicit feedback, machine learning, LEGO, bayan
 lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
 icon: favicon.svg # site tab icon in /assets/img/; section icons are in _data/page_icons.yml
 
-url: https://andreyrisukhin.github.io # the base hostname & protocol for your site
+url: https://andrey.risukh.in # the base hostname & protocol for your site
 baseurl: # the subpath of your site, e.g. /blog/. Leave blank for root
 last_updated: false # set to true if you want to display last updated in the footer
 impressum_path: # set to path to include impressum link in the footer, use the same path as permalink in a page, helps to conform with EU GDPR
@@ -141,13 +139,15 @@ newsletter:
 # Collections
 # -----------------------------------------------------------------------------
 
+# Books holds only the al-folio example review, and news items render inline on
+# the homepage, so neither collection writes standalone pages.
 collections:
   books:
-    output: true
+    output: false
   news:
     defaults:
       layout: post
-    output: true
+    output: false
   projects:
     output: true
 
@@ -280,8 +280,6 @@ jekyll-archives:
       year: "/blog/:year/"
       tags: "/blog/:type/:name/"
       categories: "/blog/:type/:name/"
-  books:
-    enabled: [year, tags, categories] # enables year, tag and category archives (remove if you need to disable one of them).
 
 display_tags: [] # these tags will be displayed on the front page of your blog
 display_categories: [] # these categories will be displayed on the front page of your blog

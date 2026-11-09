@@ -1,6 +1,6 @@
 ---
 layout: music
-title: Music Exercises
+title: Music exercises
 permalink: /music/exercises/
 ---
 

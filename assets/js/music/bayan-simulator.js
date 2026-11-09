@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   const KEY_SEQUENCE = ["q", "a", "z", "w", "s", "x", "e", "d", "c", "r", "f", "v", "t", "g", "b", "y", "h", "n", "u", "j", "m", "i", "k", ",", "o"];
   const MANIFEST_URL = "/assets/music/bayan-simulator/manifest.json";
 
@@ -56,8 +55,9 @@
 
   if (!el.root) return;
 
+  // Match the key labels drawn by the shared keyboard renderer.
   function midiToName(note) {
-    return NOTE_NAMES[((note % 12) + 12) % 12] + (Math.floor(note / 12) - 1);
+    return BayanKeyboard.label(note);
   }
 
   function currentInstrument() {
@@ -126,7 +126,7 @@
     const [low, high] = currentRange();
     const notes = selectedNotes();
     el.readout.textContent = notes.length ? notes.map(midiToName).join(" ") : "no notes selected";
-    el.range.textContent = `range: ${midiToName(low)} to ${midiToName(high)}`;
+    el.range.textContent = `Range: ${midiToName(low)} to ${midiToName(high)}`;
     BayanKeyboard.update(el.keyboard, { selected: notes, root: notes[0] });
   }
 

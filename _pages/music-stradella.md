@@ -1,6 +1,6 @@
 ---
 layout: music
-title: Stradella Chord Recipes
+title: Stradella chord recipes
 permalink: /music/stradella/
 workspace_anchor: "#recipes"
 ---

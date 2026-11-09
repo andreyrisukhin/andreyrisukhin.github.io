@@ -26,15 +26,21 @@
  */
 
 (function () {
-  const STORAGE_KEY = 'sheet-stradella-overlay';
-  const OVERLAY_ATTR = 'data-stradella-overlay';
-  const TOGGLE_ID = 'osmd-stradella-toggle';
+  const STORAGE_KEY = "sheet-stradella-overlay";
+  const OVERLAY_ATTR = "data-stradella-overlay";
+  const TOGGLE_ID = "osmd-stradella-toggle";
 
   function isEnabled() {
-    try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch (_) { return false; }
+    try {
+      return localStorage.getItem(STORAGE_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
   }
   function setEnabled(on) {
-    try { localStorage.setItem(STORAGE_KEY, on ? '1' : '0'); } catch (_) {}
+    try {
+      localStorage.setItem(STORAGE_KEY, on ? "1" : "0");
+    } catch (_) {}
     syncToggleButton();
     redraw();
   }
@@ -43,21 +49,22 @@
     const btn = document.getElementById(TOGGLE_ID);
     if (!btn) return;
     const on = isEnabled();
-    btn.setAttribute('data-pressed', on ? 'true' : 'false');
-    btn.setAttribute('aria-pressed', String(on));
-    btn.classList.toggle('is-pressed', on);
-    btn.textContent = on ? 'Hide Stradella' : 'Show Stradella';
+    btn.setAttribute("data-pressed", on ? "true" : "false");
+    btn.setAttribute("aria-pressed", String(on));
+    btn.classList.toggle("is-pressed", on);
+    btn.textContent = "Stradella";
+    btn.title = on ? "Hide Stradella buttons" : "Show Stradella buttons";
   }
 
   function clearOverlays() {
-    document.querySelectorAll('[' + OVERLAY_ATTR + ']').forEach((el) => el.remove());
+    document.querySelectorAll("[" + OVERLAY_ATTR + "]").forEach((el) => el.remove());
   }
 
   function extractFirstVoicing(html) {
     if (!html) return null;
-    const tmp = document.createElement('div');
+    const tmp = document.createElement("div");
     tmp.innerHTML = html;
-    const v = tmp.querySelector('.stradella-recipe__voicing');
+    const v = tmp.querySelector(".stradella-recipe__voicing");
     return v ? v.textContent : null;
   }
 
@@ -74,14 +81,14 @@
     const bridge = window.__sheetMusic;
     if (!bridge || !bridge.ready) return;
     if (!window.StradellaRecipe) return;
-    const container = document.getElementById('osmd-container');
-    const svg = container && container.querySelector('svg');
+    const container = document.getElementById("osmd-container");
+    const svg = container && container.querySelector("svg");
     if (!svg) return;
     // Overlays are position:absolute; ensure they anchor to the
     // score container (not the viewport / body) regardless of the
     // theme's default positioning.
-    if (getComputedStyle(container).position === 'static') {
-      container.style.position = 'relative';
+    if (getComputedStyle(container).position === "static") {
+      container.style.position = "relative";
     }
     const containerRect = container.getBoundingClientRect();
     const containerLeft = containerRect.left + window.scrollX;
@@ -95,8 +102,8 @@
     const lastByStaff = new Map(); // staffIndex -> {chord, top}
     const ROW_BREAK_PX = 50;
 
-    for (const sn of svg.querySelectorAll('.vf-stavenote')) {
-      const heads = sn.querySelectorAll('.vf-notehead');
+    for (const sn of svg.querySelectorAll(".vf-stavenote")) {
+      const heads = sn.querySelectorAll(".vf-notehead");
       // Single notes (e.g. the bass note between vamp chords) are
       // skipped without resetting lastChordKey, so a 'bass-chord-
       // bass-chord' pattern still dedupes the chord side.
@@ -117,7 +124,7 @@
       if (!window.ChordName || !window.ChordName.looksValid(display)) continue;
       if (!hit.pitches || hit.pitches.length < 2) continue;
 
-      const staffKey = hit.staffIndex ?? '?';
+      const staffKey = hit.staffIndex ?? "?";
       const prev = lastByStaff.get(staffKey);
       const sameRow = prev && Math.abs(prev.top - r.top) < ROW_BREAK_PX;
       if (sameRow && prev.chord === display) continue;
@@ -126,17 +133,17 @@
       const recipe = extractFirstVoicing(window.StradellaRecipe.render(display));
       if (!recipe) continue;
 
-      const overlay = document.createElement('div');
-      overlay.className = 'stradella-overlay';
-      overlay.setAttribute(OVERLAY_ATTR, '');
+      const overlay = document.createElement("div");
+      overlay.className = "stradella-overlay";
+      overlay.setAttribute(OVERLAY_ATTR, "");
       if (hit.measureNumber != null) overlay.dataset.measure = hit.measureNumber;
       if (hit.staffIndex != null) overlay.dataset.staff = hit.staffIndex;
       overlay.textContent = recipe;
-      overlay.title = display + ': ' + recipe;
+      overlay.title = display + ": " + recipe;
       // Position below the stavenote's bounding box, anchored within
       // the score container so we move with autoscroll/zoom redraws.
-      overlay.style.left = (r.left + r.width / 2 + window.scrollX - containerLeft) + 'px';
-      overlay.style.top = (r.top + r.height + window.scrollY - containerTop + 6) + 'px';
+      overlay.style.left = r.left + r.width / 2 + window.scrollX - containerLeft + "px";
+      overlay.style.top = r.top + r.height + window.scrollY - containerTop + 6 + "px";
       container.appendChild(overlay);
     }
   }
@@ -144,7 +151,7 @@
   function attachToggle() {
     const btn = document.getElementById(TOGGLE_ID);
     if (!btn) return;
-    btn.addEventListener('click', () => setEnabled(!isEnabled()));
+    btn.addEventListener("click", () => setEnabled(!isEnabled()));
     syncToggleButton();
   }
 
@@ -162,7 +169,7 @@
 
   function bootstrap() {
     attachToggle();
-    const container = document.getElementById('osmd-container');
+    const container = document.getElementById("osmd-container");
     if (!container) return;
     new MutationObserver(scheduleRedraw).observe(container, {
       childList: true,
@@ -179,11 +186,11 @@
         }
       }, 80);
     }
-    window.addEventListener('resize', scheduleRedraw, { passive: true });
+    window.addEventListener("resize", scheduleRedraw, { passive: true });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootstrap);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootstrap);
   } else {
     bootstrap();
   }

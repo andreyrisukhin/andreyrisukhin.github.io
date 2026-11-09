@@ -3,7 +3,7 @@ layout: post
 title: >-
   LEGO logbook: the first reconstruction pipeline
 date: 2026-10-30 12:00:00+0000
-description: March 28–29, 2026. An end-to-end pipeline, a start-token bug, and invalid training assemblies.
+description: An end-to-end pipeline, a start-token bug, and invalid training assemblies.
 tags: [lego, machine-learning]
 categories: [lego]
 related_posts: false
@@ -44,7 +44,7 @@ That verified the pipeline ran, not that it reconstructed the inputs correctly.
 
 From training step 100 onward, generation matched both pieces’ part IDs, colors, and positions exactly. Recorded brick accuracy and voxel IoU were both 1.0.
 
-{% include figure.liquid path="assets/img/posts/lego-first-pipeline/two-piece-comparison.png" class="img-fluid" figure_class="figure-spaced" avoid_scaling=true zoomable=true alt="Saved side-by-side plots of the two-piece ground truth and matching predicted assembly." caption="Saved comparison after 500 training steps on the same example. The plots use box approximations, not full brick geometry." %}
+{% include figure.liquid path="assets/img/posts/lego-first-pipeline/two-piece-comparison.png" class="img-fluid" figure_class="figure-spaced figure-plot" avoid_scaling=true zoomable=true alt="Saved side-by-side plots of the two-piece ground truth and matching predicted assembly." caption="Saved comparison after 500 training steps on the same example. The plots use box approximations, not full brick geometry." %}
 
 This was memorization of one example, not a generalization result.
 

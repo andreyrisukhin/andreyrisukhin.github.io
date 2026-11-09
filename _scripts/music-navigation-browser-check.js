@@ -7,7 +7,7 @@
   };
   const nav = document.querySelector(".music-section-nav");
   const links = [...nav.querySelectorAll("a")];
-  assert(links.map((link) => link.textContent.trim()).join(",") === "Music,Chords,Practice,Sheets,References", "Consistent navigation labels");
+  assert(links.map((link) => link.textContent.trim()).join(",") === "Music,Harmony,Practice,Sheets,References", "Consistent navigation labels");
   assert(nav.querySelectorAll("[aria-current]").length === 1, "One current navigation item");
   assert(document.querySelectorAll("h1").length === 1, "One page title");
   for (const link of links) {
@@ -20,11 +20,11 @@
   if (location.pathname.endsWith("/music/")) {
     const sections = [...document.querySelectorAll(".music-hub-section")];
     assert(
-      sections.map((section) => section.querySelector("h2").textContent).join(",") === "Chords,Practice,Sheets,References",
+      sections.map((section) => section.querySelector("h2").textContent).join(",") === "Harmony,Practice,Sheets,References",
       "Hub matches navigation"
     );
     const destinations = sections.flatMap((section) => [...section.querySelectorAll("a")].map((link) => link.pathname));
-    assert(new Set(destinations).size === destinations.length, "Each destination appears once");
+    assert(destinations.length >= sections.length && new Set(destinations).size === destinations.length, "Each destination appears once");
     assert(destinations.includes("/music/sheet/into-the-unknown/"), "Into the Unknown appears in sheet navigation");
     for (const link of links.slice(1)) {
       assert(document.querySelector(new URL(link.href).hash), "Section link resolves");

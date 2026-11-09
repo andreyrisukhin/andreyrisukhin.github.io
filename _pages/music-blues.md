@@ -1,6 +1,6 @@
 ---
 layout: music
-title: 12-Bar Blues Jam Helper
+title: 12-bar blues jam helper
 permalink: /music/blues/
 ---
 
@@ -33,14 +33,14 @@ Pick a key and progression variant to see the 12-bar form with real chord names.
 <div id="blues-grid" class="blues-grid"></div>
 
 <div class="music-share">
-  <label>Stradella:</label>
+  <label for="blues-share-text">Stradella</label>
   <input type="text" id="blues-share-text" class="music-share-text" readonly>
   <button id="blues-stradella-copy" class="music-share-btn">Copy for Stradella</button>
 </div>
 
-<h2>Blues Scale</h2>
+<h2>Blues scale</h2>
 
-<p>Use for improvisation over the progression. The highlighted note is the <strong>blue note</strong> (♭5), a chromatic passing tone that gives the blues its characteristic sound.</p>
+<p>Use it to improvise over the progression. The highlighted note is the <strong>blue note</strong>, the flatted fifth (♭5, the same key as ♯4), a chromatic passing tone that gives the blues its sound.</p>
 
 <div id="blues-scale-notes" class="blues-scale-notes"></div>
 
