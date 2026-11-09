@@ -94,7 +94,7 @@ window.SheetTransport = (function () {
       </div>
       <p data-practice-status class="practice-help sheet-transport__status" role="status"></p>
     `;
-    page.insertBefore(root, settings);
+    page.insertBefore(root, page.querySelector(".sheet-reader-secondary") || settings);
     // Click-to-jump is a reading preference, so it lives with the other
     // practice settings and keeps the transport to one row.
     const clickSeek = document.createElement("button");

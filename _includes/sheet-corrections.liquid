@@ -1,10 +1,32 @@
 <div class="sheet-correction-tools" hidden>
+  <div class="sheet-correction-document">
+    <span data-correction-file></span> <strong data-correction-state role="status"></strong>
+    <details class="sheet-correction-options">
+      <summary>Options</summary>
+      <button type="button" class="music-share-btn" data-correction-save hidden>Save directly…</button>
+      <p class="practice-help">Choose a separate filename to keep your original file.</p>
+      <p class="practice-help">Scores and filenames stay in memory, not browser storage. History retains up to 20 undo steps within 32 MB.</p>
+      <p class="practice-help">
+        Up/Down: scale step. Alt+Up/Down: semitone. Shift+Up/Down: octave. Left/Right: next note group. Enter: pitch and rhythm details. Ctrl/Cmd+Z:
+        undo.
+      </p>
+    </details>
+  </div>
   <div class="sheet-inspector-actions">
     <button type="button" class="music-share-btn" data-correction-toggle aria-pressed="false" disabled>Edit notes</button>
     <button type="button" class="music-share-btn" data-correction-undo disabled>Undo</button>
     <button type="button" class="music-share-btn" data-correction-redo disabled>Redo</button>
-    <button type="button" class="music-share-btn" data-correction-download disabled>Download edited MusicXML</button>
+    <button type="button" class="music-share-btn" data-correction-download disabled>Download</button>
   </div>
+  <div class="sheet-correction-selection" data-correction-selection hidden>
+    <span data-correction-selected></span>
+    <select data-correction-pick aria-label="Selected chord tone"></select>
+    <button type="button" class="music-share-btn" data-correction-down aria-label="Lower selected pitch one scale step">↓</button>
+    <button type="button" class="music-share-btn" data-correction-up aria-label="Raise selected pitch one scale step">↑</button>
+    <button type="button" class="music-share-btn" data-correction-hear>Hear</button>
+    <button type="button" class="music-share-btn" data-correction-details>Pitch / rhythm…</button>
+  </div>
+  <button type="button" class="music-share-btn" data-correction-confirm-save hidden>I saved this copy</button>
   <p class="practice-help" data-correction-status role="status">Corrections stay in memory. Download a copy to keep them.</p>
 </div>
 <dialog id="sheet-correction-dialog" class="sheet-note-inspector" aria-labelledby="sheet-correction-title">
@@ -24,7 +46,7 @@
       <legend>Written pitch</legend>
       <label
         >Note
-        <select data-correction-step>
+        <select data-correction-step autofocus>
           <option>C</option>
           <option>D</option>
           <option>E</option>
@@ -45,7 +67,16 @@
         </select>
       </label>
       <label>Octave <input type="number" min="0" max="9" step="1" required data-correction-octave></label>
+      <label
+        >Printed accidental
+        <select data-correction-display>
+          <option value="auto">Automatic (key and measure)</option>
+          <option value="show">Always show (courtesy)</option>
+        </select>
+      </label>
     </fieldset>
+    <p data-correction-preview aria-live="polite"></p>
+    <button type="button" data-correction-hear-draft>Hear proposed pitch</button>
     <p class="practice-help" data-correction-pitch-help></p>
     <details>
       <summary>Rhythm correction</summary>
@@ -74,8 +105,9 @@
         >
       </fieldset>
       <p class="practice-help" data-correction-rhythm-help></p>
+      <p class="practice-help" data-correction-impact></p>
     </details>
     <p data-correction-error class="practice-help" role="status"></p>
-    <button type="submit" data-correction-apply>Apply correction</button>
+    <button type="submit" class="sheet-correction-primary" data-correction-apply disabled>Apply correction</button>
   </form>
 </dialog>

@@ -155,9 +155,16 @@ for (const file of ["correction-model.js", "corrections.js"]) {
   assert.ok(precache.includes("/assets/js/sheet-music/" + file), "Offline cache includes " + file);
 }
 assert.ok(
-  opener.includes('id="sheet-correction-dialog"') && opener.includes("Download edited MusicXML"),
+  opener.includes('id="sheet-correction-dialog"') && opener.includes("data-correction-download") && opener.includes("data-correction-state"),
   "Local reader has correction and export controls"
 );
+const publicScores = JSON.parse(opener.match(/<script type="application\/json" id="sheet-public-scores">([\s\S]*?)<\/script>/)[1]);
+for (const [slug, score] of Object.entries(publicScores)) {
+  assert.ok(fs.existsSync(path.join(site, score.url)), slug + " local-copy source exists");
+  const page = fs.readFileSync(path.join(site, "music/sheet", slug, "index.html"), "utf8");
+  assert.ok(page.includes("/music/sheet/open/?score=" + slug), slug + " offers an editable local copy");
+  assert.ok(page.includes('class="sheet-annotation-tools"'), slug + " puts developer tools in a disclosure");
+}
 assert.ok(opener.includes('data-playback="true"') && opener.includes("/sheet-music/playback.js"), "Local reader includes full-score playback");
 assert.ok(opener.includes('data-playback-instrument="acoustic_grand_piano"'), "Local scores default to piano");
 assert.ok(!opener.includes('data-playback-stradella="true"'), "Local scores play written pitches, not inferred Stradella buttons");

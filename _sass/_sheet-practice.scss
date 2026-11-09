@@ -283,3 +283,183 @@
 .sheet-reader .sheet-music-status:empty {
   display: none;
 }
+
+/* Correction controls stay beside the work, not in a floating card over it. */
+.sheet-music-page.sheet-reader {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  .sheet-note-inspector {
+    border-radius: 0;
+    h2,
+    h3 {
+      font-family: inherit;
+    }
+  }
+  .sheet-correction-tools {
+    position: static;
+    top: var(--sheet-transport-top, 4.25rem);
+    z-index: 20;
+    padding-block: 8px;
+    background: var(--music-paper);
+    border-block: 1px solid var(--music-rule);
+    .sheet-inspector-actions {
+      margin-bottom: 4px;
+    }
+    p {
+      margin: 4px 0;
+    }
+    button,
+    select {
+      min-height: 44px;
+      font: inherit;
+      font-size: 0.875rem;
+    }
+  }
+  .sheet-correction-document {
+    display: flex;
+    position: relative;
+    min-height: 44px;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.875rem;
+    [data-correction-file] {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    strong {
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+  }
+  .sheet-correction-options {
+    flex-shrink: 0;
+    summary {
+      min-height: 44px;
+    }
+    &[open] {
+      position: absolute;
+      right: 0;
+      top: 0;
+      z-index: 30;
+      width: min(360px, 100%);
+      max-height: 60dvh;
+      overflow: auto;
+      background: var(--music-paper);
+      border: 1px solid var(--music-rule);
+      padding: 8px;
+    }
+  }
+  .sheet-correction-selection {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    [data-correction-selected] {
+      font-size: 0.875rem;
+      flex-basis: 100%;
+    }
+    select {
+      max-width: 6rem;
+    }
+  }
+  [data-correction-status] {
+    font-size: 0.875rem;
+  }
+  #osmd-container .is-correction-note path {
+    fill: var(--music-accent);
+    stroke: var(--music-accent);
+  }
+  #osmd-container .is-correction-target:focus-visible {
+    outline-color: var(--music-accent);
+  }
+  .sheet-correction-primary {
+    background: var(--music-ink);
+    color: var(--music-paper);
+    font-weight: 700;
+    &:disabled {
+      opacity: 0.55;
+    }
+  }
+  .sheet-reader-secondary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
+    > details {
+      flex: 1 1 140px;
+      min-width: 0;
+    }
+    > details[open] {
+      flex-basis: 100%;
+    }
+  }
+  .sheet-published-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+  .sheet-downloads {
+    margin: 0;
+    border: 0;
+  }
+  .sheet-annotation-tools .sheet-dev-toggle {
+    position: static;
+    inset: auto;
+    transform: none;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  &[data-score-loaded="true"] .sheet-file-controls {
+    > label[for="sheet-file"],
+    > #sheet-file,
+    > #sheet-file-help,
+    > #osmd-status {
+      display: none;
+    }
+  }
+  .sheet-file-controls {
+    margin-bottom: 8px;
+  }
+  .sheet-transport {
+    position: sticky;
+    top: var(--sheet-transport-top, 4.25rem);
+    bottom: auto;
+    left: auto;
+    right: auto;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid var(--music-rule);
+    padding: 8px;
+    margin: 0;
+    box-shadow: none;
+    z-index: 10;
+  }
+  &[data-correction-mode="true"] .sheet-transport {
+    display: none;
+  }
+  &[data-correction-mode="true"] .sheet-correction-tools {
+    position: sticky;
+  }
+  &.sheet-music-page--focus {
+    .sheet-correction-tools,
+    .sheet-transport {
+      top: 3.25rem;
+    }
+  }
+}
+.music-page:has(.sheet-reader) h1 {
+  font-family: inherit;
+}
+.music-page:has([data-score-loaded="true"]) .music-lead {
+  display: none;
+}
