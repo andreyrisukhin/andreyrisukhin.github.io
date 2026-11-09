@@ -1,6 +1,6 @@
 ---
 layout: page
-title: color
+title: Color
 permalink: /color/
 description: "Tools for picking colors and putting them to work."
 ---
