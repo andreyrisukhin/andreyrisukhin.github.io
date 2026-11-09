@@ -8,12 +8,15 @@
 
 .blues-variant-btn {
   padding: 0.35rem 0.75rem;
-  font-size: 0.9rem;
+  font-size: $type-size-small;
   border: 1px solid var(--global-divider-color);
   background: var(--global-bg-color);
   color: var(--global-text-color);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
   @include hover-tint;
 
   &:first-child {
@@ -29,18 +32,19 @@
   }
 
   &.is-active {
-    background: var(--global-theme-color);
-    color: #fff;
-    border-color: var(--global-theme-color);
+    background: var(--music-accent, var(--global-theme-color));
+    color: var(--music-on-accent, #fff);
+    border-color: var(--music-accent, var(--global-theme-color));
   }
 }
 
+/* The 1px gap over a rule-colored background draws single hairlines between bars. */
 .blues-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border: 2px solid var(--global-divider-color);
-  border-radius: 6px;
-  overflow: hidden;
+  gap: 1px;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-divider-color);
   margin-bottom: 2rem;
 }
 
@@ -51,33 +55,31 @@
   justify-content: center;
   min-height: 80px;
   padding: 0.75rem 0.5rem;
-  border: 1px solid var(--global-divider-color);
+  background: var(--global-bg-color);
 }
 
 .blues-chord {
-  font-size: 1.8rem;
+  font-size: $type-size-h2;
   font-weight: 700;
   line-height: 1.2;
   color: var(--global-text-color);
 }
 
 .blues-detail {
-  font-size: 0.75rem;
-  color: var(--global-text-color);
-  opacity: 0.6;
+  font-size: $type-size-tiny;
+  color: var(--global-text-color-light);
   margin-top: 0.1rem;
 }
 
 .blues-notes {
   font-weight: 600;
-  opacity: 0.8;
   letter-spacing: 0.05em;
 }
 
 .blues-intervals,
 .blues-semitones {
   font-family: ui-monospace, "SF Mono", monospace;
-  font-size: 0.7rem;
+  font-size: $type-size-tiny;
 }
 
 .blues-scale-notes {
@@ -91,11 +93,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.5rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   padding: 0.4rem 0.6rem;
-  font-size: 1.1rem;
+  font-size: $type-size-h3;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 3px;
   border: 1px solid var(--global-divider-color);
   background: var(--global-bg-color);
   color: var(--global-text-color);
@@ -103,7 +106,7 @@
 
 .blues-note--blue {
   background: var(--global-theme-color);
-  color: #fff;
+  color: var(--music-on-accent, #fff);
   border-color: var(--global-theme-color);
 }
 
@@ -159,26 +162,22 @@
 }
 
 .blues-play-btn {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.9rem;
-  border: 1px solid var(--global-divider-color);
-  border-radius: 4px;
-  background: var(--global-bg-color);
-  color: var(--global-text-color);
+  padding: 0.5rem 1rem;
+  font-size: $type-size-body;
+  font-weight: 600;
+  border: 1px solid var(--global-theme-color);
+  border-radius: 3px;
+  background: var(--global-theme-color);
+  color: var(--music-on-accent, #fff);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-
-  &:hover {
-    background: var(--global-theme-color);
-    color: #fff;
-  }
 }
 
 .blues-bpm-label {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: $type-size-small;
   color: var(--global-text-color);
 }
 
@@ -188,9 +187,10 @@
 }
 
 .blues-bpm-number {
-  width: 3.5rem;
+  width: 4.5rem;
+  min-height: 44px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: $type-size-small;
   border: 1px solid var(--global-divider-color);
   border-radius: 4px;
   background: var(--global-bg-color);
@@ -199,21 +199,20 @@
 
 /* ── Active cell highlight during playback ── */
 
-.blues-cell--active {
+.blues-cell.blues-cell--active {
   background: var(--global-theme-color);
-  color: #fff;
+  color: var(--music-on-accent, #fff);
 
   .blues-chord,
   .blues-detail {
-    color: #fff;
+    color: inherit;
   }
 }
 
 .blues-beat-counter {
-  font-size: 1.4rem;
+  font-size: $type-size-h3;
   font-weight: 700;
-  color: #fff;
-  opacity: 0.75;
+  color: inherit;
   font-variant-numeric: tabular-nums;
   margin-top: 0.15rem;
 }
@@ -221,7 +220,7 @@
 /* Responsive: tighten up on small screens */
 @media (max-width: 480px) {
   .blues-chord {
-    font-size: 1.3rem;
+    font-size: $type-size-h3;
   }
 
   .blues-cell {
@@ -229,26 +228,16 @@
     padding: 0.5rem 0.25rem;
   }
 
-  .blues-detail {
-    font-size: 0.65rem;
-  }
-
-  .blues-intervals,
-  .blues-semitones {
-    font-size: 0.6rem;
-  }
-
   .blues-note {
-    min-width: 2rem;
-    font-size: 0.95rem;
+    font-size: $type-size-body;
     padding: 0.3rem 0.4rem;
   }
 
   .blues-bpm-slider {
-    width: 80px;
+    width: 96px;
   }
 
   .blues-beat-counter {
-    font-size: 1.1rem;
+    font-size: $type-size-body;
   }
 }
