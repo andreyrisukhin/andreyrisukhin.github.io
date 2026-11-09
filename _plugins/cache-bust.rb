@@ -21,7 +21,9 @@ module Jekyll
 
       def directory_files_content
         target_path = File.join(directory, '**', '*')
-        Dir[target_path].map{|f| File.read(f) unless File.directory?(f) }.join
+        contents = Dir[target_path].map{|f| File.read(f) unless File.directory?(f) }.join
+        contents += File.read('purgecss.config.js') if directory == '_sass' && File.file?('purgecss.config.js')
+        contents
       end
 
       def file_content

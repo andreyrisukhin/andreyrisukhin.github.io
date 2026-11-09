@@ -5,6 +5,12 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const site = path.resolve(__dirname, "../_site");
+const purge = require("../purgecss.config.js");
+const mainCSS = fs.readFileSync(path.join(site, "assets/css/main.css"), "utf8");
+for (const attribute of ["data-score-loaded", "data-correction-mode"]) {
+  assert.ok(purge.dynamicAttributes.includes(attribute), attribute + " survives production CSS purging");
+  assert.ok(mainCSS.includes(attribute), attribute + " styles exist in the built stylesheet");
+}
 const routes = [
   "",
   "workbench/",
