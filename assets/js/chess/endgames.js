@@ -1,7 +1,7 @@
 import { Attempt, nextPuzzle, schedule } from "./endgame-session.js";
 import { Chessboard, INPUT_EVENT_TYPE } from "../vendor/cm-chessboard/src/Chessboard.js";
 import { Markers, MARKER_TYPE } from "../vendor/cm-chessboard/src/extensions/markers/Markers.js";
-import { Arrows, ARROW_TYPE } from "../vendor/cm-chessboard/src/extensions/arrows/Arrows.js";
+import { Arrows } from "../vendor/cm-chessboard/src/extensions/arrows/Arrows.js";
 import { PromotionDialog, PROMOTION_DIALOG_RESULT_TYPE } from "../vendor/cm-chessboard/src/extensions/promotion-dialog/PromotionDialog.js";
 
 const el = (name) => document.getElementById("eg-" + name);
@@ -43,6 +43,7 @@ async function init() {
     assetsUrl: document.querySelector("#endgames").dataset.assets,
     extensions: [{ class: Markers }, { class: Arrows }, { class: PromotionDialog }],
   });
+  board.view.svg.setAttribute("aria-label", "Endgame practice board");
   let puzzle, attempt, pending;
   let moving = false;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -68,7 +69,8 @@ async function init() {
     const last = history.at(-1);
     board.removeMarkers();
     board.removeArrows();
-    board.addArrow(ARROW_TYPE.info, last.from, last.to);
+    board.addMarker(MARKER_TYPE.square, last.from);
+    board.addMarker(MARKER_TYPE.square, last.to);
     el("line").textContent = history.map((m) => m.san).join("  ");
     const played = `${sideName(last.color)} played ${last.san}.`;
     el("turn").textContent = attempt.game.turn() === attempt.side ? `${sideName(attempt.side)} to move. ${played}` : played;

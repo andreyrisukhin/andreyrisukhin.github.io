@@ -1,19 +1,17 @@
 ---
 layout: page
-title: chess
+title: Chess
 permalink: /chess/
 description: "Set up chess positions, play out lines, and share them as links."
 ---
 
-[Practice 1,000 endgames]({{ '/chess/endgames/' | relative_url }}) or set up your own scenario below. A scenario link holds every move, branch, and arrow.
-
-Examples: <a href="{{ '/chess/' | relative_url }}#t=Fried%20Liver&m=e2e4.e7e5.g1f3.b8c6.f1c4.g8f6.f3g5.d7d5.e4d5.f6d5_c6a5.c4b5.c7c6~g5f7.e8f7.d1f3.f7e6.b1c3&at=14&a=14:rf7d8,rf7h8">Fried Liver</a>, <a href="{{ '/chess/' | relative_url }}#t=Back-rank%20mate&fen=6k1/5ppp/8/8/8/8/5PPP/3R2K1_w_-_-_0_1&m=d1d8&a=0:gd1d8">back-rank mate</a>, <a href="{{ '/chess/' | relative_url }}#t=an%20interesting%20situation&o=b&fen=r4rk1/3n1pp1/p4n1p/2pP1Q2/P1B1p3/q7/1bPB1PPP/1R3RK1_b_-_-_0_1">an interesting situation</a>.
+[Practice 1,000 endgames]({{ '/chess/endgames/' | relative_url }}), or open an example: <a href="{{ '/chess/' | relative_url }}#t=Fried%20Liver&m=e2e4.e7e5.g1f3.b8c6.f1c4.g8f6.f3g5.d7d5.e4d5.f6d5_c6a5.c4b5.c7c6~g5f7.e8f7.d1f3.f7e6.b1c3&at=14&a=14:rf7d8,rf7h8">Fried Liver</a>, <a href="{{ '/chess/' | relative_url }}#t=Back-rank%20mate&fen=6k1/5ppp/8/8/8/8/5PPP/3R2K1_w_-_-_0_1&m=d1d8&a=0:gd1d8">back-rank mate</a>, <a href="{{ '/chess/' | relative_url }}#t=an%20interesting%20situation&o=b&fen=r4rk1/3n1pp1/p4n1p/2pP1Q2/P1B1p3/q7/1bPB1PPP/1R3RK1_b_-_-_0_1">an interesting situation</a>.
 
 <div class="chess-app" data-chess-app data-assets="{{ '/assets/js/vendor/cm-chessboard/assets/' | relative_url }}">
   <div class="chess-app__board-column">
-    <div class="chess-material" data-chess-material="top"></div>
+    <div class="chess-material" role="img" data-chess-material="top"></div>
     <div class="chess-board" data-chess-board></div>
-    <div class="chess-material" data-chess-material="bottom"></div>
+    <div class="chess-material" role="img" data-chess-material="bottom"></div>
     <div class="chess-nav" role="group" aria-label="Step through moves">
       <button type="button" data-chess-action="start" aria-label="First position" title="First position (Up)">&#x23EE;</button>
       <button type="button" data-chess-action="back" aria-label="Previous move" title="Previous move (Left)">&#x25C0;</button>
@@ -35,16 +33,19 @@ Examples: <a href="{{ '/chess/' | relative_url }}#t=Fried%20Liver&m=e2e4.e7e5.g1
       <button type="button" class="chess-button chess-button--primary" data-chess-action="copy-link">Copy link</button>
       <button type="button" class="chess-button" data-chess-action="save">Save</button>
       <button type="button" class="chess-button" data-chess-action="save-new">Save as new</button>
-      <button type="button" class="chess-button" data-chess-action="branch" title="Start a new scenario whose first position is the one on the board">New from here</button>
     </div>
-    <div class="chess-actions chess-actions--quiet">
-      <button type="button" class="chess-button" data-chess-action="promote" title="Make this branch the main line">Promote line</button>
-      <button type="button" class="chess-button" data-chess-action="delete" title="Delete this move and everything after it">Delete from here</button>
-      <button type="button" class="chess-button" data-chess-action="clear-notes">Clear arrows</button>
-      <button type="button" class="chess-button" data-chess-action="setup">Set up position</button>
-      <button type="button" class="chess-button" data-chess-action="copy-pgn">Copy PGN</button>
-      <button type="button" class="chess-button" data-chess-action="reset">New game</button>
-    </div>
+    <details class="chess-more">
+      <summary>More actions</summary>
+      <div class="chess-actions">
+        <button type="button" class="chess-button" data-chess-action="branch" title="Start a new scenario whose first position is the one on the board">New from here</button>
+        <button type="button" class="chess-button" data-chess-action="promote" title="Make this branch the main line">Promote line</button>
+        <button type="button" class="chess-button" data-chess-action="delete" title="Delete this move and everything after it">Delete from here</button>
+        <button type="button" class="chess-button" data-chess-action="clear-notes">Clear arrows</button>
+        <button type="button" class="chess-button" data-chess-action="setup">Set up position</button>
+        <button type="button" class="chess-button" data-chess-action="copy-pgn">Copy PGN</button>
+        <button type="button" class="chess-button" data-chess-action="reset">New game</button>
+      </div>
+    </details>
     <p class="chess-toast" data-chess-toast role="status"></p>
 
     <details class="chess-import" data-chess-import>
