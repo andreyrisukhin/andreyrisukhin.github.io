@@ -1,29 +1,25 @@
 <header>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <!-- Nav Bar -->
   <nav id="navbar" class="navbar navbar-light navbar-expand-sm {% if site.navbar_fixed %}fixed-top{% else %}sticky-top{% endif %}" role="navigation">
     <div class="container">
-      {% if page.permalink != '/' %}
-        <a class="navbar-brand title font-weight-lighter" href="{{ site.baseurl }}/">
-          {% if site.title == 'blank' %}
-            {% if site.first_name %}
-              <span class="font-weight-bold">
-                {{- site.first_name -}}
-              </span>
-            {% endif %}
-            {% if site.middle_name %}
-              {{- site.middle_name -}}
-            {% endif %}
-            {% if site.last_name %}
-              {{- site.last_name -}}
-            {% endif %}
-          {% else %}
-            {{- site.title -}}
+      <a class="navbar-brand title font-weight-lighter" href="{{ site.baseurl }}/">
+        {% if site.title == 'blank' %}
+          {% if site.first_name %}
+            <span class="font-weight-bold">
+              {{- site.first_name -}}
+            </span>
           {% endif %}
-        </a>
-      {% elsif site.enable_navbar_social %}
-        <!-- Social Icons -->
-        <div class="navbar-brand social">{% include social.liquid %}</div>
-      {% endif %}
+          {% if site.middle_name %}
+            {{- site.middle_name -}}
+          {% endif %}
+          {% if site.last_name %}
+            {{- site.last_name -}}
+          {% endif %}
+        {% else %}
+          {{- site.title -}}
+        {% endif %}
+      </a>
       <!-- Navbar Toggle -->
       <button
         class="navbar-toggler collapsed ml-auto"
@@ -43,7 +39,7 @@
       <div class="collapse navbar-collapse text-right" id="navbarNav">
         <ul class="navbar-nav ml-auto flex-nowrap">
           {% for page in site.pages %}
-            {% if page.permalink == '/' %} {% assign about_title = page.title %} {% endif %}
+            {% if page.permalink == '/' %} {% assign about_title = page.nav_title | default: page.title %} {% endif %}
           {% endfor %}
 
           <!-- About -->
@@ -63,7 +59,7 @@
               {% if p.dropdown %}
                 {% assign has_active_child = false %}
                 {% for child in p.children %}
-                  {% if page.title == child.title %}
+                  {% if page.url == child.permalink %}
                     {% assign has_active_child = true %}
                   {% endif %}
                 {% endfor %}
@@ -88,7 +84,7 @@
                         <div class="dropdown-divider"></div>
                       {% else %}
                         <a
-                          class="dropdown-item{% if child.thumbnail %} dropdown-item--with-thumbnail{% endif %} {% if page.title == child.title %}active{% endif %}"
+                          class="dropdown-item{% if child.thumbnail %} dropdown-item--with-thumbnail{% endif %} {% if page.url == child.permalink %}active{% endif %}"
                           href="{% if child.permalink contains '://' %}{{ child.permalink }}{% else %}{{ child.permalink | relative_url }}{% endif %}"
                         >
                           {% if child.thumbnail %}
@@ -130,9 +126,17 @@
           {% if site.search_enabled %}
             <!-- Search -->
             <li class="nav-item">
-              <button id="search-toggle" title="Search" onclick="openSearchModal()">
-                <span class="nav-link"><span class="search-shortcut-key">ctrl</span> k {% include ui-icon.liquid name="search" %}</span>
+              <button id="search-toggle" title="Search (Ctrl K)" aria-label="Search" onclick="openSearchModal()">
+                <span class="nav-link">
+                  <span class="search-shortcut" aria-hidden="true"><kbd class="search-shortcut-key">ctrl</kbd><kbd>k</kbd></span>
+                  {% include ui-icon.liquid name="search" %}
+                </span>
               </button>
+              <script>
+                if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) {
+                  document.getElementById('search-toggle').title = 'Search (\u2318K)';
+                }
+              </script>
             </li>
           {% endif %}
           {% if site.enable_darkmode %}

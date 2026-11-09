@@ -14,7 +14,9 @@ layout: default
       {% include breadcrumbs.liquid %}
     {% endunless %}
     <h1 class="post-title">{{ page.title }}</h1>
-    <p class="post-description">{{ page.description }}</p>
+    {% if page.description and page.description != '' %}
+      <p class="post-description">{{ page.description }}</p>
+    {% endif %}
   </header>
 
   <article>

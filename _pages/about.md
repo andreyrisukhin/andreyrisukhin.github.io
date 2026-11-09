@@ -1,6 +1,7 @@
 ---
 layout: about
-title: about
+title: About
+nav_title: about
 permalink: /
 subtitle: >-
   Self-Improving <code title="Kleene plus notation: {&quot;Coding Droids&quot;, &quot;Coding Droids Coding Droids&quot;, ...}, as in regular expressions.">(Coding Droids)+</code> at Factory.
@@ -27,7 +28,7 @@ social: true # includes social icons at the bottom of the page
 
 announcements:
   enabled: true # includes a list of news items
-  scrollable: true # adds a vertical scroll bar if there are more than 3 news items
+  scrollable: false # a scroll box clipped the last row; show the newest items instead
   limit: 3 # leave blank to include all the news in the `_news` folder
 
 latest_posts:

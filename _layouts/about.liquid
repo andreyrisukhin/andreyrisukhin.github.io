@@ -82,9 +82,7 @@ layout: default
         {% when 'news' %}
           {% if page.announcements and page.announcements.enabled %}
             <section class="homepage-section" data-homepage-section="news" data-homepage-section-label="news">
-              <h2>
-                <a href="{{ '/news/' | relative_url }}" style="color: inherit">news</a>
-              </h2>
+              <h2>News</h2>
               {% include news.liquid limit=true %}
             </section>
           {% endif %}
@@ -93,7 +91,7 @@ layout: default
           {% if page.latest_posts and page.latest_posts.enabled %}
             <section class="homepage-section" data-homepage-section="latest_posts" data-homepage-section-label="latest posts">
               <h2>
-                <a href="{{ '/blog/' | relative_url }}" style="color: inherit">latest posts</a>
+                <a href="{{ '/blog/' | relative_url }}" class="heading-link">Latest posts</a>
               </h2>
               {% include latest_posts.liquid %}
             </section>
@@ -107,7 +105,7 @@ layout: default
               data-homepage-section-label="selected publications"
             >
               <h2>
-                <a href="{{ '/publications/' | relative_url }}" style="color: inherit">selected publications</a>
+                <a href="{{ '/publications/' | relative_url }}" class="heading-link">Selected publications</a>
               </h2>
               {% include selected_papers.liquid %}
             </section>
