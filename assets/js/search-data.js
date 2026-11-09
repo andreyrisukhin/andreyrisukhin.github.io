@@ -44,12 +44,12 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/chess/";
               },
-            },{id: "dropdown-color",
-              title: "color",
+            },{id: "dropdown-outfit-palette",
+              title: "outfit palette",
               description: "",
               section: "Dropdown",
               handler: () => {
-                window.location.href = "/color/";
+                window.location.href = "/color/outfit/";
               },
             },{id: "dropdown-ditherer",
               title: "ditherer",
@@ -78,13 +78,6 @@ ninja.data = [{
               section: "Dropdown",
               handler: () => {
                 window.location.href = "/projects/lego/";
-              },
-            },{id: "dropdown-terrarium",
-              title: "terrarium",
-              description: "",
-              section: "Dropdown",
-              handler: () => {
-                window.location.href = "/terrarium/";
               },
             },{id: "post-lego-logbook-from-boxes-to-blender",
         
