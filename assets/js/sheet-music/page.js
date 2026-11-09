@@ -28,6 +28,7 @@
       drawPartNames: scoreHeading,
       drawPartAbbreviations: scoreHeading,
       drawChordSymbols: localFile,
+      defaultFontFamily: "Nunito Sans",
       autoResize: false,
       // Flexoki cyan instead of OSMD's neon green; callers scroll it themselves.
       cursorsOptions: [{ type: 0, color: "#24837B", alpha: 0.35, follow: false }],
@@ -35,8 +36,21 @@
 
   let osmd = localFile ? null : createOsmd();
 
+  const mobileQ = window.matchMedia("(max-width: 768px)");
+
+  // OSMD's default page margins are 5 units on each side; on a phone that
+  // is about a fifth of the staff width, so narrow screens trim them.
+  const applyPageMargins = () => {
+    const rules = osmd.EngravingRules;
+    if (!rules) return;
+    const margin = mobileQ.matches ? 1.5 : 5;
+    rules.PageLeftMargin = margin;
+    rules.PageRightMargin = margin;
+  };
+
   const renderPreservingScroll = () => {
     if (!osmd?.Sheet) return;
+    applyPageMargins();
     const y = window.scrollY;
     container.dispatchEvent(new CustomEvent("sheet-before-render"));
     osmd.render();
@@ -47,11 +61,19 @@
     container.dispatchEvent(new CustomEvent("sheet-render"));
   };
 
-  const mobileQ = window.matchMedia("(max-width: 768px)");
   const fitZoom = () => (mobileQ.matches ? 0.8 : 1.0);
   let userZoomed = false;
   let zoom = fitZoom();
+  const zoomLevel = document.getElementById("osmd-zoom-reset");
+  // The zoom level is relative to the fit for this screen, so "100%" always
+  // means the default size.
+  const showZoom = () => {
+    const percent = Math.round((zoom / fitZoom()) * 100) + "%";
+    zoomLevel.textContent = percent;
+    zoomLevel.setAttribute("aria-label", "Zoom " + percent + ", reset");
+  };
   const applyZoom = () => {
+    showZoom();
     if (!osmd?.Sheet) return;
     osmd.Zoom = zoom;
     renderPreservingScroll();
@@ -87,7 +109,9 @@
     if (!svg) return;
     for (const t of svg.querySelectorAll("g.vf-text > text, text.vf-chord, text")) {
       const s = (t.textContent || "").trim();
-      if (!s || !looksLikeChord(s)) continue;
+      // Some arrangements write chord cues as lowercase words ("am", "c").
+      const capitalized = /^[a-g]/.test(s) ? s[0].toUpperCase() + s.slice(1) : s;
+      if (!s || !(looksLikeChord(s) || looksLikeChord(capitalized))) continue;
       // Rehearsal marks ("A", "B") parse as chord names; OSMD draws them bold
       // and chord symbols in regular weight.
       if (t.getAttribute("font-weight") === "bold") continue;
@@ -117,13 +141,18 @@
   if (localFile) {
     const input = document.getElementById("sheet-file");
     const close = document.getElementById("sheet-file-clear");
-    const controls = sheetPage.querySelectorAll(".sheet-music-controls button");
+    const toolbar = sheetPage.querySelector(".sheet-music-controls");
+    const controls = toolbar.querySelectorAll("button");
+    const scoreHelp = sheetPage.querySelector(".practice-score-help");
     const bridge = window.__sheetMusic;
     let generation = 0;
-    const setControls = (enabled) =>
+    const setControls = (enabled) => {
       controls.forEach((button) => {
         button.disabled = !enabled;
       });
+      toolbar.hidden = !enabled;
+      scoreHelp.hidden = !enabled;
+    };
     function clearScore() {
       generation++;
       window.WorkbenchPlayer?.stop();
@@ -141,6 +170,7 @@
       container.removeAttribute("aria-busy");
       input.value = "";
       close.disabled = true;
+      close.hidden = true;
       setControls(false);
       status.textContent = "Choose a MusicXML file to begin.";
     }
@@ -202,6 +232,7 @@
       clearScore();
       const request = generation;
       close.disabled = false;
+      close.hidden = false;
       status.textContent = "Opening score…";
       container.setAttribute("aria-busy", "true");
       let doc;
@@ -284,7 +315,7 @@
       focusBtn.setAttribute("data-pressed", on ? "true" : "false");
       focusBtn.setAttribute("aria-pressed", String(on));
       focusBtn.classList.toggle("is-pressed", on);
-      focusBtn.textContent = on ? "Exit focus" : "Focus score";
+      focusBtn.textContent = on ? "Exit focus" : "Focus";
       lastWidth = 0;
       setTimeout(onWidthChange, 80);
     };

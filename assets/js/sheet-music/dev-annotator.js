@@ -64,9 +64,10 @@
     document.body.appendChild(btn);
   }
 
+  // Readers never see the toggle; ?dev=1 turns dev mode on and shows it.
   const isDev = readDevMode();
-  renderDevToggle(isDev);
   if (!isDev) return;
+  renderDevToggle(isDev);
 
   const STORAGE_KEY = "sheet-annotator:" + location.pathname;
   const SIDECAR = "http://127.0.0.1:4001";

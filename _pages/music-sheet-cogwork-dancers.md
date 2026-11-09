@@ -4,7 +4,7 @@ title: "Cogwork Dancers"
 permalink: /music/sheet/cogwork-dancers/
 ---
 
-Music by Christopher Larkin. Organ transcription by Lysine.
+Christopher Larkin’s music, transcribed for organ by Lysine.
 
 {% include sheet-music.liquid
   slug="cogwork-dancers"
