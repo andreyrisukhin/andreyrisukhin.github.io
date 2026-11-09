@@ -5,14 +5,7 @@ permalink: /kata/
 description: "Breath and motion recipes for quick resets."
 ---
 
-<div class="kata-intro">  
-  <p>
-    Breathing is important. Marching band focused on air support and control, steady breathing.
-  </p>
-  <p>
-    Inspired by the kata from Brandon Sanderson's "Stormlight Archive", these are combined yoga and marching band ideas.
-  </p>
-</div>
+<p class="kata-intro">Yoga and marching band breathing, shaped like the kata in Brandon Sanderson’s <em>Stormlight Archive</em>.</p>
 
 <div class="kata-practice" data-kata-practice data-scene="morning" data-view="bounded">
   <div class="kata-toolbar">
