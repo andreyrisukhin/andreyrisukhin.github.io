@@ -2,6 +2,11 @@ into-the-unknown:
   url: /assets/music/sheet-music/into-the-unknown/into-the-unknown.musicxml
   instrument: acoustic_grand_piano
   key_mode: minor
+into-the-unknown-bayan:
+  url: /assets/music/sheet-music/into-the-unknown/into-the-unknown-bayan.musicxml
+  instrument: accordion
+  key_mode: minor
+  stradella: true
 cogwork-dancers:
   url: /assets/music/sheet-music/cogwork-dancers/cogwork-dancers.musicxml
   instrument: accordion
