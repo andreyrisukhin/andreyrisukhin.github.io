@@ -145,19 +145,19 @@ test("Pitch edits preserve lyrics, barlines, and unrelated XML", () => {
   const node = Model.index(updated)[0].node;
   assert.deepEqual(
     node.children.map((n) => n.localName),
-    ["pitch", "duration", "voice", "type", "accidental", "staff", "lyric"]
+    ["pitch", "duration", "voice", "type", "staff", "lyric"]
   );
   assert.deepEqual(
     node.children[0].children.map((n) => n.localName),
     ["step", "alter", "octave"]
   );
 });
-test("Natural corrections remove the old alteration and add an explicit natural", () => {
+test("Natural corrections remove the old alteration and let notation compute the necessary symbol", () => {
   const sharp = Model.apply(fixture(), first, { pitch: { step: "C", alter: 1, octave: 4 } });
   const natural = Model.apply(sharp, first, { pitch: { step: "C", alter: 0, octave: 4 } });
   const node = Model.index(natural)[0].node;
   assert.equal(node.children[0].getElementsByTagName("alter").length, 0);
-  assert.equal(node.getElementsByTagName("accidental")[0].textContent, "natural");
+  assert.equal(node.getElementsByTagName("accidental").length, 0);
 });
 test("No-op edits return no revision", () => {
   assert.equal(Model.apply(fixture(), first, { pitch: { step: "C", alter: 0, octave: 4 }, type: "quarter", dots: 0 }), null);
@@ -293,5 +293,65 @@ test("OSMD mapping uses part, measure, voice, staff, onset, and written pitch", 
   assert.equal(Model.mapNotes(osmd, doc(measure(attrs(), note("D", 4, 4)))).get(source), undefined);
   const ambiguous = doc(measure(attrs(), note("C", 4, 4), note("C", 4, 4, 1, 1, [e("chord")])));
   assert.equal(Model.mapNotes(osmd, ambiguous).get(source), undefined);
+});
+test("Scale steps use the active key, wrap octaves, and keep pitch alterations", () => {
+  const source = doc(measure(e("attributes", [e("divisions", 4), e("key", [e("fifths", 4)])]), note("B", 3, 4), note("D", 4, 4)));
+  assert.deepEqual(Model.stepPitch(source, first, -1), { step: "A", alter: 0, octave: 3 });
+  assert.deepEqual(Model.stepPitch(source, at(1), -1), { step: "C", alter: 1, octave: 4 });
+  assert.deepEqual(Model.stepPitch(source, first, 1), { step: "C", alter: 1, octave: 4 });
+  const changed = Model.apply(source, at(1), { pitch: Model.stepPitch(source, at(1), -1) });
+  assert.equal(Model.index(changed)[1].pitch.alter, 1);
+  assert.equal(Model.index(changed)[1].node.getElementsByTagName("accidental").length, 0);
+});
+test("Scale stepping follows later and staff-specific keys", () => {
+  const source = doc(
+    measure(attrs(), note("B", 4, 4)),
+    measure(e("attributes", [e("key", [e("fifths", -2)]), e("key", [e("fifths", 4)], { number: "2" })]), note("A", 4, 4), note("B", 3, 4, 2, 2))
+  );
+  assert.deepEqual(Model.stepPitch(source, at(0, 1), 1), { step: "B", alter: -1, octave: 4 });
+  assert.deepEqual(Model.stepPitch(source, at(1, 1), 1), { step: "C", alter: 1, octave: 4 });
+});
+test("Chromatic and octave modifiers preserve their promised intervals", () => {
+  const source = fixture();
+  assert.equal(Model.midi(Model.stepPitch(source, first, 1, "chromatic")), 61);
+  assert.equal(Model.midi(Model.stepPitch(source, first, -1, "chromatic")), 59);
+  assert.equal(Model.midi(Model.stepPitch(source, first, 1, "octave")), 72);
+});
+test("Courtesy symbols are explicit, reversible, and do not change pitch", () => {
+  const forced = Model.apply(fixture(), first, { accidental: "show" });
+  assert.equal(Model.index(forced)[0].node.getElementsByTagName("accidental")[0].getAttribute("cautionary"), "yes");
+  const auto = Model.apply(forced, first, { accidental: "auto" });
+  assert.deepEqual(Model.describe(auto, first).pitch, { step: "C", alter: 0, octave: 4 });
+  assert.equal(Model.index(auto)[0].node.getElementsByTagName("accidental").length, 0);
+});
+test("Automatic display preserves other voices, courtesy marks, and key XML", () => {
+  const source = fixture();
+  Model.index(source)[2].node.appendChild(e("accidental", "natural", { cautionary: "yes" }));
+  const changed = Model.apply(source, first, { pitch: { step: "D", alter: 1, octave: 4 } });
+  assert.equal(Model.index(changed)[2].node.getElementsByTagName("accidental")[0].getAttribute("cautionary"), "yes");
+  assert.equal(Model.index(changed)[0].pitch.alter, 1);
+});
+test("The form cannot accept pitches the player would silently drop", () => {
+  assert.throws(() => Model.apply(fixture(), first, { pitch: { step: "B", alter: 0, octave: 9 } }), /playable pitch/);
+  assert.equal(Model.midi(Model.describe(Model.apply(fixture(), first, { pitch: { step: "G", alter: 0, octave: 9 } }), first).pitch), 127);
+});
+test("Rhythm preview identifies later groups and concrete rest padding", () => {
+  const preview = Model.rhythmImpact(fixture(), first, "eighth", 0);
+  assert.match(preview, /D4/);
+  assert.match(preview, /earlier by 0.5/);
+  assert.match(preview, /2 → 2.5/);
+});
+test("A courtesy symbol is local even when the pitch change follows a complete tie", () => {
+  const updated = Model.apply(tied(), at(0, 1), { pitch: { step: "D", alter: 1, octave: 4 }, accidental: "show" });
+  assert.deepEqual(
+    Model.index(updated).map((e) => e.pitch.alter),
+    [1, 1]
+  );
+  assert.equal(Model.index(updated)[0].node.getElementsByTagName("accidental").length, 0);
+  assert.equal(Model.index(updated)[1].node.getElementsByTagName("accidental")[0].getAttribute("cautionary"), "yes");
+});
+test("Extended key signatures retain their double alterations", () => {
+  const source = doc(measure(e("attributes", [e("key", [e("fifths", 8)])]), note("E", 4, 4)));
+  assert.deepEqual(Model.stepPitch(source, first, 1), { step: "F", alter: 2, octave: 4 });
 });
 console.log(`${checks} MusicXML correction model checks passed`);

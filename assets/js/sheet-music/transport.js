@@ -70,6 +70,7 @@ window.SheetTransport = (function () {
         <span class="sheet-transport__progress" data-pb-progress></span>
       </div>
       <span class="sheet-transport__pos" data-pb-pos aria-hidden="true"></span>
+      <details class="sheet-transport__more"><summary>Sound / key</summary><div class="sheet-inspector-actions">
       ${
         page.dataset.renderedAudioUrl
           ? `<label class="sheet-transport__select"><span>Audio</span><select data-pb-mode title="Audio"><option value="recording"></option><option value="live">Live sound</option></select></label>`
@@ -87,9 +88,10 @@ window.SheetTransport = (function () {
       }
       <label class="sheet-transport__select"><span>Sound</span><select data-pb-instrument title="Sound"></select></label>
       <button type="button" class="sheet-transport__toggle" data-pb-click-seek aria-pressed="false">Click score to jump</button>
+      </div></details>
       <p data-practice-status class="practice-help sheet-transport__status" role="status"></p>
     `;
-    page.insertBefore(root, settings);
+    page.insertBefore(root, page.querySelector(".sheet-reader-secondary") || settings);
     const measureHeight = () => document.documentElement.style.setProperty("--sheet-transport-height", root.offsetHeight + "px");
     const resize = new ResizeObserver(measureHeight);
     resize.observe(root);

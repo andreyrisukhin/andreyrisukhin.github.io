@@ -51,6 +51,9 @@
     return p ? { step: text(p, "step"), alter: Number(text(p, "alter", "0")), octave: Number(text(p, "octave")) } : null;
   };
   const pitchKey = (p) => (p ? p.step + ":" + p.alter + ":" + p.octave : "rest");
+  const STEPS = "CDEFGAB";
+  const NATURAL = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const midi = (p) => (p ? (p.octave + 1) * 12 + NATURAL[p.step] + p.alter : null);
   const label = (p) =>
     p
       ? p.step +
@@ -68,6 +71,9 @@
     const parts = children(doc.documentElement, "part");
     parts.forEach((part, partIndex) => {
       let divisions = 1,
+        keys = { all: {} },
+        clefs = {},
+        beatType = 4,
         absolute = 0;
       children(part, "measure").forEach((measure, measureIndex) => {
         let cursor = 0,
@@ -79,6 +85,25 @@
             const value = Number(text(el, "divisions", String(divisions)));
             if (!(value > 0) || !Number.isFinite(value)) throw new Error("Invalid MusicXML divisions.");
             divisions = value;
+            for (const key of children(el, "key")) {
+              const spelling = {};
+              const fifths = Number(text(key, "fifths", "0"));
+              const order = fifths < 0 ? "BEADGCF" : "FCGDAEB";
+              for (let i = 0; i < Math.min(21, Math.abs(fifths)); i++) {
+                const step = order[i % 7];
+                spelling[step] = (spelling[step] || 0) + Math.sign(fifths);
+              }
+              const steps = children(key, "key-step"),
+                alters = children(key, "key-alter");
+              steps.forEach((step, i) => {
+                spelling[step.textContent] = Number(alters[i]?.textContent || 0);
+              });
+              const number = key.getAttribute("number");
+              if (!number) keys = { all: spelling };
+              else keys[number] = spelling;
+            }
+            for (const clef of children(el, "clef")) clefs[clef.getAttribute("number") || "1"] = text(clef, "sign", "G");
+            if (child(el, "time")) beatType = Number(text(child(el, "time"), "beat-type", "4"));
           } else if (el.localName === "backup" || el.localName === "forward") {
             const duration = Number(text(el, "duration")) / divisions;
             cursor += (el.localName === "backup" ? -1 : 1) * duration;
@@ -100,6 +125,9 @@
               partId: part.getAttribute("id"),
               staff: text(el, "staff", "1"),
               voice: text(el, "voice", "1"),
+              key: { ...(keys[text(el, "staff", "1")] || keys.all) },
+              clef: clefs[text(el, "staff", "1")] || "",
+              beatType,
               divisions,
               onset: group.onset,
               absolute: absolute + group.onset,
@@ -128,9 +156,11 @@
   }
   function rhythmReason(entry, lane) {
     if (lane.some((e) => !close(e.duration, e.group.duration))) return "Chords with unequal note lengths have read-only rhythms.";
-    if (lane.some((e) => e.grace)) return "Grace-note rhythms are read-only.";
-    if (lane.some((e) => tieTypes(e.node).size)) return "Tied rhythms are read-only; pitch corrections update the whole tie.";
-    if (lane.some((e) => has(e.node, "time-modification") || descendants(e.node, "tuplet").length)) return "Tuplet rhythms are read-only.";
+    if (lane.some((e) => e.grace)) return "Grace notes occur in this voice; its rhythm is read-only, including ordinary notes.";
+    if (lane.some((e) => tieTypes(e.node).size))
+      return "Tied notes occur in this voice; its rhythm is read-only. Pitch edits update the whole linked tie.";
+    if (lane.some((e) => has(e.node, "time-modification") || descendants(e.node, "tuplet").length))
+      return "Tuplets occur in this voice; its rhythm is read-only, including ordinary notes.";
     if (lane.some((e) => e.voice !== entry.voice || e.staff !== entry.staff || !close(e.divisions, entry.divisions)))
       return "Mixed-staff or changing-division rhythms are read-only.";
     if (lane.some((e) => has(e.node, "unpitched"))) return "Unpitched rhythms are read-only.";
@@ -168,6 +198,10 @@
       duration: entry.duration,
       voice: entry.voice,
       staff: entry.staff,
+      clef: entry.clef,
+      beat: 1 + entry.onset / (4 / entry.beatType),
+      key: entry.key,
+      accidental: has(entry.node, "accidental") ? "show" : "auto",
       tied: tieTypes(entry.node).size > 0,
       rhythmReason: rhythmReason(entry, laneFor(entry, entries)),
       members: entry.group.entries.map((e) => ({ ...address(e), label: label(e.pitch) })),
@@ -211,6 +245,7 @@
       value.octave > 9
     )
       throw new Error("Choose a valid pitch, accidental, and octave (0–9).");
+    if (midi(value) < 0 || midi(value) > 127) throw new Error("Choose a playable pitch between MIDI 0 and 127 (up to G9).");
     const p = child(entry.node, "pitch");
     // Pitch has its own sequence, unlike the enclosing note.
     const old = [...p.children];
@@ -221,7 +256,70 @@
       el.textContent = String(val);
       p.appendChild(el);
     });
-    put(entry.node, "accidental", { "-2": "flat-flat", "-1": "flat", 0: "natural", 1: "sharp", 2: "double-sharp" }[value.alter]);
+    child(entry.node, "accidental")?.remove();
+  }
+  function accidental(entry, mode) {
+    child(entry.node, "accidental")?.remove();
+    if (mode === "show") {
+      const symbol = { "-2": "flat-flat", "-1": "flat", 0: "natural", 1: "sharp", 2: "double-sharp" }[entry.pitch.alter];
+      if (!symbol) throw new Error("Courtesy symbols for microtonal pitches need a notation editor.");
+      put(entry.node, "accidental", symbol).setAttribute("cautionary", "yes");
+    }
+  }
+  function stepPitch(doc, at, direction, mode = "scale") {
+    const entry = find(index(doc), at),
+      p = entry.pitch;
+    if (!p || !Number.isInteger(p.alter)) throw new Error("Select a non-microtonal pitched note first.");
+    if (direction !== 1 && direction !== -1) throw new Error("Choose one pitch step up or down.");
+    if (mode === "octave") return { ...p, octave: p.octave + direction };
+    if (mode === "chromatic") {
+      const target = midi(p) + direction;
+      const options = [...STEPS]
+        .flatMap((step) =>
+          [Math.floor(target / 12) - 2, Math.floor(target / 12) - 1, Math.floor(target / 12)].map((octave) => {
+            const alter = target - (octave + 1) * 12 - NATURAL[step];
+            return { step, alter, octave };
+          })
+        )
+        .filter((value) => Math.abs(value.alter) <= 1);
+      const flats = Object.values(entry.key).some((value) => value < 0);
+      options.sort((a, b) => Math.abs(a.alter) - Math.abs(b.alter) || (flats ? a.alter - b.alter : b.alter - a.alter));
+      return options[0];
+    }
+    const position = p.octave * 7 + STEPS.indexOf(p.step) + direction;
+    const step = STEPS[((position % 7) + 7) % 7];
+    return { step, alter: entry.key[step] || 0, octave: Math.floor(position / 7) };
+  }
+  function rhythmImpact(doc, at, type, dots) {
+    const entries = index(doc),
+      entry = find(entries, at),
+      lane = laneFor(entry, entries);
+    const groups = [...new Set(lane.map((e) => e.group))],
+      own = groups.indexOf(entry.group);
+    const later = groups.slice(own + 1).filter((g) => g.entries.some((e) => e.pitch));
+    let tail = groups.length;
+    while (tail > own + 1 && groups[tail - 1].entries.every((e) => !e.pitch)) tail--;
+    const spare = groups.slice(tail).reduce((sum, g) => sum + g.duration, 0);
+    const duration = beats(type, dots),
+      delta = duration - entry.group.duration;
+    const moved = later.map((g) => g.entries.map((e) => label(e.pitch)).join("+")).join(", ") || "none";
+    return (
+      "This group: " +
+      entry.group.duration +
+      " → " +
+      duration +
+      " quarter-note beats. Later groups (" +
+      moved +
+      ") move " +
+      (delta < 0 ? "earlier" : "later") +
+      " by " +
+      Math.abs(delta) +
+      ". Trailing rest: " +
+      spare +
+      " → " +
+      (spare - delta) +
+      " beats. Other voices and staves stay in place."
+    );
   }
   function setDuration(entry, type, dots) {
     const duration = beats(type, dots);
@@ -281,7 +379,16 @@
       entry = find(entries, at);
     let changed = false;
     if (changes.pitch && pitchKey(changes.pitch) !== pitchKey(entry.pitch)) {
-      linkedTie(entry, entries).forEach((e) => setPitch(e, changes.pitch));
+      linkedTie(entry, entries).forEach((e) => {
+        setPitch(e, changes.pitch);
+        e.pitch = changes.pitch;
+      });
+      changed = true;
+    }
+    if (changes.accidental && !["auto", "show"].includes(changes.accidental)) throw new Error("Choose automatic or courtesy accidental display.");
+    if (changes.accidental && changes.accidental !== (has(entry.node, "accidental") ? "show" : "auto")) {
+      if (!entry.pitch) throw new Error("Rests have no accidental.");
+      accidental(entry, changes.accidental);
       changed = true;
     }
     if (
@@ -343,7 +450,7 @@
     });
     return map;
   }
-  const api = { index, address, describe, apply, mapNotes, beats, label, types: TYPES };
+  const api = { index, address, describe, apply, mapNotes, beats, label, midi, stepPitch, rhythmImpact, types: TYPES };
   root.SheetCorrectionModel = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

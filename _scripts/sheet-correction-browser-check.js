@@ -45,6 +45,7 @@
   };
   const xmlEntry = (id) => Model.index(bridge.xml).find((e) => e.node.getAttribute("id") === id);
   const open = (id) => {
+    if (dialog.open) $("close").click();
     if ($("toggle").getAttribute("aria-pressed") !== "true") $("toggle").click();
     const wanted = xmlEntry(id),
       map = Model.mapNotes(bridge.osmd, bridge.xml);
@@ -178,7 +179,9 @@
       parsed.querySelector("creator").textContent === "Synthetic credit" && parsed.querySelector("bar-style").textContent === "light-heavy",
       "Download preserves unrelated credits and notation"
     );
-    assert(!SheetCorrections.hasUnsavedChanges(), "Download marks the current revision exported");
+    assert(SheetCorrections.hasUnsavedChanges(), "A blocked download does not clear the unsaved-change guard");
+    $("confirm-save").click();
+    assert(!SheetCorrections.hasUnsavedChanges(), "Only explicit confirmation acknowledges a downloaded copy");
     await travel("undo");
     assert(
       Model.label(xmlEntry("chord").pitch) === "E4" && SheetReader.score.events.some((event) => event.midi === 64),

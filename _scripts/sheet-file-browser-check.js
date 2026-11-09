@@ -93,7 +93,10 @@
       "Loaded score has one transport and practice settings"
     );
     assert(bridge.osmd.Sheet.SourceMeasures.length === 1 && container.querySelector(".vf-notehead"), "File renders with OSMD");
-    assert(container.textContent.includes("Private <script> title") && !container.querySelector("script"), "Score titles are text, not HTML");
+    assert(
+      document.querySelector("h1").textContent.includes("Private <script> title") && !document.querySelector("h1 script"),
+      "Score titles are text, not HTML"
+    );
     assert(!container.querySelector("[data-hidden-chord-text]"), "Local scores retain written chord symbols");
     assert(!document.getElementById("osmd-zoom-in").disabled, "Loaded score enables controls");
     const zoom = bridge.osmd.Zoom;
@@ -212,7 +215,7 @@
     assert(!bridge.ready && !container.querySelector("svg"), "Closing cancels an in-flight file read");
     choose(fixture("Recovered"));
     await wait(() => bridge.ready);
-    assert(container.textContent.includes("Recovered"), "Reader recovers after invalid files and cancellation");
+    assert(document.querySelector("h1").textContent.includes("Recovered"), "Reader recovers after invalid files and cancellation");
     assert(document.documentElement.scrollWidth <= innerWidth, "Page fits the viewport");
     assert(requests.length === 0, "Opening and inspecting scores makes no fetch, XHR, or beacon requests");
     assert(JSON.stringify({ ...localStorage }) === saved, "Score contents and filenames are not written to localStorage");

@@ -1,0 +1,18 @@
+into-the-unknown:
+  url: /assets/music/sheet-music/into-the-unknown/into-the-unknown.musicxml
+  instrument: acoustic_grand_piano
+  key_mode: minor
+cogwork-dancers:
+  url: /assets/music/sheet-music/cogwork-dancers/cogwork-dancers.musicxml
+  instrument: accordion
+reclaiming-entropy:
+  url: /assets/music/sheet-music/reclaiming-entropy/reclaiming-entropy.musicxml
+  instrument: acoustic_grand_piano
+reconstructing-more-science:
+  url: /assets/music/sheet-music/reconstructing-more-science/reconstructing-more-science.musicxml
+  instrument: drawbar_organ
+senorita:
+  url: /assets/music/sheet-music/senorita/senorita.musicxml
+  instrument: accordion
+  key_mode: minor
+  stradella: true

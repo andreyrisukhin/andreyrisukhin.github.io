@@ -58,13 +58,13 @@
     const stored = JSON.parse(localStorage.getItem("sheet-reader:" + location.pathname));
     assert(stored.rate === 0.5 && stored.transpose === 0, "Settings save per piece");
     const transport = document.querySelector("[data-sheet-playback]");
-    assert(getComputedStyle(transport).position === (innerWidth <= 768 ? "fixed" : "sticky"), "Transport docks on mobile and sticks on desktop");
+    assert(getComputedStyle(transport).position === "sticky", "Transport stays in flow without covering the bottom of the score");
     if (innerWidth <= 768) {
       await frame();
       const devToggle = document.querySelector(".sheet-dev-toggle");
       assert(
-        !devToggle || devToggle.getBoundingClientRect().bottom < transport.getBoundingClientRect().top,
-        "Floating controls stay clear of the mobile transport"
+        !devToggle || (devToggle.closest(".sheet-annotation-tools") && getComputedStyle(devToggle).position === "static"),
+        "Developer tools stay in their disclosure, not over the notation"
       );
     }
     rate.value = "1";

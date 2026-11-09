@@ -42,37 +42,63 @@
         accept=".musicxml,.xml,application/vnd.recordare.musicxml+xml,application/xml,text/xml"
         aria-describedby="sheet-file-help"
       >
+      <button type="button" class="music-share-btn" data-sheet-replace hidden>Open another score</button>
       <button id="sheet-file-clear" class="music-share-btn" type="button" disabled>Close score</button>
       <p id="sheet-file-help">Uncompressed .musicxml or .xml, up to 10 MB. Scores are not saved; reopening this page clears them.</p>
       <p id="osmd-status" class="sheet-music-status" role="status">Choose a MusicXML file to begin.</p>
     </div>
     {% include sheet-corrections.liquid %}
+    <script type="application/json" id="sheet-public-scores">
+      {{ site.data.music.sheet_scores | jsonify }}
+    </script>
+  {% else %}
+    <div class="sheet-published-actions">
+      <a class="music-share-btn" href="{{ '/music/sheet/open/' | relative_url }}?score={{ sheet_slug | url_encode }}">Edit a local copy</a>
+      <details class="sheet-downloads">
+        <summary>Score files and credits</summary>
+        {% if include.credits %}
+          <p>{{ include.credits | escape }}</p>
+        {% endif %}
+        {% unless source_path == musicxml_path %}
+          <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
+        {% endunless %}
+        <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
+        <p>Notation rendered with <a href="https://opensheetmusicdisplay.org/">OpenSheetMusicDisplay</a>.</p>
+        <p>Local corrections do not change this public score.</p>
+      </details>
+    </div>
   {% endif %}
-  <div class="sheet-music-controls">
-    <button id="osmd-zoom-out" class="music-share-btn" type="button" aria-label="Smaller notes">−</button>
-    <button id="osmd-zoom-reset" class="music-share-btn" type="button">Reset zoom</button>
-    <button id="osmd-zoom-in" class="music-share-btn" type="button" aria-label="Larger notes">+</button>
-    <button id="osmd-stradella-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Show Stradella</button>
-    <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Focus score</button>
+  <div class="sheet-reader-secondary">
+    <details
+      class="sheet-view-options"
+      {% if include.local_file %}
+        hidden
+      {% endif %}
+    >
+      <summary>View / instruments</summary>
+      <div class="sheet-music-controls">
+        <button id="osmd-zoom-out" class="music-share-btn" type="button" aria-label="Smaller notes">−</button>
+        <button id="osmd-zoom-reset" class="music-share-btn" type="button">Reset zoom</button>
+        <button id="osmd-zoom-in" class="music-share-btn" type="button" aria-label="Larger notes">+</button>
+        <button id="osmd-stradella-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Show Stradella</button>
+        <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Focus score</button>
+      </div>
+      <p class="practice-help">Stradella is an optional accordion aid, not part of piano notation.</p>
+      {% unless include.local_file %}
+        <details class="sheet-annotation-tools">
+          <summary>Developer annotation tools</summary>
+          <p class="practice-help">Opt-in annotations use browser storage and a local development service. They do not edit the public score.</p>
+        </details>
+      {% endunless %}
+    </details>
+    {% if include.playback %}
+      {% include sheet-practice.liquid local_file=include.local_file %}
+    {% endif %}
   </div>
-  {% if include.playback %}
-    {% include sheet-practice.liquid local_file=include.local_file %}
-  {% endif %}
   <p class="practice-score-help">Tap a note to inspect it. Keyboard: Tab to the score, then use arrow keys and Enter.</p>
   <div id="osmd-container" class="sheet-music-container" tabindex="0" role="region" aria-label="Sheet music, scroll sideways if needed"></div>
   {% unless include.local_file %}
     <p id="osmd-status" class="sheet-music-status" role="status">Loading score…</p>
-    <details class="sheet-downloads">
-      <summary>Score files and credits</summary>
-      {% if include.credits %}
-        <p>{{ include.credits | escape }}</p>
-      {% endif %}
-      {% unless source_path == musicxml_path %}
-        <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
-      {% endunless %}
-      <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
-      <p>Notation rendered with <a href="https://opensheetmusicdisplay.org/">OpenSheetMusicDisplay</a>.</p>
-    </details>
   {% endunless %}
   {% include sheet-inspector.liquid %}
 

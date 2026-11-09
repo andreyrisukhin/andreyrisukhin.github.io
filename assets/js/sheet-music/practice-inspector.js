@@ -94,6 +94,9 @@
   });
   function open(hit, element) {
     if (!hit || hit.isRest || !hit.pitches.length) return;
+    dialog.querySelector(".sheet-instrument-diagrams").open =
+      page.dataset.playbackStradella === "true" ||
+      (window.SheetReader?.player?.snapshot().instrument || page.dataset.playbackInstrument) === "accordion";
     window.SheetReader?.player?.pause();
     window.WorkbenchPlayer.stop();
     selectedElement?.classList.remove("is-inspected");
@@ -170,7 +173,10 @@
   ["sheet-clear", "sheet-score-changing"].forEach((name) => document.getElementById("osmd-container").addEventListener(name, clearInspection));
   function bindScore() {
     const selectedIndex = notes.indexOf(selectedElement);
-    notes = [...bridge.container.querySelectorAll(".vf-stavenote")].filter((note) => note.querySelector(".vf-notehead"));
+    bridge.container.querySelectorAll(".vf-stavenote").forEach((note) => note.setAttribute("tabindex", "-1"));
+    notes = [...bridge.container.querySelectorAll(".vf-stavenote")].filter(
+      (note) => page.dataset.correctionMode === "true" || note.querySelector(".vf-notehead")
+    );
     notes.forEach((note, index) => {
       note.setAttribute("tabindex", index === 0 ? "0" : "-1");
       note.setAttribute("role", "button");

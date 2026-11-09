@@ -48,7 +48,7 @@
     btn.type = "button";
     btn.setAttribute("data-sheet-dev-toggle", "");
     btn.className = "sheet-dev-toggle" + (devOn ? " is-on" : "");
-    btn.textContent = devOn ? "dev: on" : "dev";
+    btn.textContent = devOn ? "Disable annotations" : "Enable annotations";
     btn.title = devOn ? "Dev mode is on (annotator + sidebar). Click to turn off." : "Click to enable dev mode (drop pins, sidebar). Or use ?dev=1.";
     btn.addEventListener("click", () => {
       setDevModeStorage(!devOn);
@@ -58,10 +58,9 @@
       u.searchParams.delete("dev");
       location.replace(u.toString());
     });
-    // Append to <body>: the toggle is position:fixed so the host
-    // doesn't matter, and it stays out of the score container's
-    // layout where MutationObservers might churn over it.
-    document.body.appendChild(btn);
+    // Keep developer controls outside the observed notation surface.
+    const host = document.querySelector(".sheet-annotation-tools");
+    if (host) host.appendChild(btn);
   }
 
   const isDev = readDevMode();

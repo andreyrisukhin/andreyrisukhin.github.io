@@ -7,7 +7,7 @@
 
   const url = sheetPage.dataset.musicxmlUrl;
   const localFile = sheetPage.dataset.localFile === "true";
-  const scoreHeading = sheetPage.dataset.scoreHeading !== "false";
+  const scoreHeading = !localFile && sheetPage.dataset.scoreHeading !== "false";
 
   if (!window.opensheetmusicdisplay) {
     status.textContent = "The notation renderer failed to load. Reload this page to try again.";
@@ -119,11 +119,17 @@
     const close = document.getElementById("sheet-file-clear");
     const controls = sheetPage.querySelectorAll(".sheet-music-controls button");
     const bridge = window.__sheetMusic;
+    const heading = sheetPage.closest("article")?.querySelector("h1");
+    const originalHeading = heading?.textContent;
+    const replaceButton = sheetPage.querySelector("[data-sheet-replace]");
+    replaceButton.addEventListener("click", () => input.click());
     let generation = 0;
-    const setControls = (enabled) =>
+    const setControls = (enabled) => {
+      sheetPage.querySelector(".sheet-view-options").hidden = !enabled;
       controls.forEach((button) => {
         button.disabled = !enabled;
       });
+    };
     function clearScore() {
       generation++;
       window.WorkbenchPlayer?.stop();
@@ -141,6 +147,9 @@
       container.removeAttribute("aria-busy");
       input.value = "";
       close.disabled = true;
+      sheetPage.dataset.scoreLoaded = "false";
+      replaceButton.hidden = true;
+      if (heading) heading.textContent = originalHeading;
       setControls(false);
       status.textContent = "Choose a MusicXML file to begin.";
     }
@@ -192,14 +201,18 @@
         if (request === generation) container.removeAttribute("aria-busy");
       }
     };
-    input.addEventListener("change", async () => {
-      const file = input.files[0];
+    async function openFile(file, preset) {
       if (!file) return;
       if (window.SheetCorrections?.confirmDiscard() === false) {
         input.value = "";
         return;
       }
       clearScore();
+      sheetPage.dataset.playbackInstrument = preset?.instrument || "acoustic_grand_piano";
+      if (preset?.key_mode) sheetPage.dataset.keyMode = preset.key_mode;
+      else delete sheetPage.dataset.keyMode;
+      if (preset?.stradella) sheetPage.dataset.playbackStradella = "true";
+      else delete sheetPage.dataset.playbackStradella;
       const request = generation;
       close.disabled = false;
       status.textContent = "Opening score…";
@@ -227,17 +240,49 @@
         zoom = fitZoom();
         showScore();
         setControls(true);
+        sheetPage.dataset.scoreLoaded = "true";
+        replaceButton.hidden = false;
+        if (heading) heading.textContent = doc.querySelector("work-title, movement-title")?.textContent || "Local score";
         container.removeAttribute("aria-busy");
         const count = next.Sheet.SourceMeasures.length;
-        status.textContent = file.name + " · " + count + (count === 1 ? " measure" : " measures");
+        status.textContent = count + (count === 1 ? " measure" : " measures") + " · Browser only";
         sheetPage.dispatchEvent(new CustomEvent("sheet-score-ready"));
+        if (preset) sheetPage.querySelector("[data-correction-toggle]").click();
+        sheetPage.scrollIntoView({ block: "start", behavior: "instant" });
       } catch (_) {
         if (request !== generation) return;
         clearScore();
         status.textContent = "Could not render this MusicXML. Try exporting it again.";
       }
-    });
+    }
+    input.addEventListener("change", () => openFile(input.files[0]));
     clearScore();
+    const scoreId = new URLSearchParams(location.search).get("score");
+    if (scoreId) {
+      const known = JSON.parse(document.getElementById("sheet-public-scores").textContent);
+      const preset = Object.prototype.hasOwnProperty.call(known, scoreId) && known[scoreId];
+      if (!preset) status.textContent = "Unknown public score. Choose a file on your device instead.";
+      else {
+        const request = generation;
+        close.disabled = false;
+        status.textContent = "Opening a local copy of the public score…";
+        const publicURL = new URL(preset.url, location.origin);
+        if (publicURL.origin === location.origin)
+          fetch(publicURL.href)
+            .then(async (response) => {
+              if (!response.ok) throw new Error("The public score could not be downloaded.");
+              const content = await response.blob();
+              if (request !== generation) return;
+              await openFile(new File([content], scoreId + ".musicxml"), preset);
+            })
+            .catch((error) => {
+              if (request === generation) {
+                clearScore();
+                status.textContent = error.message;
+              }
+            });
+      }
+    }
   } else {
     const source = fetch(url)
       .then((response) => {
@@ -291,7 +336,7 @@
     focusBtn.addEventListener("click", () => setFocusMode(!sheetPage.classList.contains("sheet-music-page--focus")));
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && sheetPage.classList.contains("sheet-music-page--focus")) {
-        if (document.querySelector("#sheet-inspector[open]")) return;
+        if (document.querySelector("#sheet-inspector[open], #sheet-correction-dialog[open]")) return;
         setFocusMode(false);
       }
     });

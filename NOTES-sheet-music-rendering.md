@@ -175,7 +175,7 @@ agent-browser eval --stdin < _scripts/sheet-playback-stradella-check.js
 `/music/sheet/open/` opens uncompressed `.musicxml` and `.xml` files up to
 10 MB. It uses the shared zoom, focus mode, note inspector, and full-score player.
 Piano is the default, with speed, passage loops, measure seeking, transposition,
-and a moving playhead. Nothing plays until Play is pressed. Compressed `.mxl`
+and a moving playhead. Nothing plays until Play or Hear is pressed. Compressed `.mxl`
 files must be exported as uncompressed MusicXML first.
 
 Playback follows the written measures in order and explicit tempo values. It is
@@ -195,15 +195,24 @@ disposes its player, transport listeners, and playhead, including pending audio 
 
 ### Browser corrections
 
-Open a file, turn on **Edit notes**, then tap a note (or focus it and press
-Enter). The correction dialog selects an individual chord tone and edits its
-written letter, accidental, and octave. Pitch changes follow the complete
-linked tie. Editing resets playback transposition to the written key.
+Open a file, turn on **Edit notes**, then tap or focus a note. Up/Down moves its
+written pitch by one scale step in the active key; Alt+Up/Down moves a semitone,
+and Shift+Up/Down moves an octave. Left/Right selects another group. The selected
+chord tone stays highlighted and focused after re-rendering. Hear explicitly
+auditions that written pitch with a synthesized tone, without autoplay.
+
+Enter or **Pitch / rhythm** opens the advanced form. The complete original and
+proposed pitch appear together, and switching chord members preserves drafts.
+Unapplied drafts require an explicit discard. Pitch changes follow the complete
+linked tie. Editing resets playback transposition to the written key. Accidental
+display defaults to automatic key/measure context while preserving the sounding
+`<pitch><alter>` value; an explicit courtesy symbol can be requested separately.
 
 The rhythm disclosure changes note value and zero to two dots for the whole
 chord. Later notes shift within that voice, with trailing rests adjusted to
 keep its span and other voices unchanged. Lengthening without enough trailing
-rest is rejected. Tied, grace, tuplet, mixed-staff, changing-division, and
+rest is rejected. The preview lists affected later groups, timing shifts, and
+rest padding. Tied, grace, tuplet, mixed-staff, changing-division, and
 unequal-duration chord rhythms remain read-only, as do annotated or hidden rests.
 This is a correction tool,
 not a full notation editor.
@@ -212,15 +221,23 @@ The XML document is the source of truth. `correction-model.js` clones it and
 changes only the affected notes and rhythm padding. Notation is matched by
 part, measure, staff, voice, onset, and pitch, never by SVG order. Ambiguous
 matches cannot be edited. `corrections.js` retains up to 20 undo steps within
-a 32 MiB history budget, warns before discarding unexported changes, and
-downloads a separate `-edited.musicxml` file through a browser-local Blob URL.
-It never writes score content or history to storage or a server.
+a 32 MiB history budget. Undo shortcuts work in both modes, except inside native
+form fields. A requested `-edited.musicxml` download does not clear the unsaved
+warning: users must confirm that the copy is saved. Where the File System Access
+API is available, **Options → Save directly** marks a revision saved only after
+the selected file writer closes successfully. Choose a separate filename to
+preserve the original. Neither save path uploads the score or stores history.
 
 `page.js` reloads corrected XML through `replaceLocalXML`, stops the old player
 before reloading, and rolls back if rendering fails. Practice speed and sound
 survive the correction, but playback stays paused. Closing or replacing a
 file clears history, selection, form contents, and pending correction loads.
-The four hosted sheets do not load correction controls or scripts.
+Hosted sheets do not load correction controls or scripts. Their **Edit a local
+copy** link passes only an allowlisted public score ID to the local reader.
+`_data/music/sheet_scores.yml` supplies known same-origin sources and instruments;
+arbitrary URLs and unknown IDs are never fetched. Public files and credits are
+available before the notation. Instrument diagrams and developer controls live
+in explicit disclosures rather than floating over the score.
 
 At desktop and mobile widths:
 
@@ -228,6 +245,7 @@ At desktop and mobile widths:
 node _scripts/sheet-correction-test.js
 agent-browser eval --stdin < _scripts/sheet-file-browser-check.js
 agent-browser eval --stdin < _scripts/sheet-correction-browser-check.js
+agent-browser eval --stdin < _scripts/sheet-correction-ux-browser-check.js
 # After a trusted Play click has unlocked audio:
 agent-browser eval --stdin < _scripts/sheet-file-playback-check.js
 agent-browser eval --stdin < _scripts/sheet-correction-audio-check.js
