@@ -1,0 +1,54 @@
+{% assign variants = site.data.music.hidden_truth.variants %}
+{% assign variant = variants | where: 'id', page.hidden_truth_variant | first %}
+
+<nav class="sheet-variant-picker" aria-label="Hidden Truth versions">
+  <ul class="sheet-variant-list">
+    {% for choice in variants %}
+      {% assign choice_url = '/music/sheet/' | append: choice.slug | append: '/' %}
+      <li>
+        <a
+          href="{{ choice_url | relative_url }}"
+          {% if choice.id == variant.id %}
+            aria-current="page"
+          {% endif %}
+        >
+          <span class="sheet-variant-name">{{ choice.label | escape }}</span>
+          <span class="sheet-variant-summary">{{ choice.summary | escape }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</nav>
+
+<h2 class="sheet-variant-heading">{{ variant.label | escape }}</h2>
+<p>
+  <a href="{{ '/assets/music/sheet-music/hidden-truth/comparison.html' | relative_url }}">Listen to the A/B/C registration audition</a>. This
+  synthesized comparison approximates the reed combinations described below.
+</p>
+<details class="sheet-variant-details">
+  <summary>Arrangement details and playback limits</summary>
+  <ul>
+    {% for detail in variant.details %}
+      <li>{{ detail | escape }}</li>
+    {% endfor %}
+  </ul>
+  <p>These are arrangement studies, not performer-verified final editions.</p>
+  <ul>
+    {% for limitation in site.data.music.hidden_truth.limitations %}
+      <li>{{ limitation | escape }}</li>
+    {% endfor %}
+  </ul>
+</details>
+
+{%
+  include sheet-music.liquid
+  asset_dir="hidden-truth"
+  slug=variant.slug
+  source_ext="musicxml"
+  playback=true
+  playback_instrument=variant.instrument
+  key_mode="minor"
+  score_heading=false
+  midi=variant.midi
+  notes=variant.summary
+%}

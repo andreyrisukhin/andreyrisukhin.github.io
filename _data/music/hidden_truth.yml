@@ -1,0 +1,52 @@
+variants:
+  - id: original
+    slug: hidden-truth
+    label: Original
+    instrument: acoustic_grand_piano
+    summary: Original piano transcription before the bayan reductions.
+    details:
+      - Pitches, durations, ties, rests, and all 61 measures remain as transcribed.
+      - No left-hand octave reduction, preset-chord accompaniment, or right-hand registration rewrite.
+      - This is a video transcription draft, not a performer-verified edition.
+  - id: faithful
+    slug: hidden-truth-faithful
+    label: "A: Faithful"
+    instrument: accordion
+    midi: /assets/music/sheet-music/hidden-truth/hidden-truth-faithful.mid
+    summary: Keep the right hand; reduce left-hand octave duplicates to one root-button note per attack.
+    details:
+      - Right-hand pitches, durations, and ties stay unchanged from the cleaned-rests source.
+      - The D–A–D left-hand chord in measures 3–4 becomes D, omitting the fifth.
+      - Left-hand pitches use representative octave 2. Arpeggios keep their pitch-class order, not their original multi-octave contour.
+      - Use a clean middle right-hand reed and light bass registration.
+  - id: lean
+    slug: hidden-truth-lean
+    label: "B: Lean"
+    instrument: accordion
+    midi: /assets/music/sheet-music/hidden-truth/hidden-truth-lean.mid
+    summary: A lighter version of Faithful, keeping the upper note of simultaneous right-hand octaves and thinning repeated bass attacks.
+    details:
+      - Reduce 198 simultaneous right-hand octave pairs to their upper note. Alternating octaves in the opening and return stay intact.
+      - Turn 26 immediate same-root octave-repeat attacks in measures 17–43 into rests.
+      - Give bass attacks in measures 45–52 a staccato release.
+      - Use a clean middle right-hand reed without octave coupling; retain Faithful’s left-hand root-button reduction.
+  - id: full
+    slug: hidden-truth-full
+    label: "C: Full"
+    instrument: accordion
+    midi: /assets/music/sheet-music/hidden-truth/hidden-truth-full.mid
+    summary: Use middle-plus-high octave registration and a deliberate preset-chord accompaniment in selected measures.
+    details:
+      - Write the right hand an octave lower in measures 20–52 for the middle-plus-high register. Singleton pitches move down too, preserving their original pitch in the upper reed.
+      - Add preset-chord accompaniment in 20 measures (17, 21, 22, 24–30, 32–38, and 41–43), using B♭ minor, G♭ major, F7, F major, D♭ major, F minor, and E♭ major.
+      - The pattern is eighth-note root, eighth rest, eighth-note root, half-note preset chord, eighth rest. The chord begins on beat 2-and.
+      - Stacked, labelled left-hand chord tones represent one preset button. This is a harmonic reduction, not a literal transcription; some added and seventh colours are omitted.
+      - Keep Lean’s reduced repeats elsewhere. No forced chord guess for the ambiguous G-root or suspended F passages, and no added chords in measures 45–52.
+      - An optional detuned middle reed may join in measures 45–52 if the instrument allows it. The audition and MIDI use +10 cents as an example, not measured tuning.
+      - Return to clean middle at measure 53.
+limitations:
+  - All bayan variants retain 61 measures, 4/4, the source key signature, and quarter-note tempo changes of 105, 102, and 103.
+  - No free-bass converter is assumed. Root-button and preset-chord voicings depend on the instrument.
+  - The score reader plays written pitches with a general accordion sound; it does not interpret reed-registration instructions. Use the A/B/C audition for approximate coupled-reed playback.
+  - The audition uses fixed hand balance and does not reproduce every dynamic, bellows direction, or final diminuendo. MIDI timbre depends on the player.
+  - Detailed fingering, bellows shaping, and playability still need a real play-through.

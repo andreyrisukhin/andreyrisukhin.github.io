@@ -1,3 +1,57 @@
+.sheet-variant-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1.5rem;
+  padding: 0;
+  margin: 1rem 0 1.5rem;
+  list-style: none;
+
+  a {
+    display: block;
+    min-height: 44px;
+    height: 100%;
+    padding: 0.75rem 0;
+    border-bottom: 2px solid var(--music-rule);
+    color: var(--music-ink);
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible,
+    &[aria-current="page"] {
+      border-color: var(--music-accent);
+    }
+  }
+
+  .sheet-variant-name {
+    display: block;
+    color: var(--music-ink);
+    font-weight: 700;
+  }
+
+  .sheet-variant-summary {
+    display: block;
+    color: var(--music-muted);
+    margin-top: 0.25rem;
+  }
+
+  @media (max-width: 575px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sheet-variant-details {
+  margin-bottom: 1.5rem;
+
+  summary {
+    padding-block: 0.75rem;
+    cursor: pointer;
+  }
+
+  li + li {
+    margin-top: 0.5rem;
+  }
+}
+
 .sheet-music-page--flexoki {
   --sheet-paper: #fffcf0;
   --sheet-bg: #f2f0e5;

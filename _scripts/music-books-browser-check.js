@@ -11,13 +11,17 @@
   const originalURL = location.href;
   const originalStyle = library.dataset.style;
   const originalSizing = library.dataset.sizing;
-  assert(books.length === 5, "All five scores appear");
+  assert(books.length === 6, "All six books appear");
   assert(
     [...library.querySelectorAll(".score-stack:not(.score-stack--blank)")].map((stack) => stack.getAttribute("aria-label")).join(",") ===
-      "Games,Pop,Autumn",
-    "Scores are grouped into three stacks"
+      "Games,Pop,Autumn,Studies",
+    "Scores are grouped into four stacks"
   );
-  assert(new Set(books.map((book) => book.pathname)).size === 5, "Every score appears once");
+  assert(new Set(books.map((book) => book.pathname)).size === 6, "Every book appears once");
+  assert(
+    books.some((book) => book.pathname === "/music/sheet/hidden-truth/"),
+    "Hidden Truth has one book for all four variants"
+  );
   assert(blankBook && blankBook.pathname === "/music/sheet/open/", "Blank book opens the local file reader");
   assert(blankBook.getAttribute("aria-label") === "Open your own MusicXML", "Blank book has an accessible name");
   assert(!blankBook.textContent.trim() && !blankBook.querySelector("svg"), "Blank book has no title or motif on its spine");

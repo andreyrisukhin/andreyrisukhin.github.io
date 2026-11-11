@@ -1,6 +1,11 @@
 <svg viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
   <g class="score-motif__pixel">
   {% case include.motif %}
+    {% when 'accordion' %}
+      <path d="M1 7h6v19H1zm16 0h6v19h-6z" fill="#e9d5a4"/>
+      <path d="M7 10h10v13H7z" fill="#477d86"/>
+      <path d="M8 10h2v13H8zm4 0h2v13h-2zm4 0h1v13h-1z" fill="#173f4c"/>
+      <path d="M3 10h2v2H3zm0 5h2v2H3zm0 5h2v2H3zm16-9h2v2h-2zm0 5h2v2h-2zm0 5h2v2h-2z" fill="#173f4c"/>
     {% when 'glados' %}
       <path d="M10 0h4v8h4v4h3v13h-4v4H7v-4H3V14h4V8h3z" fill="#282b2b"/>
       <path d="M7 14h10v3h3v7h-4v3H8v-3H5v-7h2z" fill="#f8f4df"/>
@@ -27,6 +32,9 @@
   </g>
   <g class="score-motif__cloth" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" shape-rendering="geometricPrecision">
     {% case include.motif %}
+      {% when 'accordion' %}
+        <path d="M2 8h5v18H2zm15 0h5v18h-5zM7 11h10v12H7zm2 0v12m3-12v12m3-12v12"/>
+        <path d="M4 12v1m0 4v1m0 4v1m15-10v1m0 4v1m0 4v1"/>
       {% when 'glados' %}
         <path d="M12 1v7c0 3 5 3 5 7M7 13c-4 3-3 11 2 13l6 1c5-2 6-8 3-12-2-3-8-4-11-2Z"/>
         <path d="m6 20 3-4 8 2 2 5-9 1Z"/>

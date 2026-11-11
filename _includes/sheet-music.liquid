@@ -66,6 +66,9 @@
           <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
         {% endunless %}
         <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
+        {% if include.midi %}
+          <a class="music-share-btn" href="{{ include.midi | relative_url }}" download>Download MIDI</a>
+        {% endif %}
         <p>Notation rendered with <a href="https://opensheetmusicdisplay.org/">OpenSheetMusicDisplay</a>.</p>
         <p>Local corrections do not change this public score.</p>
       </details>
