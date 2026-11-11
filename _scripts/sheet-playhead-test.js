@@ -2,7 +2,7 @@
 const assert = require("node:assert/strict");
 const path = require("node:path");
 
-const { collectSteps, retime, locate } = require(path.join(__dirname, "../assets/js/sheet-music/playhead.js"));
+const { collectSteps, retime, locate, formatTime, measureLabels } = require(path.join(__dirname, "../assets/js/sheet-music/playhead.js"));
 
 let failures = 0;
 function check(name, fn) {
@@ -28,6 +28,34 @@ function fixture() {
   ];
   return retime(steps, [0, 2], 4);
 }
+
+check("Timestamps show tenths, carry into minutes, and handle long scores", () => {
+  assert.equal(formatTime(0), "0:00.0");
+  assert.equal(formatTime(2.2857142857), "0:02.3");
+  assert.equal(formatTime(59.96), "1:00.0");
+  assert.equal(formatTime(3661.24), "61:01.2");
+  assert.equal(formatTime(-1), "0:00.0");
+  assert.equal(formatTime(NaN), "0:00.0");
+});
+
+check("Each drawn measure gets one timestamp at its true start, not its first note", () => {
+  const steps = fixture();
+  steps[0].frac = 0.25;
+  const labels = measureLabels(steps, [0, 2]);
+  assert.deepEqual(labels, [
+    { measure: 0, seconds: 0, x: 300, y: 92 },
+    { measure: 1, seconds: 2, x: 300, y: 292 },
+  ]);
+});
+
+check("Timestamp labels follow replacement timing and skip unavailable measures", () => {
+  assert.deepEqual(
+    measureLabels(fixture(), [1, 3.5]).map((label) => label.seconds),
+    [1, 3.5]
+  );
+  assert.equal(measureLabels(fixture(), [0]).length, 1);
+  assert.deepEqual(measureLabels([], [0]), []);
+});
 
 check("retime maps measure fractions to seconds", () => {
   const steps = fixture();

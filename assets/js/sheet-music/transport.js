@@ -70,7 +70,10 @@ window.SheetTransport = (function () {
         <span class="sheet-transport__ticks" data-pb-ticks></span>
         <span class="sheet-transport__progress" data-pb-progress></span>
       </div>
-      <span class="sheet-transport__pos" data-pb-pos aria-hidden="true"></span>
+      <span class="sheet-transport__pos">
+        <span data-pb-pos aria-hidden="true"></span>
+        <span class="sheet-transport__time" data-pb-time role="timer" aria-label="Score time, minutes and seconds"></span>
+      </span>
       <button type="button" class="sheet-transport__btn sheet-transport__more" data-pb-more aria-expanded="false" aria-controls="sheet-transport-extras" aria-label="Key and sound" title="Key and sound">${
         ICONS.more
       }</button>
@@ -127,7 +130,7 @@ window.SheetTransport = (function () {
     ["start", "end", "measure"].forEach((name) => {
       $(name).max = player.snapshot().count;
     });
-    let lastMap, lastMeasure, lastKey, lastState;
+    let lastMap, lastMeasure, lastKey, lastState, lastTime;
     const unsubscribe = player.subscribe((state, message) => {
       if (lastState !== state.state) {
         const loading = state.state === "loading";
@@ -162,8 +165,13 @@ window.SheetTransport = (function () {
         band.style.width = ((end - start) / state.duration) * 100 + "%";
         find("[data-pb-pos]").textContent = `m. ${state.measure} of ${state.count}`;
         track.setAttribute("aria-valuenow", String(state.measure));
-        track.setAttribute("aria-valuetext", `Measure ${state.measure} of ${state.count}`);
+        track.setAttribute("aria-valuetext", `Measure ${state.measure} of ${state.count}, starts at ${window.SheetPlayhead.formatTime(start)}`);
         lastMeasure = state.measure;
+      }
+      const time = window.SheetPlayhead.formatTime(state.time) + " / " + window.SheetPlayhead.formatTime(state.duration);
+      if (time !== lastTime) {
+        find("[data-pb-time]").textContent = time;
+        lastTime = time;
       }
       progress.style.transform = `scaleX(${Math.min(1, Math.max(0, state.time / state.duration))})`;
       if (mode) mode.value = state.mode;

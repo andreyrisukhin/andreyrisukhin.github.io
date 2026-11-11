@@ -21,6 +21,7 @@
       player?.dispose();
       playhead?.hide();
       playhead?.el?.remove();
+      playhead?.timeLabels?.remove();
       window.SheetReader = null;
       bridge.stradellaReading = null;
     };
