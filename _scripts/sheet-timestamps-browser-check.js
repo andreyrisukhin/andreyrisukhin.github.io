@@ -15,6 +15,8 @@
       .map((label) => label.textContent)
       .join(",");
   const clock = () => document.querySelector("[data-pb-time]")?.textContent;
+  const toggle = document.querySelector("[data-practice-timestamps]");
+  const timestampsHidden = () => getComputedStyle(document.querySelector(".sheet-measure-times")).display === "none";
   const until = async (predicate) => {
     for (let attempt = 0; attempt < 160; attempt++) {
       if (predicate()) return;
@@ -44,6 +46,7 @@
   close.click();
   await choose(fixture);
   try {
+    assert(toggle?.checked && !timestampsHidden(), "Score timestamps are enabled by default");
     assert(times() === "0:00.0,0:02.0,0:06.0", "Measure timestamps integrate opening and later tempos");
     assert(clock() === "0:00.0 / 0:09.0", "Clock includes a mid-measure tempo change in total duration");
     assert(labels()[0].dataset.startSeconds === "0", "A leading rest does not delay the measure timestamp");
@@ -89,18 +92,26 @@
       "Measure timestamps remain available while editing hides playback"
     );
     document.querySelector("[data-correction-toggle]").click();
+    toggle.click();
+    assert(!toggle.checked && timestampsHidden(), "Checkbox hides timestamps on the score");
+    assert(clock() === "0:06.0 / 0:09.0", "Hiding score timestamps leaves the playback clock unchanged");
     const oldLeft = labels()[0].style.left;
     document.getElementById("osmd-zoom-in").click();
     assert(labels().length === 3 && labels()[0].style.left !== oldLeft, "Zoom rebuilds timestamp positions without duplicates");
     assert(times() === "0:00.0,0:02.0,0:06.0", "Zoom does not change score times");
+    assert(timestampsHidden(), "Zoom preserves hidden timestamps");
     SheetReader.player.setTranspose(1);
     assert(labels().length === 3 && times() === "0:00.0,0:02.0,0:06.0", "Transposition keeps one timestamp per measure");
+    assert(timestampsHidden(), "Transposition preserves hidden timestamps");
     const revised = bridge.xml.cloneNode(true);
     revised.querySelectorAll("part > measure")[1].querySelector("sound").setAttribute("tempo", "120");
     await bridge.replaceLocalXML(revised);
     assert(times() === "0:00.0,0:02.0,0:04.0", "Replacing the score recomputes timestamp values");
     assert(clock() === "0:04.0 / 0:07.0", "Replacement clock uses the revised tempo and preserved measure");
     assert(document.querySelectorAll(".sheet-measure-times").length === 1, "Replacement removes the previous timestamp layer");
+    assert(timestampsHidden() && !toggle.checked, "Score replacement preserves the timestamp choice");
+    toggle.click();
+    assert(!timestampsHidden() && times() === "0:00.0,0:02.0,0:04.0", "Checkbox restores current timestamps without reloading");
     close.click();
     assert(!labels().length && !document.querySelector("[data-pb-time]"), "Closing removes timestamps and clock");
     await choose(fixture);

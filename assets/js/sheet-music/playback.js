@@ -5,6 +5,13 @@
   if (!page || page.dataset.playback !== "true" || !bridge) return;
   const localFile = page.dataset.localFile === "true";
   const stradellaToggle = page.querySelector("[data-practice-stradella]");
+  const timestampsToggle = page.querySelector("[data-practice-timestamps]");
+  const updateTimestamps = () => {
+    page.querySelectorAll(".sheet-measure-times").forEach((layer) => {
+      layer.hidden = timestampsToggle ? !timestampsToggle.checked : false;
+    });
+  };
+  timestampsToggle?.addEventListener("change", updateTimestamps);
   // Opened files have no page settings: the reader chooses Stradella playback
   // for each new file, and the toggle or a correction keeps that choice.
   let stradellaChoice = null;
@@ -53,6 +60,7 @@
       const rebuild = () => {
         const state = player.snapshot();
         playhead.rebuild(state.starts, state.duration);
+        updateTimestamps();
         playhead.render(state.time);
       };
       bridge.container.addEventListener("sheet-render", rebuild, { signal: events.signal });
