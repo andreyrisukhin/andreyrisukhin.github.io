@@ -6,7 +6,7 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1794384959';
+const VERSION = '1794390192';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
@@ -24,6 +24,18 @@ const PRECACHE_URLS = [
   '/music/intervals/',
   '/music/songs/',
   '/music/sheet/open/',
+  '/music/sheet/hidden-truth/',
+  '/music/sheet/hidden-truth-faithful/',
+  '/music/sheet/hidden-truth-lean/',
+  '/music/sheet/hidden-truth-full/',
+  '/assets/music/sheet-music/hidden-truth/hidden-truth.musicxml',
+  '/assets/music/sheet-music/hidden-truth/hidden-truth-faithful.musicxml',
+  '/assets/music/sheet-music/hidden-truth/hidden-truth-lean.musicxml',
+  '/assets/music/sheet-music/hidden-truth/hidden-truth-full.musicxml',
+  '/assets/music/sheet-music/hidden-truth/hidden-truth-faithful.mid',
+  '/assets/music/sheet-music/hidden-truth/hidden-truth-lean.mid',
+  '/assets/music/sheet-music/hidden-truth/hidden-truth-full.mid',
+  '/assets/music/sheet-music/hidden-truth/comparison.html',
   '/music/sheet/into-the-unknown/',
   '/music/sheet/cogwork-dancers/',
   '/music/sheet/reclaiming-entropy/',
