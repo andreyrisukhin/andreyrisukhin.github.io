@@ -122,11 +122,38 @@
   >
     Tap a note to inspect it. Keyboard: Tab to the score, then use arrow keys and Enter.
   </p>
+  <div
+    class="sheet-study-controls"
+    {% if include.local_file or include.playback != true %}
+      hidden
+    {% endif %}
+  >
+    <label><input type="checkbox" data-study-chords> Chord analysis</label>
+    <label><input type="checkbox" data-study-octaves> Octave pairs</label>
+    <p class="practice-help">
+      Tap a measure’s study label for chord tones, bass and upper-staff notes. ? marks inferred harmony, not a verified chord.
+    </p>
+  </div>
   <div id="osmd-container" class="sheet-music-container" tabindex="0" role="region" aria-label="Sheet music, scroll sideways if needed"></div>
   {% unless include.local_file %}
     <p id="osmd-status" class="sheet-music-status" role="status">Loading score…</p>
   {% endunless %}
   {% include sheet-inspector.liquid %}
+  <dialog class="sheet-note-inspector sheet-study-dialog" data-study-dialog aria-labelledby="sheet-study-title">
+    <header class="sheet-inspector-heading">
+      <h2 id="sheet-study-title">Measure analysis</h2>
+      <button type="button" data-study-close autofocus>Close</button>
+    </header>
+    <p class="practice-help">
+      Harmony is estimated from beat-sized windows across both staves, with measure context for arpeggios. Notes in a window need not sound together.
+      Staff does not necessarily mean hand.
+    </p>
+    <div data-study-detail></div>
+    <p class="practice-help">
+      Octave pairs are two overlapping pitches 12 semitones apart on the same staff. 8va/8vb changes the displayed register; it does not add a note.
+      These controls never change playback.
+    </p>
+  </dialog>
 
   <noscript>
     <p>
@@ -166,6 +193,8 @@
 <script src="{{ '/assets/js/workbench/voicings.js' | relative_url }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/practice-inspector.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script defer src="{{ '/assets/js/sheet-music/stradella-overlay.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script src="{{ '/assets/js/sheet-music/study-model.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script defer src="{{ '/assets/js/sheet-music/study.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {% unless include.local_file %}
   <script defer src="{{ '/assets/js/sheet-music/dev-annotator.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {% endunless %}

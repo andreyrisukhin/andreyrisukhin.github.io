@@ -8,7 +8,7 @@ const assets = path.join(root, "assets/music/sheet-music/hidden-truth");
 const sha = (text) => crypto.createHash("sha256").update(text).digest("hex");
 const omittedName = new RegExp(String.fromCharCode(101, 112, 105, 99, 97, 116), "i");
 // Variant hashes come from the supplied bundle's validation.json.
-// The original part hash was checked against the untouched local transcription.
+// The original part hash identifies the reviewed, playback-equivalent engraving cleanup.
 const expected = [
   ["hidden-truth", 905, null],
   ["hidden-truth-faithful", 817, "209f30ed0e8b26ec6d7ab2408bc5950f348babdee621db228db518cc56c35e1c"],
@@ -23,10 +23,18 @@ for (const [slug, pitches, hash] of expected) {
   else {
     assert.equal(
       sha(xml.match(/<part(?:\s[^>]*)?>[\s\S]*<\/part>/)[0]),
-      "51cf550025a4ae7b5d6d6a3adfb0db93785b4cdc8ebb6eb3ec4a441567869e4c",
-      "Original notes, rests, durations, and directions remain unchanged"
+      "fffb7a352b430c651065b43fb7a9a8244f6f8f2bbc4e2fbc8aebe26ba8b6e114",
+      "Original uses the reviewed, playback-preserving cleaned edition"
     );
     assert.ok(xml.includes("<work-title>Hidden Truth (original transcription draft)</work-title>"));
+    const hidden = xml.match(/<note\b[^>]*print-object="no"[\s\S]*?<\/note>/g) || [];
+    assert.equal(hidden.length, 59, "Only 59 redundant rests are hidden");
+    assert.ok(
+      hidden.every((note) => note.includes("<rest") && !note.includes("<pitch>")),
+      "No pitched notes are hidden"
+    );
+    assert.equal((xml.match(/<beam\b/g) || []).length, 433, "Reviewed beat-level beaming remains");
+    assert.equal((xml.match(/<octave-shift\b/g) || []).length, 12, "Six register-shift ranges retain their starts and stops");
   }
   const page = fs.readFileSync(path.join(root, "_pages/music-sheet-" + slug + ".md"), "utf8");
   assert.ok(page.includes("permalink: /music/sheet/" + slug + "/"), slug + " has a direct route");

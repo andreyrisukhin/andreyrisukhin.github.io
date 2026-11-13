@@ -5,7 +5,7 @@ variants:
     instrument: acoustic_grand_piano
     summary: Original piano transcription before the bayan reductions.
     details:
-      - Pitches, durations, ties, rests, and all 61 measures remain as transcribed.
+      - All pitches, durations, ties, and 61 measures remain as transcribed. The cleaned edition adds beat-grouped beams and hides 59 redundant secondary-voice rests; genuine rests remain visible.
       - No left-hand octave reduction, preset-chord accompaniment, or right-hand registration rewrite.
       - This is a video transcription draft, not a performer-verified edition.
   - id: faithful

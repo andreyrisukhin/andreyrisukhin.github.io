@@ -101,6 +101,8 @@ const PRECACHE_URLS = [
   '/assets/js/sheet-music/osmd-bridge.js',
   '/assets/js/sheet-music/chord-inspector.js',
   '/assets/js/sheet-music/stradella-overlay.js',
+  '/assets/js/sheet-music/study-model.js',
+  '/assets/js/sheet-music/study.js',
   '/assets/js/sheet-music/practice-timeline.js',
   '/assets/js/sheet-music/practice-player.js',
   '/assets/js/sheet-music/score.js',

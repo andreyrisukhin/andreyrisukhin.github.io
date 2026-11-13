@@ -366,7 +366,7 @@
     focusBtn.addEventListener("click", () => setFocusMode(!sheetPage.classList.contains("sheet-music-page--focus")));
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && sheetPage.classList.contains("sheet-music-page--focus")) {
-        if (document.querySelector("#sheet-inspector[open], #sheet-correction-dialog[open]")) return;
+        if (document.querySelector("#sheet-inspector[open], #sheet-correction-dialog[open], [data-study-dialog][open]")) return;
         setFocusMode(false);
       }
     });
