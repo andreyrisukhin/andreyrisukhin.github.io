@@ -6,7 +6,7 @@
  * "new version available" prompt surfaced by pwa.liquid.
  */
 
-const VERSION = '1794390192';
+const VERSION = '1794559564';
 const CACHE_STATIC = 'music-pwa-static-' + VERSION;
 const CACHE_RUNTIME = 'music-pwa-runtime-' + VERSION;
 
@@ -97,6 +97,8 @@ const PRECACHE_URLS = [
   '/assets/js/sheet-music/osmd-bridge.js',
   '/assets/js/sheet-music/chord-inspector.js',
   '/assets/js/sheet-music/stradella-overlay.js',
+  '/assets/js/sheet-music/study-model.js',
+  '/assets/js/sheet-music/study.js',
   '/assets/js/sheet-music/practice-timeline.js',
   '/assets/js/sheet-music/practice-player.js',
   '/assets/js/sheet-music/score.js',
