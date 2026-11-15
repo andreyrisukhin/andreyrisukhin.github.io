@@ -159,8 +159,18 @@
     min-width: 0;
   }
   legend {
-    font-size: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
     margin-bottom: 8px;
+  }
+  .practice-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+  .practice-speed select {
+    max-width: 12rem;
   }
   label {
     display: flex;
@@ -199,8 +209,11 @@
   .practice-jump label {
     margin: 0;
   }
-  .practice-settings-grid > [data-pb-click-seek] {
-    justify-self: start;
+  @media (pointer: coarse) {
+    // Taps on a phone score already inspect notes; jumping would fight them.
+    .practice-check:has([data-pb-click-seek]) {
+      display: none;
+    }
   }
   #osmd-container .vf-stavenote {
     cursor: pointer;
@@ -456,24 +469,32 @@
       opacity: 0.55;
     }
   }
+  // One toolbar row (view buttons, study toggles), then the practice disclosure.
   .sheet-reader-secondary {
     display: flex;
     flex-wrap: wrap;
-    gap: 0 16px;
-    > details {
-      flex: 0 1 auto;
+    align-items: center;
+    gap: 8px 24px;
+    margin-top: 8px;
+    > details,
+    > .practice-help {
+      flex: 1 1 100%;
       min-width: 0;
-      margin-bottom: 0;
+      margin: 0;
     }
-    > details[open] {
-      flex-basis: 100%;
+    > .sheet-view-options .sheet-music-controls {
+      margin: 0;
+    }
+    &:not(:has(#osmd-stradella-toggle[aria-pressed="true"])) > .sheet-stradella-help {
+      display: none;
     }
   }
   .sheet-published-actions {
     display: flex;
     gap: 16px;
     flex-wrap: wrap;
-    align-items: center;
+    // Top-aligned so the link stays beside the summary when the disclosure opens.
+    align-items: flex-start;
     // A link to another page, so it reads as a link, not a third boxed control.
     > .music-share-btn,
     > .music-share-btn:not(:disabled):hover {
@@ -491,6 +512,14 @@
   .sheet-downloads {
     margin: 0;
     border: 0;
+    > p {
+      margin: 0 0 8px;
+    }
+  }
+  .sheet-download-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
   }
   .sheet-annotation-tools .sheet-dev-toggle {
     position: static;

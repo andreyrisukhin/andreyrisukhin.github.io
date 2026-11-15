@@ -43,7 +43,7 @@
     document.querySelector("[data-pb-key-reset]").click();
     assert(state().transpose === 0 && firstPitch() === pitch, "Reset restores the written pitches");
     const clickSeek = document.querySelector("[data-pb-click-seek]");
-    if (clickSeek.getAttribute("aria-pressed") !== "true") clickSeek.click();
+    if (!clickSeek.checked) clickSeek.click();
     const head = document.querySelector(".vf-notehead");
     const headRect = head.getBoundingClientRect();
     head.dispatchEvent(

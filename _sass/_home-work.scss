@@ -67,6 +67,8 @@
   margin-right: 0.45rem;
   color: var(--global-theme-color);
   vertical-align: -0.2em;
+  // Hover animations (assets/js/mark-easter-egg.js) briefly draw past the 32-unit box.
+  overflow: visible;
 }
 
 .dot-rule,

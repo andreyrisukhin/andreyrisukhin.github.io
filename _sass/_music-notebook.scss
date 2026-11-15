@@ -901,7 +901,8 @@
     }
     .music-section-nav {
       flex-wrap: nowrap;
-      gap: 1rem;
+      justify-content: space-between;
+      gap: clamp(0.5rem, 2.5vw, 1rem);
       overflow-x: auto;
       a {
         flex-shrink: 0;

@@ -5,9 +5,6 @@
   {% endif %}
 >
   <summary>Practice settings</summary>
-  <p class="practice-help">
-    Timestamps show minutes:seconds at the original tempo, even during slower practice. A video's performance timing may differ from the score.
-  </p>
   {% if include.local_file %}
     <p class="practice-help">
       Sound samples download on first Play; your score stays in your browser. Playback follows measures in order and explicit tempos, not all
@@ -15,33 +12,43 @@
     </p>
   {% endif %}
   <div class="practice-settings-grid">
-    <fieldset>
-      <legend>Repeat a passage</legend>
-      <div class="practice-loop-range">
-        <label>From measure <input data-practice-start type="number" min="1" value="1" step="1" disabled></label>
-        <label>Through measure <input data-practice-end type="number" min="1" value="4" step="1" disabled></label>
-      </div>
-      <label class="practice-check"><input data-practice-loop type="checkbox" disabled> Loop these measures</label>
-      <p class="practice-help">The end measure is included. Seeking outside the passage turns the loop off.</p>
-    </fieldset>
-    <label class="practice-speed"
-      >Speed
-      <select data-practice-rate disabled>
-        <option value="0.25">25%</option>
-        <option value="0.5">50%</option>
-        <option value="0.75">75%</option>
-        <option value="1" selected>100%</option>
-        <option value="1.25">125%</option>
-        <option value="1.5">150%</option>
-      </select>
-      <span class="practice-help">Speed preserves pitch and follows the written tempo changes.</span>
-    </label>
-    <form data-practice-jump class="practice-jump">
-      <label>Go to measure <input data-practice-measure type="number" min="1" step="1" value="1" required disabled></label>
-      <button type="submit" disabled>Go</button>
-    </form>
-    <label class="practice-check"><input data-practice-follow type="checkbox" checked> Follow playback in the score</label>
-    <label class="practice-check"><input data-practice-timestamps type="checkbox" checked> Show timestamps on score</label>
+    <div class="practice-column">
+      <fieldset>
+        <legend>Repeat a passage</legend>
+        <div class="practice-loop-range">
+          <label>From measure <input data-practice-start type="number" min="1" value="1" step="1" disabled></label>
+          <label>Through measure <input data-practice-end type="number" min="1" value="4" step="1" disabled></label>
+        </div>
+        <label class="practice-check"><input data-practice-loop type="checkbox" disabled> Loop these measures</label>
+        <p class="practice-help">The end measure is included. Seeking outside the passage turns the loop off.</p>
+      </fieldset>
+      <form data-practice-jump class="practice-jump">
+        <label>Go to measure <input data-practice-measure type="number" min="1" step="1" value="1" required disabled></label>
+        <button type="submit" disabled>Go</button>
+      </form>
+    </div>
+    <div class="practice-column">
+      <label class="practice-speed"
+        >Speed
+        <select data-practice-rate disabled>
+          <option value="0.25">25%</option>
+          <option value="0.5">50%</option>
+          <option value="0.75">75%</option>
+          <option value="1" selected>100%</option>
+          <option value="1.25">125%</option>
+          <option value="1.5">150%</option>
+        </select>
+        <span class="practice-help">Speed preserves pitch and follows the written tempo changes.</span>
+      </label>
+      <fieldset class="practice-reading" data-practice-reading>
+        <legend>Reading</legend>
+        <label class="practice-check"><input data-practice-follow type="checkbox" checked> Follow playback in the score</label>
+        <label class="practice-check"><input data-practice-timestamps type="checkbox" checked> Show timestamps on score</label>
+        <p class="practice-help">
+          Timestamps show minutes:seconds at the original tempo, even during slower practice. A video's performance timing may differ from the score.
+        </p>
+      </fieldset>
+    </div>
     {% if include.local_file %}
       <fieldset>
         <legend>Accordion left hand</legend>

@@ -66,8 +66,10 @@
     }
   }
 
-  // Readers never see the toggle; ?dev=1 turns dev mode on and shows it.
+  // Production builds hide these tools from readers; ?dev=1 shows them.
   const isDev = readDevMode();
+  const devTools = document.querySelector(".sheet-annotation-tools");
+  if (devTools && isDev) devTools.hidden = false;
   if (!isDev) return;
   renderDevToggle(isDev);
 
