@@ -39,14 +39,34 @@
     return el;
   }
 
-  function placeOnEllipse(el, rx, ry, tiltDeg, a) {
-    const t = rad(tiltDeg);
+  const ATOM_SHELLS = [
+    { rx: 12, ry: 4.2, tilt: -35, period: 1100 },
+    { rx: 16.5, ry: 6, tilt: 40, period: 1700 },
+  ];
+  // [shell, starting angle]: two electrons per shell, on opposite sides.
+  const ATOM_ELECTRONS = [
+    [0, 0],
+    [0, Math.PI],
+    [1, 0.5],
+    [1, 0.5 + Math.PI],
+  ];
+  const ATOM_TRAIL_SEGMENTS = 8;
+
+  function ellipsePoint({ rx, ry, tilt }, a) {
+    const t = rad(tilt);
     const x = rx * Math.cos(a);
     const y = ry * Math.sin(a);
-    el.setAttribute("cx", (C + x * Math.cos(t) - y * Math.sin(t)).toFixed(2));
-    el.setAttribute("cy", (C + x * Math.sin(t) + y * Math.cos(t)).toFixed(2));
+    return { x: C + x * Math.cos(t) - y * Math.sin(t), y: C + x * Math.sin(t) + y * Math.cos(t) };
   }
 
+  // Orrery rings: angles in degrees around the centre. Dark (filled) dots
+  // form the inner ring, light (open) dots the outer ring.
+  const ORRERY = {
+    inner: { 0: -120, 4: 0, 5: 120 },
+    outer: { 1: -60, 6: 60, 2: 180 },
+    innerRadius: 6.8,
+    outerRadius: 13.5,
+  };
   // Hex Life on the seven cells: ring cells see the centre and their two ring neighbours.
   const NEIGHBOURS = REST.map((_, i) => {
     if (i === CENTER) return RING.slice();
@@ -84,41 +104,52 @@
   ];
 
   const VARIANTS = {
-    // Be-7: four protons (filled) and three neutrons (open) close into a
-    // nucleus; 1s² and 2s² electrons circle on tilted shells.
+    // Be-7: the mark itself is the nucleus (four filled protons, three open
+    // neutrons) and stays put. Its four electrons (1s², 2s²) fade in, orbit
+    // on tilted shells trailing fading arcs, then fade out.
     atom: {
       setup(g) {
-        const shell = (rx, ry, tilt) =>
-          add(g, "ellipse", {
-            cx: C,
-            cy: C,
-            rx,
-            ry,
-            transform: `rotate(${tilt} ${C} ${C})`,
-            fill: "none",
-            stroke: "currentColor",
-            "stroke-width": 0.9,
-            opacity: 0.45,
+        const electrons = ATOM_ELECTRONS.map(() => {
+          const trail = Array.from({ length: ATOM_TRAIL_SEGMENTS }, () =>
+            add(g, "polyline", { fill: "none", stroke: "currentColor", "stroke-linecap": "round" })
+          );
+          return { trail };
+        });
+        electrons.forEach((e) => {
+          e.dot = add(g, "circle", {
+            r: 1.6,
+            fill: "currentColor",
+            "stroke-width": 0.8,
+            style: "stroke: var(--global-bg-color, #fbf8f3)",
           });
-        shell(9.5, 3.8, -35);
-        shell(14.5, 5.4, 40);
-        return { e: [0, 1, 2, 3].map(() => add(g, "circle", { r: 1.9, fill: "currentColor" })) };
+        });
+        return { electrons };
       },
-      frame(t, { e }) {
-        const a1 = (t / 900) * TAU;
-        const a2 = (t / 1500) * TAU;
-        placeOnEllipse(e[0], 9.5, 3.8, -35, a1);
-        placeOnEllipse(e[1], 9.5, 3.8, -35, a1 + Math.PI);
-        placeOnEllipse(e[2], 14.5, 5.4, 40, a2);
-        placeOnEllipse(e[3], 14.5, 5.4, 40, a2 + Math.PI);
-        const k = easeInOut(clamp(t / 380));
-        return at((d) => ({
-          x: lerp(d.x, C + (d.x - C) * 0.28, k),
-          y: lerp(d.y, C + (d.y - C) * 0.28, k),
-          r: lerp(3.6, 1.9, k),
-          sw: lerp(1.7, 1, k),
-          f: lerp(d.f, d.f ? 1 : 0.35, k),
-        }));
+      frame(t, { electrons }) {
+        const T = t % 3600;
+        const alpha = easeInOut(clamp(T / 400)) * (1 - easeInOut(clamp((T - 3000) / 400)));
+        ATOM_ELECTRONS.forEach(([shell, phase], n) => {
+          const s = ATOM_SHELLS[shell];
+          const travelled = (T / s.period) * TAU;
+          const a = phase + travelled;
+          const len = Math.min(1.9, travelled);
+          const e = electrons[n];
+          const p = ellipsePoint(s, a);
+          e.dot.setAttribute("cx", p.x.toFixed(2));
+          e.dot.setAttribute("cy", p.y.toFixed(2));
+          e.dot.setAttribute("opacity", alpha.toFixed(2));
+          e.trail.forEach((seg, k) => {
+            const fade = 1 - k / ATOM_TRAIL_SEGMENTS;
+            const pts = [0, 0.5, 1].map((u) => {
+              const q = ellipsePoint(s, a - (len * (k + u)) / ATOM_TRAIL_SEGMENTS);
+              return `${q.x.toFixed(2)},${q.y.toFixed(2)}`;
+            });
+            seg.setAttribute("points", pts.join(" "));
+            seg.setAttribute("opacity", (alpha * 0.7 * fade).toFixed(2));
+            seg.setAttribute("stroke-width", (1.1 * (0.4 + 0.6 * fade)).toFixed(2));
+          });
+        });
+        return at();
       },
     },
 
@@ -185,8 +216,9 @@
       },
     },
 
-    // Orrery: filled dots move out to a ring, open dots gather inside, the
-    // rings counter-rotate (outer once, inner twice), and everything returns.
+    // Orrery: the dark core holds the centre while its three outer dots pull
+    // in close; the three light dots swing out to a wide ring. The rings
+    // counter-rotate (outer once, inner twice) and everything returns.
     orrery: {
       frame(t) {
         const OUT = 420;
@@ -205,13 +237,13 @@
         } else if (T < OUT + SPIN + BACK) {
           k = 1 - easeInOut((T - OUT - SPIN) / BACK);
         }
-        const OUTER = { 3: -90, 4: 0, 5: 90, 0: 180 };
-        const INNER = { 1: -60, 6: 60, 2: 180 };
         return at((d, i) => {
-          const outer = i in OUTER;
-          const a = rad(outer ? OUTER[i] : INNER[i]) + (outer ? TAU : -2 * TAU) * spin;
-          const p = polar(a, outer ? 12.5 : 5.2);
-          return { x: lerp(d.x, p.x, k), y: lerp(d.y, p.y, k), r: lerp(3.6, outer ? 3.1 : 2.6, k) };
+          if (i === CENTER) return { r: lerp(3.6, 2.6, k) };
+          const outer = i in ORRERY.outer;
+          const base = rad(outer ? ORRERY.outer[i] : ORRERY.inner[i]);
+          const a = base + (outer ? TAU : -2 * TAU) * spin;
+          const p = polar(a, outer ? ORRERY.outerRadius : ORRERY.innerRadius);
+          return { x: lerp(d.x, p.x, k), y: lerp(d.y, p.y, k), r: lerp(3.6, outer ? 2.4 : 2.6, k) };
         });
       },
     },
