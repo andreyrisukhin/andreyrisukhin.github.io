@@ -282,6 +282,54 @@
       },
     },
 
+    // Beekeeping: a bee waggle-dances across the comb (a wiggling straight
+    // run, then a loop back on alternating sides) while the open cells fill
+    // with honey one by one, then the frame is harvested.
+    bees: {
+      setup(g) {
+        const bee = add(g, "circle", {
+          r: 1.7,
+          fill: "currentColor",
+          "stroke-width": 0.9,
+          style: "stroke: var(--global-bg-color, #fbf8f3)",
+        });
+        return { bee };
+      },
+      frame(t, { bee }) {
+        const RUN = 700;
+        const RET = 600;
+        const a = rad(-60);
+        const dx = Math.cos(a);
+        const dy = Math.sin(a);
+        const u = t % (2 * (RUN + RET));
+        const side = u < RUN + RET ? 1 : -1;
+        const v = u % (RUN + RET);
+        let x;
+        let y;
+        if (v < RUN) {
+          const s = v / RUN;
+          const along = -5 + 10 * s;
+          const wiggle = 1.3 * Math.sin(s * TAU * 5);
+          x = C + dx * along - dy * wiggle;
+          y = C + dy * along + dx * wiggle;
+        } else {
+          const p = polar(a + side * Math.PI * easeInOut((v - RUN) / RET), 5);
+          x = p.x;
+          y = p.y;
+        }
+        bee.setAttribute("cx", x.toFixed(2));
+        bee.setAttribute("cy", y.toFixed(2));
+        const H = t % 5200;
+        const OPEN = [1, 6, 2];
+        return at((d, i) => {
+          const j = OPEN.indexOf(i);
+          if (j < 0) return { r: 3.3 };
+          let f = easeInOut(clamp((H - 300 - j * 900) / 1400));
+          if (H > 4600) f *= 1 - easeInOut(clamp((H - 4600) / 400));
+          return { r: 3.3, f };
+        });
+      },
+    },
     // 404: the dots wander off and find their way back.
     lost: {
       frame(t) {
@@ -319,7 +367,7 @@
     ["/404.html$", "lost"],
   ];
   // Pages without a theme (posts, demos) get a stable pick from these.
-  const WANDERERS = ["orrery", "atom", "bayan", "hex", "dither", "lego", "embers", "life", "trail", "pages"];
+  const WANDERERS = ["orrery", "atom", "bayan", "hex", "dither", "lego", "embers", "life", "trail", "pages", "bees"];
 
   function pickVariant(path, forced) {
     if (forced && VARIANTS[forced]) return forced;
