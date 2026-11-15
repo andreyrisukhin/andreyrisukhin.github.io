@@ -29,44 +29,26 @@ layout: default
     {% if page.series %}{% include project-series.liquid mode="header" %}{% endif %}
     <h1 class="post-title">{{ page.title }}</h1>
     <p class="post-meta">
-      Created on {{ page.date | date: '%B %d, %Y' }}
-      {% if page.author %}by {{ page.author }}{% endif %}
-      {% if page.last_updated %}, last updated on {{ page.last_updated | date: '%B %d, %Y' }}{% endif %}
-      {% if page.meta %}• {{ page.meta }}{% endif %}
-    </p>
-    <p class="post-tags">
-      {% if url_beginning == '/blog/' %}
-        <a href="{{ year | prepend: '/blog/' | relative_url }}"> <i class="fa-solid fa-calendar fa-sm"></i> {{ year }} </a>
-      {% else %}
-        <i class="fa-solid fa-calendar fa-sm"></i> {{ year }}
-      {% endif %}
-      {% if tags != '' %}
-        &nbsp; &middot; &nbsp;
-        {% for tag in page.tags %}
-          {% if url_beginning == '/blog/' %}
-            <a href="{{ tag | slugify | prepend: '/blog/tag/' | relative_url }}"> <i class="fa-solid fa-hashtag fa-sm"></i> {{ tag }}</a>
-          {% else %}
-            <i class="fa-solid fa-hashtag fa-sm"></i> {{ tag }}
-          {% endif %}
-          {% unless forloop.last %}
-            &nbsp;
-          {% endunless %}
-        {% endfor %}
-      {% endif %}
-
-      {% if categories != '' %}
-        &nbsp; &middot; &nbsp;
-        {% for category in shown_categories %}
-          {% if url_beginning == '/blog/' %}
-            <a href="{{ category | slugify | prepend: '/blog/category/' | relative_url }}"> <i class="fa-solid fa-tag fa-sm"></i> {{ category -}}</a>
-          {% else %}
-            <i class="fa-solid fa-tag fa-sm"></i> {{ category }}
-          {% endif %}
-          {% unless forloop.last %}
-            &nbsp;
-          {% endunless %}
-        {% endfor %}
-      {% endif %}
+      {{- page.date | date: '%B %-d, %Y' -}}
+      {%- if page.last_updated %} · updated {{ page.last_updated | date: '%B %-d, %Y' }}{% endif -%}
+      {%- if page.author %} · {{ page.author }}{% endif -%}
+      {%- if page.meta %} · {{ page.meta }}{% endif -%}
+      {%- for tag in page.tags %}
+        ·
+        {% if url_beginning == '/blog/' -%}
+          <a href="{{ tag | slugify | prepend: '/blog/tag/' | relative_url }}">{{ tag }}</a>
+        {%- else -%}
+          {{ tag }}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- for category in shown_categories %}
+        ·
+        {% if url_beginning == '/blog/' -%}
+          <a href="{{ category | slugify | prepend: '/blog/category/' | relative_url }}">{{ category }}</a>
+        {%- else -%}
+          {{ category }}
+        {%- endif -%}
+      {%- endfor %}
     </p>
   </header>
 

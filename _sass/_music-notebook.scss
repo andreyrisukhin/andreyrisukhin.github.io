@@ -1,11 +1,11 @@
-/* Paper, ink, and lacquer. Scoped to music; the rest of the site keeps its theme. */
+/* Paper and ink, scoped to music. The accent is the site accent. */
 .music-notebook {
   --music-paper: #faf7f0;
   --music-surface: #fffcf7;
   --music-ink: #29251f;
   --music-muted: #72665c;
-  --music-accent: #8c343b;
-  --music-on-accent: #fffaf4;
+  --music-accent: var(--color-accent);
+  --music-on-accent: var(--color-on-accent);
   --music-rule: #d6cbbd;
   --global-bg-color: var(--music-paper);
   --global-card-bg-color: var(--music-surface);
@@ -925,8 +925,6 @@ html[data-theme="dark"] .music-notebook {
   --music-surface: #292521;
   --music-ink: #f2eade;
   --music-muted: #c0b2a2;
-  --music-accent: #c7a66a;
-  --music-on-accent: #211d16;
   --music-rule: #65594c;
 }
 

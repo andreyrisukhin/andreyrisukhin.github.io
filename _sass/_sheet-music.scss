@@ -7,8 +7,9 @@
   --sheet-faint: #b7b5ac;
   --sheet-border: #dad8ce;
   --sheet-border-soft: #e6e4d9;
-  --sheet-accent: #24837b;
-  --sheet-accent-soft: #ddf1e4;
+  --sheet-accent: var(--color-accent);
+  --sheet-accent-soft: color-mix(in srgb, var(--color-accent) 14%, var(--sheet-paper));
+  --sheet-on-accent: var(--color-on-accent);
   --sheet-warning: #af3029;
   --sheet-shadow: 0 1.25rem 3rem rgba(16, 15, 15, 0.12);
 
@@ -115,7 +116,7 @@
 .sheet-music-page--flexoki #osmd-focus-toggle[data-pressed="true"] {
   border-color: var(--sheet-accent);
   background: var(--sheet-accent);
-  color: var(--sheet-paper);
+  color: var(--sheet-on-accent);
 }
 
 .sheet-music-page--flexoki .sheet-music-container {
@@ -151,8 +152,8 @@ html[data-theme="dark"] .sheet-music-page--flexoki {
   --sheet-faint: #878580;
   --sheet-border: #343331;
   --sheet-border-soft: #282726;
-  --sheet-accent: #3aa99f;
-  --sheet-accent-soft: #143f3c;
+  --sheet-accent: var(--color-accent);
+  --sheet-accent-soft: color-mix(in srgb, var(--color-accent) 22%, var(--sheet-bg));
   --sheet-warning: #d14d41;
   --sheet-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.38);
 
@@ -307,7 +308,7 @@ html.sheet-music-focus-open body {
   position: relative;
   border-color: var(--sheet-accent);
   background: var(--sheet-accent);
-  color: var(--sheet-paper);
+  color: var(--sheet-on-accent);
 
   svg {
     width: 1.125rem;
@@ -316,8 +317,8 @@ html.sheet-music-focus-open body {
 
   &:hover {
     border-color: var(--sheet-accent);
-    background: color-mix(in srgb, var(--sheet-accent) 82%, var(--sheet-ink));
-    color: var(--sheet-paper);
+    background: var(--color-accent-hover);
+    color: var(--sheet-on-accent);
   }
 
   &.is-loading svg {

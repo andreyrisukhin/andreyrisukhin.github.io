@@ -1,6 +1,6 @@
 # Site cohesion assessment
 
-Status: assessment, November 2026. Recommendations 1 to 4 are implemented (homepage work grid, dot-grid mark and rules, research and workshop menus, flat surfaces and two button styles). The accent color and the theme residue await case-by-case decisions.
+Status: assessment, November 2026. Recommendations 1 to 4 are implemented (homepage work grid, dot-grid mark and rules, research and workshop menus, flat surfaces and two button styles). The site brown is now the only accent, including music and sheet pages. Theme residue is removed: the footer is two short lines, writing pages drop the calendar and hashtag icons, a post header is one date line, and post photos are square with no shadow. The “(Coding Droids)+” chip stays as a deliberate choice.
 
 Reviewed on the live site at 1440 × 900: home, writing, one post, music, kata, chess, ditherer, outfit palette, LEGO, and fireplace. Mobile and dark mode were not reviewed. Companion to [`SITE_DESIGN_REFRESH_PLAN.md`](SITE_DESIGN_REFRESH_PLAN.md), which covers the menu and color tokens.
 

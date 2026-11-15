@@ -63,6 +63,15 @@ $reading-font: var(--post-font, #{$site-font});
       font-size: 0.85em;
     }
 
+    // Square and flat like the paper sheet; !important beats the
+    // .rounded and .z-depth-* utilities that figure.liquid adds.
+    img,
+    video,
+    figure picture img {
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+
     figcaption,
     .caption {
       font-style: italic;

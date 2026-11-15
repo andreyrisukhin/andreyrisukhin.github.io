@@ -35,7 +35,7 @@ pagination:
     <ul class="p-0 m-0">
       {% for tag in site.display_tags %}
         <li>
-          <i class="fa-solid fa-hashtag fa-sm"></i> <a href="{{ tag | slugify | prepend: '/blog/tag/' | relative_url }}">{{ tag }}</a>
+          <a href="{{ tag | slugify | prepend: '/blog/tag/' | relative_url }}">{{ tag }}</a>
         </li>
         {% unless forloop.last %}
           <p>&bull;</p>
@@ -46,7 +46,7 @@ pagination:
       {% endif %}
       {% for category in site.display_categories %}
         <li>
-          <i class="fa-solid fa-tag fa-sm"></i> <a href="{{ category | slugify | prepend: '/blog/category/' | relative_url }}">{{ category }}</a>
+          <a href="{{ category | slugify | prepend: '/blog/category/' | relative_url }}">{{ category }}</a>
         </li>
         {% unless forloop.last %}
           <p>&bull;</p>
@@ -85,8 +85,7 @@ pagination:
 
                     <p class="post-meta">
                       {{ read_time }} min read &nbsp; &middot; &nbsp;
-                      <a href="{{ year | prepend: '/blog/' | relative_url }}">
-                        <i class="fa-solid fa-calendar fa-sm"></i> {{ year }} </a>
+                      {{ post.date | date: '%B %-d, %Y' }}
                     </p>
                   </div>
                 </div>
@@ -147,38 +146,17 @@ pagination:
       </h3>
       <p>{{ post.description }}</p>
       <p class="post-meta">
-        {{ read_time }} min read &nbsp; &middot; &nbsp;
-        {{ post.date | date: '%B %d, %Y' }}
+        {{ post.date | date: '%B %-d, %Y' }} &nbsp; &middot; &nbsp; {{ read_time }} min read
         {% if post.external_source %}
         &nbsp; &middot; &nbsp; {{ post.external_source }}
         {% endif %}
+        {% for tag in post.tags %}
+        &nbsp; &middot; &nbsp; <a href="{{ tag | slugify | prepend: '/blog/tag/' | relative_url }}">{{ tag }}</a>
+        {% endfor %}
+        {% for category in shown_categories %}
+        &nbsp; &middot; &nbsp; <a href="{{ category | slugify | prepend: '/blog/category/' | relative_url }}">{{ category }}</a>
+        {% endfor %}
       </p>
-      <p class="post-tags">
-        <a href="{{ year | prepend: '/blog/' | relative_url }}">
-          <i class="fa-solid fa-calendar fa-sm"></i> {{ year }} </a>
-
-          {% if tags != "" %}
-          &nbsp; &middot; &nbsp;
-            {% for tag in post.tags %}
-            <a href="{{ tag | slugify | prepend: '/blog/tag/' | relative_url }}">
-              <i class="fa-solid fa-hashtag fa-sm"></i> {{ tag }}</a>
-              {% unless forloop.last %}
-                &nbsp;
-              {% endunless %}
-              {% endfor %}
-          {% endif %}
-
-          {% if categories != "" %}
-          &nbsp; &middot; &nbsp;
-            {% for category in shown_categories %}
-            <a href="{{ category | slugify | prepend: '/blog/category/' | relative_url }}">
-              <i class="fa-solid fa-tag fa-sm"></i> {{ category }}</a>
-              {% unless forloop.last %}
-                &nbsp;
-              {% endunless %}
-              {% endfor %}
-          {% endif %}
-    </p>
 
 {% if post.thumbnail %}
 
