@@ -2,6 +2,8 @@
 
 Status: menu implemented; palette and optional ambient details remain proposed.
 
+The November 2026 cohesion review, covering the homepage, navigation, and cross-page consistency, lives in [`SITE_COHESION_ASSESSMENT.md`](SITE_COHESION_ASSESSMENT.md).
+
 ## Goal
 
 Keep the site quiet and readable, but make it feel authored rather than inherited from a Bootstrap theme. Use motion to clarify relationships, not to decorate every interaction. Give AI implementation work explicit visual and motion constraints so it does not converge on generic “modern” styling.
