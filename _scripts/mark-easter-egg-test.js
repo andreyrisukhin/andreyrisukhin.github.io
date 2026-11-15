@@ -103,4 +103,31 @@ test("hex Life keeps changing", () => {
   assert.ok(gens.every((g) => g.some(Boolean)));
 });
 
+test("keyframe sequences loop, hold, and travel on arcs", () => {
+  const rest = () => M.REST.map((d) => ({ x: d.x, y: d.y, r: d.r, f: d.f, sw: 1.7, path: "line", turns: 0 }));
+  const spun = rest().map((d) => ({ ...d, path: "cw", turns: 1 }));
+  const seq = {
+    loop: true,
+    keys: [
+      { dur: 100, ease: "linear", hold: 50, dots: rest() },
+      { dur: 1000, ease: "linear", hold: 0, dots: spun },
+    ],
+  };
+  assert.equal(M.keyframeDuration(seq), 1150);
+  const half = M.sampleKeyframes(seq, 500);
+  const right = M.REST[4];
+  assert.ok(Math.abs(half[4].x - (32 - right.x)) < 1e-6 && Math.abs(half[4].y - right.y) < 1e-6, "half a turn puts the right dot on the left");
+  assert.ok(Math.abs(half[3].x - 16) < 1e-6, "centre dot stays put");
+  const back = M.sampleKeyframes(seq, 1150 - 20);
+  back.forEach((d, i) => assert.ok(Math.abs(d.x - M.REST[i].x) < 1e-6));
+  const once = { ...seq, loop: false };
+  assert.deepEqual(
+    M.sampleKeyframes(once, 99999).map((d) => d.x),
+    M.sampleKeyframes(once, 1000).map((d) => d.x)
+  );
+  assert.deepEqual(
+    M.sampleKeyframes({ keys: [{ dots: rest() }] }, 500).map((d) => d.x),
+    M.REST.map((d) => d.x)
+  );
+});
 console.log(`mark-easter-egg: ${count} tests passed`);

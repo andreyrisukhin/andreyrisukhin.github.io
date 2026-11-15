@@ -340,6 +340,85 @@
     return WANDERERS[h % WANDERERS.length];
   }
 
+  // Hand-authored sequences (see the keyframe editor): a list of poses, each
+  // reached from the previous one over `dur` ms with `ease`, then held for
+  // `hold` ms. Each dot's `path` says how it travels into the pose: a straight
+  // line, or an arc around the centre clockwise or counterclockwise, plus
+  // `turns` extra full revolutions. Looping sequences return to the first pose.
+  const EASES = {
+    linear: (t) => t,
+    in: (t) => t * t * t,
+    out: easeOut,
+    inOut: easeInOut,
+    step: (t) => (t < 1 ? 0 : 1),
+  };
+
+  function poseState(dots) {
+    return dots.map((d) => ({ x: d.x, y: d.y, r: d.r, f: d.f, sw: d.sw == null ? 1.7 : d.sw }));
+  }
+
+  function travel(a, b, k) {
+    const path = b.path || "line";
+    const out = {
+      r: lerp(a.r, b.r, k),
+      f: lerp(a.f, b.f, k),
+      sw: lerp(a.sw == null ? 1.7 : a.sw, b.sw == null ? 1.7 : b.sw, k),
+    };
+    const ra = radiusOf(a);
+    const rb = radiusOf(b);
+    if (path === "line" || (ra < 0.01 && rb < 0.01)) {
+      out.x = lerp(a.x, b.x, k);
+      out.y = lerp(a.y, b.y, k);
+      return out;
+    }
+    let a0 = ra < 0.01 ? angleOf(b) : angleOf(a);
+    let a1 = rb < 0.01 ? a0 : angleOf(b);
+    const turns = Math.max(0, Math.round(b.turns || 0));
+    if (path === "cw") {
+      while (a1 < a0) a1 += TAU;
+      a1 += turns * TAU;
+    } else {
+      while (a1 > a0) a1 -= TAU;
+      a1 -= turns * TAU;
+    }
+    const p = polar(lerp(a0, a1, k), lerp(ra, rb, k));
+    out.x = p.x;
+    out.y = p.y;
+    return out;
+  }
+
+  function keyframeOrder(seq) {
+    const rest = seq.keys.slice(1).map((_, i) => i + 1);
+    return seq.loop === false ? rest : rest.concat(0);
+  }
+
+  function keyframeDuration(seq) {
+    if (seq.keys.length < 2) return 0;
+    return keyframeOrder(seq).reduce((sum, i) => sum + (seq.keys[i].dur || 0) + (seq.keys[i].hold || 0), 0);
+  }
+
+  function sampleKeyframes(seq, t) {
+    const keys = seq.keys;
+    const total = keyframeDuration(seq);
+    if (keys.length < 2 || total <= 0) return poseState(keys[0].dots);
+    t = seq.loop === false ? clamp(t, 0, total) : ((t % total) + total) % total;
+    let prev = 0;
+    for (const i of keyframeOrder(seq)) {
+      const k = keys[i];
+      const dur = k.dur || 0;
+      if (t < dur) {
+        const e = (EASES[k.ease] || easeInOut)(t / dur);
+        return keys[prev].dots.map((a, j) => travel(a, k.dots[j], e));
+      }
+      t -= dur;
+      if (t < (k.hold || 0)) return poseState(k.dots);
+      t -= k.hold || 0;
+      prev = i;
+    }
+    return poseState(keys[prev].dots);
+  }
+
+  const fromKeyframes = (seq) => ({ frame: (t) => sampleKeyframes(seq, t) });
   function blend(a, b, k) {
     return a.map((s, i) => {
       const e = b[i];
@@ -458,5 +537,16 @@
     reduced.addEventListener("change", () => reduced.matches && mode !== "idle" && stop());
   }
 
-  return { REST, VARIANTS, ROUTES, pickVariant, init, lifeGenerations };
+  return {
+    REST,
+    VARIANTS,
+    ROUTES,
+    EASES,
+    pickVariant,
+    init,
+    lifeGenerations,
+    sampleKeyframes,
+    keyframeDuration,
+    fromKeyframes,
+  };
 });
