@@ -44,6 +44,32 @@
     });
   }
 
+  // Labels sit just above the system, but beams and stems can rise past it.
+  // Lift each label until it clears the notation drawn beneath it.
+  function liftClearOfNotation(layer) {
+    const svg = layer.parentElement && layer.parentElement.querySelector("svg");
+    if (!svg || !layer.children.length) return;
+    const wasHidden = layer.hidden;
+    layer.hidden = false;
+    layer.style.visibility = "hidden";
+    const ink = [...svg.querySelectorAll(".vf-stavenote, .vf-beam, .vf-curve")]
+      .map((node) => node.getBoundingClientRect())
+      .filter((rect) => rect.width || rect.height);
+    for (const label of layer.children) {
+      const box = label.getBoundingClientRect();
+      let bottom = box.bottom;
+      for (let pass = 0; pass < 4; pass++) {
+        const top = bottom - box.height;
+        const hit = ink.filter((r) => r.left < box.right && r.right > box.left && r.top < bottom + 2 && r.bottom > top);
+        if (!hit.length) break;
+        bottom = Math.min(...hit.map((r) => r.top)) - 2;
+      }
+      if (bottom < box.bottom) label.style.top = parseFloat(label.style.top) - (box.bottom - bottom) + "px";
+    }
+    layer.style.visibility = "";
+    layer.hidden = wasHidden;
+  }
+
   function measureEndX(osmd, measureIndex, unit) {
     const list = osmd.GraphicSheet && osmd.GraphicSheet.MeasureList;
     const staves = list && list[measureIndex];
@@ -198,6 +224,7 @@
         return label;
       })
     );
+    liftClearOfNotation(this.timeLabels);
   };
 
   Playhead.prototype.render = function (sec, opts) {

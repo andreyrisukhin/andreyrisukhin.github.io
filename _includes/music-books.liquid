@@ -1,18 +1,7 @@
-<div class="score-library" data-style="pixel" data-sizing="thickness">
-  <div class="score-library__toolbar">
-    <span class="score-library__study">Binding study · 02</span>
-    <fieldset>
-      <legend class="sr-only">Book style</legend>
-      <button type="button" data-book-style="pixel" aria-pressed="true">Pixel</button>
-      <button type="button" data-book-style="cloth" aria-pressed="false">Cloth</button>
-    </fieldset>
-    <fieldset>
-      <legend class="sr-only">Score length changes</legend>
-      <button type="button" data-book-sizing="thickness" aria-pressed="true">Thickness</button>
-      <button type="button" data-book-sizing="width" aria-pressed="false">Width</button>
-    </fieldset>
-  </div>
-  <p class="score-library__intro">A little library of things I play.</p>
+<div class="score-library">
+  {% unless include.hide_intro %}
+    <p class="score-library__intro">A little library of things I play.</p>
+  {% endunless %}
   <div class="score-library__stacks">
     {% for group in site.data.music.books %}
       <section class="score-stack" aria-label="{{ group.title | escape }}">
@@ -23,7 +12,7 @@
             <a
               class="score-book score-book--{{ book.motif }}"
               href="{{ book_url | relative_url }}"
-              style="--book-height: {{ book.measures | times: 1.35 | plus: 54 }}px; --book-width: {{ book.measures | times: 0.3 | plus: 75 }}%"
+              style="--book-height: {{ book.measures | times: 1.35 | plus: 54 }}px"
               data-book-detail="{{ book.source | escape }} · {{ book.measures }} bars"
               aria-describedby="book-description-{{ book.slug }}"
             >
@@ -67,17 +56,5 @@
   <div class="score-library__footer">
     <p data-book-caption aria-live="polite">Choose a spine to open the score.</p>
   </div>
-  <details class="score-library__notes">
-    <summary>About this mockup</summary>
-    <p>
-      Pixel books have stepped cover boards, metal corners, and tiny source-inspired sprites. Cloth books have rounded spines, woven covers, and
-      stamped line drawings. Colors are interpretations of each song’s world, not sampled artwork.
-    </p>
-    <p>
-      Thickness exaggerates the difference between short and long scores (8–79 bars), above a readable minimum. Width keeps all books equally thick
-      and uses score length for the spine’s width instead. Games and Pop describe a source; Autumn describes a mood, so these are piles rather than a
-      strict taxonomy.
-    </p>
-  </details>
 </div>
 <script src="{{ '/assets/js/music-books.js' | relative_url }}" defer></script>

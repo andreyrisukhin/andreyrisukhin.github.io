@@ -24,7 +24,9 @@ layout: default
   </nav>
   <article>
     <header class="music-page-header">
-      <p class="music-eyebrow">Andrey Plays Accordion (Bayan)</p>
+      {% if page.permalink == '/music/' %}
+        <p class="music-eyebrow">Andrey Plays Accordion (Bayan)</p>
+      {% endif %}
       <h1>{{ page.title }}</h1>
       {% if page.description %}
         <p class="music-lead">{{ page.description }}</p>

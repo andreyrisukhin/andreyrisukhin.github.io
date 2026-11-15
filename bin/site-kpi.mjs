@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Measure page load and theme-switch KPIs for the built site and log them per commit.
 //
-// Usage: node bin/site-kpi.mjs [--runs 5] [--site _site] [--log FILE] [--label TEXT] [path ...]
+// Usage: node bin/site-kpi.mjs [--runs 5] [--site _site] [--log FILE] [--label TEXT] [--explain] [path ...]
 //
 // Serves the built site on an ephemeral loopback port, opens each page in a
 // fresh agent-browser session (cold cache) at 1440 x 900, and records:
@@ -10,7 +10,13 @@
 //   lcp_ms     largest contentful paint
 //   theme_ms   light -> dark until every theme transition has finished
 //   theme_max_frame_ms  longest frame during that switch (jank)
-// Medians over --runs go to stdout and append to the log as JSON lines with the
+// and layout quality in the main column (first screen unless noted):
+//   align_rows   pairs of controls in one row whose tops, centers, or bottoms miss by 1.5-8 px
+//   align_edges  controls and text blocks 1-8 px off the column's left or right edge
+//   font_sizes   distinct text sizes a visitor sees
+//   rules        distinct horizontal hairlines
+//   dup_text     visible strings of 20+ characters repeated anywhere on the page
+// --explain lists each offender. Medians over --runs go to stdout and append to the log as JSON lines with the
 // commit, so results can be compared across commits. Build the site first.
 import { execFileSync, spawn } from "node:child_process";
 import { createServer } from "node:http";
@@ -29,6 +35,8 @@ const runs = Number(opt("--runs", 5));
 const site = resolve(opt("--site", "_site"));
 const log = opt("--log", process.env.SITE_KPI_LOG || join(homedir(), "data/site-kpi/kpi.jsonl"));
 const label = opt("--label", "");
+const explainAt = args.indexOf("--explain");
+const explain = explainAt !== -1 && args.splice(explainAt, 1).length > 0;
 const pages = args.length ? args : ["/music/", "/music/sheet/senorita/", "/"];
 
 if (!existsSync(join(site, "index.html"))) {
@@ -83,6 +91,75 @@ const probe = String.raw`(async () => {
   const bytes = resources.reduce((sum, r) => sum + (r.transferSize || r.encodedBodySize || 0), 0);
   const external = resources.filter((r) => !r.name.startsWith(location.origin)).length;
 
+  // Layout quality in the main column. Rows, edges, type sizes, and rules cover
+  // the first screen, which is what a visitor judges; duplicates cover the page.
+  const main = document.querySelector("[role=main], main") || document.body;
+  const mainBox = main.getBoundingClientRect();
+  const mainStyle = getComputedStyle(main);
+  const hiddenAncestor = "svg, #osmd-container, [hidden], details:not([open]) > :not(summary)";
+  const shown = (el, firstScreen = true) => {
+    if (el.closest(hiddenAncestor)) return null;
+    const r = el.getBoundingClientRect();
+    if (r.width <= 2 || r.height <= 2 || getComputedStyle(el).visibility === "hidden") return null;
+    if (firstScreen && (r.top >= innerHeight || r.bottom <= 0)) return null;
+    return r;
+  };
+  const ownText = (el) => [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(" ").replace(/\s+/g, " ").trim();
+  const name = (el) => el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + (typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/)[0] : "") + (ownText(el) ? ' "' + ownText(el).slice(0, 24) + '"' : "");
+  const detail = [];
+  const controls = [...main.querySelectorAll('button, select, textarea, summary, a.btn, a.music-share-btn, [role="button"], input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])')]
+    .map((el) => ({ el, r: shown(el) }))
+    .filter((c) => c.r);
+  let alignRows = 0;
+  for (let i = 0; i < controls.length; i++) {
+    for (let j = i + 1; j < controls.length; j++) {
+      const a = controls[i].r, b = controls[j].r;
+      if (controls[i].el.contains(controls[j].el) || controls[j].el.contains(controls[i].el)) continue;
+      const overlap = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (overlap < Math.min(a.height, b.height) / 2) continue;
+      const off = Math.abs(a.height - b.height) <= 1
+        ? Math.abs(a.top - b.top)
+        : Math.min(Math.abs(a.top - b.top), Math.abs(a.bottom - b.bottom), Math.abs(a.top + a.height / 2 - b.top - b.height / 2));
+      if (off >= 1.5 && off <= 8) {
+        alignRows++;
+        detail.push("row: " + name(controls[i].el) + " vs " + name(controls[j].el) + " off " + off.toFixed(1) + "px");
+      }
+    }
+  }
+  const h1 = main.querySelector("h1");
+  const left = h1 && shown(h1, false) ? h1.getBoundingClientRect().left : mainBox.left + parseFloat(mainStyle.paddingLeft);
+  const right = mainBox.right - parseFloat(mainStyle.paddingRight);
+  let alignEdges = 0;
+  const blocks = [...main.querySelectorAll("h1, h2, h3, h4, p, ul, ol, table, label, figure, img, pre, blockquote")].map((el) => ({ el, r: shown(el) })).filter((b) => b.r);
+  for (const { el, r } of [...controls, ...blocks]) {
+    const dl = Math.abs(r.left - left);
+    const dr = Math.abs(r.right - right);
+    const edge = dl >= 1 && dl <= 8 ? "left " + dl.toFixed(1) : dr >= 1 && dr <= 8 && r.width > 40 ? "right " + dr.toFixed(1) : "";
+    if (edge && !(el.closest("li, td, th") && dl <= 8)) {
+      alignEdges++;
+      detail.push("edge: " + name(el) + " " + edge + "px off the column");
+    }
+  }
+  const sizes = new Set();
+  const lines = new Set();
+  const seen = new Map();
+  for (const el of main.querySelectorAll("*")) {
+    const text = ownText(el);
+    if (text && shown(el)) sizes.add(Math.round(parseFloat(getComputedStyle(el).fontSize) * 2) / 2);
+    if (text.length >= 20 && shown(el, false)) seen.set(text, (seen.get(text) || 0) + 1);
+    const r = shown(el);
+    if (!r || r.width < mainBox.width / 2) continue;
+    const cs = getComputedStyle(el);
+    const side = (s) => parseFloat(cs["border" + s + "Width"]) > 0 && cs["border" + s + "Style"] !== "none";
+    if (el.tagName === "HR" || ((side("Top") || side("Bottom")) && !side("Left") && !side("Right"))) {
+      if (side("Top")) lines.add(Math.round(r.top / 2));
+      if (side("Bottom") || el.tagName === "HR") lines.add(Math.round(r.bottom / 2));
+    }
+  }
+  const duplicates = [...seen].filter(([, n]) => n > 1);
+  duplicates.forEach(([text, n]) => detail.push("duplicate x" + n + ': "' + text.slice(0, 60) + '"'));
+  detail.push("type sizes: " + [...sizes].sort((a, b) => a - b).join(", ") + "px");
+  const layout = { align_rows: alignRows, align_edges: alignEdges, font_sizes: sizes.size, rules: lines.size, dup_text: duplicates.length };
   const frame = () => new Promise((r) => requestAnimationFrame(r));
   setThemeSetting("light", false);
   await frame(); await frame(); await sleep(300);
@@ -111,6 +188,7 @@ const probe = String.raw`(async () => {
     theme_ms: themeMs, theme_max_frame_ms: maxFrame,
     requests: resources.length, external_requests: external, kb: bytes / 1024,
     elements: document.getElementsByTagName("*").length,
+    ...layout, detail,
   });
 })()`;
 
@@ -142,6 +220,7 @@ const subject = git("log", "-1", "--format=%s");
 const dirty = git("status", "--porcelain", "--untracked-files=no") !== "";
 
 const results = [];
+const details = new Map();
 try {
   for (const path of pages) {
     const samples = [];
@@ -159,8 +238,11 @@ try {
       }
     }
     const row = { page: path };
-    for (const key of Object.keys(samples[0])) row[key] = Math.round(median(samples.map((s) => s[key])));
+    for (const key of Object.keys(samples[0])) {
+      if (typeof samples[0][key] === "number") row[key] = Math.round(median(samples.map((s) => s[key])));
+    }
     results.push(row);
+    details.set(path, samples[0].detail);
   }
 } finally {
   server.close();
@@ -178,14 +260,20 @@ const history = readFileSync(log, "utf8")
   .split("\n")
   .map((l) => JSON.parse(l));
 const keys = ["load_ms", "ready_ms", "lcp_ms", "theme_ms", "theme_max_frame_ms", "requests", "kb"];
+const layoutKeys = ["align_rows", "align_edges", "font_sizes", "rules", "dup_text"];
 console.log(`commit ${commit}${dirty ? " (dirty)" : ""}${label ? ` [${label}]` : ""}, median of ${runs}, log ${log}`);
 for (const row of results) {
   const prior = history
     .filter((h) => h.page === row.page && h.at !== stamp && (h.commit !== commit || h.label !== label || h.dirty !== dirty))
     .at(-1);
-  const cells = keys.map((k) => {
+  const cell = (k) => {
     const delta = prior && prior[k] !== undefined ? row[k] - prior[k] : null;
     return `${k}=${row[k]}${delta === null || delta === 0 ? "" : ` (${delta > 0 ? "+" : ""}${delta})`}`;
-  });
-  console.log(`${row.page}\n  ${cells.join("  ")}${prior ? `\n  vs ${prior.commit}${prior.label ? ` [${prior.label}]` : ""}` : ""}`);
+  };
+  console.log(
+    `${row.page}\n  ${keys.map(cell).join("  ")}\n  ${layoutKeys.map(cell).join("  ")}${
+      prior ? `\n  vs ${prior.commit}${prior.label ? ` [${prior.label}]` : ""}` : ""
+    }`
+  );
+  if (explain) for (const line of details.get(row.page) || []) console.log(`    ${line}`);
 }

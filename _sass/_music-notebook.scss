@@ -138,7 +138,6 @@
     margin: 1rem 0;
     @include music-scroll-shadow(var(--music-paper));
     table {
-      min-width: 600px;
       margin-bottom: 0;
     }
     :is(code, td:has(> code)) {
