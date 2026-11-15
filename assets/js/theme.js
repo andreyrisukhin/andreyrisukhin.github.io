@@ -286,6 +286,19 @@ let initTheme = () => {
 
   setThemeSetting(themeSetting, false);
 
+  // Back/Forward can restore a whole document without rerunning this script.
+  // Read the current preference instead of keeping the cached page's setting.
+  const syncThemeSetting = () => {
+    document.documentElement.setAttribute("data-theme-setting", determineThemeSetting());
+    applyTheme(false);
+  };
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) syncThemeSetting();
+  });
+  window.addEventListener("storage", (event) => {
+    if (event.storageArea === localStorage && (event.key === "theme" || event.key === null)) syncThemeSetting();
+  });
+
   // Add event listener to the theme toggle button.
   document.addEventListener("DOMContentLoaded", function () {
     const mode_toggle = document.getElementById("light-toggle");

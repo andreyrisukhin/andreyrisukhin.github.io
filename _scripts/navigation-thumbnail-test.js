@@ -22,6 +22,10 @@ for (const route of ["", "projects/lego/"]) {
   assert.ok(navbar, `${route || "/"} has navigation`);
   const items = [...navbar.matchAll(/<a\b[^>]*class="dropdown-item[^"]*"[^>]*>[\s\S]*?<\/a>/g)].map((match) => match[0]);
   assert.equal(items.length, destinations.length, "All dropdown destinations remain present");
+  const colorThumbnails = ["/color/outfit/", "/color/palette/"].map(
+    (destination) => items.find((item) => item.includes(`href="${destination}"`))?.match(/src="([^"]+)"/)?.[1]
+  );
+  assert.notEqual(colorThumbnails[0], colorThumbnails[1], "Outfit and color palettes have distinct thumbnails");
   for (const destination of destinations) {
     const item = items.find((item) => item.includes(`href="${destination}"`));
     assert.ok(item, `Menu links to ${destination}`);

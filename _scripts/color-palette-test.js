@@ -69,7 +69,7 @@ function browser(initial, blocked = false) {
     },
   };
   vm.runInNewContext(fs.readFileSync(path.join(root, "site.js"), "utf8"), { window, document, localStorage, CustomEvent: function () {} });
-  return { api: window.SitePalette, style, attributes, listeners, stored: () => stored };
+  return { api: window.SitePalette, style, attributes, listeners, storage: localStorage, stored: () => stored };
 }
 for (const initial of [null, "{", "{}", '{"seed":"#fff","scheme":"__proto__","turn":0}']) {
   assert.equal(browser(initial).api.get(), null);
@@ -91,4 +91,23 @@ assert.equal(denied.api.apply("#00ff00", "analogous", 0), false);
 assert.ok(denied.api.get());
 assert.equal(denied.api.reset(), false);
 assert.equal(denied.api.get(), null);
+// A restored document must reconcile before the next paint, not wait for a
+// delayed storage event. The storage mock also represents another tab's write.
+const restored = browser(null);
+restored.storage.setItem("site-palette-v1", JSON.stringify({ seed: "#217aab", scheme: "triadic", turn: 2 }));
+restored.listeners.pageshow({ persisted: false });
+assert.equal(restored.api.get(), null);
+restored.listeners.pageshow({ persisted: true });
+assert.equal(restored.api.get().seed, "#217aab");
+restored.storage.removeItem("site-palette-v1");
+restored.listeners.pageshow({ persisted: true });
+assert.equal(restored.api.get(), null);
+restored.storage.setItem("site-palette-v1", JSON.stringify({ seed: "#00ff00", scheme: "complementary", turn: 1 }));
+restored.listeners.storage({ key: "site-palette-v1", storageArea: {} });
+assert.equal(restored.api.get(), null, "Session storage with the same key is irrelevant");
+restored.listeners.storage({ key: "site-palette-v1", storageArea: restored.storage });
+assert.equal(restored.api.get().seed, "#00ff00");
+restored.storage.removeItem("site-palette-v1");
+restored.listeners.storage({ key: null, storageArea: restored.storage });
+assert.equal(restored.api.get(), null, "Clearing local storage resets the palette");
 console.log(`Palette tests passed: ${count} palettes, both themes, persistence, reset, invalid data, and blocked storage.`);

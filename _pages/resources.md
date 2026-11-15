@@ -11,10 +11,10 @@ children:
     thumbnail: /assets/img/navigation/chess.svg
   - title: outfit palette
     permalink: /color/outfit/
-    thumbnail: /assets/img/navigation/color.svg
+    thumbnail: /assets/img/navigation/outfit.svg
   - title: color palette
     permalink: /color/palette/
-    thumbnail: /assets/img/navigation/color.svg
+    thumbnail: /assets/img/navigation/palette.svg
   - title: ditherer
     permalink: /ditherer/
     thumbnail: /assets/img/navigation/ditherer.svg
