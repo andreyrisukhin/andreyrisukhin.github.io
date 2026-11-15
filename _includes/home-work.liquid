@@ -1,0 +1,19 @@
+<ul class="home-work" role="list">
+  {% for item in site.data.home_work %}
+    <li class="home-work__item">
+      <a class="home-work__link" href="{{ item.url | relative_url }}">
+        <img
+          class="home-work__image"
+          src="{{ item.image | relative_url }}"
+          alt=""
+          width="720"
+          height="480"
+          loading="lazy"
+          decoding="async"
+        >
+        <span class="home-work__title">{{ item.title }}</span>
+        <span class="home-work__blurb">{{ item.blurb }}</span>
+      </a>
+    </li>
+  {% endfor %}
+</ul>

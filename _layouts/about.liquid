@@ -79,6 +79,14 @@ layout: default
             </div>
           </section>
 
+        {% when 'work' %}
+          {% if site.data.home_work %}
+            <section class="homepage-section" data-homepage-section="work" data-homepage-section-label="work">
+              <h2>{{ page.home_layout.work_title | default: 'Work' }}</h2>
+              {% include home-work.liquid %}
+            </section>
+          {% endif %}
+
         {% when 'news' %}
           {% if page.announcements and page.announcements.enabled %}
             <section class="homepage-section" data-homepage-section="news" data-homepage-section-label="news">

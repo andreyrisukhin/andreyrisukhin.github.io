@@ -45,8 +45,7 @@
   }
 
   button:disabled {
-    cursor: default;
-    opacity: 0.5;
+    @include button-disabled;
   }
 
   input[type="range"] {
@@ -103,9 +102,7 @@
 
 .ditherer .tool-button--primary,
 .outfit .tool-button--primary {
-  border-color: var(--tool-ink);
-  background: var(--tool-ink);
-  color: var(--global-bg-color);
+  @include button-primary;
 }
 
 .tool-more {

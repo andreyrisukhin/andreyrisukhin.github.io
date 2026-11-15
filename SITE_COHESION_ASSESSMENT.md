@@ -1,6 +1,6 @@
 # Site cohesion assessment
 
-Status: assessment, November 2026. Recommendations are proposed, not approved.
+Status: assessment, November 2026. Recommendations 1 to 4 are implemented (homepage work grid, dot-grid mark and rules, research and workshop menus, flat surfaces and two button styles). The accent color and the theme residue await case-by-case decisions.
 
 Reviewed on the live site at 1440 × 900: home, writing, one post, music, kata, chess, ditherer, outfit palette, LEGO, and fireplace. Mobile and dark mode were not reviewed. Companion to [`SITE_DESIGN_REFRESH_PLAN.md`](SITE_DESIGN_REFRESH_PLAN.md), which covers the menu and color tokens.
 
@@ -36,7 +36,7 @@ Cream canvas, warm brown accent, and Nunito Sans are calm and readable, but they
 
 - The writing index uses 2.5 rem titles with a calendar icon, the year, and hashtag tags.
 - Posts say “Created on May 01, 2026.”
-- The dark-mode footer keeps the template grey.
+- The footer credits Jekyll, al-folio, and GitHub Pages.
 
 ### 6. The one brand joke reads as a rendering glitch
 

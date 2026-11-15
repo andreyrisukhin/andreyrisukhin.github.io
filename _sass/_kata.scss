@@ -238,9 +238,7 @@
   }
 
   button[aria-disabled="true"] {
-    opacity: 0.6;
-    border-style: dashed;
-    cursor: default;
+    @include button-disabled;
   }
 }
 

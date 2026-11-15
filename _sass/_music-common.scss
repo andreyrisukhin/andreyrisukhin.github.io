@@ -93,16 +93,7 @@ $music-font: "Nunito Sans", "Noto Music", "Noto Sans Symbols 2", "Segoe UI Symbo
   font-size: $type-size-small;
   white-space: nowrap;
   padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  border: 1px solid var(--global-divider-color);
-  background: var(--global-bg-color);
-  color: var(--global-text-color);
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover {
-    background: var(--global-divider-color);
-  }
+  @include button-secondary;
 }
 
 /* ── Chord-name search preview (/music/build/) ── */

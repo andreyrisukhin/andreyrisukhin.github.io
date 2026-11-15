@@ -78,3 +78,63 @@ $back-to-top-width: $back-to-top-diameter;
     }
   }
 }
+
+// Dot-grid rule: a row of bayan-button dots, the site's section divider.
+@mixin dot-rule($pitch: 12px, $dot: 1.6px) {
+  height: 6px;
+  margin-left: 0;
+  margin-right: 0;
+  border: 0;
+  background-image: radial-gradient(circle, var(--global-theme-color) $dot, transparent calc(#{$dot} + 0.6px));
+  background-position: left center;
+  background-repeat: repeat-x;
+  background-size: $pitch 6px;
+  opacity: 0.55;
+}
+
+// The site's two button styles. Callers keep their own size and padding.
+@mixin button-base {
+  font-family: inherit;
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+@mixin button-secondary {
+  @include button-base;
+  border: 1px solid var(--global-divider-color);
+  background: var(--button-field, var(--global-bg-color));
+  color: var(--global-text-color);
+
+  @media (hover: hover) {
+    &:not(:disabled):hover {
+      border-color: var(--global-text-color);
+      background: var(--button-field, var(--global-bg-color));
+    }
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  border: 1px solid var(--global-theme-color);
+  background: var(--global-theme-color);
+  color: var(--global-hover-text-color);
+
+  @media (hover: hover) {
+    &:not(:disabled):hover {
+      border-color: var(--global-hover-color);
+      background: var(--global-hover-color);
+      color: var(--global-hover-text-color);
+    }
+  }
+}
+
+// Unavailable buttons keep their outline but go dashed and quiet.
+@mixin button-disabled {
+  opacity: 0.55;
+  border-style: dashed;
+  cursor: default;
+}

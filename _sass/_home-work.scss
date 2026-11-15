@@ -1,0 +1,82 @@
+// Homepage work grid and the dot-grid signature (navbar mark and section rules).
+
+.home-work {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.75rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.home-work__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--global-text-color);
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--global-text-color);
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    &:hover .home-work__image {
+      border-color: var(--global-theme-color);
+    }
+
+    &:hover .home-work__title {
+      color: var(--global-theme-color);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+    }
+  }
+}
+
+.home-work__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  margin-bottom: 0.4rem;
+  object-fit: cover;
+  border: 1px solid var(--global-divider-color);
+  background: var(--global-card-bg-color);
+  transition: border-color 0.12s ease;
+}
+
+.home-work__title {
+  font-size: $type-size-body;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.home-work__blurb {
+  font-size: $type-size-small;
+  line-height: $type-line-small;
+  color: var(--global-text-color-light);
+}
+
+.navbar-brand .dot-mark {
+  margin-right: 0.45rem;
+  color: var(--global-theme-color);
+  vertical-align: -0.2em;
+}
+
+.dot-rule,
+.post-reading #markdown-content hr {
+  @include dot-rule;
+}
+
+.homepage-section + .homepage-section::before {
+  content: "";
+  display: block;
+  margin-bottom: 2.5rem;
+  @include dot-rule;
+}

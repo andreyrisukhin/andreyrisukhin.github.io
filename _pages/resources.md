@@ -1,6 +1,6 @@
 ---
 layout: page
-title: resources
+title: workshop
 sitemap: false
 nav: true
 nav_order: 9
@@ -21,7 +21,4 @@ children:
   - title: kata
     permalink: /kata/
     thumbnail: /assets/img/navigation/kata.webp
-  - title: LEGO
-    permalink: /projects/lego/
-    thumbnail: /assets/img/navigation/lego.webp
 ---

@@ -35,6 +35,17 @@ agent-browser eval --stdin < _scripts/color-outfit-browser-check.js
 Each prints its passed checks or throws on the first failure. Read the output:
 `agent-browser` can exit 0 after an evaluation error.
 
+### Signature, surfaces, and buttons
+
+The site’s mark is a dot grid: bayan buttons, which also read as dither pixels and LEGO studs.
+
+- The navbar mark (`_includes/dot-mark.liquid`) and the favicon share the same seven-dot shape. Use the accent color and do not redraw it per page.
+- Section breaks use the dot rule (`@include dot-rule` or `.dot-rule`): homepage sections and `---` in posts. Hairline rules still separate groups inside a component.
+- Surfaces are flat and square: a one-pixel border at most, no radius, no drop shadow. This includes the post paper sheet.
+- Use two button styles, from the mixins in `_sass/_variables.scss`: `button-primary` (accent fill) for the one main action, and `button-secondary` (hairline outline) for everything else. Unavailable buttons use `button-disabled`: dashed outline, reduced opacity.
+
+The homepage leads with the work. Its grid reads `_data/home_work.yml`; thumbnails are 720 × 480 WebP crops in `assets/img/home/`.
+
 ### 1. Images need room to breathe
 
 Pictures lose impact when crammed against text. A photo separated from the surrounding paragraphs by clear vertical space reads as deliberate; a photo flush against text reads as filler.

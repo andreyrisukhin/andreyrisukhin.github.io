@@ -1,0 +1,26 @@
+# Homepage "work" grid, in display order. Thumbnails are 720 × 480 (3:2) WebP
+# crops in assets/img/home/. Blurbs reuse each page's own description.
+- title: Bayan notebook
+  url: /music/
+  image: /assets/img/home/music.webp
+  blurb: Tools, sheets, and references for bayan and harmony.
+- title: LEGO
+  url: /projects/lego/
+  image: /assets/img/home/lego.webp
+  blurb: Recognizing pieces and reconstructing models from images.
+- title: Ditherer
+  url: /ditherer/
+  image: /assets/img/home/ditherer.webp
+  blurb: Image ditherer with interleaved gradient noise.
+- title: Fireplace
+  url: /fireplace/
+  image: /assets/img/home/fireplace.webp
+  blurb: A pixel fire to sit beside.
+- title: Kata
+  url: /kata/
+  image: /assets/img/home/kata.webp
+  blurb: Breath and motion recipes for quick resets.
+- title: Outfit palette
+  url: /color/outfit/
+  image: /assets/img/home/outfit.webp
+  blurb: Plan an outfit’s colors and how much of the look each one covers.

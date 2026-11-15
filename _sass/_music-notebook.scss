@@ -938,24 +938,3 @@ html[data-theme="dark"] .music-notebook {
     transition: none !important;
   }
 }
-
-.home-music-link {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 1.5rem 0;
-  padding: 0.75rem 0;
-  border-block: 1px solid var(--global-divider-color);
-  color: var(--global-text-color);
-  img {
-    width: 100px;
-    height: auto;
-  }
-  span {
-    display: block;
-  }
-  small {
-    display: block;
-    color: var(--global-text-color-light);
-  }
-}

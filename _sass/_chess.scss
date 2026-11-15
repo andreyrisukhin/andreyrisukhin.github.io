@@ -265,22 +265,15 @@
   min-height: 2rem;
   padding: 0.35rem 0.7rem;
   font-size: $type-size-small;
-  color: var(--global-text-color);
-  background: var(--global-card-bg-color);
-  border: 1px solid var(--global-divider-color);
-  border-radius: 0;
-  cursor: pointer;
+  @include button-secondary;
 
   &:disabled {
-    opacity: 0.4;
-    cursor: default;
+    @include button-disabled;
   }
 }
 
 .chess-button--primary {
-  color: var(--global-bg-color);
-  background: var(--global-theme-color);
-  border-color: var(--global-theme-color);
+  @include button-primary;
 }
 
 .chess-more,
