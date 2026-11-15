@@ -46,7 +46,7 @@
 
 .exercises-chord {
   border: 1px solid var(--global-divider-color);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 0.4rem 0.5rem;
   background: var(--global-bg-color);
 }
@@ -101,7 +101,7 @@
 .exercises-rh-pill {
   display: inline-block;
   padding: 0.2rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 0;
   font-weight: 700;
   font-size: $type-size-small;
   background: var(--global-theme-color);
@@ -172,7 +172,7 @@
     font-size: 0.85em;
     padding: 0.05em 0.3em;
     background: var(--global-bg-color);
-    border-radius: 3px;
+    border-radius: 0;
   }
 }
 
@@ -420,7 +420,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 0;
   transition:
     background 0.1s,
     color 0.1s,
@@ -508,7 +508,7 @@
 .exercises-bpm-number {
   width: 3.5rem;
   padding: 0.2rem 0.3rem;
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid var(--global-divider-color);
   background: var(--global-bg-color);
   color: var(--global-text-color);

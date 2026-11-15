@@ -3,6 +3,10 @@
 {% assign musicxml_path = '/assets/music/sheet-music/' | append: sheet_dir | append: '/' | append: sheet_slug | append: '.musicxml' %}
 {% assign source_ext = include.source_ext | default: 'mscz' %}
 {% assign source_path = '/assets/music/sheet-music/' | append: sheet_dir | append: '/' | append: sheet_slug | append: '.' | append: source_ext %}
+{% unless include.local_file %}
+  {% comment %}Start the score download alongside the scripts instead of after them.{% endcomment %}
+  <link rel="preload" href="{{ musicxml_path | relative_url }}?v={{ site.time | date: '%s' }}" as="fetch" crossorigin>
+{% endunless %}
 
 <div
   class="sheet-music-page sheet-music-page--flexoki sheet-reader"

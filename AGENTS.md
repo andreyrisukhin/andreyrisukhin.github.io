@@ -88,6 +88,14 @@ Any change a visitor can see (layouts, includes, Sass, navigation, page chrome) 
 - Keep screenshots out of Git. Put them under `~/tmp/` and list the directories in the handoff before `bin/merge-to-main`, so I can compare them.
 - For changes to shared chrome or more than one page, run the `site-design-review` skill (`.factory/skills/`) on the “after” set and fix its findings, up to three rounds.
 
+### Performance KPIs
+
+After a production build, run `node bin/site-kpi.mjs` before committing any change to layouts, Sass, scripts, or music pages, and again on the commit. It serves `_site` on a loopback port and records the median of five cold loads of the music hub, the Señorita sheet, and the homepage: load, ready (first score render on sheet pages), LCP, light-to-dark switch time, the longest frame during that switch, requests, and KB. Results append to `~/data/site-kpi/kpi.jsonl` with the commit and print deltas against the previous entry.
+
+- Pass `--label` to name a run (for example `baseline` or `fixes`) and extra paths to measure other pages.
+- Treat a theme switch over 500 ms, a switch frame over 100 ms, or a sheet ready time over 1000 ms as a regression to fix or explain in the handoff.
+- Headless Chrome paints at about 20 fps, so 50 ms frames are the floor there, not jank.
+
 The motion skills in `.factory/skills/` come from Emil Kowalski (see its `README.md`). `DESIGN.md` wins where they disagree:
 
 - No translucent or blurred chrome, and no shadows to show depth. Surfaces stay flat and square.

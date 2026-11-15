@@ -30,8 +30,9 @@
       drawChordSymbols: localFile,
       defaultFontFamily: "Nunito Sans",
       autoResize: false,
-      // Flexoki cyan instead of OSMD's neon green; callers scroll it themselves.
-      cursorsOptions: [{ type: 0, color: "#24837B", alpha: 0.35, follow: false }],
+      // The site's light-theme accent: the score paper stays light in both themes.
+      // Callers scroll the cursor themselves.
+      cursorsOptions: [{ type: 0, color: "#80533F", alpha: 0.35, follow: false }],
     });
 
   let osmd = localFile ? null : createOsmd();
@@ -58,6 +59,8 @@
       window.scrollTo({ top: y, behavior: "instant" in window ? "instant" : "auto" });
     }
     if (!localFile) watchAndHide();
+    // bin/site-kpi.mjs reads this as the page's ready time.
+    if (!performance.getEntriesByName("site:ready").length) performance.mark("site:ready");
     container.dispatchEvent(new CustomEvent("sheet-render"));
   };
 

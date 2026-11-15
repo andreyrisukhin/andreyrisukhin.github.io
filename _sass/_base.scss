@@ -1109,13 +1109,11 @@ code {
   padding: 3px 3px;
 }
 
-// Transitioning Themes
-html.transition,
-html.transition *,
-html.transition *:before,
-html.transition *:after {
-  transition: all 750ms !important;
-  transition-delay: 0 !important;
+// Theme switch: theme.js cross-fades a snapshot of the page (view transition).
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: ease;
 }
 
 // Extra Markdown style (post Customization)
@@ -1432,8 +1430,8 @@ ninja-keys::part(ninja-input-wrapper) {
   max-width: 350px;
   min-width: 100px;
   box-sizing: border-box;
-  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px;
-  border-radius: 6px;
+  box-shadow: none;
+  border-radius: 0;
   padding: 8px 12px;
 }
 

@@ -221,3 +221,15 @@ html[data-theme="dark"] .figure-plot img {
   font-size: $type-size-tiny;
   opacity: 0.75;
 }
+
+// Photos are square and flat sitewide (DESIGN.md, Identity spec). The
+// !important beats Bootstrap's .rounded and the .z-depth-* utilities that
+// figure.liquid and the layouts add. .rounded-circle is a deliberate opt-in.
+img,
+video {
+  &.rounded,
+  &[class*="z-depth"]:not(.rounded-circle) {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}

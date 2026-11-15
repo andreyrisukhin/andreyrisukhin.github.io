@@ -269,7 +269,7 @@
     gap: 0.5rem 1rem;
     button {
       border: 1px solid var(--music-rule);
-      border-radius: 3px;
+      border-radius: 0;
       padding: 0.5rem 1rem;
       background: var(--music-surface);
       color: var(--music-ink);
@@ -298,7 +298,7 @@
     }
   }
   .workbench-input {
-    border-radius: 3px;
+    border-radius: 0;
     background: var(--music-surface);
     font-size: 1.125rem;
     padding: 0.8rem 1rem;
@@ -309,7 +309,7 @@
     color: var(--music-muted);
   }
   .workbench-chip {
-    border-radius: 3px;
+    border-radius: 0;
     font-size: 0.875rem;
     padding: 0.4rem 0.75rem;
     &.is-active {
@@ -336,7 +336,7 @@
   }
   .workbench-card {
     padding: 1.5rem;
-    border-radius: 3px;
+    border-radius: 0;
     box-shadow: none;
   }
   .workbench-section-title {
@@ -379,7 +379,7 @@
   }
   .workbench-setlist {
     min-width: 0;
-    border-radius: 3px;
+    border-radius: 0;
   }
   .workbench-matrix {
     overflow-x: auto;
@@ -451,7 +451,7 @@
       max-width: 100%;
       padding: 0.35rem 0.5rem;
       border: 1px solid var(--music-rule);
-      border-radius: 3px;
+      border-radius: 0;
       background: var(--music-surface);
       color: var(--music-ink);
     }
@@ -555,7 +555,7 @@
     max-width: 180px;
     min-height: 44px;
     border: 1px solid var(--music-rule);
-    border-radius: 3px;
+    border-radius: 0;
     background: var(--music-surface);
     color: var(--music-ink);
     padding: 0.4rem;
@@ -570,7 +570,7 @@
     background: var(--music-accent);
     color: var(--music-on-accent);
     border: 1px solid var(--music-accent);
-    border-radius: 3px;
+    border-radius: 0;
     padding: 0.5rem 1rem;
     font-weight: 600;
   }
@@ -612,7 +612,7 @@
     padding: 1.5rem;
     background: var(--music-surface);
     border: 1px solid var(--music-rule);
-    border-radius: 3px;
+    border-radius: 0;
   }
   #wb-chord-title {
     font-size: $type-size-h1;
@@ -643,7 +643,7 @@
     min-width: 44px;
     padding: 0.3rem;
     border: 1px solid var(--music-rule);
-    border-radius: 3px;
+    border-radius: 0;
     color: var(--music-ink);
     background: transparent;
     font-weight: 600;
@@ -744,7 +744,7 @@
     }
   }
   .wb-chord-button {
-    border-radius: 3px;
+    border-radius: 0;
     padding: 0.5rem 1rem;
   }
   .wb-theory {
@@ -926,13 +926,4 @@ html[data-theme="dark"] .music-notebook {
   --music-ink: #f2eade;
   --music-muted: #c0b2a2;
   --music-rule: #65594c;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html.transition .music-notebook,
-  html.transition .music-notebook *,
-  html.transition .music-notebook *::before,
-  html.transition .music-notebook *::after {
-    transition: none !important;
-  }
 }

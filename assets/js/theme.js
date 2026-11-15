@@ -23,10 +23,20 @@ let setThemeSetting = (themeSetting, animate = true) => {
 
 // Apply the computed dark or light theme to the website. The cross-fade is for
 // user-visible changes only; on page load it would fade in from the wrong theme.
+// A view transition fades one snapshot of the page; per-element CSS transitions
+// ran thousands of animations on score and keyboard pages and stalled frames.
 let applyTheme = (animate = true) => {
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (animate && !reduceMotion && document.startViewTransition) {
+    document.startViewTransition(applyThemeNow);
+  } else {
+    applyThemeNow();
+  }
+};
+
+let applyThemeNow = () => {
   let theme = determineComputedTheme();
 
-  if (animate) transTheme();
   setHighlight(theme);
   setGiscusTheme(theme);
   setSearchTheme(theme);
@@ -243,13 +253,6 @@ let setSearchTheme = (theme) => {
   } else {
     ninjaKeys.classList.remove("dark");
   }
-};
-
-let transTheme = () => {
-  document.documentElement.classList.add("transition");
-  window.setTimeout(() => {
-    document.documentElement.classList.remove("transition");
-  }, 500);
 };
 
 // Determine the expected state of the theme toggle, which can be "dark", "light", or

@@ -54,26 +54,21 @@
 
 .sheet-music-page--flexoki {
   --sheet-paper: #fffcf0;
-  --sheet-bg: #f2f0e5;
-  --sheet-bg-soft: #e6e4d9;
+  --sheet-bg: var(--color-canvas);
+  --sheet-bg-soft: var(--color-surface);
   --sheet-ink: #100f0f;
   --sheet-muted: #6f6e69;
   --sheet-faint: #b7b5ac;
-  --sheet-border: #dad8ce;
-  --sheet-border-soft: #e6e4d9;
+  --sheet-border: var(--color-border);
+  --sheet-border-soft: var(--color-border);
   --sheet-accent: var(--color-accent);
   --sheet-accent-soft: color-mix(in srgb, var(--color-accent) 14%, var(--sheet-paper));
   --sheet-on-accent: var(--color-on-accent);
   --sheet-warning: #af3029;
-  --sheet-shadow: 0 1.25rem 3rem rgba(16, 15, 15, 0.12);
 
+  // The reader sits directly on the site canvas; only the score is paper.
   max-width: min(100%, 74rem);
   margin: 0 auto;
-  padding: 1.25rem;
-  border: 1px solid var(--sheet-border-soft);
-  border-radius: 1rem;
-  background: radial-gradient(circle at top left, rgba(250, 238, 198, 0.38), transparent 18rem),
-    linear-gradient(180deg, var(--sheet-bg), color-mix(in srgb, var(--sheet-bg) 84%, var(--sheet-paper)));
   color: var(--sheet-ink);
 }
 
@@ -99,7 +94,7 @@
       margin-right: 0.75rem;
       padding: 0 1rem;
       border: 1px solid var(--sheet-border);
-      border-radius: 0.375rem;
+      border-radius: 0;
       background: var(--sheet-paper);
       color: var(--sheet-ink);
       font: inherit;
@@ -152,9 +147,9 @@
 
 .sheet-music-page--flexoki .sheet-music-controls .music-share-btn {
   border-color: var(--sheet-border);
-  background: color-mix(in srgb, var(--sheet-paper) 92%, var(--sheet-bg));
-  color: var(--sheet-muted);
-  box-shadow: 0 1px 0 rgba(16, 15, 15, 0.04);
+  background: transparent;
+  color: var(--color-text);
+  box-shadow: none;
 
   &:hover,
   &:focus {
@@ -178,9 +173,7 @@
   overflow-x: auto;
   padding: clamp(0.75rem, 2vw, 1.5rem);
   border: 1px solid var(--sheet-border);
-  border-radius: 0.55rem;
   background: var(--sheet-paper);
-  box-shadow: var(--sheet-shadow);
   color: var(--sheet-ink);
 }
 
@@ -199,21 +192,18 @@
 
 html[data-theme="dark"] .sheet-music-page--flexoki {
   --sheet-paper: #fffcf0;
-  --sheet-bg: #100f0f;
-  --sheet-bg-soft: #1c1b1a;
+  --sheet-bg: var(--color-canvas);
+  --sheet-bg-soft: var(--color-surface);
   --sheet-ink: #100f0f;
   --sheet-muted: #575653;
   --sheet-faint: #878580;
-  --sheet-border: #343331;
-  --sheet-border-soft: #282726;
+  --sheet-border: var(--color-border);
+  --sheet-border-soft: var(--color-border);
   --sheet-accent: var(--color-accent);
   --sheet-accent-soft: color-mix(in srgb, var(--color-accent) 22%, var(--sheet-bg));
   --sheet-warning: #d14d41;
-  --sheet-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.38);
 
-  background: radial-gradient(circle at top left, rgba(36, 30, 8, 0.45), transparent 18rem),
-    linear-gradient(180deg, var(--sheet-bg-soft), var(--sheet-bg));
-  color: #cecdc3;
+  color: var(--color-text);
 }
 
 // The paper stays warm in dark mode, one step dimmer so it does not glare.
@@ -222,8 +212,8 @@ html[data-theme="dark"] .sheet-music-page--flexoki .sheet-music-container {
 }
 
 html[data-theme="dark"] .sheet-music-page--flexoki .sheet-file-controls input[type="file"]::file-selector-button {
-  background: #282726;
-  color: #cecdc3;
+  background: transparent;
+  color: var(--color-text);
 }
 
 html[data-theme="dark"] .sheet-music-readonly {
@@ -232,8 +222,8 @@ html[data-theme="dark"] .sheet-music-readonly {
 
 html[data-theme="dark"] .sheet-music-page--flexoki .sheet-music-controls .music-share-btn {
   border-color: var(--sheet-border);
-  background: #282726;
-  color: #cecdc3;
+  background: transparent;
+  color: var(--color-text);
 
   &:hover,
   &:focus {
@@ -262,7 +252,9 @@ html.sheet-music-focus-open body {
   max-width: none;
   overflow: auto;
   overscroll-behavior: contain;
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28);
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-canvas);
 }
 
 .sheet-music-page--flexoki.sheet-music-page--focus .sheet-music-controls {
@@ -271,21 +263,12 @@ html.sheet-music-focus-open body {
   z-index: 10021;
   margin: -0.25rem -0.25rem 1rem;
   padding: 0.25rem;
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--sheet-bg) 86%, transparent);
-  backdrop-filter: blur(10px);
+  background: var(--color-canvas);
 }
 
 @media (max-width: 768px) {
-  .sheet-music-page--flexoki {
-    margin-inline: -0.75rem;
-    padding: 0.75rem;
-    border-radius: 0.75rem;
-  }
-
   .sheet-music-page--flexoki .sheet-music-container {
     padding: 0.25rem;
-    border-radius: 0.4rem;
   }
 
   .sheet-music-readonly {
@@ -295,7 +278,6 @@ html.sheet-music-focus-open body {
 
   .sheet-music-page--flexoki.sheet-music-page--focus {
     inset: 0;
-    border-radius: 0;
     padding: 0.75rem;
   }
 }
@@ -313,12 +295,8 @@ html.sheet-music-focus-open body {
   margin: 0 0 0.75rem;
   padding: 0.375rem 0.875rem 0.375rem 0.375rem;
   border: 1px solid var(--sheet-border);
-  // A pill on one row, still tidy if a narrow column wraps it to two.
-  border-radius: 1.625rem;
-  background: color-mix(in srgb, var(--sheet-paper) 90%, transparent);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 10px 24px -20px rgba(16, 15, 15, 0.5);
-  color: var(--sheet-ink);
+  background: var(--color-canvas);
+  color: var(--color-text);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -331,9 +309,9 @@ html.sheet-music-focus-open body {
   height: 2.75rem;
   padding: 0;
   border: 1px solid var(--sheet-border);
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
-  color: var(--sheet-muted);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition:
     background-color 0.15s,
@@ -435,7 +413,6 @@ html.sheet-music-focus-open body {
 .sheet-transport__progress {
   height: 3px;
   margin-top: -1px;
-  border-radius: 3px;
   background: var(--sheet-accent);
   transform: scaleX(0);
   transform-origin: left center;
@@ -522,9 +499,9 @@ html.sheet-music-focus-open body {
     max-width: 10rem;
     padding: 0 0.5rem;
     border: 1px solid var(--sheet-border);
-    border-radius: 999px;
-    background: var(--sheet-paper);
-    color: var(--sheet-ink);
+    border-radius: 0;
+    background: var(--color-canvas);
+    color: var(--color-text);
     font: inherit;
     cursor: pointer;
 
@@ -544,7 +521,6 @@ html.sheet-music-focus-open body {
   flex: none;
   padding: 0.125rem 0.625rem;
   border: 1px solid transparent;
-  border-radius: 999px;
   background: none;
   color: var(--sheet-muted);
   font: inherit;
@@ -583,8 +559,8 @@ html.sheet-music-focus-open body {
   height: 2.75rem;
   margin: 0;
   border: 1px solid var(--sheet-border);
-  background: var(--sheet-paper);
-  color: var(--sheet-ink);
+  background: var(--color-canvas);
+  color: var(--color-text);
   font: inherit;
   cursor: pointer;
 
@@ -609,14 +585,6 @@ html.sheet-music-focus-open body {
     width: 0.75rem;
     height: 0.75rem;
     fill: currentColor;
-  }
-
-  &:first-of-type {
-    border-radius: 999px 0 0 999px;
-  }
-
-  &:last-of-type {
-    border-radius: 0 999px 999px 0;
   }
 
   &:hover:not([aria-disabled="true"]) {
@@ -749,9 +717,6 @@ html.sheet-music-focus-open body {
     z-index: 9990;
     margin: 0;
     padding: 0.375rem 0.625rem 0.375rem 0.375rem;
-    border-radius: 1.5rem;
-    background: color-mix(in srgb, var(--sheet-paper) 96%, transparent);
-    box-shadow: 0 12px 28px -16px rgba(16, 15, 15, 0.55);
   }
 
   .sheet-transport__pos {
@@ -816,30 +781,23 @@ html.sheet-music-focus-open body {
   }
 }
 
-// Score paper stays light in dark mode, so the transport takes the dark
-// panel colors explicitly rather than the paper-ink variables.
+// Score paper stays light in dark mode; the transport uses the site's dark
+// canvas, border, and text tokens instead of the paper-ink variables.
 html[data-theme="dark"] .sheet-transport {
-  border-color: #343331;
-  background: color-mix(in srgb, #282726 92%, transparent);
-  box-shadow: 0 12px 28px -18px rgba(0, 0, 0, 0.8);
-  color: #cecdc3;
+  --sheet-muted: var(--color-text-muted);
+  --sheet-ink: var(--color-text);
 
-  .sheet-transport__btn {
-    border-color: #403e3c;
-    color: #b7b5ac;
-
-    &:hover {
-      border-color: var(--sheet-accent);
-      background: var(--sheet-accent-soft);
-      color: #fffcf0;
-    }
+  .sheet-transport__btn:hover {
+    border-color: var(--sheet-accent);
+    background: var(--sheet-accent-soft);
+    color: var(--color-text);
   }
 
   .sheet-transport__play,
   .sheet-transport__play:hover {
     border-color: var(--sheet-accent);
     background: var(--sheet-accent);
-    color: #100f0f;
+    color: var(--sheet-on-accent);
   }
 
   .sheet-transport__play.is-error {
@@ -847,41 +805,11 @@ html[data-theme="dark"] .sheet-transport {
     background: var(--sheet-warning);
   }
 
-  .sheet-transport__track {
-    color: #878580;
-  }
-
   .sheet-transport__line {
-    background: #575653;
+    background: var(--color-border);
   }
 
   .sheet-transport__tick--final {
-    color: #cecdc3;
-  }
-
-  .sheet-transport__pos,
-  .sheet-transport__select {
-    color: #878580;
-  }
-
-  .sheet-transport__select select,
-  .sheet-transport__step,
-  .sheet-transport__key-name {
-    border-color: #403e3c;
-    background: #1c1b1a;
-    color: #cecdc3;
-  }
-
-  .sheet-transport__key {
-    color: #878580;
-  }
-
-  .sheet-transport__step:hover:not([aria-disabled="true"]) {
-    background: var(--sheet-accent-soft);
-    color: #fffcf0;
-  }
-
-  .sheet-transport__more[aria-expanded="true"] {
-    color: #fffcf0;
+    color: var(--color-text);
   }
 }
