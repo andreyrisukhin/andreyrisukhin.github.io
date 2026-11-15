@@ -17,9 +17,9 @@ specifics + the public-vs-editor split + the deploy gotchas.
   notation (slug has hyphens, dot notation breaks).
 - `_data/zion-paths/<slug>.json` — committed source of truth.
   Schema: `{ slug, name, updatedAt, center, zoom, pins[],
-  segments[] }`. Each pin: `{ id, kind, lat, lng, note,
-  labelLatLng? }`. Each segment: `{ id, kind, note,
-  waypoints: [[lat,lng], ...] }`.
+segments[] }`. Each pin: `{ id, kind, lat, lng, note,
+labelLatLng? }`. Each segment: `{ id, kind, note,
+waypoints: [[lat,lng], ...] }`.
 - `assets/js/map/leaflet-map.js` — public reader. Renders
   pins + always-on draggable speech-bubble labels + leader
   lines + segments. Returns a controller object the editor
@@ -46,8 +46,12 @@ popup was white-on-white. **Lock it explicitly:**
   background: #ffffff !important;
   color: #0d1117 !important;
 }
-.leaflet-popup-content { color: #0d1117 !important; }
-.leaflet-popup-tip    { background: #ffffff !important; }
+.leaflet-popup-content {
+  color: #0d1117 !important;
+}
+.leaflet-popup-tip {
+  background: #ffffff !important;
+}
 ```
 
 Same bug applies to **form inputs inside popups** (`<select>`,
@@ -118,7 +122,9 @@ second pin on top, and clicking a polyline in "New segment"
 mode added a stray waypoint. **Always**:
 
 ```js
-layer.on('click', (ev) => { L.DomEvent.stopPropagation(ev); });
+layer.on("click", (ev) => {
+  L.DomEvent.stopPropagation(ev);
+});
 ```
 
 …inside editor click handlers, where modal modes interact with
@@ -129,9 +135,7 @@ the map background.
 Detect the device once at init, not per-event:
 
 ```js
-const isHoverDevice = window.matchMedia(
-  '(hover: hover) and (pointer: fine)'
-).matches;
+const isHoverDevice = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 ```
 
 Use this to decide whether to wire `mouseover`/`mouseout` (or
@@ -164,11 +168,15 @@ exact pin" affordance:
 
 ```js
 const target = map.latLngToContainerPoint(latlng);
-let best = null, bestDist = SNAP_PX;
+let best = null,
+  bestDist = SNAP_PX;
 for (const p of state.pins) {
   const px = map.latLngToContainerPoint([p.lat, p.lng]);
   const d = Math.hypot(px.x - target.x, px.y - target.y);
-  if (d < bestDist) { best = p; bestDist = d; }
+  if (d < bestDist) {
+    best = p;
+    bestDist = d;
+  }
 }
 ```
 
@@ -200,7 +208,7 @@ Anything starting with `_` is session state, not data:
 function stripPrivateFields(obj) {
   const out = {};
   for (const k of Object.keys(obj)) {
-    if (!k.startsWith('_')) out[k] = obj[k];
+    if (!k.startsWith("_")) out[k] = obj[k];
   }
   return out;
 }
@@ -219,10 +227,10 @@ const BASE_ZOOM = initialData.zoom ?? FALLBACK_ZOOM;
 function applyZoomScale() {
   const delta = BASE_ZOOM - map.getZoom();
   const c = map.getContainer();
-  c.classList.toggle('zoom-shrink', delta === 1);
-  c.classList.toggle('zoom-hide-labels', delta >= 2);
+  c.classList.toggle("zoom-shrink", delta === 1);
+  c.classList.toggle("zoom-hide-labels", delta >= 2);
 }
-map.on('zoomend', applyZoomScale);
+map.on("zoomend", applyZoomScale);
 ```
 
 Lets viewers zoom out for regional context without label
@@ -328,11 +336,11 @@ needing to know about the editor.
 1. Copy `_pages/trails-<slug>.md` and change the Liquid
    `assign trail = trailsRoot["<slug>"]` line.
 2. `cp _data/zion-paths/<existing>.json
-   _data/zion-paths/<new-slug>.json`, edit `slug`, `name`,
+_data/zion-paths/<new-slug>.json`, edit `slug`, `name`,
    `center`, `zoom`, blank pins/segments.
 3. Visit `/trails/<new-slug>/?dev=1` and start dropping pins.
 4. Save → `git add _data/zion-paths/<new-slug>.json && git
-   commit && git push`. Pages now rebuilds because the
+commit && git push`. Pages now rebuilds because the
    workflow filter includes `_data/**`.
 
 If sharing publicly, keep `nav: false`, `sitemap: false`,

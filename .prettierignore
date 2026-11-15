@@ -1,6 +1,7 @@
 **/*.map
 **/*.min.css
 **/*.min.js
+assets/js/vendor/abcjs-basic-min.js
 sw.js
 manifest.webmanifest
 assets/css/main.scss

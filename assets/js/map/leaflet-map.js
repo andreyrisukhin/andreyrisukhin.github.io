@@ -14,27 +14,27 @@
  *   statusId optional: id of the status text element
  */
 window.TrailMap = (function () {
-  'use strict';
+  "use strict";
 
   // Default fallback if data file has no center (initial bare seed).
   const ZION_CENTER = { lat: 37.2982, lng: -113.0263 };
   const ZION_ZOOM = 13;
 
   const PIN_COLORS = {
-    parking: '#1f6feb',
-    viewpoint: '#2da44e',
-    decision: '#d29922',
-    warning: '#cf222e',
-    end: '#6e40c9',
-    waypoint: '#4f4f4f',
+    parking: "#1f6feb",
+    viewpoint: "#2da44e",
+    decision: "#d29922",
+    warning: "#cf222e",
+    end: "#6e40c9",
+    waypoint: "#4f4f4f",
   };
 
   const SEGMENT_COLORS = {
-    walk: '#2da44e',
-    scramble: '#d29922',
-    wade: '#1f6feb',
-    bushwhack: '#6e40c9',
-    drive: '#57606a',
+    walk: "#2da44e",
+    scramble: "#d29922",
+    wade: "#1f6feb",
+    bushwhack: "#6e40c9",
+    drive: "#57606a",
   };
 
   function init(opts) {
@@ -43,20 +43,20 @@ window.TrailMap = (function () {
     const mapEl = document.getElementById(opts.mapId);
     const statusEl = opts.statusId ? document.getElementById(opts.statusId) : null;
     if (!mapEl) {
-      console.warn('[trail-map] container not found:', opts.mapId);
+      console.warn("[trail-map] container not found:", opts.mapId);
       return null;
     }
-    if (typeof L === 'undefined') {
-      mapEl.classList.add('is-loading');
-      mapEl.textContent = 'Map library failed to load.';
-      if (statusEl) statusEl.textContent = '';
+    if (typeof L === "undefined") {
+      mapEl.classList.add("is-loading");
+      mapEl.textContent = "Map library failed to load.";
+      if (statusEl) statusEl.textContent = "";
       return null;
     }
 
     const center = initialData.center || ZION_CENTER;
-    const zoom = (typeof initialData.zoom === 'number') ? initialData.zoom : ZION_ZOOM;
+    const zoom = typeof initialData.zoom === "number" ? initialData.zoom : ZION_ZOOM;
 
-    mapEl.classList.remove('is-loading');
+    mapEl.classList.remove("is-loading");
     const map = L.map(mapEl, {
       center: [center.lat, center.lng],
       zoom,
@@ -66,7 +66,7 @@ window.TrailMap = (function () {
       attributionControl: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
@@ -98,7 +98,7 @@ window.TrailMap = (function () {
     // Re-anchor every leader line to its label's center after a zoom:
     // the label width stays constant in container px but its geo
     // center moves, so the leader endpoint drifts unless we recompute.
-    map.on('zoomend', function () {
+    map.on("zoomend", function () {
       labelLayer.eachLayer(function (l) {
         if (l._syncLeader) l._syncLeader();
       });
@@ -109,12 +109,12 @@ window.TrailMap = (function () {
     // is the "base" view. One step out shrinks labels, two or more
     // hides them entirely so the pin dots can carry the regional
     // context without visual clutter.
-    const BASE_ZOOM = (typeof initialData.zoom === 'number') ? initialData.zoom : ZION_ZOOM;
+    const BASE_ZOOM = typeof initialData.zoom === "number" ? initialData.zoom : ZION_ZOOM;
     function applyZoomScale() {
       const delta = BASE_ZOOM - map.getZoom();
       const c = map.getContainer();
-      c.classList.toggle('trail-zoom-shrink', delta === 1);
-      c.classList.toggle('trail-zoom-hide-labels', delta >= 2);
+      c.classList.toggle("trail-zoom-shrink", delta === 1);
+      c.classList.toggle("trail-zoom-hide-labels", delta >= 2);
     }
 
     // Drop the label this many pixels above-and-right of the pin
@@ -140,39 +140,50 @@ window.TrailMap = (function () {
         const ll = defaultLabelLatLng([pin.lat, pin.lng], idx);
         pin.labelLatLng = { lat: ll.lat, lng: ll.lng };
         pin._labelAuto = true;
-      } else if (typeof pin._labelAuto !== 'boolean') {
+      } else if (typeof pin._labelAuto !== "boolean") {
         pin._labelAuto = false;
       }
       const labelLL = L.latLng(pin.labelLatLng.lat, pin.labelLatLng.lng);
 
-      const kind = pin.kind || 'waypoint';
-      const note = pin.note || '';
+      const kind = pin.kind || "waypoint";
+      const note = pin.note || "";
       const coords = formatCoords(pin.lat, pin.lng);
-      const mapsHref = coords ? googleMapsUrl(pin.lat, pin.lng) : '';
+      const mapsHref = coords ? googleMapsUrl(pin.lat, pin.lng) : "";
       const coordsBlock = coords
         ? '<div class="trail-label__coords-row">' +
-            '<button type="button" class="trail-label__coords" data-coords="' + escapeAttr(coords) +
-              '" title="click to copy (paste into Google Maps)">' +
-              '<span class="trail-label__coords-text">' + escapeHtml(coords) + '</span>' +
-              '<span class="trail-label__coords-feedback" aria-hidden="true">copied</span>' +
-            '</button>' +
-            '<a class="trail-label__maps-link" href="' + escapeAttr(mapsHref) +
-              '" target="_blank" rel="noopener noreferrer"' +
-              ' title="open in Google Maps" aria-label="open in Google Maps"></a>' +
-          '</div>'
-        : '';
-      const html = '<div class="trail-label is-' + escapeAttr(kind) + '" title="drag to move">' +
-        '<span class="trail-label__kind is-' + escapeAttr(kind) + '">' + escapeHtml(kind) + '</span>' +
-        (note ? '<span class="trail-label__note">' + escapeHtml(note) + '</span>' : '') +
+          '<button type="button" class="trail-label__coords" data-coords="' +
+          escapeAttr(coords) +
+          '" title="click to copy (paste into Google Maps)">' +
+          '<span class="trail-label__coords-text">' +
+          escapeHtml(coords) +
+          "</span>" +
+          '<span class="trail-label__coords-feedback" aria-hidden="true">copied</span>' +
+          "</button>" +
+          '<a class="trail-label__maps-link" href="' +
+          escapeAttr(mapsHref) +
+          '" target="_blank" rel="noopener noreferrer"' +
+          ' title="open in Google Maps" aria-label="open in Google Maps"></a>' +
+          "</div>"
+        : "";
+      const html =
+        '<div class="trail-label is-' +
+        escapeAttr(kind) +
+        '" title="drag to move">' +
+        '<span class="trail-label__kind is-' +
+        escapeAttr(kind) +
+        '">' +
+        escapeHtml(kind) +
+        "</span>" +
+        (note ? '<span class="trail-label__note">' + escapeHtml(note) + "</span>" : "") +
         coordsBlock +
-        '</div>';
+        "</div>";
 
       // iconSize [0,0] + the !important auto-size CSS below lets the
       // wrapper hug the actual content. Otherwise Leaflet hands us a
       // fixed box whose transparent area would either swallow map
       // clicks or leave the drag handle larger than the visible label.
       const icon = L.divIcon({
-        className: 'trail-label-wrap',
+        className: "trail-label-wrap",
         html,
         iconSize: [0, 0],
         iconAnchor: [0, 0],
@@ -182,11 +193,11 @@ window.TrailMap = (function () {
       const pinLL = L.latLng(pin.lat, pin.lng);
 
       const leader = L.polyline([labelLL, pinLL], {
-        color: 'rgba(13, 17, 23, 0.55)',
+        color: "rgba(13, 17, 23, 0.55)",
         weight: 1.5,
-        dashArray: '3 4',
+        dashArray: "3 4",
         interactive: false,
-        className: 'trail-leader',
+        className: "trail-leader",
       });
       leader.addTo(leaderLayer);
       m._leader = leader;
@@ -198,7 +209,7 @@ window.TrailMap = (function () {
       // time the label could have moved or resized.
       function syncLeader() {
         const el = m.getElement();
-        const inner = el && el.querySelector('.trail-label');
+        const inner = el && el.querySelector(".trail-label");
         if (!inner) {
           leader.setLatLngs([m.getLatLng(), pinLL]);
           return;
@@ -210,23 +221,23 @@ window.TrailMap = (function () {
       }
       m._syncLeader = syncLeader;
       // Wait for the label DOM to actually exist before measuring.
-      m.once('add', function () {
+      m.once("add", function () {
         requestAnimationFrame(syncLeader);
         const el = m.getElement();
         if (!el) return;
-        const btn = el.querySelector('.trail-label__coords');
+        const btn = el.querySelector(".trail-label__coords");
         if (btn) wireCoordsCopy(btn);
-        const link = el.querySelector('.trail-label__maps-link');
+        const link = el.querySelector(".trail-label__maps-link");
         if (link) wireDragSwallow(link);
       });
 
-      m.on('drag', syncLeader);
-      m.on('dragend', function () {
+      m.on("drag", syncLeader);
+      m.on("dragend", function () {
         const ll = m.getLatLng();
         pin.labelLatLng = { lat: ll.lat, lng: ll.lng };
         pin._labelAuto = false;
         syncLeader();
-        if (typeof onLabelDrag.fn === 'function') onLabelDrag.fn(pin);
+        if (typeof onLabelDrag.fn === "function") onLabelDrag.fn(pin);
       });
 
       return m;
@@ -238,8 +249,11 @@ window.TrailMap = (function () {
       // dots we use a divIcon with inline styling so we don't ship an
       // image asset for every kind.
       const icon = L.divIcon({
-        className: 'trail-pin-icon trail-pin-icon--' + (pin.kind || 'waypoint'),
-        html: '<span style="display:block;width:14px;height:14px;border-radius:50%;background:' + color + ';border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.3);"></span>',
+        className: "trail-pin-icon trail-pin-icon--" + (pin.kind || "waypoint"),
+        html:
+          '<span style="display:block;width:14px;height:14px;border-radius:50%;background:' +
+          color +
+          ';border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.3);"></span>',
         iconSize: [14, 14],
         iconAnchor: [7, 7],
       });
@@ -256,7 +270,7 @@ window.TrailMap = (function () {
         color,
         weight: 4,
         opacity: 0.85,
-        dashArray: seg.kind === 'scramble' ? '6 6' : null,
+        dashArray: seg.kind === "scramble" ? "6 6" : null,
       });
       // Reader never tooltips segments. The line's colour already
       // conveys the kind. Editor wires its own edit popup via
@@ -272,7 +286,7 @@ window.TrailMap = (function () {
       leaderLayer.clearLayers();
       let pinIdx = 0;
       for (const pin of state.pins) {
-        if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') continue;
+        if (typeof pin.lat !== "number" || typeof pin.lng !== "number") continue;
         pinMarker(pin).addTo(pinLayer);
         pinLabel(pin, pinIdx).addTo(labelLayer);
         pinIdx++;
@@ -283,8 +297,8 @@ window.TrailMap = (function () {
       }
       if (statusEl) {
         const updated = initialData.updatedAt ? new Date(initialData.updatedAt) : null;
-        statusEl.textContent = state.pins.length + ' pin(s), ' + state.segments.length + ' segment(s)' +
-          (updated ? ' · updated ' + updated.toLocaleDateString() : '');
+        statusEl.textContent =
+          state.pins.length + " pin(s), " + state.segments.length + " segment(s)" + (updated ? " · updated " + updated.toLocaleDateString() : "");
       }
     }
 
@@ -305,24 +319,29 @@ window.TrailMap = (function () {
     };
   }
 
-  function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-  function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function escapeAttr(s) {
+    return escapeHtml(s).replace(/"/g, "&quot;");
+  }
   function formatCoords(lat, lng) {
-    if (typeof lat !== 'number' || typeof lng !== 'number') return '';
-    return lat.toFixed(5) + ', ' + lng.toFixed(5);
+    if (typeof lat !== "number" || typeof lng !== "number") return "";
+    return lat.toFixed(5) + ", " + lng.toFixed(5);
   }
   function googleMapsUrl(lat, lng) {
-    if (typeof lat !== 'number' || typeof lng !== 'number') return '';
+    if (typeof lat !== "number" || typeof lng !== "number") return "";
     // search/?api=1 is Google's documented universal entry point: it
     // deep-links to the native Maps app on iOS/Android and falls back
     // to the web map on desktop. The lat,lng query renders a pin
     // exactly at the coordinate.
-    return 'https://www.google.com/maps/search/?api=1&query=' +
-      encodeURIComponent(lat.toFixed(6) + ',' + lng.toFixed(6));
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(lat.toFixed(6) + "," + lng.toFixed(6));
   }
   function wireDragSwallow(el) {
-    const swallow = function (e) { e.stopPropagation(); };
-    ['mousedown', 'touchstart', 'pointerdown', 'dblclick'].forEach(function (evt) {
+    const swallow = function (e) {
+      e.stopPropagation();
+    };
+    ["mousedown", "touchstart", "pointerdown", "dblclick"].forEach(function (evt) {
       el.addEventListener(evt, swallow);
     });
   }
@@ -330,40 +349,45 @@ window.TrailMap = (function () {
     // Stop drag/zoom events at the button so the parent label marker
     // doesn't start a Leaflet drag when the user goes to copy.
     wireDragSwallow(btn);
-    btn.addEventListener('click', function (e) {
+    btn.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
-      const text = btn.getAttribute('data-coords') || btn.textContent || '';
-      const fb = btn.querySelector('.trail-label__coords-feedback');
+      const text = btn.getAttribute("data-coords") || btn.textContent || "";
+      const fb = btn.querySelector(".trail-label__coords-feedback");
       copyText(text).then(function (ok) {
-        if (fb) fb.textContent = ok ? 'copied' : 'copy failed';
-        btn.classList.remove('is-copied', 'is-failed');
+        if (fb) fb.textContent = ok ? "copied" : "copy failed";
+        btn.classList.remove("is-copied", "is-failed");
         void btn.offsetWidth;
-        btn.classList.add(ok ? 'is-copied' : 'is-failed');
+        btn.classList.add(ok ? "is-copied" : "is-failed");
         window.setTimeout(function () {
-          btn.classList.remove('is-copied', 'is-failed');
+          btn.classList.remove("is-copied", "is-failed");
         }, 1200);
       });
     });
   }
   function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text).then(function () { return true; }, function () {
-        return fallbackCopy(text);
-      });
+      return navigator.clipboard.writeText(text).then(
+        function () {
+          return true;
+        },
+        function () {
+          return fallbackCopy(text);
+        }
+      );
     }
     return Promise.resolve(fallbackCopy(text));
   }
   function fallbackCopy(text) {
     try {
-      const ta = document.createElement('textarea');
+      const ta = document.createElement("textarea");
       ta.value = text;
-      ta.setAttribute('readonly', '');
-      ta.style.position = 'absolute';
-      ta.style.left = '-9999px';
+      ta.setAttribute("readonly", "");
+      ta.style.position = "absolute";
+      ta.style.left = "-9999px";
       document.body.appendChild(ta);
       ta.select();
-      const ok = document.execCommand && document.execCommand('copy');
+      const ok = document.execCommand && document.execCommand("copy");
       document.body.removeChild(ta);
       return !!ok;
     } catch (_) {

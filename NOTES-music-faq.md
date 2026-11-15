@@ -27,10 +27,10 @@ small chord side. From `assets/js/music/stradella-data.js`:
 
 For E♭7 (= E♭ G B♭ D♭):
 
-| Voicing | Bass + button | Notes produced | Match for E♭7 |
-|---|---|---|---|
-| "7" on E♭ | E♭ bass + E♭-7 button | E♭ G D♭ | missing the B♭ |
-| "5d7" on E♭ | E♭ bass + B♭-d7 button | E♭ + B♭ D♭ G | exact, all four |
+| Voicing     | Bass + button          | Notes produced | Match for E♭7   |
+| ----------- | ---------------------- | -------------- | --------------- |
+| "7" on E♭   | E♭ bass + E♭-7 button  | E♭ G D♭        | missing the B♭  |
+| "5d7" on E♭ | E♭ bass + B♭-d7 button | E♭ + B♭ D♭ G   | exact, all four |
 
 The B♭-d7 button (B♭, D♭, G) lays out, relative to E♭, as **5–♭7–3**
 — that's the explanatory line you see in the inspector
@@ -54,6 +54,7 @@ B♭ D♭ F: nails the ♭7 but loses the major 3rd. The inspector flags
 that approximation in orange.
 
 Sources:
+
 - `assets/js/music/stradella-data.js` lines 11–12 (button intervals),
   111–117 (the "7" entry with `5d7 = 5–♭7–3` note and the m fallback).
 - `assets/js/music/stradella-recipe.js` (`render(chordName)`).
@@ -67,7 +68,7 @@ Sources:
 register regardless of which chord you press, so swapping the E♭-7
 button for the B♭-d7 button doesn't move pitch down — it just trades
 which three notes light up inside that fixed register. The 5d7 is
-*fuller*, not lower.
+_fuller_, not lower.
 
 **Long answer.**
 
@@ -79,13 +80,13 @@ three pitches, not where. (Bass row is the part that's actually low
 
 For E♭7 with E♭ bass:
 
-| Voicing | Bass press | Chord button sounds (approx) | Combined |
-|---|---|---|---|
-| Bare 7 | E♭2 + E♭3 | E♭3 + G3 + D♭4 | E♭2, E♭3 *doubled*, G3, D♭4 |
-| 5d7 trick | E♭2 + E♭3 | B♭3 + D♭4 + G3 | E♭2, E♭3, G3, **B♭3**, D♭4 |
+| Voicing   | Bass press | Chord button sounds (approx) | Combined                    |
+| --------- | ---------- | ---------------------------- | --------------------------- |
+| Bare 7    | E♭2 + E♭3  | E♭3 + G3 + D♭4               | E♭2, E♭3 _doubled_, G3, D♭4 |
+| 5d7 trick | E♭2 + E♭3  | B♭3 + D♭4 + G3               | E♭2, E♭3, G3, **B♭3**, D♭4  |
 
-Same E♭ bass. Same G3, same D♭4. The 5d7 swap *removes* the
-redundant E♭3 doubling that the bass already covers and *adds* the
+Same E♭ bass. Same G3, same D♭4. The 5d7 swap _removes_ the
+redundant E♭3 doubling that the bass already covers and _adds_ the
 missing 5th (B♭3). Strictly an upgrade in chord completeness, no
 register change.
 
@@ -106,6 +107,7 @@ register change.
 Pitch-wise, no test needed: it will not drop.
 
 Sources:
+
 - Stradella reed layout convention (chord-button close-position
   voicing in a fixed octave, bass-row octave coupling): general
   accordion reference, e.g. Bartolomeo Bortolazzi or any 120-bass

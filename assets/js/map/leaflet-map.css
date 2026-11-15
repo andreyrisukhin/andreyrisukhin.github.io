@@ -57,7 +57,7 @@
   color: #f0f6fc;
   padding: 5px 9px;
   border-radius: 5px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 0.82rem;
   line-height: 1.35;
   font-weight: 500;
@@ -71,14 +71,30 @@
   border-left: 3px solid #4f4f4f;
   transition: transform 0.15s ease;
 }
-.trail-label:hover { transform: scale(1.04); }
-.trail-label:active { cursor: grabbing; }
-.trail-label.is-parking   { border-left-color: #1f6feb; }
-.trail-label.is-viewpoint { border-left-color: #2da44e; }
-.trail-label.is-decision  { border-left-color: #b07000; }
-.trail-label.is-warning   { border-left-color: #cf222e; }
-.trail-label.is-end       { border-left-color: #6e40c9; }
-.trail-label.is-waypoint  { border-left-color: #4f4f4f; }
+.trail-label:hover {
+  transform: scale(1.04);
+}
+.trail-label:active {
+  cursor: grabbing;
+}
+.trail-label.is-parking {
+  border-left-color: #1f6feb;
+}
+.trail-label.is-viewpoint {
+  border-left-color: #2da44e;
+}
+.trail-label.is-decision {
+  border-left-color: #b07000;
+}
+.trail-label.is-warning {
+  border-left-color: #cf222e;
+}
+.trail-label.is-end {
+  border-left-color: #6e40c9;
+}
+.trail-label.is-waypoint {
+  border-left-color: #4f4f4f;
+}
 .trail-label__kind {
   display: inline-block;
   font-size: 0.65rem;
@@ -90,12 +106,24 @@
   padding: 1px 5px;
   border-radius: 3px;
 }
-.trail-label__kind.is-parking   { background: #1f6feb; }
-.trail-label__kind.is-viewpoint { background: #2da44e; }
-.trail-label__kind.is-decision  { background: #b07000; }
-.trail-label__kind.is-warning   { background: #cf222e; }
-.trail-label__kind.is-end       { background: #6e40c9; }
-.trail-label__kind.is-waypoint  { background: #4f4f4f; }
+.trail-label__kind.is-parking {
+  background: #1f6feb;
+}
+.trail-label__kind.is-viewpoint {
+  background: #2da44e;
+}
+.trail-label__kind.is-decision {
+  background: #b07000;
+}
+.trail-label__kind.is-warning {
+  background: #cf222e;
+}
+.trail-label__kind.is-end {
+  background: #6e40c9;
+}
+.trail-label__kind.is-waypoint {
+  background: #4f4f4f;
+}
 .trail-label__note {
   color: #f0f6fc;
   word-break: break-word;
@@ -125,17 +153,22 @@
   cursor: copy;
   user-select: text;
   -webkit-user-select: text;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 .trail-label__coords::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 8px;
   height: 8px;
   flex: 0 0 auto;
   background-color: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M10 1H4a2 2 0 0 0-2 2v8h2V3h6V1zm3 3H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 10H7V6h6v8z'/></svg>") center / contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M10 1H4a2 2 0 0 0-2 2v8h2V3h6V1zm3 3H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 10H7V6h6v8z'/></svg>") center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M10 1H4a2 2 0 0 0-2 2v8h2V3h6V1zm3 3H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 10H7V6h6v8z'/></svg>")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M10 1H4a2 2 0 0 0-2 2v8h2V3h6V1zm3 3H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 10H7V6h6v8z'/></svg>")
+    center / contain no-repeat;
   opacity: 0.75;
 }
 .trail-label__coords:hover {
@@ -147,7 +180,9 @@
   outline: 2px solid #58a6ff;
   outline-offset: 1px;
 }
-.trail-label__coords:active { background: rgba(255, 255, 255, 0.18); }
+.trail-label__coords:active {
+  background: rgba(255, 255, 255, 0.18);
+}
 .trail-label__coords-feedback {
   position: absolute;
   inset: 0;
@@ -158,7 +193,7 @@
   color: #fff;
   border-radius: inherit;
   font-weight: 600;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-size: 0.6rem;
@@ -167,8 +202,12 @@
   transition: opacity 0.15s ease;
 }
 .trail-label__coords.is-copied .trail-label__coords-feedback,
-.trail-label__coords.is-failed .trail-label__coords-feedback { opacity: 1; }
-.trail-label__coords.is-failed .trail-label__coords-feedback { background: #cf222e; }
+.trail-label__coords.is-failed .trail-label__coords-feedback {
+  opacity: 1;
+}
+.trail-label__coords.is-failed .trail-label__coords-feedback {
+  background: #cf222e;
+}
 .trail-label__maps-link {
   display: inline-flex;
   align-items: center;
@@ -181,16 +220,21 @@
   color: #b0b8c2;
   text-decoration: none !important;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 .trail-label__maps-link::before {
-  content: '';
+  content: "";
   display: block;
   width: 10px;
   height: 10px;
   background-color: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 0a5.5 5.5 0 0 0-5.5 5.5c0 4.125 5.5 10.5 5.5 10.5s5.5-6.375 5.5-10.5A5.5 5.5 0 0 0 8 0zm0 7.75A2.25 2.25 0 1 1 8 3.25a2.25 2.25 0 0 1 0 4.5z'/></svg>") center / contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 0a5.5 5.5 0 0 0-5.5 5.5c0 4.125 5.5 10.5 5.5 10.5s5.5-6.375 5.5-10.5A5.5 5.5 0 0 0 8 0zm0 7.75A2.25 2.25 0 1 1 8 3.25a2.25 2.25 0 0 1 0 4.5z'/></svg>") center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 0a5.5 5.5 0 0 0-5.5 5.5c0 4.125 5.5 10.5 5.5 10.5s5.5-6.375 5.5-10.5A5.5 5.5 0 0 0 8 0zm0 7.75A2.25 2.25 0 1 1 8 3.25a2.25 2.25 0 0 1 0 4.5z'/></svg>")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 0a5.5 5.5 0 0 0-5.5 5.5c0 4.125 5.5 10.5 5.5 10.5s5.5-6.375 5.5-10.5A5.5 5.5 0 0 0 8 0zm0 7.75A2.25 2.25 0 1 1 8 3.25a2.25 2.25 0 0 1 0 4.5z'/></svg>")
+    center / contain no-repeat;
 }
 .trail-label__maps-link:hover {
   color: #f0f6fc;
@@ -210,7 +254,9 @@
 .trail-label,
 .trail-label-wrap,
 .trail-leader {
-  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.18s ease-out;
 }
 .trail-zoom-shrink .trail-label {
   font-size: 0.66rem;
@@ -255,7 +301,9 @@
   margin: 12px 14px !important;
   font-weight: 500;
 }
-.leaflet-popup-tip { background: #ffffff !important; }
+.leaflet-popup-tip {
+  background: #ffffff !important;
+}
 
 /* ── Pin marker affordance ────────────────────────────────────────
  * The dot itself is an inline-styled <span> inside the divIcon
@@ -264,26 +312,38 @@
  * fight with positioning). A continuous gentle pulse telegraphs
  * "I am clickable"; hover/focus bumps the dot up to ~1.5x.
  */
-.trail-pin-icon { cursor: pointer; }
+.trail-pin-icon {
+  cursor: pointer;
+}
 .trail-pin-icon > span {
   transform-origin: center;
-  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.18s ease-out;
   animation: trail-pin-pulse 2.6s ease-in-out infinite;
   will-change: transform;
 }
 .trail-pin-icon:hover > span,
 .trail-pin-icon:focus-visible > span {
   transform: scale(1.55);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95),
-              0 0 0 4px rgba(0, 0, 0, 0.55) !important;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.95),
+    0 0 0 4px rgba(0, 0, 0, 0.55) !important;
   animation-play-state: paused;
 }
 @keyframes trail-pin-pulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.15); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .trail-pin-icon > span { animation: none; }
+  .trail-pin-icon > span {
+    animation: none;
+  }
 }
 
 /* ── Dev editor panel ───────────────────────────────────────────────
@@ -301,7 +361,7 @@
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
   padding: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 0.78rem;
   display: flex;
   flex-direction: column;
@@ -309,7 +369,11 @@
   min-width: 170px;
   max-width: 220px;
 }
-.trail-editor__row { display: flex; gap: 4px; flex-wrap: wrap; }
+.trail-editor__row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
 .trail-editor__btn {
   background: #f6f8fa;
   border: 1px solid rgba(0, 0, 0, 0.16);
@@ -319,7 +383,9 @@
   cursor: pointer;
   flex: 1 1 auto;
 }
-.trail-editor__btn:hover { background: #eef0f3; }
+.trail-editor__btn:hover {
+  background: #eef0f3;
+}
 .trail-editor__btn.is-active {
   background: #1f6feb;
   color: #fff;
@@ -330,7 +396,9 @@
   color: #fff;
   border-color: #2da44e;
 }
-.trail-editor__btn.is-save:hover { background: #25893f; }
+.trail-editor__btn.is-save:hover {
+  background: #25893f;
+}
 .trail-editor__btn.is-save.is-dirty {
   background: #d29922;
   border-color: #d29922;
@@ -349,14 +417,16 @@
 
 /* Pin / segment edit form inside Leaflet popup */
 .trail-edit-form {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 0.85rem;
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 200px;
 }
-.trail-edit-form { color: #1f2328; }
+.trail-edit-form {
+  color: #1f2328;
+}
 .trail-edit-form select,
 .trail-edit-form textarea {
   font: inherit;
@@ -366,20 +436,34 @@
   background: #fff;
   color: #1f2328;
 }
-.trail-edit-form textarea::placeholder { color: #8c959f; }
+.trail-edit-form textarea::placeholder {
+  color: #8c959f;
+}
 .trail-edit-form textarea {
   min-height: 60px;
   resize: vertical;
 }
-.trail-edit-form__actions { display: flex; gap: 6px; justify-content: flex-end; }
+.trail-edit-form__actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
 .trail-edit-form__actions button {
   font: inherit;
   padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
 }
-.trail-edit-form__btn-save { background: #2da44e; color: #fff; border: 1px solid #2da44e; }
-.trail-edit-form__btn-delete { background: #cf222e; color: #fff; border: 1px solid #cf222e; }
+.trail-edit-form__btn-save {
+  background: #2da44e;
+  color: #fff;
+  border: 1px solid #2da44e;
+}
+.trail-edit-form__btn-delete {
+  background: #cf222e;
+  color: #fff;
+  border: 1px solid #cf222e;
+}
 
 /* Items list inside the editor panel */
 .trail-editor__items {
@@ -393,7 +477,9 @@
   padding: 2px 0;
   color: #57606a;
 }
-.trail-editor__items > summary:hover { color: #1f6feb; }
+.trail-editor__items > summary:hover {
+  color: #1f6feb;
+}
 .trail-editor__items-body {
   display: flex;
   flex-direction: column;
@@ -432,9 +518,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.trail-editor__item-focus:hover { color: #1f6feb; }
-.trail-editor__item-kind { font-weight: 600; }
-.trail-editor__item-id { color: #8c959f; font-size: 0.65rem; }
+.trail-editor__item-focus:hover {
+  color: #1f6feb;
+}
+.trail-editor__item-kind {
+  font-weight: 600;
+}
+.trail-editor__item-id {
+  color: #8c959f;
+  font-size: 0.65rem;
+}
 .trail-editor__item-del {
   flex: 0 0 auto;
   background: transparent;
@@ -448,24 +541,35 @@
   cursor: pointer;
   padding: 0;
 }
-.trail-editor__item-del:hover { background: #cf222e; color: #fff; }
+.trail-editor__item-del:hover {
+  background: #cf222e;
+  color: #fff;
+}
 
-html[data-theme="dark"] .trail-editor__items > summary { color: #b0b3bb; }
+html[data-theme="dark"] .trail-editor__items > summary {
+  color: #b0b3bb;
+}
 html[data-theme="dark"] .trail-editor__item {
   background: #2a2d36;
   border-color: rgba(255, 255, 255, 0.1);
 }
-html[data-theme="dark"] .trail-editor__item-id { color: #6e7280; }
+html[data-theme="dark"] .trail-editor__item-id {
+  color: #6e7280;
+}
 
 /* Wrap the map div so the editor panel can position-absolute over it. */
-.trail-map-wrap { position: relative; }
+.trail-map-wrap {
+  position: relative;
+}
 
 /* Dark theme: the OSM tiles themselves stay light, but the chrome
  * around them adapts so it doesn't glare on a dark page. */
 html[data-theme="dark"] .trail-map {
   border-color: rgba(255, 255, 255, 0.18);
 }
-html[data-theme="dark"] .trail-status { color: #aaa; }
+html[data-theme="dark"] .trail-status {
+  color: #aaa;
+}
 html[data-theme="dark"] .trail-editor {
   background: rgba(40, 42, 54, 0.96);
   border-color: rgba(255, 255, 255, 0.2);
@@ -476,5 +580,10 @@ html[data-theme="dark"] .trail-editor__btn {
   color: #f5f5f7;
   border-color: rgba(255, 255, 255, 0.2);
 }
-html[data-theme="dark"] .trail-editor__btn:hover { background: #353844; }
-html[data-theme="dark"] .trail-editor__status { color: #b0b3bb; border-color: rgba(255, 255, 255, 0.08); }
+html[data-theme="dark"] .trail-editor__btn:hover {
+  background: #353844;
+}
+html[data-theme="dark"] .trail-editor__status {
+  color: #b0b3bb;
+  border-color: rgba(255, 255, 255, 0.08);
+}

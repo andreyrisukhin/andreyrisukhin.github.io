@@ -14,9 +14,7 @@ document.addEventListener("readystatechange", () => {
       backup.after(chartElement);
 
       /* create echarts */
-      const chart = echartsTheme === "dark"
-        ? echarts.init(chartElement, "dark-fresh-cut")
-        : echarts.init(chartElement);
+      const chart = echartsTheme === "dark" ? echarts.init(chartElement, "dark-fresh-cut") : echarts.init(chartElement);
 
       chart.setOption(JSON.parse(jsonData));
       window.addEventListener("resize", function () {

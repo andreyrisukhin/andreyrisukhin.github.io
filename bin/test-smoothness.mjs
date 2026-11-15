@@ -12,18 +12,18 @@
  * Exit:  0 on pass, 1 on first failure.
  */
 
-import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { execFileSync } from "node:child_process";
+import { readFileSync, existsSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, '..');
+const ROOT = resolve(__dirname, "..");
 
-const PAGE = 'http://localhost:4000/music/sheet/cogwork-dancers/';
-const SIDECAR = 'http://127.0.0.1:4001';
-const PATHNAME = '/music/sheet/cogwork-dancers/';
-const ANNOT_FILE = resolve(ROOT, '.dev-annotations/music-sheet-cogwork-dancers.json');
+const PAGE = "http://localhost:4000/music/sheet/cogwork-dancers/";
+const SIDECAR = "http://127.0.0.1:4001";
+const PATHNAME = "/music/sheet/cogwork-dancers/";
+const ANNOT_FILE = resolve(ROOT, ".dev-annotations/music-sheet-cogwork-dancers.json");
 
 const THRESHOLDS = {
   clickToPinMs: 300,
@@ -35,13 +35,13 @@ let passed = 0;
 let failed = 0;
 
 function ab(args, { stdin } = {}) {
-  const opts = { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, cwd: ROOT };
+  const opts = { encoding: "utf8", maxBuffer: 32 * 1024 * 1024, cwd: ROOT };
   if (stdin !== undefined) opts.input = stdin;
-  return execFileSync('agent-browser', args, opts);
+  return execFileSync("agent-browser", args, opts);
 }
 
 function evalJs(js) {
-  const raw = ab(['eval', '--stdin'], { stdin: js });
+  const raw = ab(["eval", "--stdin"], { stdin: js });
   const text = raw.trim();
   if (!text) return null;
   return JSON.parse(text);
@@ -66,26 +66,31 @@ function section(title) {
 
 function checkSidecarUp() {
   try {
-    execFileSync('curl', ['-sSf', '-m', '3', `${SIDECAR}/health`], { stdio: 'pipe' });
+    execFileSync("curl", ["-sSf", "-m", "3", `${SIDECAR}/health`], { stdio: "pipe" });
     return true;
-  } catch (_) { return false; }
+  } catch (_) {
+    return false;
+  }
 }
 
 function readSidecar() {
   if (!existsSync(ANNOT_FILE)) return { pins: [] };
-  return JSON.parse(readFileSync(ANNOT_FILE, 'utf8'));
+  return JSON.parse(readFileSync(ANNOT_FILE, "utf8"));
 }
 
 async function main() {
-  section('Preflight');
-  assert(checkSidecarUp(), 'sidecar responds on :4001');
-  if (failed) { summarize(); process.exit(1); }
+  section("Preflight");
+  assert(checkSidecarUp(), "sidecar responds on :4001");
+  if (failed) {
+    summarize();
+    process.exit(1);
+  }
 
-  ab(['open', PAGE]);
-  ab(['wait', '--load', 'networkidle']);
-  ab(['wait', '--fn', 'window.__sheetMusic && window.__sheetMusic.ready']);
+  ab(["open", PAGE]);
+  ab(["wait", "--load", "networkidle"]);
+  ab(["wait", "--fn", "window.__sheetMusic && window.__sheetMusic.ready"]);
 
-  section('Reset state');
+  section("Reset state");
   evalJs(`
     (async () => {
       localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
@@ -100,12 +105,12 @@ async function main() {
       return 'ok';
     })();
   `);
-  ab(['reload']);
-  ab(['wait', '--fn', 'window.__sheetMusic && window.__sheetMusic.ready']);
+  ab(["reload"]);
+  ab(["wait", "--fn", "window.__sheetMusic && window.__sheetMusic.ready"]);
   const initial = evalJs(`document.querySelectorAll('[data-sheet-pin]').length`);
-  assert(initial === 0, 'page starts with zero pins', initial);
+  assert(initial === 0, "page starts with zero pins", initial);
 
-  section('Scenario A — notehead shift-click');
+  section("Scenario A — notehead shift-click");
   const a = evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
@@ -134,12 +139,18 @@ async function main() {
     })();
   `);
   const aTimings = JSON.parse(a);
-  assert(aTimings.clickToPinMs != null && aTimings.clickToPinMs < THRESHOLDS.clickToPinMs,
-    `click \u2192 pin DOM < ${THRESHOLDS.clickToPinMs}ms (got ${aTimings.clickToPinMs})`, aTimings);
-  assert(aTimings.clickToSidebarMs != null && aTimings.clickToSidebarMs < THRESHOLDS.clickToSidebarMs,
-    `click \u2192 sidebar open < ${THRESHOLDS.clickToSidebarMs}ms (got ${aTimings.clickToSidebarMs})`, aTimings);
+  assert(
+    aTimings.clickToPinMs != null && aTimings.clickToPinMs < THRESHOLDS.clickToPinMs,
+    `click \u2192 pin DOM < ${THRESHOLDS.clickToPinMs}ms (got ${aTimings.clickToPinMs})`,
+    aTimings
+  );
+  assert(
+    aTimings.clickToSidebarMs != null && aTimings.clickToSidebarMs < THRESHOLDS.clickToSidebarMs,
+    `click \u2192 sidebar open < ${THRESHOLDS.clickToSidebarMs}ms (got ${aTimings.clickToSidebarMs})`,
+    aTimings
+  );
 
-  section('Scenario B — chord symbol shift-click');
+  section("Scenario B — chord symbol shift-click");
   // Static chord symbols are now hidden in the rendered score, so we
   // inject a synthetic .vf-text > text reading 'Cm' inside the SVG just
   // for this click. The classifier doesn't care how the text got there,
@@ -169,7 +180,7 @@ async function main() {
     })();
   `);
 
-  section('Scenario C — empty-space shift-click');
+  section("Scenario C — empty-space shift-click");
   evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
@@ -183,26 +194,29 @@ async function main() {
     })();
   `);
 
-  section('Verify saved pin kinds');
+  section("Verify saved pin kinds");
   const saved = readSidecar();
   assert(saved.pins.length === 3, `sidecar has 3 pins`, saved.pins.length);
-  const kinds = saved.pins.map(p => p.identity?.kind);
-  assert(kinds[0] === 'notehead', `pin 1 kind = notehead`, kinds[0]);
+  const kinds = saved.pins.map((p) => p.identity?.kind);
+  assert(kinds[0] === "notehead", `pin 1 kind = notehead`, kinds[0]);
   assert(saved.pins[0].identity?.pitches?.length > 0, `pin 1 has pitches`, saved.pins[0].identity?.pitches);
-  assert(/^[A-G][#b]?\d$/.test(saved.pins[0].identity?.pitches?.[0] || ''),
-    `pin 1 pitch is SPN (letter+acc+octave)`, saved.pins[0].identity?.pitches?.[0]);
-  assert(kinds[1] === 'chord-symbol', `pin 2 kind = chord-symbol`, kinds[1]);
-  assert(saved.pins[1].identity?.chordSymbol === 'Cm', `pin 2 chordSymbol = Cm`, saved.pins[1].identity?.chordSymbol);
-  assert(kinds[2] === 'region', `pin 3 kind = region (no phantom notehead)`, kinds[2]);
+  assert(
+    /^[A-G][#b]?\d$/.test(saved.pins[0].identity?.pitches?.[0] || ""),
+    `pin 1 pitch is SPN (letter+acc+octave)`,
+    saved.pins[0].identity?.pitches?.[0]
+  );
+  assert(kinds[1] === "chord-symbol", `pin 2 kind = chord-symbol`, kinds[1]);
+  assert(saved.pins[1].identity?.chordSymbol === "Cm", `pin 2 chordSymbol = Cm`, saved.pins[1].identity?.chordSymbol);
+  assert(kinds[2] === "region", `pin 3 kind = region (no phantom notehead)`, kinds[2]);
   assert(!saved.pins[2].identity?.pitches?.length, `pin 3 has no pitches`, saved.pins[2].identity?.pitches);
 
-  section('Thumbnail rasterization');
+  section("Thumbnail rasterization");
   for (const p of saved.pins) {
     const size = p.identity?.thumbnail?.length || 0;
     assert(size > 1000, `pin ${p.id} thumbnail > 1KB (got ${size}B)`, size);
   }
 
-  section('Scenario D — keystroke \u2192 sidecar save latency');
+  section("Scenario D — keystroke \u2192 sidecar save latency");
   const dEarly = evalJs(`
     (async () => {
       const ta = document.querySelector('.sheet-annotator-entry__note');
@@ -226,12 +240,15 @@ async function main() {
     })();
   `);
   const dTimingEarly = JSON.parse(dEarly);
-  assert(dTimingEarly.saveMs != null && dTimingEarly.saveMs < THRESHOLDS.keystrokeToSaveMs,
-    `keystroke \u2192 sidecar save < ${THRESHOLDS.keystrokeToSaveMs}ms (got ${dTimingEarly.saveMs})`, dTimingEarly);
+  assert(
+    dTimingEarly.saveMs != null && dTimingEarly.saveMs < THRESHOLDS.keystrokeToSaveMs,
+    `keystroke \u2192 sidecar save < ${THRESHOLDS.keystrokeToSaveMs}ms (got ${dTimingEarly.saveMs})`,
+    dTimingEarly
+  );
 
-  section('Scenario E — reload persistence');
-  ab(['reload']);
-  ab(['wait', '--fn', 'window.__sheetMusic && window.__sheetMusic.ready']);
+  section("Scenario E — reload persistence");
+  ab(["reload"]);
+  ab(["wait", "--fn", "window.__sheetMusic && window.__sheetMusic.ready"]);
   const afterEarly = evalJs(`
     (async () => {
       const deadline = performance.now() + 1000;
@@ -248,7 +265,7 @@ async function main() {
   assert(afterEarlyObj.pinCount === 3, `3 pins restored on reload`, afterEarlyObj);
   assert(afterEarlyObj.entryCount === 3, `3 sidebar entries restored`, afterEarlyObj);
 
-  section('Scenario F — chord / stacked notes disambiguate by Y');
+  section("Scenario F — chord / stacked notes disambiguate by Y");
   evalJs(`
     (async () => {
       localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
@@ -259,8 +276,8 @@ async function main() {
       return 'ok';
     })();
   `);
-  ab(['reload']);
-  ab(['wait', '--fn', 'window.__sheetMusic && window.__sheetMusic.ready']);
+  ab(["reload"]);
+  ab(["wait", "--fn", "window.__sheetMusic && window.__sheetMusic.ready"]);
   const chordData = evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
@@ -294,33 +311,33 @@ async function main() {
   `);
   const chord = JSON.parse(chordData);
   if (chord.skip) {
-    console.log('  (skipped: no chord stacks in score)');
+    console.log("  (skipped: no chord stacks in score)");
   } else {
-    assert(chord.pins.length === chord.expectedCount,
-      'one pin per chord note', chord.pins.length);
-    const uniqClicked = new Set(chord.pins.map(p => p.clicked));
-    assert(uniqClicked.size === chord.expectedCount,
-      'clicked pitches are distinct per notehead Y',
-      [...uniqClicked]);
+    assert(chord.pins.length === chord.expectedCount, "one pin per chord note", chord.pins.length);
+    const uniqClicked = new Set(chord.pins.map((p) => p.clicked));
+    assert(uniqClicked.size === chord.expectedCount, "clicked pitches are distinct per notehead Y", [...uniqClicked]);
     for (const p of chord.pins) {
-      assert(/^[A-G][#b]?\d$/.test(p.clicked || ''),
-        'pin ' + p.id + ' clickedPitch is SPN', p.clicked);
-      assert(p.pitches && p.pitches.includes(p.clicked),
-        'pin ' + p.id + ' pitches array contains clicked pitch',
-        {clicked: p.clicked, pitches: p.pitches});
-      assert((p.context || '').includes(p.clicked || 'xx'),
-        'pin ' + p.id + ' context label shows the clicked pitch, not another chord tone',
-        {clicked: p.clicked, context: p.context});
-      assert(typeof p.chordName === 'string' && p.chordName.length > 0,
-        'pin ' + p.id + ' has Tonal-detected chordName for the stack',
-        {chordName: p.chordName, pitches: p.pitches});
-      assert((p.context || '').includes(p.chordName || 'xx'),
-        'pin ' + p.id + ' context label leads with the chord name',
-        {chordName: p.chordName, context: p.context});
+      assert(/^[A-G][#b]?\d$/.test(p.clicked || ""), "pin " + p.id + " clickedPitch is SPN", p.clicked);
+      assert(p.pitches && p.pitches.includes(p.clicked), "pin " + p.id + " pitches array contains clicked pitch", {
+        clicked: p.clicked,
+        pitches: p.pitches,
+      });
+      assert((p.context || "").includes(p.clicked || "xx"), "pin " + p.id + " context label shows the clicked pitch, not another chord tone", {
+        clicked: p.clicked,
+        context: p.context,
+      });
+      assert(typeof p.chordName === "string" && p.chordName.length > 0, "pin " + p.id + " has Tonal-detected chordName for the stack", {
+        chordName: p.chordName,
+        pitches: p.pitches,
+      });
+      assert((p.context || "").includes(p.chordName || "xx"), "pin " + p.id + " context label leads with the chord name", {
+        chordName: p.chordName,
+        context: p.context,
+      });
     }
   }
 
-  section('Scenario G — rests get a rest label');
+  section("Scenario G — rests get a rest label");
   const restData = evalJs(`
     (async () => {
       localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
@@ -355,15 +372,13 @@ async function main() {
   `);
   const rest = JSON.parse(restData);
   if (rest.skip) {
-    console.log('  (skipped: ' + (rest.reason || 'no rests') + ')');
+    console.log("  (skipped: " + (rest.reason || "no rests") + ")");
   } else {
-    assert(/rest/i.test(rest.context || ''),
-      'rest pin context label says "rest"', rest.context);
-    assert(rest.isRest === true,
-      'rest pin identity.isRest === true', rest.isRest);
+    assert(/rest/i.test(rest.context || ""), 'rest pin context label says "rest"', rest.context);
+    assert(rest.isRest === true, "rest pin identity.isRest === true", rest.isRest);
   }
 
-  section('Scenario H — tied notes hover-resolve with isTied + chord context');
+  section("Scenario H — tied notes hover-resolve with isTied + chord context");
   // Find ties via OSMD's source-of-truth (sourceNote.NoteTie) instead of
   // scanning .vf-stavetie SVG elements. VexFlow uses .vf-stavetie for both
   // ties and slurs, so the SVG class isn't a reliable filter — we want the
@@ -449,21 +464,25 @@ async function main() {
   `);
   const tie = JSON.parse(tieData);
   if (tie.skip) {
-    console.log('  (skipped: ' + (tie.reason || 'no ties') + ')');
+    console.log("  (skipped: " + (tie.reason || "no ties") + ")");
   } else {
-    console.log('  sampled ' + tie.sampleCount + ' tied notes');
+    console.log("  sampled " + tie.sampleCount + " tied notes");
     const allTied = tie.checked.every((c) => c.got && c.got.isTied === true);
-    assert(allTied, 'every sampled tied source note hover-resolves with isTied=true',
-      tie.checked.filter((c) => !c.got || c.got.isTied !== true));
+    assert(
+      allTied,
+      "every sampled tied source note hover-resolves with isTied=true",
+      tie.checked.filter((c) => !c.got || c.got.isTied !== true)
+    );
     const allHavePitch = tie.checked.every((c) => c.got && c.got.clickedPitch);
-    assert(allHavePitch, 'every sampled tied note has a clickedPitch (not null)',
-      tie.checked.filter((c) => !c.got || !c.got.clickedPitch));
-    assert(tie.savedPin && tie.savedPin.isTied === true,
-      'shift-clicking a tied note saves identity.isTied === true',
-      tie.savedPin);
+    assert(
+      allHavePitch,
+      "every sampled tied note has a clickedPitch (not null)",
+      tie.checked.filter((c) => !c.got || !c.got.clickedPitch)
+    );
+    assert(tie.savedPin && tie.savedPin.isTied === true, "shift-clicking a tied note saves identity.isTied === true", tie.savedPin);
   }
 
-  section('Scenario J — click 1 sticky tag, click 2 escalates to inspector');
+  section("Scenario J — click 1 sticky tag, click 2 escalates to inspector");
   const inspector = evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
@@ -516,32 +535,21 @@ async function main() {
   `);
   const insp = JSON.parse(inspector);
   if (insp.skip) {
-    console.log('  (skipped: ' + insp.reason + ')');
+    console.log("  (skipped: " + insp.reason + ")");
   } else {
-    assert(insp.stage1.tagVisible === true,
-      'click 1: chord tag becomes visible', insp.stage1);
-    assert(insp.stage1.tagSticky === true,
-      'click 1: chord tag is marked sticky', insp.stage1);
-    assert(insp.stage1.popoverVisible === false,
-      'click 1: full inspector stays hidden', insp.stage1);
-    assert((insp.stage1.tagText || '').trim().length > 0,
-      'click 1: tag shows a chord/pitch label', insp.stage1.tagText);
-    assert(insp.stage2.popoverVisible === true,
-      'click 2 (on sticky tag): inspector becomes visible', insp.stage2);
-    assert(parseFloat(insp.stage2.popoverVisible ? '1' : '0') > 0.5,
-      'click 2: inspector visible flag set', insp.stage2);
-    assert((insp.stage2.title || '').length > 0,
-      'click 2: inspector shows a chord title', insp.stage2.title);
-    assert(insp.stage2.hasStradellaSection === true,
-      'click 2: inspector has Stradella section', insp.stage2);
-    assert(insp.stage2.stradellaItems >= 1,
-      'click 2: inspector lists at least one Stradella voicing',
-      insp.stage2);
-    assert(insp.stage3.popoverVisible === false && insp.stage3.tagVisible === false,
-      'click 3 on chord: tag and inspector both hide', insp.stage3);
+    assert(insp.stage1.tagVisible === true, "click 1: chord tag becomes visible", insp.stage1);
+    assert(insp.stage1.tagSticky === true, "click 1: chord tag is marked sticky", insp.stage1);
+    assert(insp.stage1.popoverVisible === false, "click 1: full inspector stays hidden", insp.stage1);
+    assert((insp.stage1.tagText || "").trim().length > 0, "click 1: tag shows a chord/pitch label", insp.stage1.tagText);
+    assert(insp.stage2.popoverVisible === true, "click 2 (on sticky tag): inspector becomes visible", insp.stage2);
+    assert(parseFloat(insp.stage2.popoverVisible ? "1" : "0") > 0.5, "click 2: inspector visible flag set", insp.stage2);
+    assert((insp.stage2.title || "").length > 0, "click 2: inspector shows a chord title", insp.stage2.title);
+    assert(insp.stage2.hasStradellaSection === true, "click 2: inspector has Stradella section", insp.stage2);
+    assert(insp.stage2.stradellaItems >= 1, "click 2: inspector lists at least one Stradella voicing", insp.stage2);
+    assert(insp.stage3.popoverVisible === false && insp.stage3.tagVisible === false, "click 3 on chord: tag and inspector both hide", insp.stage3);
   }
 
-  section('Scenario K — hover delay surfaces a quiet chord-name tag');
+  section("Scenario K — hover delay surfaces a quiet chord-name tag");
   const hoverProbe = evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
@@ -583,22 +591,16 @@ async function main() {
   `);
   const hov = JSON.parse(hoverProbe);
   if (hov.skip) {
-    console.log('  (skipped: ' + hov.reason + ')');
+    console.log("  (skipped: " + hov.reason + ")");
   } else {
-    assert(hov.beforeDelay.atT0Ms === false,
-      'hover: tag does NOT appear immediately (delay enforced)', hov.beforeDelay);
-    assert(hov.afterDelay.visible === true,
-      'hover: tag appears after the 250 ms delay', hov.afterDelay);
-    assert(hov.afterDelay.sticky === false,
-      'hover: tag is non-sticky (transient)', hov.afterDelay);
-    assert((hov.afterDelay.text || '').trim().length > 0,
-      'hover: tag shows a chord/pitch label', hov.afterDelay.text);
-    assert(hov.afterLeave.visible === false,
-      'hover: leaving the stavenote hides the non-sticky tag',
-      hov.afterLeave);
+    assert(hov.beforeDelay.atT0Ms === false, "hover: tag does NOT appear immediately (delay enforced)", hov.beforeDelay);
+    assert(hov.afterDelay.visible === true, "hover: tag appears after the 250 ms delay", hov.afterDelay);
+    assert(hov.afterDelay.sticky === false, "hover: tag is non-sticky (transient)", hov.afterDelay);
+    assert((hov.afterDelay.text || "").trim().length > 0, "hover: tag shows a chord/pitch label", hov.afterDelay.text);
+    assert(hov.afterLeave.visible === false, "hover: leaving the stavenote hides the non-sticky tag", hov.afterLeave);
   }
 
-  section('Scenario M — hover tag updates as cursor moves between noteheads');
+  section("Scenario M — hover tag updates as cursor moves between noteheads");
   const moveProbe = evalJs(`
     (async () => {
       const svg = document.querySelector('#osmd-container svg');
@@ -629,20 +631,16 @@ async function main() {
   `);
   const mv = JSON.parse(moveProbe);
   if (mv.skip) {
-    console.log('  (skipped: ' + mv.reason + ')');
+    console.log("  (skipped: " + mv.reason + ")");
   } else {
-    const visibleAll = mv.samples.every(s => s.visible);
-    const pitches = mv.samples.map(s => s.pitch).filter(Boolean);
+    const visibleAll = mv.samples.every((s) => s.visible);
+    const pitches = mv.samples.map((s) => s.pitch).filter(Boolean);
     const distinctPitches = new Set(pitches);
-    assert(visibleAll === true,
-      'tag stays visible while sweeping noteheads in the same stack',
-      mv.samples);
-    assert(distinctPitches.size === pitches.length && distinctPitches.size >= 2,
-      'tag pitch updates with each notehead under the cursor',
-      mv.samples);
+    assert(visibleAll === true, "tag stays visible while sweeping noteheads in the same stack", mv.samples);
+    assert(distinctPitches.size === pitches.length && distinctPitches.size >= 2, "tag pitch updates with each notehead under the cursor", mv.samples);
   }
 
-  section('Scenario N — Stradella overlay toggles, paints, and dedupes');
+  section("Scenario N — Stradella overlay toggles, paints, and dedupes");
   const stradProbe = evalJs(`
     (async () => {
       if (!window.StradellaOverlay) return JSON.stringify({skip: true, reason: 'overlay module not loaded'});
@@ -684,24 +682,16 @@ async function main() {
   `);
   const sp = JSON.parse(stradProbe);
   if (sp.skip) {
-    console.log('  (skipped: ' + sp.reason + ')');
+    console.log("  (skipped: " + sp.reason + ")");
   } else {
-    assert(sp.offCount === 0,
-      'overlay starts off with no painted recipes', sp);
-    assert(sp.onCount > 5,
-      'enabling the overlay paints multiple recipes across the score',
-      { count: sp.onCount });
-    assert(sp.toggleHasPressed === true,
-      'toggle button gains is-pressed when overlay is on', sp);
-    assert(sp.adjacentDupes === 0,
-      'consecutive identical chords on the same row are deduped',
-      { dupes: sp.adjacentDupes, sample: sp.sampleLabels });
-    assert(sp.offAgainCount === 0,
-      'turning the overlay off removes every painted recipe',
-      { count: sp.offAgainCount });
+    assert(sp.offCount === 0, "overlay starts off with no painted recipes", sp);
+    assert(sp.onCount > 5, "enabling the overlay paints multiple recipes across the score", { count: sp.onCount });
+    assert(sp.toggleHasPressed === true, "toggle button gains is-pressed when overlay is on", sp);
+    assert(sp.adjacentDupes === 0, "consecutive identical chords on the same row are deduped", { dupes: sp.adjacentDupes, sample: sp.sampleLabels });
+    assert(sp.offAgainCount === 0, "turning the overlay off removes every painted recipe", { count: sp.offAgainCount });
   }
 
-  section('Scenario O — two distinct chord readings (stack vs measure-aware harmony)');
+  section("Scenario O — two distinct chord readings (stack vs measure-aware harmony)");
   // The bridge exposes two readings on every chord-stack hit:
   //   chordName -- pure stack analysis ("GM" for a G-B-D stack)
   //   harmony   -- measure-aware promotion of a lower chord-tone to
@@ -765,28 +755,41 @@ async function main() {
   // Stack reading: when the noteheads themselves are voiced in
   // inversion, hit.chordName carries the slash bass.
   if (inv.stackInversions.length > 0) {
-    assert(inv.stackInversions.every((f) => /^[A-G][#b\u266F\u266D]?[^/]*\/[A-G][#b\u266F\u266D]?$/.test(f.chordName)),
-      'stack-inverted hit.chordName has shape "Chord/Bass"', inv.stackInversions);
-    assert(inv.stackInversions.every((f) => f.recipeIncludesBass),
-      'stack-inverted recipe shows the bass that the stack voices',
-      inv.stackInversions);
+    assert(
+      inv.stackInversions.every((f) => /^[A-G][#b\u266F\u266D]?[^/]*\/[A-G][#b\u266F\u266D]?$/.test(f.chordName)),
+      'stack-inverted hit.chordName has shape "Chord/Bass"',
+      inv.stackInversions
+    );
+    assert(
+      inv.stackInversions.every((f) => f.recipeIncludesBass),
+      "stack-inverted recipe shows the bass that the stack voices",
+      inv.stackInversions
+    );
   }
 
   // Harmony reading: stack reads as root position, but measure
   // context promotes a lower chord-tone bass.
-  assert(inv.harmonyOnlyInversions.length > 0,
-    'score contains at least one chord whose stack is root-position but harmony promotes a contextual bass',
-    inv);
+  assert(
+    inv.harmonyOnlyInversions.length > 0,
+    "score contains at least one chord whose stack is root-position but harmony promotes a contextual bass",
+    inv
+  );
   if (inv.harmonyOnlyInversions.length > 0) {
-    assert(inv.harmonyOnlyInversions.every((f) => f.chordName.indexOf('/') < 0),
-      'harmony-only-inverted hit.chordName (stack reading) has NO slash',
-      inv.harmonyOnlyInversions);
-    assert(inv.harmonyOnlyInversions.every((f) => f.harmony && f.harmony.indexOf('/') >= 0),
-      'harmony-only-inverted hit.harmony carries the promoted bass slash',
-      inv.harmonyOnlyInversions);
-    assert(inv.harmonyOnlyInversions.every((f) => f.recipeIncludesBass),
-      'harmony-driven recipe shows the promoted bass',
-      inv.harmonyOnlyInversions);
+    assert(
+      inv.harmonyOnlyInversions.every((f) => f.chordName.indexOf("/") < 0),
+      "harmony-only-inverted hit.chordName (stack reading) has NO slash",
+      inv.harmonyOnlyInversions
+    );
+    assert(
+      inv.harmonyOnlyInversions.every((f) => f.harmony && f.harmony.indexOf("/") >= 0),
+      "harmony-only-inverted hit.harmony carries the promoted bass slash",
+      inv.harmonyOnlyInversions
+    );
+    assert(
+      inv.harmonyOnlyInversions.every((f) => f.recipeIncludesBass),
+      "harmony-driven recipe shows the promoted bass",
+      inv.harmonyOnlyInversions
+    );
   }
 
   // Sub-assertion: m2 of Cogwork Dancers is the canonical oom-pah
@@ -812,13 +815,17 @@ async function main() {
     })();
   `);
   const m2 = JSON.parse(m2Probe);
-  assert(m2.m2Chords.length > 0, 'measure 2 contains at least one chord stack', m2);
-  assert(m2.m2Chords.every((c) => c.chord === 'GM'),
+  assert(m2.m2Chords.length > 0, "measure 2 contains at least one chord stack", m2);
+  assert(
+    m2.m2Chords.every((c) => c.chord === "GM"),
     'measure 2 stack reading is plain "GM" (the noteheads spell root-position GM)',
-    m2);
-  assert(m2.m2Chords.every((c) => c.harmony === 'GM/B'),
+    m2
+  );
+  assert(
+    m2.m2Chords.every((c) => c.harmony === "GM/B"),
     'measure 2 harmony reading is "GM/B" (promotes the earlier B2 to the bass)',
-    m2);
+    m2
+  );
 
   section('Scenario P — overlay paints stack reading; recipe drops "/root" for root-position');
   // Two coupled rules for the in-score overlay:
@@ -855,22 +862,23 @@ async function main() {
     })();
   `);
   const ov = JSON.parse(overlayProbe);
-  assert(ov.m2Labels.length > 0, 'measure 2 has at least one overlay label', ov);
-  assert(ov.m2Labels.every((l) => l === 'GM'),
+  assert(ov.m2Labels.length > 0, "measure 2 has at least one overlay label", ov);
+  assert(
+    ov.m2Labels.every((l) => l === "GM"),
     'measure 2 overlay paints plain "GM" (stack reading, no /B from harmony)',
-    ov.m2Labels);
-  assert(ov.labels.includes('Cm'),
-    'overlay paints plain "Cm" somewhere (no redundant /C)', ov.labels);
-  assert(!ov.labels.some((l) => /^Cm\s*\/\s*C\b/.test(l)),
+    ov.m2Labels
+  );
+  assert(ov.labels.includes("Cm"), 'overlay paints plain "Cm" somewhere (no redundant /C)', ov.labels);
+  assert(
+    !ov.labels.some((l) => /^Cm\s*\/\s*C\b/.test(l)),
     'overlay does not paint "Cm / C" anywhere (root bass is implicit)',
-    ov.labels.filter((l) => /^Cm/.test(l)));
+    ov.labels.filter((l) => /^Cm/.test(l))
+  );
   for (const s of ov.rootlessSamples) {
-    assert(!/\s\/\s/.test(s.text),
-      'StradellaRecipe.render("' + s.name + '") drops the / root suffix',
-      s);
+    assert(!/\s\/\s/.test(s.text), 'StradellaRecipe.render("' + s.name + '") drops the / root suffix', s);
   }
 
-  section('Scenario L — dev mode is opt-in and toggle persists');
+  section("Scenario L — dev mode is opt-in and toggle persists");
   const devModeProbe = evalJs(`
     (() => {
       const lsOn = localStorage.getItem('sheet-dev-mode');
@@ -885,16 +893,12 @@ async function main() {
     })();
   `);
   const dm = JSON.parse(devModeProbe);
-  assert(dm.lsOn === '1',
-    'dev mode flag is set in localStorage during tests', dm);
-  assert(dm.annotatorMounted === true,
-    'annotator sidebar is mounted when dev mode is on', dm);
-  assert(dm.toggleRendered === true,
-    'dev-mode toggle button is rendered', dm);
-  assert(/is-on/.test(dm.toggleClass || ''),
-    'dev-mode toggle is in is-on state', dm.toggleClass);
+  assert(dm.lsOn === "1", "dev mode flag is set in localStorage during tests", dm);
+  assert(dm.annotatorMounted === true, "annotator sidebar is mounted when dev mode is on", dm);
+  assert(dm.toggleRendered === true, "dev-mode toggle button is rendered", dm);
+  assert(/is-on/.test(dm.toggleClass || ""), "dev-mode toggle is in is-on state", dm.toggleClass);
 
-  section('Scenario I — bridge agrees with OSMD source on note vs rest');
+  section("Scenario I — bridge agrees with OSMD source on note vs rest");
   // Regression: previously the bridge used GetNearestNote at click coordinates,
   // which snapped to a nearby rest when the clicked notehead lived in a voice
   // sharing the same x/y range. Now the bridge anchors to the clicked DOM
@@ -950,12 +954,10 @@ async function main() {
     })();
   `);
   const restReg = JSON.parse(restRegression);
-  console.log('  sampled ' + restReg.sampled + ' stavenotes against source-XML truth');
-  assert(restReg.mismatches.length === 0,
-    'bridge isRest matches source for every sampled stavenote',
-    restReg.mismatches);
+  console.log("  sampled " + restReg.sampled + " stavenotes against source-XML truth");
+  assert(restReg.mismatches.length === 0, "bridge isRest matches source for every sampled stavenote", restReg.mismatches);
 
-  section('Cleanup');
+  section("Cleanup");
   evalJs(`
     (async () => {
       localStorage.setItem('sheet-annotator:${PATHNAME}', '[]');
@@ -978,7 +980,7 @@ try {
   summarize();
   process.exit(failed === 0 ? 0 : 1);
 } catch (err) {
-  console.error('\n[test-smoothness] crashed:', err.message);
+  console.error("\n[test-smoothness] crashed:", err.message);
   console.error(err.stack);
   summarize();
   process.exit(1);
