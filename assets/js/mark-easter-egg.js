@@ -408,7 +408,8 @@
     }
 
     function tick(now) {
-      const t = now - t0;
+      // rAF timestamps can precede the performance.now() taken in start().
+      const t = Math.max(0, now - t0);
       if (mode === "play") {
         let s = variant.frame(t, ctx);
         if (t < 200) s = blend(from, s, easeOut(t / 200));
