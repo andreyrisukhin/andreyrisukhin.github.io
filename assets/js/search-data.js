@@ -16,7 +16,14 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/blog/";
           },
-        },{id: "dropdown-publications",
+        },{id: "dropdown-lego",
+              title: "LEGO",
+              description: "",
+              section: "Dropdown",
+              handler: () => {
+                window.location.href = "/projects/lego/";
+              },
+            },{id: "dropdown-publications",
               title: "publications",
               description: "",
               section: "Dropdown",
@@ -71,13 +78,6 @@ ninja.data = [{
               section: "Dropdown",
               handler: () => {
                 window.location.href = "/kata/";
-              },
-            },{id: "dropdown-lego",
-              title: "LEGO",
-              description: "",
-              section: "Dropdown",
-              handler: () => {
-                window.location.href = "/projects/lego/";
               },
             },{id: "post-lego-logbook-from-boxes-to-blender",
         
