@@ -129,7 +129,7 @@ Each prints its passed checks or throws on the first failure. Read the output:
 
 The site’s mark is a dot grid: bayan buttons, which also read as dither pixels and LEGO studs.
 
-- The navbar mark (`_includes/dot-mark.liquid`) and the favicon share the same seven-dot shape. Use the accent color and do not redraw it per page.
+- The navbar mark (`_includes/dot-mark.liquid`) and the favicon share the same seven-dot shape. Use the accent color and do not redraw it per page. At rest it is always the same mark.
 - Section breaks use the dot rule (`@include dot-rule` or `.dot-rule`): homepage sections and `---` in posts. Hairline rules still separate groups inside a component.
 - Surfaces are flat and square: a one-pixel border at most, no radius, no drop shadow. This includes the post paper sheet.
 - Use two button styles, from the mixins in `_sass/_variables.scss`: `button-primary` (accent fill) for the one main action, and `button-secondary` (hairline outline) for everything else. Unavailable buttons use `button-disabled`: dashed outline, reduced opacity.
@@ -145,6 +145,8 @@ The front matter of this file holds the tokens in the [design.md](https://github
 **Buttons.** Two styles. Primary is an accent fill with `on-accent` text; on hover it darkens (light) or lightens (dark) to `accent-hover`. Secondary is a one-pixel `border` outline on the page color; on hover the outline takes the text color. Disabled keeps its outline but goes dashed at 55% opacity. Callers set size and padding; one group of controls shares one height.
 
 **Dot-grid mark.** Seven circles on a 32-unit grid in three rows (2, 3, 2), radius 3.6, stroke 1.7, filled or open as in `_includes/dot-mark.liquid`. It appears in the navbar and the favicon, in the accent color, at 18 px. The dot rule repeats one dot of 1.6 px every 12 px at 55% opacity. Allowed places: the navbar, the favicon, homepage section breaks, and `---` in posts. Not as a background texture, a bullet, or a loading indicator.
+
+**Mark easter egg.** The one exception to the motion budget below. Hovering or keyboard-focusing the navbar mark animates its seven dots, and each part of the site has its own reading of them: a Be-7 atom on the homepage and research pages (four filled protons, three open neutrons, four electrons), bayan buttons on music, a turning Leviathans hex on chess and kata, ordered dither on the ditherer and color pages, LEGO studs, an orrery on the writing index, embers, hex Life, a trail walk, a page turn on books, and lost dots on the 404. Posts and other pages get a stable pick by URL. The mapping and every variant live in `assets/js/mark-easter-egg.js`; `?mark=<name>` previews one on any page. Variants use only the mark's dots plus thin accent extras, loop while hovered, return to the resting mark within 260 ms of leaving, and do nothing under reduced motion or on touch. The animation never runs on page load.
 
 **Motion budget.** Motion explains a change; it never decorates.
 
