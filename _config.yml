@@ -10,8 +10,9 @@ contact_note: >
   The best way to reach me is email.
 description: >-
   Andrey Risukhin works on self-improving coding agents at Factory in San Francisco. Writing, research, LEGO reconstruction, and music tools.
-footer_text: >-
-  Built with <a href="https://jekyllrb.com/">Jekyll</a> and <a href="https://github.com/alshedivat/al-folio">al-folio</a>, hosted on <a href="https://pages.github.com/">GitHub Pages</a>. Photos are my own.
+footer_text: Photos are my own.
+footer_credit: >-
+  Built with <a href="https://jekyllrb.com/">Jekyll</a> and <a href="https://github.com/alshedivat/al-folio">al-folio</a>, hosted on <a href="https://pages.github.com/">GitHub Pages</a>.
 keywords: Andrey Risukhin, coding agents, implicit feedback, machine learning, LEGO, bayan
 lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
 icon: favicon.svg # site tab icon in /assets/img/; section icons are in _data/page_icons.yml

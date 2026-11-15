@@ -214,3 +214,10 @@ footer a:not([class]) {
 html[data-theme="dark"] .figure-plot img {
   filter: none;
 }
+
+.footer-credit {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: $type-size-tiny;
+  opacity: 0.75;
+}

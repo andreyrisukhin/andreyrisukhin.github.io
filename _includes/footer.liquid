@@ -8,6 +8,9 @@
   {% if site.last_updated %}
     Last updated: {{ 'now' | date: '%B %d, %Y' }}.
   {% endif %}
+  {% if site.footer_credit %}
+    <span class="footer-credit">{{ site.footer_credit }}</span>
+  {% endif %}
 {% endcapture %}
 
 {% if site.footer_fixed %}
