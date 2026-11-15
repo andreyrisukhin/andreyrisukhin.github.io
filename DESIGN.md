@@ -1,3 +1,93 @@
+---
+version: alpha
+name: Andrey Risukhin
+description: Paper and ink. One warm brown accent, one face, flat square surfaces, and a dot-grid mark taken from bayan buttons.
+colors:
+  canvas: "#faf7f0"
+  surface: "#fffcf7"
+  text: "#29251f"
+  text-muted: "#72665c"
+  accent: "#80533f"
+  accent-hover: "#5f3c2c"
+  on-accent: "#fffaf4"
+  border: "#e1d8cb"
+  code-bg: "#f2ece1"
+  canvas-dark: "#201d1a"
+  surface-dark: "#292521"
+  text-dark: "#f2eade"
+  text-muted-dark: "#c0b2a2"
+  accent-dark: "#dbb696"
+  accent-hover-dark: "#ead0b5"
+  on-accent-dark: "#201d1a"
+  border-dark: "#3f3832"
+  code-bg-dark: "#2a2622"
+typography:
+  h1:
+    fontFamily: Nunito Sans
+    fontSize: 2.5rem
+    fontWeight: 700
+    lineHeight: 1.2
+  h2:
+    fontFamily: Nunito Sans
+    fontSize: 1.5rem
+    fontWeight: 700
+    lineHeight: 1.3
+  h3:
+    fontFamily: Nunito Sans
+    fontSize: 1.125rem
+    fontWeight: 700
+    lineHeight: 1.35
+  body:
+    fontFamily: Nunito Sans
+    fontSize: 1rem
+    fontWeight: 400
+    lineHeight: 1.5
+  reading:
+    fontFamily: Nunito Sans
+    fontSize: 1.1875rem
+    fontWeight: 400
+    lineHeight: 1.6
+  small:
+    fontFamily: Nunito Sans
+    fontSize: 0.875rem
+    fontWeight: 400
+    lineHeight: 1.5
+  tiny:
+    fontFamily: Nunito Sans
+    fontSize: 0.75rem
+    fontWeight: 400
+    lineHeight: 1.4
+rounded:
+  none: 0px
+spacing:
+  dot-pitch: 12px
+  dot-size: 1.6px
+  reading-column: 42.5rem
+components:
+  button-primary:
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.on-accent}"
+    rounded: "{rounded.none}"
+  button-primary-hover:
+    backgroundColor: "{colors.accent-hover}"
+    textColor: "{colors.on-accent}"
+  button-secondary:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.text}"
+    rounded: "{rounded.none}"
+  button-secondary-hover:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.text}"
+  menu:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.text}"
+    rounded: "{rounded.none}"
+  post-paper:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.text}"
+    rounded: "{rounded.none}"
+---
+
 # DESIGN.md
 
 Visual design principles for andreyrisukhin.github.io. These are taste calls I want preserved across edits and new pages. AI assistants: read this before changing layout, image placement, or spacing in any `_posts/*.md`, `_pages/*.md`, or `_layouts/*` file.
@@ -44,7 +134,30 @@ The site’s mark is a dot grid: bayan buttons, which also read as dither pixels
 - Surfaces are flat and square: a one-pixel border at most, no radius, no drop shadow. This includes the post paper sheet.
 - Use two button styles, from the mixins in `_sass/_variables.scss`: `button-primary` (accent fill) for the one main action, and `button-secondary` (hairline outline) for everything else. Unavailable buttons use `button-disabled`: dashed outline, reduced opacity.
 
-The homepage leads with the work. Its grid reads `_data/home_work.yml`; thumbnails are 720 × 480 WebP crops in `assets/img/home/`.
+### Identity spec
+
+The front matter of this file holds the tokens in the [design.md](https://github.com/google-labs-code/design.md) format, so tools and agents can read them directly. `_themes.scss` is the source of truth; keep the two in step. Light values carry the plain name and dark values end in `-dark`.
+
+**Color.** The site brown (`accent`) is the only accent, on every page including music and sheet music. Use it for links, the mark, the dot rule, focus rings, and the primary button. Page palettes may change paper and ink, never the accent. Text meets 4.5:1 against its surface in both themes; controls and focus rings meet 3:1.
+
+**Shape.** Every corner is square (`rounded.none`). Borders are one pixel in `border`. No drop shadows on surfaces, cards, menus, or post photos.
+
+**Buttons.** Two styles. Primary is an accent fill with `on-accent` text; on hover it darkens (light) or lightens (dark) to `accent-hover`. Secondary is a one-pixel `border` outline on the page color; on hover the outline takes the text color. Disabled keeps its outline but goes dashed at 55% opacity. Callers set size and padding; one group of controls shares one height.
+
+**Dot-grid mark.** Seven circles on a 32-unit grid in three rows (2, 3, 2), radius 3.6, stroke 1.7, filled or open as in `_includes/dot-mark.liquid`. It appears in the navbar and the favicon, in the accent color, at 18 px. The dot rule repeats one dot of 1.6 px every 12 px at 55% opacity. Allowed places: the navbar, the favicon, homepage section breaks, and `---` in posts. Not as a background texture, a bullet, or a loading indicator.
+
+**Motion budget.** Motion explains a change; it never decorates.
+
+- Hover and press: color, border, and underline changes only, 120 ms `ease`. No scale or lift.
+- Menus: 120 ms crossfade with a 2 px translate from the trigger, `ease-out`, origin at the trigger.
+- Nothing over 300 ms on navigation or content. Creative pages (kata scenery, watercolor washes) may run slower, behind a motion toggle.
+- No entrance animation or stagger on page load.
+- Under `prefers-reduced-motion: reduce`, drop every translate and keep only immediate visibility or opacity changes.
+
+**Menu brief.** Use this prompt when changing the navbar menus:
+
+> Create a flat disclosure menu attached to the navbar divider. Crossfade the panel while translating it 2 px from the trigger over 120 ms. Keep trigger and item geometry fixed. Use the canvas, border, focus, and accent tokens. Use underlines for pointer hover and a visible outline for keyboard focus. Respect reduced motion and keep disclosure click-driven.
+> The homepage leads with the work. Its grid reads `_data/home_work.yml`; thumbnails are 720 × 480 WebP crops in `assets/img/home/`.
 
 ### 1. Images need room to breathe
 
@@ -131,7 +244,7 @@ Symptom when violated: `YAML Exception ... mapping values are not allowed in thi
   ```
   {% include figure.liquid path="assets/img/posts/<dir>/<file>.jpg" class="img-fluid rounded z-depth-1" %}
   ```
-  `img-fluid rounded z-depth-1` is the house style; do not change it without reason.
+  `img-fluid rounded z-depth-1` is the house style; do not change it without reason. Inside posts, `_sass/_post-reading.scss` overrides the radius and shadow so photos sit square and flat.
 - Image dirs follow `assets/img/posts/<year>-<short-slug>/`.
 - Photo credits go at the bottom of the post inside `<small>*…*</small>` after a horizontal rule (`---`). See the Perceptron post.
 
@@ -150,4 +263,3 @@ When reviewing my drafts, raise these visual issues with the same priority as th
 
 - Side-by-side image pairs: pick a single Liquid pattern and document it here.
 - Mobile rendering audit: figure widths and caption wrapping.
-- Dark mode contrast on photo borders (`z-depth-1` shadow).

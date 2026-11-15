@@ -16,4 +16,5 @@ vendor
 games/golem-demo/target/
 data/songs-inbox/
 .build-venv/
-/.factory/
+/.factory/*
+!/.factory/skills/

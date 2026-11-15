@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Capture the design-review page set in light and dark themes at desktop and
+# phone widths, for before/after comparisons and the site-design-review skill.
+#
+# Usage: bin/design-screenshots <base-url> <out-dir> [path ...]
+#   bin/design-screenshots http://localhost:8099 /tmp/shots/after
+#   FULL=1 bin/design-screenshots http://localhost:8099 /tmp/shots /music/
+#
+# Files are named <page>-<theme>-<width>.png. FULL=1 captures whole pages
+# instead of the first screen. Needs agent-browser and a served build.
+set -euo pipefail
+
+if [ $# -lt 2 ]; then
+  sed -n '5,8p' "$0" | sed 's/^# \{0,1\}//'
+  exit 2
+fi
+
+base="${1%/}"
+out="$2"
+shift 2
+if [ $# -gt 0 ]; then
+  paths=("$@")
+else
+  paths=(/ /blog/ /blog/2026/time-at-perceptron-ai/ /publications/ /music/)
+fi
+
+session="design-shots-$$"
+full=()
+[ "${FULL:-0}" = 1 ] && full=(--full)
+ab() { agent-browser --session "$session" "$@" >/dev/null; }
+trap 'agent-browser --session "$session" close >/dev/null 2>&1 || true' EXIT
+
+mkdir -p "$out"
+for size in 1440x900 390x844; do
+  ab set viewport "${size%x*}" "${size#*x}"
+  for path in "${paths[@]}"; do
+    name=$(printf '%s' "$path" | sed 's#^/##; s#/$##; s#/#-#g')
+    [ -n "$name" ] || name=home
+    for theme in light dark; do
+      ab open "$base$path"
+      # theme.js reads the saved setting on load, so set it and reload.
+      ab eval "localStorage.setItem('theme', '$theme')"
+      ab reload
+      ab wait 1200
+      file="$out/$name-$theme-${size%x*}.png"
+      ab screenshot "${full[@]}" "$file"
+      echo "$file"
+    done
+  done
+done

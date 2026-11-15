@@ -79,6 +79,22 @@ It picks free ports in 8090-8099 (live reload in 35729-35739), reuses the main c
 - If a restarted server's page goes blank, VS Code is holding a stale forward. Stop the server and rerun the script; it takes the next free port.
 - Prettier in a worktree: run `npm ci` once in the worktree (two packages, under a second), then `node_modules/.bin/prettier --check <paths>` from the worktree root. Do not run the main checkout's Prettier on worktree paths: it either fails to load the Liquid plugin or treats the files as ignored and reports success without checking them.
 
+## UI changes
+
+Any change a visitor can see (layouts, includes, Sass, navigation, page chrome) ships with before and after screenshots.
+
+- Capture both sides with `bin/design-screenshots <base-url> <out-dir> [path ...]`: “before” from a build of `main`, “after” from the branch. It writes every listed page in light and dark at 1440 × 900 and 390 × 844. Add the pages the change touches; the default set is the homepage, writing index, one post, publications, and music.
+- For motion, also record a short clip of the interaction (`agent-browser record start <file>.webm`, interact, `agent-browser record stop`), once with normal motion and once with reduced motion.
+- Keep screenshots out of Git. Put them under `~/tmp/` and list the directories in the handoff before `bin/merge-to-main`, so I can compare them.
+- For changes to shared chrome or more than one page, run the `site-design-review` skill (`.factory/skills/`) on the “after” set and fix its findings, up to three rounds.
+
+The motion skills in `.factory/skills/` come from Emil Kowalski (see its `README.md`). `DESIGN.md` wins where they disagree:
+
+- No translucent or blurred chrome, and no shadows to show depth. Surfaces stay flat and square.
+- Keep Nunito Sans; ignore advice to default to the system font.
+- Press feedback is a color change, not a scale transform.
+- No entrance staggers on content or navigation. Springs and momentum belong only in hands-on tools such as kata and the bayan keyboard.
+
 ## Branches and merging
 
 `main` is the only long-lived branch. GitHub Pages deploys from it, so whatever lands there is public.
