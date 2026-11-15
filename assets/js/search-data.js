@@ -58,6 +58,13 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/color/outfit/";
               },
+            },{id: "dropdown-color-palette",
+              title: "color palette",
+              description: "",
+              section: "Dropdown",
+              handler: () => {
+                window.location.href = "/color/palette/";
+              },
             },{id: "dropdown-ditherer",
               title: "ditherer",
               description: "",
