@@ -2,6 +2,7 @@
 // Containers are square and unboxed; groups are separated by hairline rules.
 
 .ditherer,
+.palette-tool,
 .outfit {
   --tool-rule: var(--global-divider-color);
   --tool-ink: var(--global-text-color);
@@ -101,6 +102,7 @@
 }
 
 .ditherer .tool-button--primary,
+.palette-tool .tool-button--primary,
 .outfit .tool-button--primary {
   @include button-primary;
 }
