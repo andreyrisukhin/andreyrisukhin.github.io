@@ -22,7 +22,16 @@ window.SheetPracticeTimeline = (function () {
           previous.endBeat = end;
           if (!note.tieStart) ties.delete(key);
         } else {
-          const event = { midi: note.midi, beat: start, endBeat: end, measure: index + 1, staff: note.staff || 1 };
+          const event = {
+            midi: note.midi,
+            pitch: note.pitch,
+            part: note.part || 0,
+            voice: note.voice || 1,
+            beat: start,
+            endBeat: end,
+            measure: index + 1,
+            staff: note.staff || 1,
+          };
           notes.push(event);
           if (note.tieStart) ties.set(key, event);
           else ties.delete(key);
@@ -56,6 +65,7 @@ window.SheetPracticeTimeline = (function () {
       tempos,
       duration: secondsAt(beat),
       beatStarts: starts,
+      beatEnds: starts.map((start, index) => start + measures[index].beats),
       secondsAt,
     };
   }
@@ -100,8 +110,13 @@ window.SheetPracticeTimeline = (function () {
                 const pc = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[text(pitch, "step")];
                 const midi = (number(pitch, "octave") + 1) * 12 + pc + number(pitch, "alter");
                 if (Number.isInteger(midi) && midi >= 0 && midi <= 127 && duration > 0) {
+                  const alter = number(pitch, "alter");
                   result.notes.push({
                     midi,
+                    pitch:
+                      Number.isInteger(alter) && Math.abs(alter) <= 2
+                        ? text(pitch, "step") + (alter > 0 ? "#".repeat(alter) : "b".repeat(-alter)) + text(pitch, "octave")
+                        : undefined,
                     beat: start,
                     duration,
                     part: partIndex,

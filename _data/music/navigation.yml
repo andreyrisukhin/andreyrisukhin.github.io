@@ -32,10 +32,17 @@
 
 - title: Sheets
   id: sheets
+  aliases:
+    - /music/sheet/hidden-truth-faithful/
+    - /music/sheet/hidden-truth-lean/
+    - /music/sheet/hidden-truth-full/
   items:
     - title: Open MusicXML
       url: /music/sheet/open/
       description: Read a file on your device without uploading or publishing it.
+    - title: Hidden Truth
+      url: /music/sheet/hidden-truth/
+      description: Original transcription and three bayan variants, with descriptions and an A/B/C audition.
     - title: Into the Unknown
       url: /music/sheet/into-the-unknown/
       description: Piano transcription from Over the Garden Wall.

@@ -25,3 +25,9 @@
       source: Over the Garden Wall
       measures: 41
       motif: leaf
+- title: Studies
+  books:
+    - slug: hidden-truth
+      source: Original and three bayan variants
+      measures: 61
+      motif: accordion

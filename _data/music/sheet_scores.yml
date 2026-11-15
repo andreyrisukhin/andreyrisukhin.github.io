@@ -7,6 +7,22 @@ into-the-unknown-bayan:
   instrument: accordion
   key_mode: minor
   stradella: true
+hidden-truth:
+  url: /assets/music/sheet-music/hidden-truth/hidden-truth.musicxml
+  instrument: acoustic_grand_piano
+  key_mode: minor
+hidden-truth-faithful:
+  url: /assets/music/sheet-music/hidden-truth/hidden-truth-faithful.musicxml
+  instrument: accordion
+  key_mode: minor
+hidden-truth-lean:
+  url: /assets/music/sheet-music/hidden-truth/hidden-truth-lean.musicxml
+  instrument: accordion
+  key_mode: minor
+hidden-truth-full:
+  url: /assets/music/sheet-music/hidden-truth/hidden-truth-full.musicxml
+  instrument: accordion
+  key_mode: minor
 cogwork-dancers:
   url: /assets/music/sheet-music/cogwork-dancers/cogwork-dancers.musicxml
   instrument: accordion

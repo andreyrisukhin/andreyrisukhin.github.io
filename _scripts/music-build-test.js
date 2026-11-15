@@ -26,6 +26,10 @@ const routes = [
   "bayan-simulator/",
   "chord-recognizer/",
   "sheet/open/",
+  "sheet/hidden-truth/",
+  "sheet/hidden-truth-faithful/",
+  "sheet/hidden-truth-lean/",
+  "sheet/hidden-truth-full/",
   "sheet/into-the-unknown/",
   "sheet/cogwork-dancers/",
   "sheet/reclaiming-entropy/",
@@ -49,10 +53,11 @@ for (const route of routes) {
 }
 const hub = fs.readFileSync(path.join(site, "music/index.html"), "utf8");
 const legacyRoutes = ["build/", "stradella/", "chord-recognizer/"];
+const variantRoutes = ["sheet/hidden-truth-faithful/", "sheet/hidden-truth-lean/", "sheet/hidden-truth-full/"];
 const sections = [
   ["tools", "Harmony", ["workbench/", "songs/"]],
   ["practice", "Practice", ["exercises/", "bass-patterns/", "blues/", "bayan-simulator/"]],
-  ["sheets", "Sheets", routes.filter((route) => route.startsWith("sheet/"))],
+  ["sheets", "Sheets", routes.filter((route) => route.startsWith("sheet/") && !variantRoutes.includes(route))],
   ["field-notes", "References", ["scales/", "chords/", "intervals/"]],
 ];
 const hubRoutes = [];
@@ -78,7 +83,7 @@ assert.equal(new Set(hubRoutes).size, hubRoutes.length, "Hub lists each destinat
 assert.deepEqual(
   [...hubRoutes].sort(),
   routes
-    .filter((route) => route && !legacyRoutes.includes(route))
+    .filter((route) => route && !legacyRoutes.includes(route) && !variantRoutes.includes(route))
     .map((route) => "/music/" + route)
     .sort(),
   "Hub covers every music tool"
@@ -99,7 +104,13 @@ for (const route of routes) {
   );
   const current = anchors.filter((match) => match[1].includes("aria-current="));
   assert.equal(current.length, 1, route + " has one current navigation item");
-  const expected = legacyRoutes.includes(route) ? "Harmony" : route ? sections.find((section) => section[2].includes(route))[1] : "Music";
+  const expected = legacyRoutes.includes(route)
+    ? "Harmony"
+    : variantRoutes.includes(route)
+      ? "Sheets"
+      : route
+        ? sections.find((section) => section[2].includes(route))[1]
+        : "Music";
   assert.equal(current[0][2].trim(), expected, route + " marks its own group");
   assert.ok(current[0][1].includes(`aria-current="${route ? "location" : "page"}"`), route + " uses the correct current scope");
 }

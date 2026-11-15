@@ -23,6 +23,27 @@
     return Math.min(hi, Math.max(lo, value));
   }
 
+  function formatTime(seconds) {
+    const tenths = Number.isFinite(seconds) ? Math.max(0, Math.round(seconds * 10)) : 0;
+    return Math.floor(tenths / 600) + ":" + String(Math.floor(tenths / 10) % 60).padStart(2, "0") + "." + (tenths % 10);
+  }
+
+  function measureLabels(steps, starts) {
+    const seen = new Set();
+    return steps.flatMap((step) => {
+      if (seen.has(step.measure) || !Number.isFinite(starts[step.measure])) return [];
+      seen.add(step.measure);
+      return [
+        {
+          measure: step.measure,
+          seconds: starts[step.measure],
+          x: step.endX > step.x ? (step.x + step.endX) / 2 : step.x + step.w / 2,
+          y: Math.max(0, step.y - 8),
+        },
+      ];
+    });
+  }
+
   function measureEndX(osmd, measureIndex, unit) {
     const list = osmd.GraphicSheet && osmd.GraphicSheet.MeasureList;
     const staves = list && list[measureIndex];
@@ -124,6 +145,7 @@
     this.osmd = osmd;
     this.steps = [];
     this.el = null;
+    this.timeLabels = null;
     this.lastY = null;
     this.lastH = null;
     this.reduceMotion = !!(root.matchMedia && root.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -142,12 +164,40 @@
       this.el.hidden = true;
     }
     if (this.el.parentElement !== parent) parent.appendChild(this.el);
+    if (!this.timeLabels) {
+      this.timeLabels = document.createElement("div");
+      this.timeLabels.className = "sheet-measure-times";
+      this.timeLabels.setAttribute("role", "list");
+      this.timeLabels.setAttribute("aria-label", "Measure start times, minutes and seconds at the original tempo");
+    }
+    if (this.timeLabels.parentElement !== parent) parent.appendChild(this.timeLabels);
+    this.renderTimes(measureStarts);
     this.lastY = null;
     this.lastH = null;
   };
 
   Playhead.prototype.retime = function (measureStarts, totalSec) {
     retime(this.steps, measureStarts, totalSec);
+    this.renderTimes(measureStarts);
+  };
+
+  Playhead.prototype.renderTimes = function (measureStarts) {
+    if (!this.timeLabels) return;
+    this.timeLabels.replaceChildren(
+      ...measureLabels(this.steps, measureStarts).map((entry) => {
+        const label = document.createElement("span");
+        label.className = "sheet-measure-time";
+        label.dataset.measure = String(entry.measure + 1);
+        label.dataset.startSeconds = String(entry.seconds);
+        label.textContent = formatTime(entry.seconds);
+        label.setAttribute("role", "listitem");
+        label.setAttribute("aria-label", "Measure " + (entry.measure + 1) + " starts at " + label.textContent);
+        label.title = "Measure " + (entry.measure + 1) + " · " + entry.seconds.toFixed(1) + " seconds at the original tempo";
+        label.style.left = entry.x + "px";
+        label.style.top = entry.y + "px";
+        return label;
+      })
+    );
   };
 
   Playhead.prototype.render = function (sec, opts) {
@@ -182,7 +232,7 @@
     this.el.scrollIntoView({ block: "center", inline: "nearest", behavior: this.reduceMotion ? "auto" : "smooth" });
   };
 
-  const api = { collectSteps, retime, locate, Playhead };
+  const api = { collectSteps, retime, locate, formatTime, measureLabels, Playhead };
   root.SheetPlayhead = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

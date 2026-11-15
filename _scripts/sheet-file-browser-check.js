@@ -93,6 +93,7 @@
       "Loaded score has one transport and practice settings"
     );
     assert(bridge.osmd.Sheet.SourceMeasures.length === 1 && container.querySelector(".vf-notehead"), "File renders with OSMD");
+    assert(container.querySelectorAll(".sheet-measure-time").length === 1, "Local score has one timestamp per measure");
     assert(
       document.querySelector("h1").textContent.includes("Private <script> title") && !document.querySelector("h1 script"),
       "Score titles are text, not HTML"
@@ -131,6 +132,7 @@
     firstTransport.querySelector('[data-pb-action="toggle"]').click();
     assert(firstPlayer.snapshot().state === "paused", "Removed transport controls are inert");
     assert(!bridge.ready && !bridge.xml && !bridge.osmd && !container.querySelector("svg"), "Close releases score data and notation");
+    assert(!container.querySelector(".sheet-measure-times"), "Close releases timestamp labels");
     assert(
       !document.getElementById("sheet-note-pitches").textContent && !document.getElementById("sheet-right-keyboard").children.length,
       "Close clears inspector pitches and diagrams"
@@ -162,6 +164,7 @@
     document.querySelector("[data-pb-transpose='1']").click();
     assert(secondPlayer.snapshot().transpose === 1 && firstPlayer.snapshot().transpose === 0, "Transposition affects only the replacement player");
     assert(document.querySelectorAll(".sheet-playhead").length === 1, "Replacement has one playhead after transposition");
+    assert(container.querySelectorAll(".sheet-measure-time").length === 2, "Replacement rebuilds only its own timestamps");
     document.querySelector("[data-practice-start]").value = "2";
     document.querySelector("[data-practice-end]").value = "2";
     document.querySelector("[data-practice-loop]").click();

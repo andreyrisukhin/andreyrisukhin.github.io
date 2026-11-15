@@ -1,2 +1,5 @@
 # Force LF line endings, needed for Docker to work on Windows
 *.sh text eol=lf
+
+# Keep supplied score hashes stable across Windows and Linux checkouts.
+assets/music/sheet-music/hidden-truth/*.musicxml text eol=lf

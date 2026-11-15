@@ -230,6 +230,14 @@
     --foil: #d2a553;
     background: repeating-linear-gradient(90deg, transparent 0 18px, #d2a5530a 18px 20px), var(--cover);
   }
+  .score-book--accordion {
+    --cover: #244e5c;
+    --cover-dark: #12333f;
+    --cover-light: #59818a;
+    --letter: #ffedc5;
+    --foil: #dec38d;
+    background: repeating-linear-gradient(90deg, transparent 0 13px, #8eb0b215 13px 15px), var(--cover);
+  }
   .score-stack__shelf {
     position: relative;
     height: 9px;
@@ -254,9 +262,6 @@
     &::after {
       right: 15px;
     }
-  }
-  .score-stack--blank {
-    grid-column: 1;
   }
   .score-book--blank {
     --cover: #e7dfce;
