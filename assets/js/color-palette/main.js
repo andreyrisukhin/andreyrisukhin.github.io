@@ -5,6 +5,8 @@
   const S = window.SitePalette;
   const el = (id) => document.getElementById("palette-" + id);
   const saved = S.get();
+  const signature = (palette) => palette && `${palette.seed}/${palette.scheme}/${palette.turn}`;
+  let appliedSignature = signature(saved);
   let seed = saved ? saved.seed : "#80533f";
   let scheme = saved ? saved.scheme : "analogous";
   let turn = saved ? saved.turn : 0;
@@ -106,6 +108,15 @@
     render();
   });
   new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  document.addEventListener("site-palette-change", render);
+  document.addEventListener("site-palette-change", () => {
+    const applied = S.get();
+    const nextSignature = signature(applied);
+    if (nextSignature !== appliedSignature) {
+      if (applied) ({ seed, scheme, turn } = applied);
+      appliedSignature = nextSignature;
+      el("status").textContent = applied ? "Website palette updated to your saved choice." : "Original website colors restored.";
+    }
+    render();
+  });
   render();
 })();

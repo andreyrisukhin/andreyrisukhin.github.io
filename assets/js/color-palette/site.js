@@ -50,7 +50,10 @@
     reset: () => save(null),
   };
   render(read());
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) render(read());
+  });
   window.addEventListener("storage", (event) => {
-    if (event.key === key || event.key === null) render(read());
+    if (event.storageArea === localStorage && (event.key === key || event.key === null)) render(read());
   });
 })();
