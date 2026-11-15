@@ -7,7 +7,7 @@
   };
   const nav = document.querySelector(".music-section-nav");
   const links = [...nav.querySelectorAll("a")];
-  assert(links.map((link) => link.textContent.trim()).join(",") === "Music,Harmony,Practice,Sheets,References", "Consistent navigation labels");
+  assert(links.map((link) => link.textContent.trim()).join(",") === "Overview,Harmony,Practice,Sheets,References", "Consistent navigation labels");
   assert(nav.querySelectorAll("[aria-current]").length === 1, "One current navigation item");
   assert(document.querySelectorAll("h1").length === 1, "One page title");
   for (const link of links) {
@@ -27,7 +27,8 @@
     assert(destinations.length >= sections.length && new Set(destinations).size === destinations.length, "Each destination appears once");
     assert(destinations.includes("/music/sheet/into-the-unknown/"), "Into the Unknown appears in sheet navigation");
     for (const link of links.slice(1)) {
-      assert(document.querySelector(new URL(link.href).hash), "Section link resolves");
+      const { hash, pathname } = new URL(link.href);
+      assert(hash ? document.querySelector(hash) : pathname !== "/music/", "Section link resolves");
     }
     assert(document.documentElement.scrollWidth <= innerWidth, "Hub has no horizontal overflow");
   }

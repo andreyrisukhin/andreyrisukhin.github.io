@@ -519,31 +519,6 @@ html.sheet-music-focus-open body {
   }
 }
 
-.sheet-transport__toggle {
-  flex: none;
-  padding: 0.125rem 0.625rem;
-  border: 1px solid transparent;
-  background: none;
-  color: var(--sheet-muted);
-  font: inherit;
-  cursor: pointer;
-
-  &:hover {
-    color: var(--sheet-ink);
-  }
-
-  &[aria-pressed="true"] {
-    border-color: var(--sheet-accent);
-    background: var(--sheet-accent-soft);
-    color: var(--sheet-ink);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--sheet-accent);
-    outline-offset: 2px;
-  }
-}
-
 // Transpose stepper: one pill holding down, key name, up. The key name
 // doubles as the way back to the written key.
 .sheet-transport__key {
@@ -674,8 +649,7 @@ html.sheet-music-focus-open body {
   .sheet-transport__btn,
   .sheet-transport__select select,
   .sheet-transport__step,
-  .sheet-transport__key-name,
-  .sheet-transport__toggle {
+  .sheet-transport__key-name {
     min-height: 0;
   }
 
@@ -696,12 +670,6 @@ html.sheet-music-focus-open body {
 
   .sheet-transport__select select {
     height: 2rem;
-  }
-}
-
-@media (pointer: coarse) {
-  .sheet-transport__toggle {
-    display: none;
   }
 }
 

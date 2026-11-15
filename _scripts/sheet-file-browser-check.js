@@ -154,8 +154,7 @@
       "Replacement gets a fresh player and speed"
     );
     assert(
-      document.querySelector("[data-practice-follow]").checked &&
-        document.querySelector("[data-pb-click-seek]").getAttribute("aria-pressed") === "false",
+      document.querySelector("[data-practice-follow]").checked && !document.querySelector("[data-pb-click-seek]").checked,
       "Replacement resets follow and click-to-jump"
     );
     const track = document.querySelector("[data-pb-seek]");
