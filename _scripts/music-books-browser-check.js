@@ -1,4 +1,4 @@
-// Evaluate on /music/ at desktop and mobile widths.
+// Evaluate on /music/ and /music/sheet/ at desktop and mobile widths.
 (async () => {
   let checks = 0;
   const assert = (ok, message) => {
@@ -8,9 +8,6 @@
   const library = document.querySelector(".score-library");
   const books = [...library.querySelectorAll(".score-book:not(.score-book--blank)")];
   const blankBook = library.querySelector(".score-book--blank");
-  const originalURL = location.href;
-  const originalStyle = library.dataset.style;
-  const originalSizing = library.dataset.sizing;
   assert(books.length === 6, "All six books appear");
   assert(
     [...library.querySelectorAll(".score-stack:not(.score-stack--blank)")].map((stack) => stack.getAttribute("aria-label")).join(",") ===
@@ -49,33 +46,15 @@
     assert(title.scrollWidth <= title.clientWidth && title.scrollHeight <= book.clientHeight, "Title fits the spine");
     assert(document.getElementById(book.getAttribute("aria-describedby")), "Book has an accessible description");
   };
-  for (const style of ["pixel", "cloth"]) {
-    library.querySelector(`[data-book-style="${style}"]`).click();
-    assert(library.dataset.style === style, "Style switch works");
-    assert(library.querySelectorAll('[data-book-style][aria-pressed="true"]').length === 1, "Exactly one style is selected");
-    assert(new URL(location.href).searchParams.get("binding") === style, "Binding choice can be shared by URL");
-    const capStyle = getComputedStyle(books[0].querySelector(".score-book__caps"));
-    assert((capStyle.clipPath === "none") === (style === "cloth"), "Pixel covers are stepped; cloth covers are rounded");
-    for (const sizing of ["thickness", "width"]) {
-      library.querySelector(`[data-book-sizing="${sizing}"]`).click();
-      assert(library.dataset.sizing === sizing, "Sizing switch works");
-      assert(library.querySelectorAll('[data-book-sizing][aria-pressed="true"]').length === 1, "Exactly one size mode is selected");
-      assert(new URL(location.href).searchParams.get("size") === sizing, "Sizing choice can be shared by URL");
-      books.forEach(checkBook);
-      const blankRect = blankBook.getBoundingClientRect();
-      assert(blankRect.height >= 44 && blankRect.left >= 0 && blankRect.right <= innerWidth, "Blank book stays visible and touch-sized");
-      const heights = books.map((book) => book.getBoundingClientRect().height);
-      const widths = books.map((book) => book.getBoundingClientRect().width);
-      if (sizing === "thickness") {
-        assert(heights[2] / heights[0] > 2.2, "Long score is more than twice as thick as short score");
-        assert(heights[0] < heights[1] && heights[1] < heights[2], "Thickness follows score length");
-      } else {
-        assert(new Set(heights).size === 1, "Width mode keeps equal thickness");
-        assert(widths[0] < widths[1] && widths[1] < widths[2], "Width follows score length");
-      }
-      assert(document.documentElement.scrollWidth <= innerWidth, "No horizontal overflow in this combination");
-    }
-  }
+  assert(!library.querySelector("[data-book-style], [data-book-sizing], .score-library__notes"), "No design-study controls ship");
+  assert(getComputedStyle(books[0].querySelector(".score-book__caps")).clipPath !== "none", "Covers are stepped pixel boards");
+  books.forEach(checkBook);
+  const blankRect = blankBook.getBoundingClientRect();
+  assert(blankRect.height >= 44 && blankRect.left >= 0 && blankRect.right <= innerWidth, "Blank book stays visible and touch-sized");
+  const heights = books.map((book) => book.getBoundingClientRect().height);
+  assert(heights[2] / heights[0] > 2.2, "Long score is more than twice as thick as short score");
+  assert(heights[0] < heights[1] && heights[1] < heights[2], "Thickness follows score length");
+  assert(document.documentElement.scrollWidth <= innerWidth, "No horizontal overflow");
   for (const book of [...books, blankBook]) {
     book.focus();
     assert(library.querySelector("[data-book-caption]").textContent === book.dataset.bookDetail, "Focus reveals source and score length");
@@ -84,8 +63,5 @@
   for (const url of [...books, blankBook].map((book) => book.href)) {
     assert((await fetch(url)).ok, "Score and file-reader links resolve");
   }
-  library.querySelector(`[data-book-style="${originalStyle}"]`).click();
-  library.querySelector(`[data-book-sizing="${originalSizing}"]`).click();
-  history.replaceState(null, "", originalURL);
   return { checks, width: innerWidth, result: "passed" };
 })();

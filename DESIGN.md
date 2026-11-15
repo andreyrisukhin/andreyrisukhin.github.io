@@ -140,6 +140,8 @@ The front matter of this file holds the tokens in the [design.md](https://github
 
 **Color.** The site brown (`accent`) is the only accent, on every page including music and sheet music. Use it for links, the mark, the dot rule, focus rings, and the primary button. Page palettes may change paper and ink, never the accent. Text meets 4.5:1 against its surface in both themes; controls and focus rings meet 3:1.
 
+The color palette tool at `/color/palette/` offers an explicit, browser-local exception: visitors may apply generated paper, ink, and accent colors across the website, or reset to the identity palette. Generated text and accent colors must retain 4.5:1 contrast in both themes. Do not recolor artwork or notation.
+
 **Shape.** Every corner is square (`rounded.none`). Borders are one pixel in `border`. No drop shadows on surfaces, cards, menus, or post photos.
 
 **Buttons.** Two styles. Primary is an accent fill with `on-accent` text; on hover it darkens (light) or lightens (dark) to `accent-hover`. Secondary is a one-pixel `border` outline on the page color; on hover the outline takes the text color. Disabled keeps its outline but goes dashed at 55% opacity. Callers set size and padding; one group of controls shares one height.

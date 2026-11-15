@@ -32,7 +32,9 @@
 
 - title: Sheets
   id: sheets
+  url: /music/sheet/
   aliases:
+    - /music/sheet/
     - /music/sheet/hidden-truth-faithful/
     - /music/sheet/hidden-truth-lean/
     - /music/sheet/hidden-truth-full/

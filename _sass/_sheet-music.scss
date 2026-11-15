@@ -456,13 +456,14 @@ html.sheet-music-focus-open body {
   flex-direction: column;
   flex: none;
   min-width: 5.5em;
-  color: var(--sheet-muted);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
+  line-height: 1.3;
   white-space: nowrap;
 }
 
 .sheet-transport__time {
-  font-size: 0.75rem;
+  color: var(--sheet-muted);
 }
 
 // Desktop shows every control in one row; phones fold key and sound
@@ -475,7 +476,8 @@ html.sheet-music-focus-open body {
   display: none;
 }
 
-.sheet-transport__select {
+// Doubled class beats the notebook's label margin, which pushed the select off the row.
+.sheet-transport__select.sheet-transport__select {
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -514,31 +516,6 @@ html.sheet-music-focus-open body {
       opacity: 0.55;
       cursor: default;
     }
-  }
-}
-
-.sheet-transport__toggle {
-  flex: none;
-  padding: 0.125rem 0.625rem;
-  border: 1px solid transparent;
-  background: none;
-  color: var(--sheet-muted);
-  font: inherit;
-  cursor: pointer;
-
-  &:hover {
-    color: var(--sheet-ink);
-  }
-
-  &[aria-pressed="true"] {
-    border-color: var(--sheet-accent);
-    background: var(--sheet-accent-soft);
-    color: var(--sheet-ink);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--sheet-accent);
-    outline-offset: 2px;
   }
 }
 
@@ -672,8 +649,7 @@ html.sheet-music-focus-open body {
   .sheet-transport__btn,
   .sheet-transport__select select,
   .sheet-transport__step,
-  .sheet-transport__key-name,
-  .sheet-transport__toggle {
+  .sheet-transport__key-name {
     min-height: 0;
   }
 
@@ -694,12 +670,6 @@ html.sheet-music-focus-open body {
 
   .sheet-transport__select select {
     height: 2rem;
-  }
-}
-
-@media (pointer: coarse) {
-  .sheet-transport__toggle {
-    display: none;
   }
 }
 

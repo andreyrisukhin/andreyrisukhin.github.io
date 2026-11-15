@@ -1,0 +1,138 @@
+.palette-tool {
+  .palette-strip,
+  .palette-mini {
+    display: flex;
+    > * {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+  .palette-strip > div {
+    display: flex;
+    align-items: flex-end;
+    min-height: 9rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+  .palette-sample {
+    padding: 2rem;
+    background: var(--preview-canvas);
+    color: var(--preview-text);
+    .tool-label {
+      color: var(--preview-text-muted);
+    }
+    h2 {
+      font-size: 1.125rem;
+    }
+    p {
+      max-width: 34rem;
+    }
+    a {
+      color: var(--preview-accent);
+      text-decoration: underline;
+    }
+  }
+  .tool-label {
+    font-size: 0.875rem;
+  }
+  .palette-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+    input,
+    select {
+      height: 2.75rem;
+    }
+    select {
+      width: 100%;
+    }
+  }
+  .palette-seed {
+    display: flex;
+    gap: 0.5rem;
+  }
+  input[type="color"] {
+    width: 3rem;
+    padding: 0;
+    border: 1px solid var(--tool-rule);
+    border-radius: 0;
+    background: none;
+  }
+  input[type="text"] {
+    width: 8rem;
+    min-width: 0;
+  }
+  .palette-ideas {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    button {
+      padding: 0;
+      text-align: left;
+    }
+    button > span:last-child {
+      display: block;
+      padding: 0.6rem;
+    }
+    button[aria-pressed="true"] {
+      outline: 2px solid var(--tool-accent);
+      outline-offset: 2px;
+    }
+  }
+  .palette-mini {
+    height: 3rem;
+  }
+  .palette-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 1.5rem 0 0.75rem;
+  }
+  #palette-status {
+    color: var(--global-text-color-light);
+    font-size: 0.875rem;
+    min-height: 1.5em;
+  }
+  .palette-values {
+    padding-left: 1.25rem;
+  }
+  @media (max-width: 576px) {
+    .palette-strip > div {
+      min-height: 7rem;
+      padding: 0.4rem;
+      font-size: 0.75rem;
+    }
+    .palette-sample {
+      padding: 1.25rem;
+    }
+    .palette-controls {
+      grid-template-columns: 1fr;
+    }
+    .palette-ideas {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+// An explicitly applied visitor palette overrides page-local paper and ink.
+html[data-site-palette][data-theme] body.creative-paper {
+  --paper: var(--color-canvas);
+  --paper-ink: var(--color-text);
+  --paper-muted: var(--color-text-muted);
+  --paper-accent: var(--color-accent);
+  --paper-rule: var(--color-border);
+  --music-paper: var(--color-canvas);
+  --music-surface: var(--color-surface);
+  --music-ink: var(--color-text);
+  --music-muted: var(--color-text-muted);
+  --music-rule: var(--color-border);
+}
+html[data-site-palette] .post-reading {
+  --global-text-color: var(--color-text);
+}

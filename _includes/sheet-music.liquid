@@ -66,26 +66,27 @@
         {% if include.notes %}
           <p>{{ include.notes }}</p>
         {% endif %}
-        {% unless source_path == musicxml_path %}
-          <a class="music-share-btn" href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
-        {% endunless %}
-        <a class="music-share-btn" href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
-        {% if include.midi %}
-          <a class="music-share-btn" href="{{ include.midi | relative_url }}" download>Download MIDI</a>
-        {% endif %}
+        <p class="sheet-download-links">
+          {% unless source_path == musicxml_path %}
+            <a href="{{ source_path | relative_url }}" download>Download .{{ source_ext }}</a>
+          {% endunless %}
+          <a href="{{ musicxml_path | relative_url }}" download>Download MusicXML</a>
+          {% if include.midi %}
+            <a href="{{ include.midi | relative_url }}" download>Download MIDI</a>
+          {% endif %}
+        </p>
         <p>Notation rendered with <a href="https://opensheetmusicdisplay.org/">OpenSheetMusicDisplay</a>.</p>
         <p>Local corrections do not change this public score.</p>
       </details>
     </div>
   {% endif %}
   <div class="sheet-reader-secondary">
-    <details
+    <div
       class="sheet-view-options"
       {% if include.local_file %}
         hidden
       {% endif %}
     >
-      <summary>View / instruments</summary>
       <div
         class="sheet-music-controls"
         role="group"
@@ -99,24 +100,50 @@
           <button id="osmd-zoom-reset" class="music-share-btn sheet-music-zoom__level" type="button" aria-label="Zoom 100%, reset">100%</button>
           <button id="osmd-zoom-in" class="music-share-btn sheet-music-zoom__step" type="button" aria-label="Larger notes">+</button>
         </div>
-        <button id="osmd-stradella-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Stradella</button>
+        <button
+          id="osmd-stradella-toggle"
+          class="music-share-btn"
+          type="button"
+          data-pressed="false"
+          aria-pressed="false"
+          aria-describedby="sheet-stradella-help"
+        >
+          Stradella
+        </button>
         <button id="osmd-focus-toggle" class="music-share-btn" type="button" data-pressed="false" aria-pressed="false">Focus</button>
         {% unless include.playback %}
           <p class="sheet-music-readonly">Read-only score: no playback for this piece.</p>
         {% endunless %}
       </div>
-      <p class="practice-help">Stradella is an optional accordion aid, not part of piano notation.</p>
-      {% unless include.local_file %}
-        <details class="sheet-annotation-tools">
-          <summary>Developer annotation tools</summary>
-          <p class="practice-help">Opt-in annotations use browser storage and a local development service. They do not edit the public score.</p>
-          <a class="music-share-btn" href="?dev=1" data-sheet-dev-enable>Enable annotations</a>
-        </details>
-      {% endunless %}
-    </details>
+    </div>
+    <div
+      class="sheet-study-controls"
+      {% if include.local_file or include.playback != true %}
+        hidden
+      {% endif %}
+    >
+      <label><input type="checkbox" data-study-chords> Chord analysis</label>
+      <label><input type="checkbox" data-study-octaves> Octave pairs</label>
+      <p class="practice-help">
+        Tap a measure’s study label for chord tones, bass and upper-staff notes. ? marks inferred harmony, not a verified chord.
+      </p>
+    </div>
+    <p class="practice-help sheet-stradella-help" id="sheet-stradella-help">Stradella is an optional accordion aid, not part of piano notation.</p>
     {% if include.playback %}
       {% include sheet-practice.liquid local_file=include.local_file %}
     {% endif %}
+    {% unless include.local_file %}
+      <details
+        class="sheet-annotation-tools"
+        {% if jekyll.environment == 'production' %}
+          hidden
+        {% endif %}
+      >
+        <summary>Developer annotation tools</summary>
+        <p class="practice-help">Opt-in annotations use browser storage and a local development service. They do not edit the public score.</p>
+        <a class="music-share-btn" href="?dev=1" data-sheet-dev-enable>Enable annotations</a>
+      </details>
+    {% endunless %}
   </div>
   <p
     class="practice-score-help"
@@ -126,18 +153,6 @@
   >
     Tap a note to inspect it. Keyboard: Tab to the score, then use arrow keys and Enter.
   </p>
-  <div
-    class="sheet-study-controls"
-    {% if include.local_file or include.playback != true %}
-      hidden
-    {% endif %}
-  >
-    <label><input type="checkbox" data-study-chords> Chord analysis</label>
-    <label><input type="checkbox" data-study-octaves> Octave pairs</label>
-    <p class="practice-help">
-      Tap a measure’s study label for chord tones, bass and upper-staff notes. ? marks inferred harmony, not a verified chord.
-    </p>
-  </div>
   <div id="osmd-container" class="sheet-music-container" tabindex="0" role="region" aria-label="Sheet music, scroll sideways if needed"></div>
   {% unless include.local_file %}
     <p id="osmd-status" class="sheet-music-status" role="status">Loading score…</p>

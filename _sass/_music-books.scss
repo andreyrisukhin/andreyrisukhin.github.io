@@ -1,41 +1,5 @@
 .music-notebook .score-library {
   margin-top: 1rem;
-  .score-library__toolbar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
-    padding-block: 0.5rem;
-    border-block: 1px solid var(--music-rule);
-    font-size: 0.75rem;
-    color: var(--music-muted);
-    fieldset {
-      display: flex;
-      margin: 0;
-      border: 0;
-      padding: 0;
-      gap: 0.25rem;
-    }
-    button {
-      background: transparent;
-      color: var(--music-muted);
-      border: 0;
-      padding: 0.5rem 0.75rem;
-      font: inherit;
-      cursor: pointer;
-    }
-    button[aria-pressed="true"] {
-      color: var(--music-ink);
-      box-shadow: inset 0 -2px var(--music-accent);
-    }
-    fieldset:last-child {
-      margin-left: auto;
-    }
-  }
-  .score-library__study {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
   .score-library__intro {
     margin: 1.5rem 0 0;
     color: var(--music-muted);
@@ -143,9 +107,6 @@
       width: 30px;
       height: 40px;
     }
-  }
-  .score-motif__cloth {
-    display: none;
   }
   .score-book__caps {
     position: absolute;
@@ -309,83 +270,6 @@
       padding-block: 0.75rem;
     }
   }
-  .score-library__notes {
-    margin-top: 0.5rem;
-    color: var(--music-muted);
-    font-size: 0.875rem;
-    summary {
-      padding-block: 0.75rem;
-      cursor: pointer;
-    }
-    p {
-      max-width: 42rem;
-    }
-  }
-  &[data-sizing="width"] .score-book {
-    width: var(--book-width);
-    min-height: 96px;
-  }
-  &[data-style="cloth"] {
-    .score-book {
-      margin-top: 4px;
-      padding-left: 18px;
-      border-top: 2px solid var(--cover-light);
-      border-bottom: 3px solid var(--cover-dark);
-      border-radius: 13px 3px 3px 13px;
-      box-shadow:
-        inset 8px 0 8px #0002,
-        inset -1px 0 1px #fff2,
-        1px 4px 5px #302d2933;
-      background-image: repeating-linear-gradient(0deg, #fff0 0 2px, #ffffff08 2px 3px),
-        repeating-linear-gradient(90deg, #0000 0 2px, #0000000a 2px 3px);
-      &::before {
-        inset: 0 auto 0 8px;
-        width: 3px;
-        background: transparent;
-        border-left: 1px solid var(--cover-dark);
-        border-right: 1px solid var(--cover-light);
-        opacity: 0.6;
-      }
-      &::after {
-        width: 2px;
-        border: 0;
-        background: var(--foil);
-        opacity: 0.35;
-      }
-    }
-    .score-book__caps {
-      inset: -3px -2px;
-      border-width: 3px;
-      border-radius: 13px 3px 3px 13px;
-      clip-path: none;
-    }
-    .score-book__frame {
-      inset: 8px 17px 8px 14px;
-      border: 1px solid var(--foil);
-      border-radius: 7px 1px 1px 7px;
-      opacity: 0.3;
-      &::before,
-      &::after {
-        display: none;
-      }
-    }
-    .score-motif__pixel {
-      display: none;
-    }
-    .score-motif__cloth {
-      display: initial;
-    }
-    .score-book__edge {
-      inset: 3px -5px 3px auto;
-      width: 5px;
-      border-radius: 0 3px 3px 0;
-      background: repeating-linear-gradient(to bottom, #e8dcc0 0 1px, #d0c3a9 1px 2px);
-    }
-    .score-stack__shelf {
-      border-radius: 2px;
-      box-shadow: 0 3px 5px #302d2926;
-    }
-  }
   @media (max-width: 860px) {
     .score-library__stacks {
       grid-template-columns: 1fr;
@@ -393,9 +277,6 @@
       max-width: 26rem;
       margin-inline: auto;
       padding-top: 1.75rem;
-    }
-    .score-library__toolbar fieldset:last-child {
-      margin-left: 0;
     }
     .score-stack__label {
       margin-top: 1rem;

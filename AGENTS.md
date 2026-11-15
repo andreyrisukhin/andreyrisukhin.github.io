@@ -92,7 +92,9 @@ Any change a visitor can see (layouts, includes, Sass, navigation, page chrome) 
 
 After a production build, run `node bin/site-kpi.mjs` before committing any change to layouts, Sass, scripts, or music pages, and again on the commit. It serves `_site` on a loopback port and records the median of five cold loads of the music hub, the Señorita sheet, and the homepage: load, ready (first score render on sheet pages), LCP, light-to-dark switch time, the longest frame during that switch, requests, and KB. Results append to `~/data/site-kpi/kpi.jsonl` with the commit and print deltas against the previous entry.
 
+- It also scores layout in the main column: `align_rows` (controls in one row whose tops, centers, or bottoms miss by 1.5–8 px), `align_edges` (controls and text blocks 1–8 px off the column edge), `font_sizes` (distinct text sizes on the first screen), `rules` (distinct horizontal hairlines on the first screen), and `dup_text` (sentences repeated on the page). `--explain` names each offender.
 - Pass `--label` to name a run (for example `baseline` or `fixes`) and extra paths to measure other pages.
+- Keep `align_rows` and `align_edges` at 0, `font_sizes` at 4 or fewer, `rules` at 2 or fewer, and `dup_text` at 0. Fix a rise or explain it in the handoff.
 - Treat a theme switch over 500 ms, a switch frame over 100 ms, or a sheet ready time over 1000 ms as a regression to fix or explain in the handoff.
 - Headless Chrome paints at about 20 fps, so 50 ms frames are the floor there, not jank.
 

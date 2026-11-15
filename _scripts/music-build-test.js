@@ -94,13 +94,13 @@ for (const route of routes) {
   const anchors = [...nav.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)];
   assert.deepEqual(
     anchors.map((match) => match[2].trim()),
-    ["Music", ...sections.map((section) => section[1])],
+    ["Overview", ...sections.map((section) => section[1])],
     route + " has consistent navigation"
   );
   assert.deepEqual(
     anchors.map((match) => match[1].match(/href="([^"]+)"/)[1]),
-    ["/music/", ...sections.map((section) => "/music/#" + section[0])],
-    route + " links to hub sections"
+    ["/music/", ...sections.map((section) => (section[0] === "sheets" ? "/music/sheet/" : "/music/#" + section[0]))],
+    route + " links to hub sections, or a section's own index"
   );
   const current = anchors.filter((match) => match[1].includes("aria-current="));
   assert.equal(current.length, 1, route + " has one current navigation item");
@@ -110,7 +110,7 @@ for (const route of routes) {
       ? "Sheets"
       : route
         ? sections.find((section) => section[2].includes(route))[1]
-        : "Music";
+        : "Overview";
   assert.equal(current[0][2].trim(), expected, route + " marks its own group");
   assert.ok(current[0][1].includes(`aria-current="${route ? "location" : "page"}"`), route + " uses the correct current scope");
 }

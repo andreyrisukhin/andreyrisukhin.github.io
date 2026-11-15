@@ -49,7 +49,7 @@ window.SheetTransport = (function () {
             measure,
             loop,
             follow: $("follow").checked,
-            clickSeek: clickSeek.getAttribute("aria-pressed") === "true",
+            clickSeek: clickSeek.checked,
           })
         );
       } catch (_) {}
@@ -100,13 +100,13 @@ window.SheetTransport = (function () {
     page.insertBefore(root, page.querySelector(".sheet-reader-secondary") || settings);
     // Click-to-jump is a reading preference, so it lives with the other
     // practice settings and keeps the transport to one row.
-    const clickSeek = document.createElement("button");
-    clickSeek.type = "button";
-    clickSeek.className = "sheet-transport__toggle";
+    const clickSeekField = document.createElement("label");
+    clickSeekField.className = "practice-check";
+    const clickSeek = document.createElement("input");
+    clickSeek.type = "checkbox";
     clickSeek.setAttribute("data-pb-click-seek", "");
-    clickSeek.setAttribute("aria-pressed", "false");
-    clickSeek.textContent = "Click score to jump";
-    settings.querySelector(".practice-settings-grid").append(clickSeek);
+    clickSeekField.append(clickSeek, " Click the score to jump there");
+    (settings.querySelector("[data-practice-reading]") || settings.querySelector(".practice-settings-grid")).append(clickSeekField);
     const measureHeight = () => document.documentElement.style.setProperty("--sheet-transport-height", root.offsetHeight + "px");
     const resize = new ResizeObserver(measureHeight);
     resize.observe(root);
@@ -123,7 +123,7 @@ window.SheetTransport = (function () {
     const status = $("status");
     if (mode) mode.options[0].textContent = page.dataset.renderedLabel || "Recording";
     window.SheetScore.instruments.forEach(([value, label]) => instrument.add(new Option(label, value)));
-    clickSeek.setAttribute("aria-pressed", String(saved?.clickSeek === true));
+    clickSeek.checked = saved?.clickSeek === true;
     settings.querySelectorAll("[disabled]").forEach((control) => {
       control.disabled = false;
     });
@@ -221,10 +221,7 @@ window.SheetTransport = (function () {
       more.setAttribute("aria-expanded", String(open));
       root.classList.toggle("is-expanded", open);
     });
-    on(clickSeek, "click", () => {
-      clickSeek.setAttribute("aria-pressed", String(clickSeek.getAttribute("aria-pressed") !== "true"));
-      save();
-    });
+    on(clickSeek, "change", save);
     root.querySelectorAll("[data-pb-transpose]").forEach((button) =>
       on(button, "click", () => {
         const state = player.snapshot();
@@ -276,7 +273,7 @@ window.SheetTransport = (function () {
       bridge.container,
       "click",
       (event) => {
-        if (clickSeek.getAttribute("aria-pressed") !== "true" || event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+        if (!clickSeek.checked || event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
         const hit = bridge.resolveNoteAt(event.pageX, event.pageY, 180, event.target);
         if (!hit?.measureNumber) return;
         seek(hit.measureNumber);
@@ -319,7 +316,7 @@ window.SheetTransport = (function () {
         unsubscribe();
         resize.disconnect();
         root.remove();
-        clickSeek.remove();
+        clickSeekField.remove();
         document.documentElement.style.removeProperty("--sheet-transport-height");
         settings.querySelectorAll("input, select, button").forEach((control) => {
           control.disabled = true;
