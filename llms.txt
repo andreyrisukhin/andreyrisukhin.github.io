@@ -1,0 +1,37 @@
+---
+permalink: /llms.txt
+layout: null
+---
+# {{ site.first_name }} {{ site.last_name }}
+
+> {{ site.description }}
+
+Canonical site: {{ site.url }}{{ site.baseurl }}/
+
+## Key Sections
+
+- [About]({{ site.url }}{{ site.baseurl }}/) — Bio, current work on self-improving coding agents at Factory, and research interests in implicit feedback.
+- [Writing]({{ site.url }}{{ site.baseurl }}/blog/) — Essays, technical notes, and project logbooks.
+- [Publications]({{ site.url }}{{ site.baseurl }}/publications/) — Academic papers and research.
+- [RSS Feed]({{ site.url }}{{ site.baseurl }}/feed.xml) — Atom feed of published writing.
+
+## Projects and Tools
+{% for item in site.data.home_work %}
+- [{{ item.title }}]({{ site.url }}{{ site.baseurl }}{{ item.url }}) — {{ item.blurb }}
+{%- endfor %}
+
+## Writing
+{% for post in site.posts %}
+- [{{ post.title }}]({{ site.url }}{{ site.baseurl }}{{ post.url }}) ({{ post.date | date: "%Y-%m-%d" }}){% if post.description %} — {{ post.description | strip_html | normalize_whitespace }}{% endif %}
+{%- endfor %}
+
+## Profiles
+{% if site.data.socials.github_username %}
+- [GitHub](https://github.com/{{ site.data.socials.github_username }})
+{%- endif %}{% if site.data.socials.scholar_userid %}
+- [Google Scholar](https://scholar.google.com/citations?user={{ site.data.socials.scholar_userid }})
+{%- endif %}{% if site.data.socials.linkedin_username %}
+- [LinkedIn](https://www.linkedin.com/in/{{ site.data.socials.linkedin_username }})
+{%- endif %}{% if site.data.socials.x_username %}
+- [X](https://x.com/{{ site.data.socials.x_username }})
+{%- endif %}

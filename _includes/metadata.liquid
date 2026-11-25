@@ -70,172 +70,232 @@
   {% if page.og_image or site.og_image %}
     <meta name="twitter:image" content="{% if page.og_image %}{{ page.og_image }}{% else %}{{ site.og_image }}{% endif %}">
   {% endif %}
-  {% if site.x_username %}
-    <meta name="twitter:site" content="@{{ site.x_username }}">
-    <meta name="twitter:creator" content="@{{ site.x_username }}">
+  {% assign x_username = site.data.socials.x_username | default: site.x_username %}
+  {% if x_username %}
+    <meta name="twitter:site" content="@{{ x_username }}">
+    <meta name="twitter:creator" content="@{{ x_username }}">
   {% endif %}
 {% endif %}
 
 {% if site.serve_schema_org %}
   <!-- Schema.org -->
   {% comment %} Social links generator for "sameAs schema" {% endcomment %}
+  {% assign socials = site.data.socials %}
   {% assign sameaslinks = '' | split: ',' %}
-  {% if site.orcid_id %}
-    {% capture link %}https://orcid.org/{{ site.orcid_id }}{% endcapture %}
+  {% assign social_val = socials.orcid_id | default: site.orcid_id %}
+  {% if social_val %}
+    {% capture link %}https://orcid.org/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.scholar_userid %}
-    {% capture link %}https://scholar.google.com/citations?user={{ site.scholar_userid }}{% endcapture %}
+  {% assign social_val = socials.scholar_userid | default: site.scholar_userid %}
+  {% if social_val %}
+    {% capture link %}https://scholar.google.com/citations?user={{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.semanticscholar_id %}
-    {% capture link %}https://www.semanticscholar.org/author/{{ site.semanticscholar_id }}{% endcapture %}
+  {% assign social_val = socials.semanticscholar_id | default: site.semanticscholar_id %}
+  {% if social_val %}
+    {% capture link %}https://www.semanticscholar.org/author/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.publons_id %}
-    {% capture link %}https://publons.com/a/{{ site.publons_id }}/{% endcapture %}
+  {% assign social_val = socials.publons_id | default: site.publons_id %}
+  {% if social_val %}
+    {% capture link %}https://publons.com/a/{{ social_val }}/{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.lattes_id %}
-    {% capture link %}http://lattes.cnpq.br/{{ site.lattes_id }}{% endcapture %}
+  {% assign social_val = socials.lattes_id | default: site.lattes_id %}
+  {% if social_val %}
+    {% capture link %}http://lattes.cnpq.br/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.osf_id %}
-    {% capture link %}https://osf.io/{{ site.osf_id }}/{% endcapture %}
+  {% assign social_val = socials.osf_id | default: site.osf_id %}
+  {% if social_val %}
+    {% capture link %}https://osf.io/{{ social_val }}/{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.research_gate_profile %}
-    {% capture link %}https://www.researchgate.net/profile/{{ site.research_gate_profile }}{% endcapture %}
+  {% assign social_val = socials.research_gate_profile | default: site.research_gate_profile %}
+  {% if social_val %}
+    {% capture link %}https://www.researchgate.net/profile/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.scopus_id %}
-    {% capture link %}https://www.scopus.com/authid/detail.uri?authorId={{ site.scopus_id }}{% endcapture %}
+  {% assign social_val = socials.scopus_id | default: site.scopus_id %}
+  {% if social_val %}
+    {% capture link %}https://www.scopus.com/authid/detail.uri?authorId={{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.github_username %}
-    {% capture link %}https://github.com/{{ site.github_username }}{% endcapture %}
+  {% assign social_val = socials.github_username | default: site.github_username %}
+  {% if social_val %}
+    {% capture link %}https://github.com/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.telegram_username %}
-    {% capture link %}https://telegram.me/{{ site.telegram_username }}{% endcapture %}
+  {% assign social_val = socials.telegram_username | default: site.telegram_username %}
+  {% if social_val %}
+    {% capture link %}https://telegram.me/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.linkedin_username %}
-    {% capture link %}https://www.linkedin.com/in/{{ site.linkedin_username }}{% endcapture %}
+  {% assign social_val = socials.linkedin_username | default: site.linkedin_username %}
+  {% if social_val %}
+    {% capture link %}https://www.linkedin.com/in/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.x_username %}
-    {% capture link %}https://twitter.com/{{ site.x_username }}{% endcapture %}
+  {% assign social_val = socials.x_username | default: site.x_username %}
+  {% if social_val %}
+    {% capture link %}https://twitter.com/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.mastodon_username %}
-    {% capture link %}https://{{ site.mastodon_username  }}{% endcapture %}
+  {% assign social_val = socials.mastodon_username | default: site.mastodon_username %}
+  {% if social_val %}
+    {% capture link %}https://{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.medium_username %}
-    {% capture link %}https://medium.com/@{{ site.medium_username }}{% endcapture %}
+  {% assign social_val = socials.medium_username | default: site.medium_username %}
+  {% if social_val %}
+    {% capture link %}https://medium.com/@{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.quora_username %}
-    {% capture link %}https://www.quora.com/profile/{{ site.quora_username }}{% endcapture %}
+  {% assign social_val = socials.quora_username | default: site.quora_username %}
+  {% if social_val %}
+    {% capture link %}https://www.quora.com/profile/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.blogger_url %}
-    {% capture link %}{{ site.blogger_url }}{% endcapture %}
+  {% assign social_val = socials.blogger_url | default: site.blogger_url %}
+  {% if social_val %}
+    {% capture link %}{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.work_url %}
-    {% capture link %}{{ site.work_url }}{% endcapture %}
+  {% assign social_val = socials.work_url | default: site.work_url %}
+  {% if social_val %}
+    {% capture link %}{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.wikidata_id %}
-    {% capture link %}https://www.wikidata.org/wiki/{{ site.wikidata_id }}{% endcapture %}
+  {% assign social_val = socials.wikidata_id | default: site.wikidata_id %}
+  {% if social_val %}
+    {% capture link %}https://www.wikidata.org/wiki/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.wikipedia_id %}
-    {% capture link %}https://wikipedia.org/wiki/User:{{ site.wikipedia_id }}{% endcapture %}
+  {% assign social_val = socials.wikipedia_id | default: site.wikipedia_id %}
+  {% if social_val %}
+    {% capture link %}https://wikipedia.org/wiki/User:{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.strava_userid %}
-    {% capture link %}https://www.strava.com/athletes/{{ site.strava_userid }}{% endcapture %}
+  {% assign social_val = socials.strava_userid | default: site.strava_userid %}
+  {% if social_val %}
+    {% capture link %}https://www.strava.com/athletes/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.keybase_username %}
-    {% capture link %}https://keybase.io/{{ site.keybase_username }}{% endcapture %}
+  {% assign social_val = socials.keybase_username | default: site.keybase_username %}
+  {% if social_val %}
+    {% capture link %}https://keybase.io/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.gitlab_username %}
-    {% capture link %}https://gitlab.com/{{ site.gitlab_username }}{% endcapture %}
+  {% assign social_val = socials.gitlab_username | default: site.gitlab_username %}
+  {% if social_val %}
+    {% capture link %}https://gitlab.com/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.dblp_url %}
-    {% capture link %}{{ site.dblp_url }}{% endcapture %}
+  {% assign social_val = socials.dblp_url | default: site.dblp_url %}
+  {% if social_val %}
+    {% capture link %}{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.stackoverflow_id %}
-    {% capture link %}https://stackoverflow.com/users/{{ site.stackoverflow_id }}{% endcapture %}
+  {% assign social_val = socials.stackoverflow_id | default: site.stackoverflow_id %}
+  {% if social_val %}
+    {% capture link %}https://stackoverflow.com/users/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.kaggle_id %}
-    {% capture link %}https://www.kaggle.com/{{ site.kaggle_id }}{% endcapture %}
+  {% assign social_val = socials.kaggle_id | default: site.kaggle_id %}
+  {% if social_val %}
+    {% capture link %}https://www.kaggle.com/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.lastfm_id %}
-    {% capture link %}https://www.last.fm/user/{{ site.lastfm_id }}{% endcapture %}
+  {% assign social_val = socials.lastfm_id | default: site.lastfm_id %}
+  {% if social_val %}
+    {% capture link %}https://www.last.fm/user/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.spotify_id %}
-    {% capture link %}https://open.spotify.com/user/{{ site.spotify_id }}{% endcapture %}
+  {% assign social_val = socials.spotify_id | default: site.spotify_id %}
+  {% if social_val %}
+    {% capture link %}https://open.spotify.com/user/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.pinterest_id %}
-    {% capture link %}https://www.pinterest.com/{{ site.pinterest_id }}{% endcapture %}
+  {% assign social_val = socials.pinterest_id | default: site.pinterest_id %}
+  {% if social_val %}
+    {% capture link %}https://www.pinterest.com/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.unsplash_id %}
-    {% capture link %}https://unsplash.com/@{{ site.unsplash_id }}{% endcapture %}
+  {% assign social_val = socials.unsplash_id | default: site.unsplash_id %}
+  {% if social_val %}
+    {% capture link %}https://unsplash.com/@{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.instagram_id %}
-    {% capture link %}https://instagram.com/{{ site.instagram_id }}{% endcapture %}
+  {% assign social_val = socials.instagram_id | default: site.instagram_id %}
+  {% if social_val %}
+    {% capture link %}https://instagram.com/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.facebook_id %}
-    {% capture link %}https://facebook.com/{{ site.facebook_id }}{% endcapture %}
+  {% assign social_val = socials.facebook_id | default: site.facebook_id %}
+  {% if social_val %}
+    {% capture link %}https://facebook.com/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.youtube_id %}
-    {% capture link %}https://youtube.com/@{{ site.youtube_id }}{% endcapture %}
+  {% assign social_val = socials.youtube_id | default: site.youtube_id %}
+  {% if social_val %}
+    {% capture link %}https://youtube.com/@{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.discord_id %}
-    {% capture link %}https://discord.com/users/{{ site.discord_id }}{% endcapture %}
+  {% assign social_val = socials.discord_id | default: site.discord_id %}
+  {% if social_val %}
+    {% capture link %}https://discord.com/users/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if site.zotero_username %}
-    {% capture link %}https://www.zotero.org/{{ site.zotero_username }}{% endcapture %}
+  {% assign social_val = socials.zotero_username | default: site.zotero_username %}
+  {% if social_val %}
+    {% capture link %}https://www.zotero.org/{{ social_val }}{% endcapture %}
     {% assign sameaslinks = sameaslinks | push: link %}
   {% endif %}
-  {% if sameaslinks != blank %}
-    {% assign sameaslinks = sameaslinks | split: '' %}
+
+  {% capture jsonld_url %}{{ page.url | prepend: site.baseurl | prepend: site.url | remove_first: 'index.html' }}{% endcapture %}
+  {% if page.description %}
+    {% assign jsonld_description = page.description | strip_html | normalize_whitespace %}
+  {% elsif site.description %}
+    {% assign jsonld_description = site.description | strip_html | normalize_whitespace %}
+  {% else %}
+    {% assign jsonld_description = '' %}
+  {% endif %}
+  {% if page.title and page.title != 'blank' %}
+    {% assign jsonld_headline = page.title %}
+  {% elsif site.title != 'blank' %}
+    {% assign jsonld_headline = site.title %}
+  {% else %}
+    {% assign jsonld_headline = author_name %}
   {% endif %}
 
   <script type="application/ld+json">
     {
-        "author":
-        {
-            "@type": "Person",
-            "name": "{{ author_name }}"
-        },
-        "url": "{{ page.url | prepend: site.baseurl | prepend: site.url }}",
-        "@type": "{% if is_blog_post %}BlogPosting{% else %}WebSite{% endif %}",
-        "description": "{% if page.description %}{{ page.description }}{% else if site.description %}{{ site.description }}{% endif %}",
-        "headline": "{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}",
-        {% if sameaslinks != blank %}
-        "sameAs": {{ sameaslinks }},
-        {% endif %}
-        "name": "{{ author_name }}",
-        "@context": "https://schema.org"
+      "@context": "https://schema.org",
+      "@type": "{% if is_blog_post %}BlogPosting{% else %}WebSite{% endif %}",
+      "name": {{ author_name | jsonify }},
+      "headline": {{ jsonld_headline | jsonify }},
+      "description": {{ jsonld_description | jsonify }},
+      "url": {{ jsonld_url | jsonify }},
+      {% if is_blog_post %}
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": {{ jsonld_url | jsonify }}
+      },
+      {% if page.date %}
+      "datePublished": {{ page.date | date_to_xmlschema | jsonify }},
+      {% endif %}
+      {% if page.last_modified_at %}
+      "dateModified": {{ page.last_modified_at | date_to_xmlschema | jsonify }},
+      {% endif %}
+      {% endif %}
+      {% if sameaslinks.size > 0 %}
+      "sameAs": {{ sameaslinks | jsonify }},
+      {% endif %}
+      "author": {
+        "@type": "Person",
+        "name": {{ author_name | jsonify }}
+      }
     }
   </script>
 {% endif %}
