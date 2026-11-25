@@ -1,0 +1,35 @@
+# Andrey Risukhin
+
+> Andrey Risukhin works on self-improving coding agents at Factory in San Francisco. Writing, research, LEGO reconstruction, and music tools.
+
+Canonical site: https://andrey.risukh.in/
+
+## Key Sections
+
+- [About](https://andrey.risukh.in/) — Bio, current work on self-improving coding agents at Factory, and research interests in implicit feedback.
+- [Writing](https://andrey.risukh.in/blog/) — Essays, technical notes, and project logbooks.
+- [Publications](https://andrey.risukh.in/publications/) — Academic papers and research.
+- [RSS Feed](https://andrey.risukh.in/feed.xml) — Atom feed of published writing.
+
+## Projects and Tools
+
+- [Bayan notebook](https://andrey.risukh.in/music/) — Tools, sheets, and references for bayan and harmony.
+- [LEGO](https://andrey.risukh.in/projects/lego/) — Recognizing pieces and reconstructing models from images.
+- [Ditherer](https://andrey.risukh.in/ditherer/) — Image ditherer with interleaved gradient noise.
+- [Fireplace](https://andrey.risukh.in/fireplace/) — A pixel fire to sit beside.
+- [Kata](https://andrey.risukh.in/kata/) — Breath and motion recipes for quick resets.
+- [Outfit palette](https://andrey.risukh.in/color/outfit/) — Plan an outfit’s colors and how much of the look each one covers.
+
+## Writing
+
+- [LEGO logbook: from boxes to Blender](https://andrey.risukh.in/blog/2026/lego-logbook-studio-to-blender/) (2026-10-31) — Real stud geometry, washed-out colors, a mirrored model, and the same two-brick test.
+- [LEGO logbook: the first reconstruction pipeline](https://andrey.risukh.in/blog/2026/lego-logbook-first-reconstruction-pipeline/) (2026-10-30) — An end-to-end pipeline, a start-token bug, and invalid training assemblies.
+- [Trying to Measure My Best Work](https://andrey.risukh.in/blog/2026/best-work-stays-recent/) (2026-08-29) — Intermediate thoughts on a six-week challenge, a weekly automation, and the missing context needed to measure judgment.
+- [Clocking In to the Factory](https://andrey.risukh.in/blog/2026/time-at-perceptron-ai/) (2026-05-01) — A year at Perceptron, then south to Factory.
+
+## Profiles
+
+- [GitHub](https://github.com/andreyrisukhin)
+- [Google Scholar](https://scholar.google.com/citations?user=6OrsxqIAAAAJ)
+- [LinkedIn](https://www.linkedin.com/in/andreyrisukhin)
+- [X](https://x.com/AndreyRisuka)
