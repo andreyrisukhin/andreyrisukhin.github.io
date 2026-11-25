@@ -18,6 +18,7 @@ on:
       - "**.yml"
       - "Gemfile"
       - "Gemfile.lock"
+      - "llms.txt"
       - "!.github/workflows/axe.yml"
       - "!.github/workflows/broken-links.yml"
       - "!.github/workflows/deploy-docker-tag.yml"
@@ -48,6 +49,7 @@ on:
       - "**.yml"
       - "Gemfile"
       - "Gemfile.lock"
+      - "llms.txt"
       - "!.github/workflows/axe.yml"
       - "!.github/workflows/broken-links.yml"
       - "!.github/workflows/deploy-docker-tag.yml"
@@ -96,6 +98,37 @@ jobs:
           pip3 install --upgrade nbconvert
           export JEKYLL_ENV=production
           bundle exec jekyll build
+      - name: Verify build, JSON-LD, and unit tests ✅
+        run: |
+          test -s _site/llms.txt
+          python3 - <<'PY'
+          import json, pathlib, re, sys
+          blocks = 0
+          errors = []
+          for html in sorted(pathlib.Path("_site").rglob("*.html")):
+              text = html.read_text(encoding="utf-8", errors="ignore")
+              for m in re.finditer(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', text, re.S | re.I):
+                  blocks += 1
+                  try:
+                      json.loads(m.group(1))
+                  except Exception as exc:
+                      errors.append(f"{html}: {exc}")
+          print(f"Validated {blocks} JSON-LD blocks")
+          if blocks == 0 or errors:
+              for e in errors:
+                  print(e, file=sys.stderr)
+              sys.exit(1)
+          PY
+          for t in _scripts/*-test.js; do
+            case "$t" in
+              _scripts/sheet-practice-test.js)
+                echo "Skipping $t (slow browser-coupled suite)"
+                continue
+                ;;
+            esac
+            echo "Running $t"
+            node "$t"
+          done
       - name: Purge unused CSS 🧹
         run: |
           npm install -g purgecss
