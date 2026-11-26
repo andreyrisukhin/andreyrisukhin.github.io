@@ -1,0 +1,2380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LEGO Lens" />
+  <meta name="theme-color" content="#0f1117" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icon.svg" />
+  <title>LEGO Lens — Capture &amp; Label</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #181c26;
+      --surface-2: #222838;
+      --border: #2e364a;
+      --text: #f3f5fa;
+      --muted: #98a2b8;
+      --pink: #ff2d87;
+      --pink-glow: rgba(255, 45, 135, 0.35);
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      width: 100%;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    /* Top Status Bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      min-height: 52px;
+    }
+
+    .ex-switcher {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .ex-nav-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      width: 28px;
+      height: 42px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ex-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    .status-thumb {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #0b0d12;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--muted);
+      overflow: hidden;
+    }
+
+    .status-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .status-text {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .status-title {
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-sub {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .mini-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 10px;
+      border-radius: 9px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mini-btn.primary {
+      background: #1d4ed8;
+      border-color: #2563eb;
+      color: #fff;
+    }
+
+    .mini-btn:active {
+      transform: scale(0.97);
+    }
+
+    .mini-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .conn-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      display: inline-block;
+    }
+    .conn-dot.online { background: var(--green); }
+    .conn-dot.offline { background: var(--amber); }
+
+    /* Main Canvas Stage */
+    .stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: #090b10;
+      overflow: hidden;
+    }
+
+    .prompt-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 12px;
+      background: rgba(24, 28, 38, 0.94);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      flex-shrink: 0;
+      z-index: 5;
+    }
+
+    .prompt-banner strong {
+      color: #fff;
+    }
+
+    .prompt-hint {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .photo-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .overlay-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Floating Zoom Controls */
+    .zoom-controls {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      background: rgba(15, 17, 23, 0.84);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      z-index: 8;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .zoom-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      min-width: 34px;
+      height: 32px;
+      padding: 0 8px;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .zoom-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Pink point marker (compact, crisp at any zoom) */
+    .point-dot {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      margin-left: -11px;
+      margin-top: -11px;
+      border-radius: 50%;
+      background: rgba(255, 45, 135, 0.78);
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 2px var(--pink-glow), 0 1px 4px rgba(0, 0, 0, 0.65);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    /* Example target click_xy reticle */
+    .target-dot {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      margin-left: -15px;
+      margin-top: -15px;
+      border-radius: 50%;
+      border: 2.5px solid var(--green);
+      background: rgba(34, 197, 94, 0.16);
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+    }
+    .target-dot::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      margin: -3px 0 0 -3px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      gap: 12px;
+      color: var(--muted);
+      max-width: 360px;
+      margin: auto;
+    }
+
+    .empty-state h2 {
+      margin: 0;
+      color: var(--text);
+      font-size: 20px;
+    }
+
+    .empty-state p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    /* Unified Filmstrip (Examples on left | Piles on right) */
+    .angle-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(24, 28, 38, 0.94);
+      border-top: 1px solid var(--border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      flex-shrink: 0;
+    }
+
+    .strip-group-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 2px;
+      flex-shrink: 0;
+    }
+
+    .strip-divider {
+      width: 2px;
+      height: 36px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 4px;
+      flex-shrink: 0;
+    }
+
+    .angle-thumb {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      overflow: hidden;
+      flex-shrink: 0;
+      cursor: pointer;
+      background: #0b0d12;
+    }
+
+    .angle-thumb.active {
+      border-color: var(--green);
+      box-shadow: 0 0 0 1px var(--green);
+    }
+
+    .angle-thumb.active-pile {
+      border-color: var(--pink);
+      box-shadow: 0 0 0 1px var(--pink);
+    }
+
+    .angle-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .angle-thumb .top-tag {
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      background: rgba(0, 0, 0, 0.72);
+      color: #e5e7eb;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 3px;
+      border-radius: 3px;
+      line-height: 1.1;
+    }
+
+    .angle-thumb .badge {
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 4px;
+      line-height: 1.1;
+    }
+
+    .angle-thumb .badge.pink {
+      background: rgba(255, 45, 135, 0.9);
+    }
+
+    .angle-thumb .badge.amber {
+      background: rgba(234, 88, 12, 0.9);
+    }
+
+    .add-angle-btn {
+      height: 48px;
+      padding: 0 14px;
+      border-radius: 8px;
+      border: 1.5px dashed #4b5563;
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* Pile labeling toolbar (Undo / Redo / None in this pile) */
+    .label-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      background: rgba(24, 28, 38, 0.96);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tool-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    .tool-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .tool-btn.absent-active {
+      background: #7c2d12;
+      border-color: #f97316;
+      color: #ffedd5;
+    }
+
+    /* Absent overlay badge */
+    .absent-ribbon {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(234, 88, 12, 0.92);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      letter-spacing: 0.02em;
+    }
+
+    /* Bottom 5-Button Thumb Dock */
+    .dock {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 8px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .dock-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .dock-row.two {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .dock-row.three {
+      grid-template-columns: 1fr 1.35fr 1fr;
+    }
+
+    .thumb-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      border-radius: 12px;
+      min-height: 52px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.15;
+      gap: 6px;
+    }
+
+    .thumb-btn:active {
+      transform: scale(0.98);
+    }
+
+    .thumb-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .thumb-btn.accent-green {
+      background: #15803d;
+      border-color: #22c55e;
+      color: #fff;
+    }
+
+    .thumb-btn.accent-pink {
+      background: #be185d;
+      border-color: var(--pink);
+      color: #fff;
+    }
+
+    .thumb-btn.accent-blue {
+      background: #1d4ed8;
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: calc(var(--safe-top) + 104px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 60;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    /* Dataset Drawer Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 560px;
+      max-height: 82dvh;
+      background: var(--surface);
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding-bottom: var(--safe-bottom);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .modal-body {
+      padding: 12px 16px 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .field-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-row label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .field-row input {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .dataset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .dataset-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .dataset-card.active-card {
+      border-color: var(--green);
+    }
+
+    .dataset-card-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .dataset-card-left img {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #0b0d12;
+      flex-shrink: 0;
+    }
+
+    .danger-btn {
+      background: rgba(239, 68, 68, 0.16);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      padding: 9px 12px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .hidden-input {
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Top Status Bar -->
+    <header class="topbar">
+      <div class="ex-switcher">
+        <button class="ex-nav-btn" id="btnPrevEx" type="button" aria-label="Previous example" disabled>‹</button>
+        <div class="status-pill" id="statusPill" role="button" tabindex="0" aria-label="Open example list and settings">
+          <div class="status-thumb" id="statusThumb">🧱</div>
+          <div class="status-text">
+            <div class="status-title" id="statusTitle">No Example Yet</div>
+            <div class="status-sub" id="statusSub">0 targets · 0 piles</div>
+          </div>
+        </div>
+        <button class="ex-nav-btn" id="btnNextEx" type="button" aria-label="Next example" disabled>›</button>
+      </div>
+      <div class="topbar-actions">
+        <button class="mini-btn primary" id="btnUpload" type="button" disabled>
+          <span class="conn-dot" id="connDot"></span>
+          Upload
+        </button>
+        <button class="mini-btn" id="btnExport" type="button" disabled>Export .zip</button>
+      </div>
+    </header>
+
+    <!-- Main Stage -->
+    <main class="stage">
+      <div class="prompt-banner" id="promptBanner">
+        <strong id="promptTitle">Step 1: Take Example</strong>
+        <span class="prompt-hint" id="promptHint">Snap 1 target brick</span>
+      </div>
+
+      <div class="photo-wrap" id="photoWrap">
+        <div class="empty-state" id="emptyState">
+          <h2>LEGO Lens Field Capture</h2>
+          <p>
+            1. Tap <strong>+ Target</strong> to photograph one brick (tap again to add angles).<br />
+            2. Tap <strong>+ Pile</strong> and tap every matching brick with a pink dot.<br />
+            3. Tap <strong>+ New Example (Next Brick)</strong> when moving to a new brick.
+          </p>
+        </div>
+        <img id="stageImg" alt="Active capture" style="display: none;" />
+        <div class="overlay-layer" id="overlayLayer"></div>
+        <div class="absent-ribbon" id="absentRibbon" style="display: none;">NONE IN THIS PILE (absent)</div>
+        <div class="zoom-controls" id="zoomControls">
+          <button class="zoom-btn" id="btnZoomOut" type="button" aria-label="Zoom out">−</button>
+          <button class="zoom-btn" id="btnZoomReset" type="button" aria-label="Reset zoom">1×</button>
+          <button class="zoom-btn" id="btnZoomIn" type="button" aria-label="Zoom in">+</button>
+        </div>
+      </div>
+
+      <!-- Example Angle Strip -->
+      <div class="angle-strip" id="angleStrip" style="display: none;"></div>
+
+      <!-- Pile Labeling Tools -->
+      <div class="label-tools" id="labelTools" style="display: none;">
+        <div class="tool-group">
+          <button class="tool-btn" id="btnUndo" type="button" disabled>↶ Undo</button>
+          <button class="tool-btn" id="btnRedo" type="button" disabled>↷ Redo</button>
+        </div>
+        <button class="tool-btn" id="btnAbsent" type="button">None in this pile</button>
+      </div>
+    </main>
+
+    <!-- Bottom Thumb Dock (3 clear actions) -->
+    <footer class="dock">
+      <div class="dock-row two">
+        <button class="thumb-btn accent-green" id="btnAddTarget" type="button">🎯 + Target</button>
+        <button class="thumb-btn accent-pink" id="btnAddPile" type="button" disabled>🧩 + Pile</button>
+      </div>
+      <div class="dock-row">
+        <button class="thumb-btn accent-blue" id="btnNewExample" type="button" disabled>＋ New Example (Next Brick)</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Native iPhone Camera File Inputs -->
+  <input class="hidden-input" id="inputExample" type="file" accept="image/*" capture="environment" />
+  <input class="hidden-input" id="inputPile" type="file" accept="image/*" capture="environment" />
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Dataset & Settings Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h3>Dataset &amp; Upload Settings</h3>
+        <button class="mini-btn" id="btnCloseModal" type="button">Done</button>
+      </div>
+      <div class="modal-body">
+        <div class="field-row">
+          <label for="uploadUrlInput">Upload Endpoint (POST .zip)</label>
+          <input id="uploadUrlInput" type="url" placeholder="/api/import_dataset" />
+        </div>
+        <div class="field-row" id="activeExampleMetaBox" style="display: none;">
+          <label for="exampleNotesInput">Active Example Notes / Part ID (optional)</label>
+          <input id="exampleNotesInput" type="text" placeholder="e.g. 3022 bright red 2x2 plate" />
+        </div>
+        <div class="dataset-list" id="datasetList"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 6px;">
+          <span id="storageStats" style="font-size: 12px; color: var(--muted);"></span>
+          <button class="danger-btn" id="btnClearAll" type="button">Clear All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const MAX_SIDE = 1600;
+      const JPEG_QUALITY = 0.88;
+      const DOT_HIT_RADIUS_PX = 16;
+      const MIN_ZOOM = 1;
+      const MAX_ZOOM = 6;
+      const TAP_MOVE_THRESHOLD_PX = 8;
+      const DB_NAME = 'lego_lens_capture_v1';
+      const DB_VERSION = 1;
+
+      // Zoom/pan state for active photo (resets when switching image)
+      const view = {
+        scale: 1,
+        tx: 0,
+        ty: 0,
+        lastImgSrc: '',
+      };
+
+      // In-memory state mirrored to IndexedDB
+      const state = {
+        examples: [],       // [{ example_id, images: [{ id, path, blob, width, height, click_xy }], part_id, notes }]
+        piles: [],          // [{ pile_id, example_id, image, blob, width, height, absent, points: [[x,y]], ts }]
+        nextExampleNum: 1,
+        nextPileNum: 1,
+        activeExampleId: null,
+        activeAngleIdx: 0,
+        activePileId: null, // currently open pile in labeler (already saved in state.piles + IDB)
+        mode: 'empty',      // 'empty' | 'example' | 'pile'
+        undoStack: [],      // snapshots of { points, absent } for active pile
+        redoStack: [],
+        uploadUrl: localStorage.getItem('lego_lens_upload_url') || '/api/import_dataset',
+        captureMode: 'new_example', // 'new_example' | 'add_angle'
+        pendingSaves: new Set(),
+      };
+
+      // Object URL cache to avoid leaks
+      const urlCache = new WeakMap();
+      function getBlobUrl(blob) {
+        if (!blob) return '';
+        let url = urlCache.get(blob);
+        if (!url) {
+          url = URL.createObjectURL(blob);
+          urlCache.set(blob, url);
+        }
+        return url;
+      }
+
+      // DOM refs
+      const $ = (id) => document.getElementById(id);
+      const btnPrevEx = $('btnPrevEx');
+      const btnNextEx = $('btnNextEx');
+      const statusPill = $('statusPill');
+      const statusThumb = $('statusThumb');
+      const statusTitle = $('statusTitle');
+      const statusSub = $('statusSub');
+      const connDot = $('connDot');
+      const btnUpload = $('btnUpload');
+      const btnExport = $('btnExport');
+      const promptTitle = $('promptTitle');
+      const promptHint = $('promptHint');
+      const photoWrap = $('photoWrap');
+      const emptyState = $('emptyState');
+      const stageImg = $('stageImg');
+      const overlayLayer = $('overlayLayer');
+      const absentRibbon = $('absentRibbon');
+      const zoomControls = $('zoomControls');
+      const btnZoomOut = $('btnZoomOut');
+      const btnZoomReset = $('btnZoomReset');
+      const btnZoomIn = $('btnZoomIn');
+      const angleStrip = $('angleStrip');
+      const labelTools = $('labelTools');
+      const btnUndo = $('btnUndo');
+      const btnRedo = $('btnRedo');
+      const btnAbsent = $('btnAbsent');
+      const btnAddTarget = $('btnAddTarget');
+      const btnAddPile = $('btnAddPile');
+      const btnNewExample = $('btnNewExample');
+      const inputExample = $('inputExample');
+      const inputPile = $('inputPile');
+      const toastEl = $('toast');
+      const modalBackdrop = $('modalBackdrop');
+      const btnCloseModal = $('btnCloseModal');
+      const uploadUrlInput = $('uploadUrlInput');
+      const activeExampleMetaBox = $('activeExampleMetaBox');
+      const exampleNotesInput = $('exampleNotesInput');
+      const datasetList = $('datasetList');
+      const storageStats = $('storageStats');
+      const btnClearAll = $('btnClearAll');
+
+      let toastTimer = null;
+      function showToast(msg, ms = 2400) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
+      }
+
+      function pad3(n) {
+        return String(n).padStart(3, '0');
+      }
+
+      function getActiveExample() {
+        return state.examples.find((e) => e.example_id === state.activeExampleId) || null;
+      }
+
+      function getActivePile() {
+        return state.piles.find((p) => p.pile_id === state.activePileId) || null;
+      }
+
+      // ============================================================
+      // IndexedDB Layer
+      // ============================================================
+      let dbPromise = null;
+      function openDB() {
+        if (dbPromise) return dbPromise;
+        dbPromise = new Promise((resolve, reject) => {
+          const req = indexedDB.open(DB_NAME, DB_VERSION);
+          req.onupgradeneeded = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains('examples')) {
+              db.createObjectStore('examples', { keyPath: 'example_id' });
+            }
+            if (!db.objectStoreNames.contains('piles')) {
+              db.createObjectStore('piles', { keyPath: 'pile_id' });
+            }
+            if (!db.objectStoreNames.contains('meta')) {
+              db.createObjectStore('meta', { keyPath: 'key' });
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+        return dbPromise;
+      }
+
+      function trackSave(promise) {
+        state.pendingSaves.add(promise);
+        promise.finally(() => state.pendingSaves.delete(promise));
+        return promise;
+      }
+
+      async function flushSaves() {
+        while (state.pendingSaves.size > 0) {
+          await Promise.allSettled(Array.from(state.pendingSaves));
+        }
+      }
+
+      function toUint8Array(val) {
+        if (val instanceof Uint8Array) return val;
+        if (val instanceof ArrayBuffer) return new Uint8Array(val);
+        if (ArrayBuffer.isView(val)) return new Uint8Array(val.buffer, val.byteOffset, val.byteLength);
+        return null;
+      }
+
+      function ensureBlob(item) {
+        if (!item) return null;
+        if (item.bytes) {
+          const u8 = toUint8Array(item.bytes);
+          if (u8) {
+            item.bytes = u8;
+            if (!item.blob) item.blob = new Blob([u8], { type: 'image/jpeg' });
+            return item.blob;
+          }
+        }
+        return item.blob || null;
+      }
+
+      async function readItemBytes(item) {
+        const existing = item && toUint8Array(item.bytes);
+        if (existing && existing.length > 0) return existing;
+        if (item && item.blob) {
+          try {
+            const buf = await item.blob.arrayBuffer();
+            const u8 = new Uint8Array(buf);
+            item.bytes = u8;
+            return u8;
+          } catch {
+            // Fallback via FileReader for older iOS Safari builds
+            const buf = await new Promise((resolve, reject) => {
+              const fr = new FileReader();
+              fr.onload = () => resolve(fr.result);
+              fr.onerror = () => reject(fr.error || new Error('FileReader failed'));
+              fr.readAsArrayBuffer(item.blob);
+            });
+            const u8 = new Uint8Array(buf);
+            item.bytes = u8;
+            return u8;
+          }
+        }
+        throw new Error('Missing image bytes');
+      }
+
+      function stripBlobsForDB(storeName, value) {
+        // Store raw Uint8Array bytes in IndexedDB (avoids iOS Safari Blob NotFoundError across reloads)
+        if (storeName === 'examples') {
+          return {
+            example_id: value.example_id,
+            part_id: value.part_id || null,
+            notes: value.notes || '',
+            images: value.images.map((img) => ({
+              path: img.path,
+              bytes: img.bytes || null,
+              blob: img.bytes ? undefined : img.blob,
+              width: img.width,
+              height: img.height,
+              click_xy: img.click_xy || null,
+            })),
+          };
+        }
+        if (storeName === 'piles') {
+          return {
+            pile_id: value.pile_id,
+            example_id: value.example_id,
+            image: value.image,
+            bytes: value.bytes || null,
+            blob: value.bytes ? undefined : value.blob,
+            width: value.width,
+            height: value.height,
+            absent: Boolean(value.absent),
+            points: value.points.map((pt) => [pt[0], pt[1]]),
+            ts: value.ts,
+          };
+        }
+        return value;
+      }
+
+      function putRecord(storeName, value) {
+        const record = stripBlobsForDB(storeName, value);
+        return trackSave(
+          openDB().then((db) => new Promise((resolve, reject) => {
+            const tx = db.transaction(storeName, 'readwrite');
+            tx.objectStore(storeName).put(record);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+          }))
+        );
+      }
+
+      function saveMeta() {
+        return putRecord('meta', {
+          key: 'state',
+          nextExampleNum: state.nextExampleNum,
+          nextPileNum: state.nextPileNum,
+          activeExampleId: state.activeExampleId,
+          activeAngleIdx: state.activeAngleIdx,
+          activePileId: state.activePileId,
+          mode: state.mode,
+        });
+      }
+
+      async function loadAllFromDB() {
+        const db = await openDB();
+        const readAll = (storeName) => new Promise((resolve, reject) => {
+          const tx = db.transaction(storeName, 'readonly');
+          const req = tx.objectStore(storeName).getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
+
+        const [examples, piles, metaRows] = await Promise.all([
+          readAll('examples'),
+          readAll('piles'),
+          readAll('meta'),
+        ]);
+
+        examples.sort((a, b) => a.example_id.localeCompare(b.example_id));
+        piles.sort((a, b) => a.pile_id.localeCompare(b.pile_id));
+
+        // Rehydrate in-memory Blob wrappers from persisted Uint8Array bytes
+        for (const ex of examples) {
+          for (const img of ex.images || []) ensureBlob(img);
+        }
+        for (const p of piles) ensureBlob(p);
+
+        state.examples = examples;
+        state.piles = piles;
+
+        const meta = metaRows.find((r) => r.key === 'state');
+        if (meta) {
+          state.nextExampleNum = meta.nextExampleNum || (examples.length + 1);
+          state.nextPileNum = meta.nextPileNum || (piles.length + 1);
+          state.activeExampleId = meta.activeExampleId || (examples.length ? examples[examples.length - 1].example_id : null);
+          state.activeAngleIdx = meta.activeAngleIdx || 0;
+          state.activePileId = meta.activePileId || null;
+          state.mode = meta.mode || (state.activePileId ? 'pile' : state.activeExampleId ? 'example' : 'empty');
+        }
+
+        // Validate restored references
+        if (state.activeExampleId && !getActiveExample()) {
+          state.activeExampleId = examples.length ? examples[examples.length - 1].example_id : null;
+        }
+        if (state.activePileId && !getActivePile()) {
+          state.activePileId = null;
+        }
+        if (state.mode === 'pile' && !getActivePile()) {
+          state.mode = getActiveExample() ? 'example' : 'empty';
+        }
+        if (state.mode === 'example' && !getActiveExample()) {
+          state.mode = 'empty';
+        }
+      }
+
+      async function clearAllDB() {
+        const db = await openDB();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(['examples', 'piles', 'meta'], 'readwrite');
+          tx.objectStore('examples').clear();
+          tx.objectStore('piles').clear();
+          tx.objectStore('meta').clear();
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+        state.examples = [];
+        state.piles = [];
+        state.nextExampleNum = 1;
+        state.nextPileNum = 1;
+        state.activeExampleId = null;
+        state.activeAngleIdx = 0;
+        state.activePileId = null;
+        state.mode = 'empty';
+        state.undoStack = [];
+        state.redoStack = [];
+      }
+
+      // ============================================================
+      // Client-side Image Downscale (max_side=1600, JPEG 0.88)
+      // ============================================================
+      async function downscaleImageFile(file) {
+        let srcWidth, srcHeight, drawable, cleanup;
+
+        if (typeof createImageBitmap === 'function') {
+          try {
+            const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+            srcWidth = bitmap.width;
+            srcHeight = bitmap.height;
+            drawable = bitmap;
+            cleanup = () => bitmap.close();
+          } catch {
+            // Fallback to HTMLImageElement below
+          }
+        }
+
+        if (!drawable) {
+          const tempUrl = URL.createObjectURL(file);
+          const img = await new Promise((resolve, reject) => {
+            const el = new Image();
+            el.onload = () => resolve(el);
+            el.onerror = () => reject(new Error('Failed to decode image'));
+            el.src = tempUrl;
+          });
+          srcWidth = img.naturalWidth;
+          srcHeight = img.naturalHeight;
+          drawable = img;
+          cleanup = () => URL.revokeObjectURL(tempUrl);
+        }
+
+        const scale = Math.min(1, MAX_SIDE / Math.max(srcWidth, srcHeight));
+        const width = Math.max(1, Math.round(srcWidth * scale));
+        const height = Math.max(1, Math.round(srcHeight * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(drawable, 0, 0, width, height);
+        cleanup();
+
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob(
+            (b) => (b ? resolve(b) : reject(new Error('JPEG encode failed'))),
+            'image/jpeg',
+            JPEG_QUALITY
+          );
+        });
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+
+        return { bytes, blob, width, height };
+      }
+
+      // ============================================================
+      // Coordinate Mapping + Zoom/Pan (handles object-fit: contain)
+      // ============================================================
+      function getImageDisplayRect() {
+        const wrapRect = photoWrap.getBoundingClientRect();
+        const natW = stageImg.naturalWidth || 1;
+        const natH = stageImg.naturalHeight || 1;
+        const wrapRatio = wrapRect.width / wrapRect.height;
+        const imgRatio = natW / natH;
+
+        let dispW, dispH, offsetX, offsetY;
+        if (imgRatio > wrapRatio) {
+          dispW = wrapRect.width;
+          dispH = wrapRect.width / imgRatio;
+          offsetX = 0;
+          offsetY = (wrapRect.height - dispH) / 2;
+        } else {
+          dispH = wrapRect.height;
+          dispW = wrapRect.height * imgRatio;
+          offsetX = (wrapRect.width - dispW) / 2;
+          offsetY = 0;
+        }
+
+        return {
+          wrapRect,
+          offsetX,
+          offsetY,
+          dispW,
+          dispH,
+          natW,
+          natH,
+        };
+      }
+
+      function clampView() {
+        const r = getImageDisplayRect();
+        if (view.scale <= 1) {
+          view.scale = 1;
+          view.tx = 0;
+          view.ty = 0;
+          return;
+        }
+        const scaledW = r.dispW * view.scale;
+        const scaledH = r.dispH * view.scale;
+        // Keep zoomed image within stage bounds (or centered if smaller than stage)
+        if (scaledW <= r.wrapRect.width) {
+          view.tx = (r.wrapRect.width - scaledW) / 2 - r.offsetX * view.scale;
+        } else {
+          const minTx = r.wrapRect.width - (r.offsetX + r.dispW) * view.scale;
+          const maxTx = -r.offsetX * view.scale;
+          view.tx = Math.min(maxTx, Math.max(minTx, view.tx));
+        }
+        if (scaledH <= r.wrapRect.height) {
+          view.ty = (r.wrapRect.height - scaledH) / 2 - r.offsetY * view.scale;
+        } else {
+          const minTy = r.wrapRect.height - (r.offsetY + r.dispH) * view.scale;
+          const maxTy = -r.offsetY * view.scale;
+          view.ty = Math.min(maxTy, Math.max(minTy, view.ty));
+        }
+      }
+
+      function applyViewTransform() {
+        clampView();
+        stageImg.style.transform = `translate(${view.tx}px, ${view.ty}px) scale(${view.scale})`;
+        btnZoomReset.textContent = view.scale === 1 ? '1×' : `${view.scale.toFixed(1)}×`;
+        renderOverlays();
+      }
+
+      function resetView() {
+        view.scale = 1;
+        view.tx = 0;
+        view.ty = 0;
+        applyViewTransform();
+      }
+
+      function zoomAround(newScale, focalLocalX, focalLocalY) {
+        const clampedScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newScale));
+        const ux = (focalLocalX - view.tx) / view.scale;
+        const uy = (focalLocalY - view.ty) / view.scale;
+        view.scale = clampedScale;
+        view.tx = focalLocalX - ux * clampedScale;
+        view.ty = focalLocalY - uy * clampedScale;
+        applyViewTransform();
+      }
+
+      function clientToImageXY(clientX, clientY) {
+        const r = getImageDisplayRect();
+        const screenLocalX = clientX - r.wrapRect.left;
+        const screenLocalY = clientY - r.wrapRect.top;
+        const unzoomedX = (screenLocalX - view.tx) / view.scale;
+        const unzoomedY = (screenLocalY - view.ty) / view.scale;
+        const imgLocalX = unzoomedX - r.offsetX;
+        const imgLocalY = unzoomedY - r.offsetY;
+        if (imgLocalX < 0 || imgLocalY < 0 || imgLocalX > r.dispW || imgLocalY > r.dispH) {
+          return null;
+        }
+        return {
+          x: Math.round((imgLocalX / r.dispW) * r.natW),
+          y: Math.round((imgLocalY / r.dispH) * r.natH),
+          dispX: screenLocalX,
+          dispY: screenLocalY,
+        };
+      }
+
+      function imageToOverlayXY(ix, iy) {
+        const r = getImageDisplayRect();
+        const ux = r.offsetX + (ix / r.natW) * r.dispW;
+        const uy = r.offsetY + (iy / r.natH) * r.dispH;
+        return {
+          left: ux * view.scale + view.tx,
+          top: uy * view.scale + view.ty,
+        };
+      }
+
+      // ============================================================
+      // Active-Example Carousel (Target angles on left | Piles on right)
+      // + Top-Bar Example Switcher (Example 1, Example 2, ...)
+      // ============================================================
+      function getExampleSlides(exampleId) {
+        const ex = state.examples.find((e) => e.example_id === exampleId);
+        if (!ex) return [];
+        const slides = [];
+        ex.images.forEach((imgObj, idx) => {
+          slides.push({
+            kind: 'example',
+            example_id: ex.example_id,
+            angleIdx: idx,
+            blob: imgObj.blob,
+            click_xy: imgObj.click_xy,
+          });
+        });
+        const exPiles = state.piles.filter((p) => p.example_id === ex.example_id);
+        exPiles.forEach((p, idx) => {
+          slides.push({
+            kind: 'pile',
+            example_id: p.example_id,
+            pile_id: p.pile_id,
+            localPileNum: idx + 1,
+            blob: p.blob,
+            pointsCount: p.points.length,
+            absent: Boolean(p.absent),
+          });
+        });
+        return slides;
+      }
+
+      function getCurrentSlideIndex(slides) {
+        if (state.mode === 'example') {
+          return slides.findIndex(
+            (s) => s.kind === 'example' && s.example_id === state.activeExampleId && s.angleIdx === state.activeAngleIdx
+          );
+        }
+        if (state.mode === 'pile') {
+          return slides.findIndex(
+            (s) => s.kind === 'pile' && s.pile_id === state.activePileId
+          );
+        }
+        return -1;
+      }
+
+      function selectSlide(slide) {
+        if (!slide) return;
+        state.activeExampleId = slide.example_id;
+        state.undoStack = [];
+        state.redoStack = [];
+        if (slide.kind === 'example') {
+          state.mode = 'example';
+          state.activeAngleIdx = slide.angleIdx;
+          state.activePileId = null;
+        } else {
+          state.mode = 'pile';
+          state.activePileId = slide.pile_id;
+        }
+        saveMeta();
+        render();
+      }
+
+      function stepSlide(delta) {
+        const slides = getExampleSlides(state.activeExampleId);
+        if (slides.length <= 1) return false;
+        const cur = getCurrentSlideIndex(slides);
+        if (cur < 0) return false;
+        const nextIdx = cur + delta;
+        if (nextIdx < 0 || nextIdx >= slides.length) {
+          showToast(delta < 0 ? 'First image in this example' : 'Last image in this example', 1000);
+          return false;
+        }
+        selectSlide(slides[nextIdx]);
+        return true;
+      }
+
+      function switchExampleBy(delta) {
+        if (state.examples.length <= 1) return;
+        const curIdx = state.examples.findIndex((e) => e.example_id === state.activeExampleId);
+        const nextIdx = curIdx + delta;
+        if (nextIdx < 0 || nextIdx >= state.examples.length) return;
+        const targetEx = state.examples[nextIdx];
+        state.activeExampleId = targetEx.example_id;
+        state.activeAngleIdx = 0;
+        state.activePileId = null;
+        state.mode = targetEx.images.length ? 'example' : 'empty';
+        state.undoStack = [];
+        state.redoStack = [];
+        saveMeta();
+        render();
+        showToast(`Switched to Example ${nextIdx + 1} of ${state.examples.length}`, 1200);
+      }
+
+      btnPrevEx.addEventListener('click', () => switchExampleBy(-1));
+      btnNextEx.addEventListener('click', () => switchExampleBy(1));
+
+      // ============================================================
+      // Rendering
+      // ============================================================
+      function renderOverlays() {
+        overlayLayer.innerHTML = '';
+        if (stageImg.style.display === 'none' || !stageImg.naturalWidth) return;
+
+        if (state.mode === 'example') {
+          const ex = getActiveExample();
+          const imgObj = ex && ex.images[state.activeAngleIdx];
+          if (imgObj && imgObj.click_xy) {
+            const pos = imageToOverlayXY(imgObj.click_xy[0], imgObj.click_xy[1]);
+            const dot = document.createElement('div');
+            dot.className = 'target-dot';
+            dot.style.left = `${pos.left}px`;
+            dot.style.top = `${pos.top}px`;
+            overlayLayer.appendChild(dot);
+          }
+        } else if (state.mode === 'pile') {
+          const pile = getActivePile();
+          if (pile && pile.points.length) {
+            pile.points.forEach((pt, idx) => {
+              const pos = imageToOverlayXY(pt[0], pt[1]);
+              const dot = document.createElement('div');
+              dot.className = 'point-dot';
+              dot.style.left = `${pos.left}px`;
+              dot.style.top = `${pos.top}px`;
+              dot.textContent = String(idx + 1);
+              overlayLayer.appendChild(dot);
+            });
+          }
+        }
+      }
+
+      function renderFilmstrip() {
+        const slides = getExampleSlides(state.activeExampleId);
+        if (!slides.length) {
+          angleStrip.style.display = 'none';
+          return;
+        }
+        angleStrip.style.display = 'flex';
+        angleStrip.innerHTML = '';
+
+        const targetSlides = slides.filter((s) => s.kind === 'example');
+        const pileSlides = slides.filter((s) => s.kind === 'pile');
+
+        if (targetSlides.length) {
+          const lbl = document.createElement('span');
+          lbl.className = 'strip-group-label';
+          lbl.textContent = 'TARGET';
+          angleStrip.appendChild(lbl);
+
+          targetSlides.forEach((s) => {
+            const isActive =
+              state.mode === 'example' &&
+              state.activeExampleId === s.example_id &&
+              state.activeAngleIdx === s.angleIdx;
+            const div = document.createElement('div');
+            div.className = 'angle-thumb' + (isActive ? ' active' : '');
+            div.innerHTML = `
+              <img src="${getBlobUrl(s.blob)}" alt="Target angle ${s.angleIdx + 1}" />
+              <span class="top-tag">T${s.angleIdx + 1}</span>
+              ${s.click_xy ? '<span class="badge">✓</span>' : ''}
+            `;
+            div.addEventListener('click', () => selectSlide(s));
+            angleStrip.appendChild(div);
+            if (isActive) {
+              requestAnimationFrame(() => div.scrollIntoView({ inline: 'nearest', block: 'nearest' }));
+            }
+          });
+        }
+
+        if (targetSlides.length && pileSlides.length) {
+          const sep = document.createElement('div');
+          sep.className = 'strip-divider';
+          angleStrip.appendChild(sep);
+        }
+
+        if (pileSlides.length) {
+          const lbl = document.createElement('span');
+          lbl.className = 'strip-group-label';
+          lbl.textContent = 'PILES';
+          angleStrip.appendChild(lbl);
+
+          pileSlides.forEach((s) => {
+            const isActive = state.mode === 'pile' && state.activePileId === s.pile_id;
+            const badgeHtml = s.absent
+              ? '<span class="badge amber">∅</span>'
+              : s.pointsCount > 0
+                ? `<span class="badge pink">${s.pointsCount}</span>`
+                : '<span class="badge">0</span>';
+            const div = document.createElement('div');
+            div.className = 'angle-thumb' + (isActive ? ' active-pile' : '');
+            div.innerHTML = `
+              <img src="${getBlobUrl(s.blob)}" alt="Pile ${s.localPileNum}" />
+              <span class="top-tag">P${s.localPileNum}</span>
+              ${badgeHtml}
+            `;
+            div.addEventListener('click', () => selectSlide(s));
+            angleStrip.appendChild(div);
+            if (isActive) {
+              requestAnimationFrame(() => div.scrollIntoView({ inline: 'nearest', block: 'nearest' }));
+            }
+          });
+        }
+      }
+
+      function render() {
+        const ex = getActiveExample();
+        const pile = getActivePile();
+        const totalEx = state.examples.length;
+        const totalPiles = state.piles.length;
+        const hasAnyData = totalEx > 0 || totalPiles > 0;
+        const exIdx = ex ? state.examples.findIndex((e) => e.example_id === ex.example_id) : -1;
+
+        // Top status bar + Example switcher ‹ / ›
+        btnPrevEx.disabled = exIdx <= 0;
+        btnNextEx.disabled = exIdx < 0 || exIdx >= totalEx - 1;
+
+        if (ex && ex.images.length) {
+          const exPiles = state.piles.filter((p) => p.example_id === ex.example_id).length;
+          statusThumb.innerHTML = `<img src="${getBlobUrl(ex.images[0].blob)}" alt="${ex.example_id}" />`;
+          statusTitle.textContent = `Ex ${exIdx + 1} / ${totalEx}`;
+          statusSub.textContent = `${ex.images.length}T · ${exPiles}P`;
+        } else {
+          statusThumb.textContent = '🧱';
+          statusTitle.textContent = 'No Example';
+          statusSub.textContent = `0T · 0P`;
+        }
+
+        btnExport.disabled = !hasAnyData;
+        btnUpload.disabled = !hasAnyData;
+
+        // Dock button enable states
+        btnAddTarget.textContent = ex && ex.images.length ? '🎯 + Target Angle' : '🎯 + Target';
+        btnAddPile.disabled = !ex || !ex.images.length;
+        btnNewExample.disabled = !ex || !ex.images.length;
+
+        // Main stage
+        let nextSrc = '';
+        if (state.mode === 'example' && ex && ex.images[state.activeAngleIdx]) {
+          const imgObj = ex.images[state.activeAngleIdx];
+          emptyState.style.display = 'none';
+          stageImg.style.display = 'block';
+          zoomControls.style.display = 'flex';
+          absentRibbon.style.display = 'none';
+          labelTools.style.display = 'none';
+
+          nextSrc = getBlobUrl(imgObj.blob);
+          promptTitle.textContent = `Example ${ex.example_id} · Angle ${state.activeAngleIdx + 1}`;
+          promptHint.textContent = imgObj.click_xy
+            ? `Brick tapped [${imgObj.click_xy[0]}, ${imgObj.click_xy[1]}] · pinch to zoom · swipe L/R`
+            : 'Pinch to zoom · tap brick (optional) · swipe L/R';
+        } else if (state.mode === 'pile' && pile) {
+          emptyState.style.display = 'none';
+          stageImg.style.display = 'block';
+          zoomControls.style.display = 'flex';
+          labelTools.style.display = 'flex';
+          absentRibbon.style.display = pile.absent ? 'block' : 'none';
+
+          nextSrc = getBlobUrl(pile.blob);
+          promptTitle.textContent = `Label ${pile.pile_id} (${pile.example_id})`;
+          promptHint.textContent = pile.absent
+            ? 'Marked absent (0 in pile) · swipe L/R'
+            : `${pile.points.length} dot${pile.points.length === 1 ? '' : 's'} · pinch to zoom · swipe L/R`;
+
+          btnUndo.disabled = state.undoStack.length === 0;
+          btnRedo.disabled = state.redoStack.length === 0;
+          btnAbsent.classList.toggle('absent-active', Boolean(pile.absent));
+          btnAbsent.textContent = pile.absent ? '✓ None in this pile' : 'None in this pile';
+        } else {
+          emptyState.style.display = 'flex';
+          stageImg.style.display = 'none';
+          zoomControls.style.display = 'none';
+          absentRibbon.style.display = 'none';
+          labelTools.style.display = 'none';
+          promptTitle.textContent = 'Step 1: Take Example';
+          promptHint.textContent = 'Snap 1 target brick';
+        }
+
+        if (nextSrc && view.lastImgSrc !== nextSrc) {
+          view.lastImgSrc = nextSrc;
+          stageImg.src = nextSrc;
+          view.scale = 1;
+          view.tx = 0;
+          view.ty = 0;
+        }
+
+        renderFilmstrip();
+        applyViewTransform();
+      }
+
+      stageImg.addEventListener('load', applyViewTransform);
+      window.addEventListener('resize', applyViewTransform);
+
+      // Zoom button controls (stop propagation so photoWrap never sees them)
+      zoomControls.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+      btnZoomIn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const r = photoWrap.getBoundingClientRect();
+        zoomAround(view.scale * 1.6, r.width / 2, r.height / 2);
+      });
+      btnZoomOut.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const r = photoWrap.getBoundingClientRect();
+        zoomAround(view.scale / 1.6, r.width / 2, r.height / 2);
+      });
+      btnZoomReset.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        resetView();
+      });
+
+      // Wheel zoom for desktop convenience
+      photoWrap.addEventListener('wheel', (ev) => {
+        if (stageImg.style.display === 'none') return;
+        ev.preventDefault();
+        const r = photoWrap.getBoundingClientRect();
+        const factor = ev.deltaY < 0 ? 1.2 : 1 / 1.2;
+        zoomAround(view.scale * factor, ev.clientX - r.left, ev.clientY - r.top);
+      }, { passive: false });
+
+      // ============================================================
+      // Multi-Touch Pinch-Zoom, Pan, Swipe L/R, and Tap Handling
+      // ============================================================
+      const activePointers = new Map();
+      let gesture = {
+        multiTouch: false,
+        moved: false,
+        startX: 0,
+        startY: 0,
+        startTx: 0,
+        startTy: 0,
+        pinchStartDist: 0,
+        pinchStartScale: 1,
+        pinchMidX: 0,
+        pinchMidY: 0,
+        pinchStartImgU: 0,
+        pinchStartImgV: 0,
+      };
+
+      function handlePhotoTap(clientX, clientY) {
+        const hit = clientToImageXY(clientX, clientY);
+        if (!hit) return;
+
+        if (state.mode === 'example') {
+          const ex = getActiveExample();
+          const imgObj = ex && ex.images[state.activeAngleIdx];
+          if (!imgObj) return;
+
+          if (imgObj.click_xy) {
+            const existing = imageToOverlayXY(imgObj.click_xy[0], imgObj.click_xy[1]);
+            const dist = Math.hypot(existing.left - hit.dispX, existing.top - hit.dispY);
+            if (dist <= DOT_HIT_RADIUS_PX) {
+              imgObj.click_xy = null;
+              putRecord('examples', ex);
+              render();
+              return;
+            }
+          }
+          imgObj.click_xy = [hit.x, hit.y];
+          putRecord('examples', ex);
+          render();
+          return;
+        }
+
+        if (state.mode === 'pile') {
+          const pile = getActivePile();
+          if (!pile) return;
+
+          // Tighter screen-space hit radius (16px) so adjacent bricks don't cancel each other when zoomed in
+          let removeIdx = -1;
+          let bestDist = Infinity;
+          for (let i = 0; i < pile.points.length; i++) {
+            const pOverlay = imageToOverlayXY(pile.points[i][0], pile.points[i][1]);
+            const dist = Math.hypot(pOverlay.left - hit.dispX, pOverlay.top - hit.dispY);
+            if (dist <= DOT_HIT_RADIUS_PX && dist < bestDist) {
+              bestDist = dist;
+              removeIdx = i;
+            }
+          }
+
+          pushPileUndo(pile);
+          if (removeIdx >= 0) {
+            pile.points.splice(removeIdx, 1);
+          } else {
+            pile.absent = false;
+            pile.points.push([hit.x, hit.y]);
+          }
+          pile.ts = Date.now();
+          putRecord('piles', pile);
+          render();
+        }
+      }
+
+      photoWrap.addEventListener('pointerdown', (ev) => {
+        if (ev.button !== 0 && ev.pointerType === 'mouse') return;
+        if (stageImg.style.display === 'none') return;
+        if (ev.target && ev.target.closest && ev.target.closest('#zoomControls')) return;
+
+        try { photoWrap.setPointerCapture(ev.pointerId); } catch {}
+        activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+
+        if (activePointers.size === 1) {
+          gesture.multiTouch = false;
+          gesture.moved = false;
+          gesture.startX = ev.clientX;
+          gesture.startY = ev.clientY;
+          gesture.startTx = view.tx;
+          gesture.startTy = view.ty;
+        } else if (activePointers.size === 2) {
+          gesture.multiTouch = true;
+          gesture.moved = true;
+          const pts = Array.from(activePointers.values());
+          const r = photoWrap.getBoundingClientRect();
+          const midX = (pts[0].x + pts[1].x) / 2 - r.left;
+          const midY = (pts[0].y + pts[1].y) / 2 - r.top;
+          gesture.pinchStartDist = Math.max(1, Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y));
+          gesture.pinchStartScale = view.scale;
+          gesture.pinchStartImgU = (midX - view.tx) / view.scale;
+          gesture.pinchStartImgV = (midY - view.ty) / view.scale;
+        }
+      });
+
+      photoWrap.addEventListener('pointermove', (ev) => {
+        if (!activePointers.has(ev.pointerId)) return;
+        activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+
+        if (activePointers.size >= 2) {
+          const pts = Array.from(activePointers.values());
+          const r = photoWrap.getBoundingClientRect();
+          const dist = Math.max(1, Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y));
+          const midX = (pts[0].x + pts[1].x) / 2 - r.left;
+          const midY = (pts[0].y + pts[1].y) / 2 - r.top;
+          const nextScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, gesture.pinchStartScale * (dist / gesture.pinchStartDist)));
+          view.scale = nextScale;
+          view.tx = midX - gesture.pinchStartImgU * nextScale;
+          view.ty = midY - gesture.pinchStartImgV * nextScale;
+          applyViewTransform();
+          return;
+        }
+
+        if (activePointers.size === 1 && !gesture.multiTouch) {
+          const dx = ev.clientX - gesture.startX;
+          const dy = ev.clientY - gesture.startY;
+          if (Math.hypot(dx, dy) >= TAP_MOVE_THRESHOLD_PX) {
+            gesture.moved = true;
+          }
+          if (view.scale > 1 && gesture.moved) {
+            view.tx = gesture.startTx + dx;
+            view.ty = gesture.startTy + dy;
+            applyViewTransform();
+          }
+        }
+      });
+
+      function onPointerEnd(ev) {
+        if (!activePointers.has(ev.pointerId)) return;
+        activePointers.delete(ev.pointerId);
+
+        if (activePointers.size === 1) {
+          // Transitioning from 2-finger pinch back to 1 finger: re-anchor pan so it doesn't jump
+          const remaining = Array.from(activePointers.values())[0];
+          gesture.startX = remaining.x;
+          gesture.startY = remaining.y;
+          gesture.startTx = view.tx;
+          gesture.startTy = view.ty;
+          return;
+        }
+
+        if (activePointers.size === 0 && !gesture.multiTouch) {
+          const dx = ev.clientX - gesture.startX;
+          const dy = ev.clientY - gesture.startY;
+          if (!gesture.moved) {
+            handlePhotoTap(ev.clientX, ev.clientY);
+          } else if (view.scale <= 1 && Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.35) {
+            // Swipe left -> next image (towards piles on right); swipe right -> previous (towards examples on left)
+            stepSlide(dx < 0 ? 1 : -1);
+          }
+        }
+      }
+
+      photoWrap.addEventListener('pointerup', onPointerEnd);
+      photoWrap.addEventListener('pointercancel', onPointerEnd);
+
+      function pushPileUndo(pile) {
+        state.undoStack.push({
+          points: pile.points.map((pt) => [pt[0], pt[1]]),
+          absent: Boolean(pile.absent),
+        });
+        if (state.undoStack.length > 80) state.undoStack.shift();
+        state.redoStack = [];
+      }
+
+      btnUndo.addEventListener('click', () => {
+        const pile = getActivePile();
+        if (!pile || !state.undoStack.length) return;
+        state.redoStack.push({
+          points: pile.points.map((pt) => [pt[0], pt[1]]),
+          absent: Boolean(pile.absent),
+        });
+        const prev = state.undoStack.pop();
+        pile.points = prev.points;
+        pile.absent = prev.absent;
+        pile.ts = Date.now();
+        putRecord('piles', pile);
+        render();
+      });
+
+      btnRedo.addEventListener('click', () => {
+        const pile = getActivePile();
+        if (!pile || !state.redoStack.length) return;
+        state.undoStack.push({
+          points: pile.points.map((pt) => [pt[0], pt[1]]),
+          absent: Boolean(pile.absent),
+        });
+        const next = state.redoStack.pop();
+        pile.points = next.points;
+        pile.absent = next.absent;
+        pile.ts = Date.now();
+        putRecord('piles', pile);
+        render();
+      });
+
+      btnAbsent.addEventListener('click', () => {
+        const pile = getActivePile();
+        if (!pile) return;
+        pushPileUndo(pile);
+        pile.absent = !pile.absent;
+        if (pile.absent) {
+          pile.points = [];
+        }
+        pile.ts = Date.now();
+        putRecord('piles', pile);
+        render();
+      });
+
+      // ============================================================
+      // Bottom Dock Actions (Synchronous camera triggers for iOS Safari)
+      // ============================================================
+      function triggerTakeExample(mode) {
+        state.captureMode = mode; // 'new_example' or 'add_angle'
+        inputExample.value = '';
+        inputExample.click();
+      }
+
+      btnAddTarget.addEventListener('click', () => {
+        // First snap creates Ex 1; subsequent taps add another target angle to the active Example
+        const ex = getActiveExample();
+        triggerTakeExample(ex ? 'add_angle' : 'new_example');
+      });
+
+      btnAddPile.addEventListener('click', () => {
+        if (!getActiveExample()) return;
+        const pile = getActivePile();
+        if (pile) {
+          putRecord('piles', pile);
+        }
+        inputPile.value = '';
+        inputPile.click();
+      });
+
+      btnNewExample.addEventListener('click', () => {
+        const pile = getActivePile();
+        if (pile) {
+          putRecord('piles', pile);
+        }
+        state.activePileId = null;
+        state.undoStack = [];
+        state.redoStack = [];
+        triggerTakeExample('new_example');
+      });
+
+      // Handle Example Photo Capture
+      inputExample.addEventListener('change', async () => {
+        const file = inputExample.files && inputExample.files[0];
+        inputExample.value = '';
+        if (!file) return;
+
+        try {
+          const { bytes, blob, width, height } = await downscaleImageFile(file);
+          let ex = state.captureMode === 'add_angle' ? getActiveExample() : null;
+
+          if (!ex) {
+            const exampleId = `ex_${pad3(state.nextExampleNum++)}`;
+            ex = {
+              example_id: exampleId,
+              images: [],
+              part_id: null,
+              notes: '',
+            };
+            state.examples.push(ex);
+            state.activeExampleId = exampleId;
+          }
+
+          const angleIdx = ex.images.length;
+          const imgPath = `examples/${ex.example_id}_${angleIdx}.jpg`;
+          ex.images.push({
+            path: imgPath,
+            bytes,
+            blob,
+            width,
+            height,
+            click_xy: null,
+          });
+
+          state.activeAngleIdx = angleIdx;
+          state.activePileId = null;
+          state.mode = 'example';
+          state.undoStack = [];
+          state.redoStack = [];
+
+          putRecord('examples', ex);
+          saveMeta();
+          render();
+          showToast(
+            angleIdx === 0
+              ? `Saved ${ex.example_id} (${width}×${height})`
+              : `Added angle #${angleIdx + 1} to ${ex.example_id}`
+          );
+        } catch (err) {
+          console.error(err);
+          showToast(`Photo error: ${err.message}`, 3500);
+        }
+      });
+
+      // Handle Pile Photo Capture (0ms wait — no GPU call)
+      inputPile.addEventListener('change', async () => {
+        const file = inputPile.files && inputPile.files[0];
+        inputPile.value = '';
+        const ex = getActiveExample();
+        if (!file || !ex) return;
+
+        try {
+          const { bytes, blob, width, height } = await downscaleImageFile(file);
+          const pileId = `pile_${pad3(state.nextPileNum++)}`;
+          const pile = {
+            pile_id: pileId,
+            example_id: ex.example_id,
+            image: `piles/${pileId}.jpg`,
+            bytes,
+            blob,
+            width,
+            height,
+            absent: false,
+            points: [],
+            ts: Date.now(),
+          };
+
+          state.piles.push(pile);
+          state.activePileId = pileId;
+          state.mode = 'pile';
+          state.undoStack = [];
+          state.redoStack = [];
+
+          putRecord('piles', pile);
+          saveMeta();
+          render();
+          showToast(`Captured ${pileId} — tap every matching brick`);
+        } catch (err) {
+          console.error(err);
+          showToast(`Pile capture error: ${err.message}`, 3500);
+        }
+      });
+
+      // ============================================================
+      // Zero-Dependency Store-Mode ZIP Builder (CRC32 + ZIP32)
+      // ============================================================
+      const CRC_TABLE = (() => {
+        const table = new Uint32Array(256);
+        for (let i = 0; i < 256; i++) {
+          let c = i;
+          for (let j = 0; j < 8; j++) {
+            c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+          }
+          table[i] = c >>> 0;
+        }
+        return table;
+      })();
+
+      function crc32(bytes) {
+        let c = 0xffffffff;
+        for (let i = 0; i < bytes.length; i++) {
+          c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+        }
+        return (c ^ 0xffffffff) >>> 0;
+      }
+
+      function buildStoreZip(entries) {
+        // entries: [{ name: string, data: Uint8Array }]
+        const encoder = new TextEncoder();
+        const now = new Date();
+        const dosTime = ((now.getHours() & 0x1f) << 11) | ((now.getMinutes() & 0x3f) << 5) | ((now.getSeconds() >> 1) & 0x1f);
+        const dosDate = (((Math.max(1980, now.getFullYear()) - 1980) & 0x7f) << 9) | (((now.getMonth() + 1) & 0x0f) << 5) | (now.getDate() & 0x1f);
+
+        const localParts = [];
+        const centralParts = [];
+        let offset = 0;
+
+        for (const entry of entries) {
+          const nameBytes = encoder.encode(entry.name);
+          const data = entry.data;
+          const crc = crc32(data);
+          const size = data.length;
+
+          // Local file header (30 bytes + name)
+          const lfh = new Uint8Array(30 + nameBytes.length);
+          const lv = new DataView(lfh.buffer);
+          lv.setUint32(0, 0x04034b50, true); // signature
+          lv.setUint16(4, 20, true);         // version needed
+          lv.setUint16(6, 0x0800, true);     // UTF-8 flag
+          lv.setUint16(8, 0, true);          // method 0 = store
+          lv.setUint16(10, dosTime, true);
+          lv.setUint16(12, dosDate, true);
+          lv.setUint32(14, crc, true);
+          lv.setUint32(18, size, true);
+          lv.setUint32(22, size, true);
+          lv.setUint16(26, nameBytes.length, true);
+          lv.setUint16(28, 0, true);
+          lfh.set(nameBytes, 30);
+
+          localParts.push(lfh, data);
+
+          // Central directory header (46 bytes + name)
+          const cdh = new Uint8Array(46 + nameBytes.length);
+          const cv = new DataView(cdh.buffer);
+          cv.setUint32(0, 0x02014b50, true); // signature
+          cv.setUint16(4, 20, true);         // version made by
+          cv.setUint16(6, 20, true);         // version needed
+          cv.setUint16(8, 0x0800, true);     // UTF-8 flag
+          cv.setUint16(10, 0, true);         // method 0 = store
+          cv.setUint16(12, dosTime, true);
+          cv.setUint16(14, dosDate, true);
+          cv.setUint32(16, crc, true);
+          cv.setUint32(20, size, true);
+          cv.setUint32(24, size, true);
+          cv.setUint16(28, nameBytes.length, true);
+          cv.setUint16(30, 0, true);
+          cv.setUint16(32, 0, true);
+          cv.setUint16(34, 0, true);
+          cv.setUint16(36, 0, true);
+          cv.setUint32(38, 0, true);
+          cv.setUint32(42, offset, true);
+          cdh.set(nameBytes, 46);
+
+          centralParts.push(cdh);
+          offset += lfh.length + size;
+        }
+
+        const cdStart = offset;
+        let cdSize = 0;
+        for (const p of centralParts) cdSize += p.length;
+
+        const eocd = new Uint8Array(22);
+        const ev = new DataView(eocd.buffer);
+        ev.setUint32(0, 0x06054b50, true);
+        ev.setUint16(4, 0, true);
+        ev.setUint16(6, 0, true);
+        ev.setUint16(8, entries.length, true);
+        ev.setUint16(10, entries.length, true);
+        ev.setUint32(12, cdSize, true);
+        ev.setUint32(16, cdStart, true);
+        ev.setUint16(20, 0, true);
+
+        return new Blob([...localParts, ...centralParts, eocd], { type: 'application/zip' });
+      }
+
+      function detectDeviceName() {
+        const ua = navigator.userAgent || '';
+        if (/iPhone/i.test(ua)) return 'iPhone Safari';
+        if (/iPad/i.test(ua)) return 'iPad Safari';
+        if (/Android/i.test(ua)) return 'Android Browser';
+        return 'Desktop Browser';
+      }
+
+      function formatTimestampForFilename(date = new Date()) {
+        const p2 = (n) => String(n).padStart(2, '0');
+        return `${date.getFullYear()}${p2(date.getMonth() + 1)}${p2(date.getDate())}_${p2(date.getHours())}${p2(date.getMinutes())}${p2(date.getSeconds())}`;
+      }
+
+      async function buildDatasetZip() {
+        await flushSaves();
+        const manifest = {
+          schema_version: 1,
+          created_at: new Date().toISOString(),
+          device: detectDeviceName(),
+          examples: state.examples.map((ex) => ({
+            example_id: ex.example_id,
+            images: ex.images.map((img) => ({
+              path: img.path,
+              width: img.width,
+              height: img.height,
+              click_xy: img.click_xy || null,
+            })),
+            part_id: ex.part_id || null,
+            notes: ex.notes || '',
+          })),
+          piles: state.piles.map((p) => ({
+            pile_id: p.pile_id,
+            example_id: p.example_id,
+            image: p.image,
+            width: p.width,
+            height: p.height,
+            absent: Boolean(p.absent),
+            points: p.points.map((pt) => [pt[0], pt[1]]),
+            ts: p.ts,
+          })),
+        };
+
+        const entries = [
+          {
+            name: 'manifest.json',
+            data: new TextEncoder().encode(JSON.stringify(manifest, null, 2)),
+          },
+        ];
+
+        for (const ex of state.examples) {
+          for (const img of ex.images) {
+            const data = await readItemBytes(img);
+            entries.push({ name: img.path, data });
+          }
+        }
+
+        for (const p of state.piles) {
+          const data = await readItemBytes(p);
+          entries.push({ name: p.image, data });
+        }
+
+        const filename = `lego_lens_dataset_${formatTimestampForFilename()}.zip`;
+        const zipBlob = buildStoreZip(entries);
+        return { zipBlob, filename, manifest };
+      }
+
+      // Export .zip
+      btnExport.addEventListener('click', async () => {
+        btnExport.disabled = true;
+        try {
+          const { zipBlob, filename } = await buildDatasetZip();
+          const url = URL.createObjectURL(zipBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+          showToast(`Exported ${filename} (${(zipBlob.size / 1024).toFixed(0)} KB)`);
+        } catch (err) {
+          console.error(err);
+          showToast(`Export failed: ${err.message}`, 3500);
+        } finally {
+          render();
+        }
+      });
+
+      // Upload to Piglab (raw application/zip avoids iOS Safari FormData "Load failed" bug)
+      btnUpload.addEventListener('click', async () => {
+        btnUpload.disabled = true;
+        showToast('Building & uploading dataset...', 10000);
+        try {
+          const { zipBlob, filename } = await buildDatasetZip();
+          const zipBytes = await zipBlob.arrayBuffer();
+
+          const resp = await fetch(state.uploadUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/zip',
+              'X-Dataset-Filename': filename,
+            },
+            body: zipBytes,
+          });
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok || data.ok === false) {
+            throw new Error(data.error || `HTTP ${resp.status}`);
+          }
+          const syncNote = data.piglab_synced ? ' + synced to Piglab' : ' (saved on MacBook)';
+          showToast(`Uploaded ${data.dataset_name || filename}${syncNote}`, 3500);
+        } catch (err) {
+          console.error(err);
+          showToast(`Upload failed: ${err && err.message ? err.message : String(err)} (use Export .zip)`, 5000);
+        } finally {
+          render();
+        }
+      });
+
+      // Connectivity ping
+      async function checkPing() {
+        try {
+          const pingUrl = state.uploadUrl.replace(/\/api\/import_dataset\/?$/, '/api/ping');
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 3000);
+          const resp = await fetch(pingUrl, { signal: ctrl.signal });
+          clearTimeout(timer);
+          if (resp.ok) {
+            const json = await resp.json().catch(() => ({}));
+            if (json.ok) {
+              connDot.className = 'conn-dot online';
+              btnUpload.classList.add('primary');
+              btnExport.classList.remove('primary');
+              return;
+            }
+          }
+          connDot.className = 'conn-dot offline';
+          btnUpload.classList.remove('primary');
+          btnExport.classList.add('primary');
+        } catch {
+          connDot.className = 'conn-dot offline';
+          btnUpload.classList.remove('primary');
+          btnExport.classList.add('primary');
+        }
+      }
+
+      // ============================================================
+      // Dataset Summary & Settings Modal
+      // ============================================================
+      function openModal() {
+        uploadUrlInput.value = state.uploadUrl;
+        const activeEx = getActiveExample();
+        if (activeEx) {
+          activeExampleMetaBox.style.display = 'flex';
+          exampleNotesInput.value = activeEx.notes || '';
+        } else {
+          activeExampleMetaBox.style.display = 'none';
+        }
+
+        datasetList.innerHTML = '';
+        if (!state.examples.length) {
+          datasetList.innerHTML = '<div style="font-size:13px;color:var(--muted);">No captures yet.</div>';
+        } else {
+          state.examples.forEach((ex) => {
+            const exPiles = state.piles.filter((p) => p.example_id === ex.example_id);
+            const totalDots = exPiles.reduce((sum, p) => sum + p.points.length, 0);
+            const card = document.createElement('div');
+            card.className = 'dataset-card' + (ex.example_id === state.activeExampleId ? ' active-card' : '');
+            const thumb = ex.images[0] ? `<img src="${getBlobUrl(ex.images[0].blob)}" alt="${ex.example_id}" />` : '';
+            card.innerHTML = `
+              <div class="dataset-card-left">
+                ${thumb}
+                <div class="status-text">
+                  <div class="status-title">${ex.example_id}${ex.notes ? ' · ' + ex.notes : ''}</div>
+                  <div class="status-sub">${ex.images.length} angles · ${exPiles.length} piles · ${totalDots} dots</div>
+                </div>
+              </div>
+              <button class="mini-btn" type="button">Select</button>
+            `;
+            card.querySelector('button').addEventListener('click', () => {
+              state.activeExampleId = ex.example_id;
+              state.activeAngleIdx = 0;
+              state.activePileId = null;
+              state.mode = 'example';
+              saveMeta();
+              closeModal();
+              render();
+            });
+            datasetList.appendChild(card);
+          });
+        }
+
+        let totalBytes = 0;
+        for (const ex of state.examples) for (const img of ex.images) totalBytes += (img.bytes ? img.bytes.byteLength : (img.blob ? img.blob.size : 0));
+        for (const p of state.piles) totalBytes += (p.bytes ? p.bytes.byteLength : (p.blob ? p.blob.size : 0));
+        storageStats.textContent = `${state.examples.length} examples · ${state.piles.length} piles · ${(totalBytes / (1024 * 1024)).toFixed(2)} MB`;
+
+        modalBackdrop.classList.add('open');
+      }
+
+      function closeModal() {
+        const nextUrl = uploadUrlInput.value.trim() || '/api/import_dataset';
+        if (nextUrl !== state.uploadUrl) {
+          state.uploadUrl = nextUrl;
+          localStorage.setItem('lego_lens_upload_url', nextUrl);
+          checkPing();
+        }
+        const activeEx = getActiveExample();
+        if (activeEx) {
+          activeEx.notes = exampleNotesInput.value.trim();
+          putRecord('examples', activeEx);
+        }
+        modalBackdrop.classList.remove('open');
+      }
+
+      statusPill.addEventListener('click', openModal);
+      btnCloseModal.addEventListener('click', closeModal);
+      modalBackdrop.addEventListener('click', (ev) => {
+        if (ev.target === modalBackdrop) closeModal();
+      });
+
+      btnClearAll.addEventListener('click', async () => {
+        if (!window.confirm('Delete all locally saved examples and piles from this browser?')) return;
+        await clearAllDB();
+        closeModal();
+        render();
+        showToast('Cleared all local captures');
+      });
+
+      // Init
+      (async () => {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+        }
+        try {
+          await loadAllFromDB();
+        } catch (err) {
+          console.error('IndexedDB load error:', err);
+          showToast('IndexedDB unavailable', 3000);
+        }
+        render();
+        checkPing();
+      })();
+    })();
+  </script>
+</body>
+</html>
